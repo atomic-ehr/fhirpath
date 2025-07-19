@@ -47,23 +47,23 @@ describe('FHIRPath Lexer - Literals', () => {
     
     it('should handle all escape types', () => {
       const tokens = lex("'\\`\\'\\\\\\/\\f\\n\\r\\t'");
-      expect(tokens[0].value).toBe("`'\\/\f\n\r\t");
+      expect(tokens[0]!.value).toBe("`'\\/\f\n\r\t");
     });
   });
   
   describe('Boolean literals', () => {
     it('should tokenize boolean values', () => {
       const tokens = lex('true false');
-      expect(tokens[0].type).toBe(TokenType.TRUE);
-      expect(tokens[1].type).toBe(TokenType.FALSE);
+      expect(tokens[0]!.type).toBe(TokenType.TRUE);
+      expect(tokens[1]!.type).toBe(TokenType.FALSE);
     });
   });
   
   describe('Null literal', () => {
     it('should tokenize null literal', () => {
       const tokens = lex('{}');
-      expect(tokens[0].type).toBe(TokenType.NULL);
-      expect(tokens[0].value).toBe('{}');
+      expect(tokens[0]!.type).toBe(TokenType.NULL);
+      expect(tokens[0]!.value).toBe('{}');
     });
   });
   
@@ -77,8 +77,8 @@ describe('FHIRPath Lexer - Literals', () => {
       
       dates.forEach(date => {
         const tokens = lex(date);
-        expect(tokens[0].type).toBe(TokenType.DATE);
-        expect(tokens[0].value).toBe(date);
+        expect(tokens[0]!.type).toBe(TokenType.DATE);
+        expect(tokens[0]!.value).toBe(date);
       });
     });
     
@@ -93,8 +93,8 @@ describe('FHIRPath Lexer - Literals', () => {
       
       datetimes.forEach(dt => {
         const tokens = lex(dt);
-        expect(tokens[0].type).toBe(TokenType.DATETIME);
-        expect(tokens[0].value).toBe(dt);
+        expect(tokens[0]!.type).toBe(TokenType.DATETIME);
+        expect(tokens[0]!.value).toBe(dt);
       });
     });
     
@@ -107,54 +107,54 @@ describe('FHIRPath Lexer - Literals', () => {
       
       times.forEach(time => {
         const tokens = lex(time);
-        expect(tokens[0].type).toBe(TokenType.TIME);
-        expect(tokens[0].value).toBe(time);
+        expect(tokens[0]!.type).toBe(TokenType.TIME);
+        expect(tokens[0]!.value).toBe(time);
       });
     });
     
     it('should handle edge case datetime formats', () => {
       // Year with time but no month/day
       const tokens1 = lex('@2024T10:30:00');
-      expect(tokens1[0].type).toBe(TokenType.DATETIME);
+      expect(tokens1[0]!.type).toBe(TokenType.DATETIME);
       
       // Month without day but with time
       const tokens2 = lex('@2024-01T10:30:00');
-      expect(tokens2[0].type).toBe(TokenType.DATETIME);
+      expect(tokens2[0]!.type).toBe(TokenType.DATETIME);
     });
   });
   
   describe('Special variables', () => {
     it('should tokenize special variables', () => {
       const tokens = lex('$this $index $total');
-      expect(tokens[0].type).toBe(TokenType.THIS);
-      expect(tokens[1].type).toBe(TokenType.INDEX);
-      expect(tokens[2].type).toBe(TokenType.TOTAL);
+      expect(tokens[0]!.type).toBe(TokenType.THIS);
+      expect(tokens[1]!.type).toBe(TokenType.INDEX);
+      expect(tokens[2]!.type).toBe(TokenType.TOTAL);
     });
   });
   
   describe('Environment variables', () => {
     it('should tokenize simple environment variables', () => {
       const tokens = lex('%context %resource');
-      expect(tokens[0].type).toBe(TokenType.ENV_VAR);
-      expect(tokens[0].value).toBe('context');
-      expect(tokens[1].type).toBe(TokenType.ENV_VAR);
-      expect(tokens[1].value).toBe('resource');
+      expect(tokens[0]!.type).toBe(TokenType.ENV_VAR);
+      expect(tokens[0]!.value).toBe('context');
+      expect(tokens[1]!.type).toBe(TokenType.ENV_VAR);
+      expect(tokens[1]!.value).toBe('resource');
     });
     
     it('should tokenize delimited environment variables', () => {
       const tokens = lex('%`vs-name` %`complex-name`');
-      expect(tokens[0].type).toBe(TokenType.ENV_VAR);
-      expect(tokens[0].value).toBe('vs-name');
-      expect(tokens[1].type).toBe(TokenType.ENV_VAR);
-      expect(tokens[1].value).toBe('complex-name');
+      expect(tokens[0]!.type).toBe(TokenType.ENV_VAR);
+      expect(tokens[0]!.value).toBe('vs-name');
+      expect(tokens[1]!.type).toBe(TokenType.ENV_VAR);
+      expect(tokens[1]!.value).toBe('complex-name');
     });
     
     it('should tokenize string environment variables', () => {
       const tokens = lex("%'string value' %'another'");
-      expect(tokens[0].type).toBe(TokenType.ENV_VAR);
-      expect(tokens[0].value).toBe('string value');
-      expect(tokens[1].type).toBe(TokenType.ENV_VAR);
-      expect(tokens[1].value).toBe('another');
+      expect(tokens[0]!.type).toBe(TokenType.ENV_VAR);
+      expect(tokens[0]!.value).toBe('string value');
+      expect(tokens[1]!.type).toBe(TokenType.ENV_VAR);
+      expect(tokens[1]!.value).toBe('another');
     });
   });
   
@@ -170,8 +170,8 @@ describe('FHIRPath Lexer - Literals', () => {
     
     it('should handle escapes in delimited identifiers', () => {
       const tokens = lex('`with\\nnewline` `with\\`backtick`');
-      expect(tokens[0].value).toBe('with\nnewline');
-      expect(tokens[1].value).toBe('with`backtick');
+      expect(tokens[0]!.value).toBe('with\nnewline');
+      expect(tokens[1]!.value).toBe('with`backtick');
     });
   });
   

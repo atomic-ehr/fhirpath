@@ -110,12 +110,12 @@ describe('FHIRPath Lexer - Error Cases', () => {
   it('should handle empty input', () => {
     const tokens = lex('');
     expect(tokens.length).toBe(1);
-    expect(tokens[0]!.type).toBe(TokenType.EOF);
+    expect(tokens[0]!!.type).toBe(TokenType.EOF);
   });
   
   it('should handle whitespace-only input', () => {
     const tokens = lex('   \n\t  ');
     expect(tokens.length).toBe(1);
-    expect(tokens[0]!.type).toBe(TokenType.EOF);
+    expect(tokens[0]!!.type).toBe(TokenType.EOF);
   });
 });

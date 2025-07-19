@@ -187,8 +187,8 @@ describe('FHIRPath Lexer - Complex Expressions', () => {
     const nonWhitespaceTokens = tokens.filter(t => t.value.trim() !== '');
     
     // Check the expression is tokenized correctly despite formatting
-    expect(nonWhitespaceTokens[0].value).toBe('Patient');
-    expect(nonWhitespaceTokens[1].type).toBe(TokenType.DOT);
-    expect(nonWhitespaceTokens[2].value).toBe('name');
+    expect(nonWhitespaceTokens[0]!!.value).toBe('Patient');
+    expect(nonWhitespaceTokens[1]!!.type).toBe(TokenType.DOT);
+    expect(nonWhitespaceTokens[2]!!.value).toBe('name');
   });
 });

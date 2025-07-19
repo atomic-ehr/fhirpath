@@ -80,7 +80,7 @@ describe('FHIRPath Lexer - Basic Tokens', () => {
   it('should track token positions', () => {
     const tokens = lex('true\nfalse');
     
-    expect(tokens[0].position).toEqual({ line: 1, column: 1, offset: 0 });
-    expect(tokens[1].position).toEqual({ line: 2, column: 1, offset: 5 });
+    expect(tokens[0]!!.position).toEqual({ line: 1, column: 1, offset: 0 });
+    expect(tokens[1]!!.position).toEqual({ line: 2, column: 1, offset: 5 });
   });
 });

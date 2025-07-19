@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'bun:test';
 import { FHIRPathLexer, lex } from '../../src/lexer/lexer';
+import { TokenType } from '../../src/lexer/token';
 
 describe('FHIRPath Lexer - Performance', () => {
   it('should handle large input efficiently', () => {
@@ -36,7 +37,7 @@ describe('FHIRPath Lexer - Performance', () => {
     // Both should produce identical results
     expect(tokens1.length).toBe(tokens2.length);
     tokens1.forEach((t1, i) => {
-      const t2 = tokens2[i];
+      const t2 = tokens2[i]!;
       expect(t1.type).toBe(t2.type);
       expect(t1.value).toBe(t2.value);
     });
@@ -56,7 +57,7 @@ describe('FHIRPath Lexer - Performance', () => {
     // For now, just verify they have the same value
     trueTokens.forEach(t => {
       expect(t.value).toBe('true');
-      expect(t.type).toBe('TRUE');
+      expect(t.type).toBe(TokenType.TRUE);
     });
   });
   
@@ -92,7 +93,7 @@ describe('FHIRPath Lexer - Performance', () => {
     
     // Should tokenize long strings quickly
     expect(duration).toBeLessThan(10);
-    expect(tokens[0].value).toBe(longContent);
+    expect(tokens[0]!!.value).toBe(longContent);
   });
   
   it('should handle many small tokens efficiently', () => {

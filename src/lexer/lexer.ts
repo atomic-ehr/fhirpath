@@ -145,10 +145,10 @@ export class FHIRPathLexer {
         
         default:
           // Use lookup table for classification
-          if ((CHAR_FLAGS[code] & FLAG_DIGIT) !== 0) {
+          if ((CHAR_FLAGS[code]! & FLAG_DIGIT) !== 0) {
             return this.scanNumber();
           }
-          if ((CHAR_FLAGS[code] & FLAG_IDENTIFIER_START) !== 0) {
+          if ((CHAR_FLAGS[code]! & FLAG_IDENTIFIER_START) !== 0) {
             return this.scanIdentifierOrKeyword();
           }
       }
@@ -239,7 +239,7 @@ export class FHIRPathLexer {
   // O(1) character access
   private peek(offset: number = 0): string {
     const pos = this.position + offset;
-    return pos < this.length ? this.chars[pos] : '\0';
+    return pos < this.length ? this.chars[pos]! : '\0';
   }
   
   // String interning for memory efficiency
