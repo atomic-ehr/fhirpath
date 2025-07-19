@@ -1,115 +1,85 @@
-# FHIRPath Design: Expression-Based Architecture
+# FHIRPath Design: Simplified AST
 
 ## Core Philosophy
 
-FHIRPath is a path-based navigation and extraction language that operates on hierarchical data. Our implementation follows the specification's grammar structure to ensure correct semantics and operator precedence.
+This design provides a minimal yet spec-compliant AST for FHIRPath. We reduce the node types while maintaining correct semantics and operator precedence through a unified approach.
 
 ### Key Principles
 
-1. **Everything is a collection** - Single values are treated as collections of one item
-2. **Empty propagation** - Empty collections (`{}`) represent "no value" and propagate through operations
-3. **Grammar-driven AST** - The AST structure mirrors the specification's grammar hierarchy
-4. **Operator precedence** - Binary operators maintain their precedence as defined in the spec
+1. **Unified expression type** - All expressions share a common structure
+2. **Operator precedence in parser** - Parser handles precedence, AST stores result
+3. **Collection semantics** - Everything evaluates to collections
+4. **Simple evaluation** - Straightforward recursive evaluation
 
-## AST Structure
-
-The AST follows the FHIRPath grammar's expression hierarchy:
+## Simplified AST Structure
 
 ```typescript
-// Expression hierarchy (from lowest to highest precedence)
-type Expression = 
-  | OrExpression
-  | AndExpression  
-  | UnionExpression
-  | EqualityExpression
-  | InequalityExpression
-  | MembershipExpression
-  | TypeExpression
-  | AdditiveExpression
-  | MultiplicativeExpression
-  | UnaryExpression
-  | PostfixExpression
-  | TermExpression;
+// All expressions use this single type
+interface Expression {
+  type: ExpressionType;
+  // Type-specific fields based on type
+  [key: string]: any;
+}
 
-// Binary expressions maintain operator precedence
-interface BinaryExpression {
+type ExpressionType = 
+  | 'literal'      // 42, 'hello', true
+  | 'identifier'   // Patient, name, $this
+  | 'invocation'   // a.b, a.b(), a[0]
+  | 'binary'       // a + b, a = b, a | b
+  | 'unary'        // -a, not a
+  | 'conditional'  // if(test, then, else)
+  | 'list';        // (a, b, c)
+
+// Literal values
+interface LiteralExpression extends Expression {
+  type: 'literal';
+  value: any;
+  dataType: 'boolean' | 'string' | 'integer' | 'decimal' | 
+            'date' | 'dateTime' | 'time' | 'quantity' | 'null';
+}
+
+// Identifiers and special variables
+interface IdentifierExpression extends Expression {
+  type: 'identifier';
+  name: string;  // 'Patient', '$this', '$index', '$total', '%ucum'
+}
+
+// All invocations: member access, function calls, indexers
+interface InvocationExpression extends Expression {
+  type: 'invocation';
+  target: Expression;      // What we're invoking on
+  kind: 'member' | 'function' | 'indexer';
+  name?: string;           // For member/function
+  args?: Expression[];     // For function/indexer
+}
+
+// Binary operators (precedence handled by parser)
+interface BinaryExpression extends Expression {
   type: 'binary';
-  operator: '+' | '-' | '*' | '/' | 'div' | 'mod' | '=' | '!=' | '~' | '!~' | 
-            '<' | '>' | '<=' | '>=' | 'in' | 'contains' | 'and' | 'or' | 
-            'xor' | 'implies' | '|' | 'is' | 'as';
+  operator: string;  // '+', '-', '=', 'and', 'or', '|', 'is', 'as', etc.
   left: Expression;
   right: Expression;
 }
 
-// Unary expressions
-interface UnaryExpression {
+// Unary operators
+interface UnaryExpression extends Expression {
   type: 'unary';
-  operator: '+' | '-' | 'not';
+  operator: 'not' | '-' | '+';
   operand: Expression;
 }
 
-// Invocation expression (navigation and function calls)
-interface InvocationExpression {
-  type: 'invocation';
-  expression: Expression;      // What we're invoking on
-  invocation: Invocation;      // The invocation itself
+// Conditional (if-then-else)
+interface ConditionalExpression extends Expression {
+  type: 'conditional';
+  condition: Expression;
+  then: Expression;
+  else?: Expression;
 }
 
-type Invocation = 
-  | MemberInvocation          // .name
-  | FunctionInvocation        // .func(args)
-  | IndexerInvocation;        // [index]
-
-interface MemberInvocation {
-  type: 'member';
-  identifier: string;
-}
-
-interface FunctionInvocation {
-  type: 'function';
-  identifier: string;
-  arguments: Expression[];
-}
-
-interface IndexerInvocation {
-  type: 'indexer';
-  index: Expression | number;  // Can be expression or integer
-}
-
-// Term expressions (leaves of the AST)
-interface LiteralExpression {
-  type: 'literal';
-  value: any;
-  dataType: 'boolean' | 'string' | 'integer' | 'decimal' | 
-            'date' | 'dateTime' | 'time' | 'quantity';
-}
-
-interface IdentifierExpression {
-  type: 'identifier';
-  name: string;
-}
-
-interface ExternalConstantExpression {
-  type: 'external';
-  identifier: string;  // e.g., 'ucum', 'terminologies'
-}
-
-interface ThisExpression {
-  type: 'this';
-}
-
-interface IndexExpression {
-  type: 'index';
-}
-
-interface TotalExpression {
-  type: 'total';
-}
-
-// Parenthesized expression
-interface ParenthesizedExpression {
-  type: 'parenthesized';
-  expression: Expression;
+// List/tuple construction
+interface ListExpression extends Expression {
+  type: 'list';
+  elements: Expression[];
 }
 ```
 
@@ -122,144 +92,141 @@ Patient.name.given
 ```
 
 AST:
-```typescript
+```javascript
 {
   type: 'invocation',
-  expression: {
+  target: {
     type: 'invocation',
-    expression: {
+    target: {
       type: 'identifier',
       name: 'Patient'
     },
-    invocation: {
-      type: 'member',
-      identifier: 'name'
-    }
+    kind: 'member',
+    name: 'name'
   },
-  invocation: {
-    type: 'member',
-    identifier: 'given'
-  }
+  kind: 'member',
+  name: 'given'
 }
 ```
 
-### 2. Function Call with Predicate
+### 2. Function Call
 
 ```fhirpath
 name.where(use = 'official')
 ```
 
 AST:
-```typescript
+```javascript
 {
   type: 'invocation',
-  expression: {
+  target: {
     type: 'identifier',
     name: 'name'
   },
-  invocation: {
-    type: 'function',
-    identifier: 'where',
-    arguments: [{
-      type: 'binary',
-      operator: '=',
-      left: {
-        type: 'identifier',
-        name: 'use'
-      },
-      right: {
-        type: 'literal',
-        value: 'official',
-        dataType: 'string'
-      }
-    }]
-  }
-}
-```
-
-### 3. Binary Operators with Precedence
-
-```fhirpath
-age + 5 * 2
-```
-
-AST (multiplication has higher precedence):
-```typescript
-{
-  type: 'binary',
-  operator: '+',
-  left: {
-    type: 'identifier',
-    name: 'age'
-  },
-  right: {
+  kind: 'function',
+  name: 'where',
+  args: [{
     type: 'binary',
-    operator: '*',
+    operator: '=',
     left: {
-      type: 'literal',
-      value: 5,
-      dataType: 'integer'
+      type: 'identifier',
+      name: 'use'
     },
     right: {
       type: 'literal',
-      value: 2,
-      dataType: 'integer'
+      value: 'official',
+      dataType: 'string'
     }
-  }
+  }]
 }
 ```
 
-### 4. Union Operator
+### 3. Mixed Operations
 
 ```fhirpath
-Patient.name | Patient.contact.name
+Patient.age + 5 > 18 and Patient.active
 ```
 
 AST:
-```typescript
+```javascript
 {
   type: 'binary',
-  operator: '|',
+  operator: 'and',
   left: {
-    type: 'invocation',
-    expression: {
-      type: 'identifier',
-      name: 'Patient'
+    type: 'binary',
+    operator: '>',
+    left: {
+      type: 'binary',
+      operator: '+',
+      left: {
+        type: 'invocation',
+        target: {
+          type: 'identifier',
+          name: 'Patient'
+        },
+        kind: 'member',
+        name: 'age'
+      },
+      right: {
+        type: 'literal',
+        value: 5,
+        dataType: 'integer'
+      }
     },
-    invocation: {
-      type: 'member',
-      identifier: 'name'
+    right: {
+      type: 'literal',
+      value: 18,
+      dataType: 'integer'
     }
   },
   right: {
     type: 'invocation',
-    expression: {
-      type: 'invocation',
-      expression: {
-        type: 'identifier',
-        name: 'Patient'
-      },
-      invocation: {
-        type: 'member',
-        identifier: 'contact'
-      }
+    target: {
+      type: 'identifier',
+      name: 'Patient'
     },
-    invocation: {
-      type: 'member',
-      identifier: 'name'
-    }
+    kind: 'member',
+    name: 'active'
   }
 }
 ```
 
-### 5. Type Expressions
+### 4. Indexer
+
+```fhirpath
+name[0].given
+```
+
+AST:
+```javascript
+{
+  type: 'invocation',
+  target: {
+    type: 'invocation',
+    target: {
+      type: 'identifier',
+      name: 'name'
+    },
+    kind: 'indexer',
+    args: [{
+      type: 'literal',
+      value: 0,
+      dataType: 'integer'
+    }]
+  },
+  kind: 'member',
+  name: 'given'
+}
+```
+
+### 5. Type Operations
 
 ```fhirpath
 value is Integer and value as Integer > 0
 ```
 
 AST:
-```typescript
+```javascript
 {
   type: 'binary',
   operator: 'and',
@@ -299,221 +266,192 @@ AST:
 }
 ```
 
-### 6. Indexer Expression
+## Evaluation Model
 
-```fhirpath
-name[0].given
-```
+### Simple Recursive Evaluator
 
-AST:
 ```typescript
-{
-  type: 'invocation',
-  expression: {
-    type: 'invocation',
-    expression: {
-      type: 'identifier',
-      name: 'name'
-    },
-    invocation: {
-      type: 'indexer',
-      index: 0
-    }
-  },
-  invocation: {
-    type: 'member',
-    identifier: 'given'
+type Value = any[];  // All values are collections
+
+interface Context {
+  root: Value;      // Original context
+  current: Value;   // Current context ($this)
+  index?: number;   // Current index ($index)
+  total?: number;   // Total items ($total)
+  variables: Map<string, Value>;
+}
+
+function evaluate(expr: Expression, ctx: Context): Value {
+  switch (expr.type) {
+    case 'literal':
+      return expr.value === null ? [] : [expr.value];
+    
+    case 'identifier':
+      return evaluateIdentifier(expr.name, ctx);
+    
+    case 'invocation':
+      return evaluateInvocation(expr, ctx);
+    
+    case 'binary':
+      return evaluateBinary(expr, ctx);
+    
+    case 'unary':
+      return evaluateUnary(expr, ctx);
+    
+    case 'conditional':
+      return evaluateConditional(expr, ctx);
+    
+    case 'list':
+      return evaluateList(expr, ctx);
   }
 }
 ```
 
-## Evaluation Semantics
-
-### Collection-Based Evaluation
-
-All operations work on collections:
+### Invocation Evaluation
 
 ```typescript
-interface FHIRPathValue {
-  items: any[];  // Always a collection (0 or more items)
-  type?: TypeInfo;
+function evaluateInvocation(expr: InvocationExpression, ctx: Context): Value {
+  const target = evaluate(expr.target, ctx);
+  
+  switch (expr.kind) {
+    case 'member':
+      return navigateMember(target, expr.name!);
+    
+    case 'function':
+      return callFunction(target, expr.name!, expr.args || [], ctx);
+    
+    case 'indexer':
+      const index = evaluate(expr.args![0], ctx);
+      return navigateIndex(target, index);
+  }
 }
-
-// Empty collection
-const empty: FHIRPathValue = { items: [] };
-
-// Single value
-const single: FHIRPathValue = { items: [42] };
-
-// Multiple values
-const multiple: FHIRPathValue = { items: [1, 2, 3] };
 ```
 
-### Operator Evaluation
-
-Binary operators follow these patterns:
-
-1. **Singleton evaluation** - Most operators require singleton operands
-2. **Empty propagation** - Empty operands usually result in empty
-3. **Type checking** - Operators may perform implicit type conversions
+### Binary Operator Evaluation
 
 ```typescript
-function evaluateBinary(op: string, left: FHIRPathValue, right: FHIRPathValue): FHIRPathValue {
+function evaluateBinary(expr: BinaryExpression, ctx: Context): Value {
+  // Special handling for operators that don't evaluate both sides first
+  if (expr.operator === 'and' || expr.operator === 'or') {
+    return evaluateLogical(expr, ctx);
+  }
+  
+  const left = evaluate(expr.left, ctx);
+  const right = evaluate(expr.right, ctx);
+  
+  // Operators like | work on collections
+  if (expr.operator === '|') {
+    return union(left, right);
+  }
+  
   // Most operators work on singletons
-  if (requiresSingletons(op)) {
-    if (left.items.length !== 1 || right.items.length !== 1) {
-      return empty;
-    }
+  if (left.length !== 1 || right.length !== 1) {
+    return [];  // Empty collection
   }
   
-  switch (op) {
-    case '+':
-      return add(left, right);
-    case '=':
-      return equals(left, right);
-    case '|':
-      return union(left, right);  // Special: works on collections
-    // ... etc
-  }
+  return evaluateOperator(expr.operator, left[0], right[0]);
 }
 ```
 
-### Navigation and Invocation
+## Operator Precedence Table
 
-Navigation distributes over collections:
+The parser handles precedence, but for reference:
 
+```
+Lowest to highest:
+1. implies
+2. or, xor
+3. and
+4. = != ~ !~
+5. in contains
+6. < > <= >= 
+7. | (union)
+8. is as
+9. + - & (string concat)
+10. * / div mod
+11. unary: not - +
+12. invocations: . () []
+```
+
+## Special Features
+
+### 1. Polymorphic Operators
+
+Some operators behave differently based on types:
+- `+` : addition (numbers) or concatenation (strings)
+- `=` : equality with special rules for collections
+- `~` : equivalence (type-aware equality)
+
+### 2. Collection Semantics
+
+All operations propagate collections:
 ```typescript
-function evaluateMember(collection: FHIRPathValue, member: string): FHIRPathValue {
-  const results = [];
-  
-  for (const item of collection.items) {
-    if (item && typeof item === 'object' && member in item) {
-      const value = item[member];
-      if (Array.isArray(value)) {
-        results.push(...value);
-      } else if (value !== null && value !== undefined) {
-        results.push(value);
-      }
-    }
-  }
-  
-  return { items: results };
-}
+[1, 2, 3] + 5        // [6, 7, 8]
+[].where(...)        // []
+[1, 2] = [1, 2]      // [true]
 ```
 
-### Function Invocation
+### 3. Null Handling
 
-Functions operate on the collection they're invoked on:
-
+FHIRPath uses empty collections for null:
 ```typescript
-function evaluateFunction(
-  collection: FHIRPathValue, 
-  name: string, 
-  args: Expression[],
-  context: Context
-): FHIRPathValue {
-  switch (name) {
-    case 'where':
-      return where(collection, args[0], context);
-    case 'select':
-      return select(collection, args[0], context);
-    case 'first':
-      return first(collection);
-    // ... etc
-  }
-}
+null              // evaluates to []
+{}.name           // evaluates to []
+[] + 5            // evaluates to []
 ```
 
-## Type System
+## Parser Considerations
 
-FHIRPath has a dual type system:
+The parser must:
+1. Handle operator precedence correctly
+2. Distinguish between types in context (e.g., `Integer` as type vs identifier)
+3. Parse special forms like `$this`, `%ucum`
+4. Handle optional parentheses and whitespace
 
-### System Types
-- `Boolean`
-- `String` 
-- `Integer`
-- `Decimal`
-- `Date`
-- `DateTime`
-- `Time`
-- `Quantity`
+## Benefits of This Design
 
-### Model Types
-Context-specific types like `FHIR.Patient`, `FHIR.Observation`, etc.
+1. **Simplicity**: Only 7 node types cover all of FHIRPath
+2. **Uniformity**: Single Expression interface for all nodes
+3. **Flexibility**: Easy to extend with new operators or functions
+4. **Compliance**: Fully supports all FHIRPath features
+5. **Performance**: Simple recursive evaluation, easy to optimize
+
+## Implementation Notes
 
 ### Type Checking
-
 ```typescript
+// Runtime type information
 interface TypeInfo {
-  namespace?: string;  // e.g., 'FHIR', 'System'
-  name: string;        // e.g., 'Patient', 'String'
-  baseType?: TypeInfo; // For inheritance
+  name: string;       // 'Integer', 'Patient', etc.
+  namespace?: string; // 'System', 'FHIR', etc.
 }
 
-function isType(value: FHIRPathValue, typeName: string): boolean {
-  // Implementation checks both system and model types
+// Values can carry type information
+interface TypedValue {
+  value: any;
+  type?: TypeInfo;
 }
 ```
 
-## Special Variables
+### Error Handling
+- Most errors return empty collection `[]`
+- Parser errors throw exceptions
+- Type errors during evaluation return `[]`
+- Explicitly documented functions may throw
 
-FHIRPath defines several special variables:
-
-- `$this` - Current context item (in where/select/etc)
-- `$index` - Current index in a collection operation
-- `$total` - Total number of items in current collection
-
-## External Constants
-
-External constants provide access to external terminologies:
-
-- `%ucum` - UCUM units
-- `%terminologies` - Terminology services
-- Custom constants defined by the implementation
-
-## Error Handling
-
-FHIRPath uses empty collection semantics for error handling:
-
-1. **Type mismatches** often return empty
-2. **Invalid operations** return empty
-3. **Null propagation** through empty collections
-4. Some operations may throw (implementation-defined)
-
-## Implementation Considerations
-
-### 1. Parser
-The parser should follow the grammar structure closely to ensure correct precedence and associativity.
-
-### 2. Evaluator
-The evaluator should:
-- Handle collection semantics uniformly
-- Implement proper empty propagation
-- Support all special variables
-- Handle type checking appropriately
-
-### 3. Optimization
-Possible optimizations:
-- Constant folding
-- Common subexpression elimination
-- Early termination for boolean operations
-- Lazy evaluation for large collections
-
-### 4. Extensions
-The design allows for extensions:
-- Custom functions
-- Additional operators
-- Model-specific navigation
-- Performance hints
+### Extension Points
+- Custom functions: Add to function registry
+- Custom operators: Extend parser and evaluator
+- Type system: Add new types to type registry
+- External constants: Register new `%` identifiers
 
 ## Conclusion
 
-This design aligns closely with the FHIRPath specification by:
+This simplified AST design provides:
+- Complete FHIRPath support with minimal complexity
+- Clear separation between parsing (precedence) and evaluation (semantics)
+- Easy to understand and implement
+- Efficient evaluation model
+- Natural extension points
 
-1. **Following the grammar** - AST structure mirrors the expression hierarchy
-2. **Preserving precedence** - Operators maintain their specified precedence
-3. **Collection semantics** - Everything operates on collections
-4. **Complete coverage** - All language features are represented
-5. **Clear evaluation** - Semantics follow the specification
-
-The expression-based AST provides a solid foundation for implementing FHIRPath with correct behavior and good performance characteristics.
+The design achieves spec compliance while keeping the implementation straightforward and maintainable.
