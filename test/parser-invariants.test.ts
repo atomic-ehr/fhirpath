@@ -32,7 +32,7 @@ describe('FHIRPath Parser - Invariants', () => {
         results.failed++;
         results.failures.push({
           expression,
-          error: error.message,
+          error: (error as any).message,
           index: index + 1
         });
       }
@@ -107,7 +107,7 @@ describe('FHIRPath Parser - Invariants', () => {
     
     // Check that even the slowest expressions are reasonably fast
     if (timings.length > 0) {
-      expect(timings[0].time).toBeLessThan(10); // Slowest should be under 10ms
+      expect(timings[0]!.time).toBeLessThan(10); // Slowest should be under 10ms
     }
   });
 });

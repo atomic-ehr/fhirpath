@@ -81,6 +81,17 @@ export class FHIRPathParser {
         continue;
       }
       
+      // Handle function calls that come from primary() or after dots
+      // This allows for chained method calls like exists().not()
+      if (this.check(TokenType.DOT) && minPrecedence >= PRECEDENCE.INVOCATION) {
+        const dotToken = this.peek();
+        const precedence = this.getPrecedence(dotToken);
+        if (precedence > minPrecedence) break;
+        
+        left = this.parseBinary(left, dotToken, precedence);
+        continue;
+      }
+      
       const token = this.peek();
       const precedence = this.getPrecedence(token);
       
@@ -177,7 +188,50 @@ export class FHIRPathParser {
     if (this.match(TokenType.LPAREN)) {
       const expr = this.expression();
       this.consume(TokenType.RPAREN, "Expected ')' after expression");
-      return expr;
+      
+      // Check for method calls after parentheses (e.g., (expr).method())
+      let result = expr;
+      while (this.check(TokenType.DOT)) {
+        const dotToken = this.advance();
+        
+        // After a dot, handle keywords that can be method names
+        let right: ASTNode;
+        const next = this.peek();
+        if (this.isOperatorKeyword(next.type)) {
+          // Treat keyword as identifier
+          this.advance();
+          right = {
+            type: NodeType.Identifier,
+            name: next.value,
+            position: next.position
+          } as IdentifierNode;
+        } else {
+          right = this.primary();
+        }
+        
+        // If the right side is a function call, handle it
+        if (this.check(TokenType.LPAREN)) {
+          const methodNode: BinaryNode = {
+            type: NodeType.Binary,
+            operator: TokenType.DOT,
+            left: result,
+            right: right,
+            position: dotToken.position
+          };
+          result = this.functionCall(methodNode);
+        } else {
+          // Regular property access
+          result = {
+            type: NodeType.Binary,
+            operator: TokenType.DOT,
+            left: result,
+            right: right,
+            position: dotToken.position
+          } as BinaryNode;
+        }
+      }
+      
+      return result;
     }
     
     // Handle identifiers (which might be followed by function calls)
@@ -221,6 +275,23 @@ export class FHIRPathParser {
       } as CollectionNode;
     }
     
+    // Handle operator keywords as identifiers/functions at expression start
+    if (this.isOperatorKeyword(this.peek().type)) {
+      const token = this.advance();
+      const identifier: IdentifierNode = {
+        type: NodeType.Identifier,
+        name: token.value,
+        position: token.position
+      };
+      
+      // Check for function call
+      if (this.check(TokenType.LPAREN)) {
+        return this.functionCall(identifier);
+      }
+      
+      return identifier;
+    }
+    
     throw this.error("Expected expression");
   }
   
@@ -230,8 +301,17 @@ export class FHIRPathParser {
     if (op.type === TokenType.IS || op.type === TokenType.AS) {
       this.advance(); // consume operator
       
-      // Type name is an identifier, not an expression
-      const typeName = this.consume(TokenType.IDENTIFIER, "Expected type name").value;
+      // Type name can be either a simple identifier or in parentheses (for is() function syntax)
+      let typeName: string;
+      if (this.check(TokenType.LPAREN)) {
+        // Handle is(TypeName) syntax
+        this.advance(); // consume (
+        typeName = this.consume(TokenType.IDENTIFIER, "Expected type name").value;
+        this.consume(TokenType.RPAREN, "Expected ')' after type name");
+      } else {
+        // Regular is TypeName syntax
+        typeName = this.consume(TokenType.IDENTIFIER, "Expected type name").value;
+      }
       
       return {
         type: op.type === TokenType.IS ? NodeType.MembershipTest : NodeType.TypeCast,
@@ -263,7 +343,22 @@ export class FHIRPathParser {
     
     // Special handling for dot operator (left-associative, pipelines data)
     if (op.type === TokenType.DOT) {
-      const right = this.primary();
+      // After a dot, we need to handle keywords that can be method names
+      let right: ASTNode;
+      
+      // Check if next token is a keyword that can be used as a method name
+      const next = this.peek();
+      if (this.isOperatorKeyword(next.type)) {
+        // Treat keyword as identifier
+        this.advance();
+        right = {
+          type: NodeType.Identifier,
+          name: next.value,
+          position: next.position
+        } as IdentifierNode;
+      } else {
+        right = this.primary();
+      }
       
       // Check for function call after dot
       if (this.peek().type === TokenType.LPAREN) {
@@ -313,12 +408,55 @@ export class FHIRPathParser {
     
     this.consume(TokenType.RPAREN, "Expected ')' after arguments");
     
-    return {
+    let result: ASTNode = {
       type: NodeType.Function,
       name: func,
       arguments: args,
       position: func.position
     } as FunctionNode;
+    
+    // Check for method calls after the function (e.g., exists().not())
+    while (this.check(TokenType.DOT)) {
+      const dotToken = this.advance();
+      
+      // After a dot, handle keywords that can be method names
+      let right: ASTNode;
+      const next = this.peek();
+      if (this.isOperatorKeyword(next.type)) {
+        // Treat keyword as identifier
+        this.advance();
+        right = {
+          type: NodeType.Identifier,
+          name: next.value,
+          position: next.position
+        } as IdentifierNode;
+      } else {
+        right = this.primary();
+      }
+      
+      // If the right side is a function call, handle it
+      if (this.check(TokenType.LPAREN)) {
+        const methodNode: BinaryNode = {
+          type: NodeType.Binary,
+          operator: TokenType.DOT,
+          left: result,
+          right: right,
+          position: dotToken.position
+        };
+        result = this.functionCall(methodNode);
+      } else {
+        // Regular property access
+        result = {
+          type: NodeType.Binary,
+          operator: TokenType.DOT,
+          left: result,
+          right: right,
+          position: dotToken.position
+        } as BinaryNode;
+      }
+    }
+    
+    return result;
   }
   
   // Handle indexing
@@ -358,6 +496,10 @@ export class FHIRPathParser {
       // Special handling for ofType(TypeName)
       if (identifier.name === 'ofType') {
         return this.parseOfType();
+      }
+      // Special handling for is(TypeName) - treat as regular function
+      if (identifier.name === 'is') {
+        return this.functionCall(identifier);
       }
       return this.functionCall(identifier);
     }
@@ -467,6 +609,23 @@ export class FHIRPathParser {
   private isRightAssociative(op: Token): boolean {
     // FHIRPath doesn't have right-associative operators
     return false;
+  }
+  
+  // Check if a token type is an operator keyword that can also be identifier/function
+  private isOperatorKeyword(type: TokenType): boolean {
+    return type === TokenType.DIV || 
+           type === TokenType.MOD ||
+           type === TokenType.CONTAINS ||
+           type === TokenType.IN ||
+           type === TokenType.AND ||
+           type === TokenType.OR ||
+           type === TokenType.XOR ||
+           type === TokenType.IMPLIES ||
+           type === TokenType.IS ||
+           type === TokenType.AS ||
+           type === TokenType.NOT ||
+           type === TokenType.TRUE ||
+           type === TokenType.FALSE;
   }
   
   // Synchronization points for error recovery

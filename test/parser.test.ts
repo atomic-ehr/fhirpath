@@ -278,14 +278,21 @@ describe('FHIRPath Parser', () => {
       const ast = parse("Patient.name.where(use = 'official').given");
       expect(ast.type).toBe(NodeType.Binary);
       expect((ast as any).operator).toBe(TokenType.DOT);
-      expect((ast as any).right.name).toBe('given');
       
-      // The left side is DOT(DOT(Patient, name), where(...))
+      // The structure is now: DOT(DOT(Patient, name), DOT(where(...), given))
+      // The left side is Patient.name
       expect((ast as any).left.type).toBe(NodeType.Binary);
       expect((ast as any).left.operator).toBe(TokenType.DOT);
+      expect((ast as any).left.left.name).toBe('Patient');
+      expect((ast as any).left.right.name).toBe('name');
       
-      // The where function is on the right of that DOT
-      const whereCall = (ast as any).left.right;
+      // The right side is where(...).given
+      expect((ast as any).right.type).toBe(NodeType.Binary);
+      expect((ast as any).right.operator).toBe(TokenType.DOT);
+      expect((ast as any).right.right.name).toBe('given');
+      
+      // The where function call
+      const whereCall = (ast as any).right.left;
       expect(whereCall.type).toBe(NodeType.Function);
       expect(whereCall.name.name).toBe('where');
       expect(whereCall.arguments).toHaveLength(1);
@@ -367,6 +374,46 @@ describe('FHIRPath Parser', () => {
       const expr = "defineVariable('sc', code).property.all((code = 'alternateCode') implies defineVariable('ac', value).%resource.repeat(concept).where(code = %ac).exists(property.where(code = 'alternateCode').value = %sc))";
       const ast = parse(expr);
       console.log(pprint(ast, true));
+    });
+  });
+  
+  describe('Context-Sensitive Keywords', () => {
+    it('parses contains at expression start', () => {
+      const ast = parse("contains.version.exists()");
+      expect(ast.type).toBe(NodeType.Binary);
+      expect((ast as any).operator).toBe(TokenType.DOT);
+      expect((ast as any).left.type).toBe(NodeType.Binary);
+      expect((ast as any).left.left.name).toBe('contains');
+    });
+    
+    it('parses as function syntax', () => {
+      const ast = parse("as(uri)");
+      expect(ast.type).toBe(NodeType.Function);
+      expect((ast as any).name.name).toBe('as');
+      expect((ast as any).arguments).toHaveLength(1);
+    });
+    
+    it('parses operator keywords as properties', () => {
+      const ast1 = parse("div.property");
+      expect(ast1.type).toBe(NodeType.Binary);
+      expect((ast1 as any).left.name).toBe('div');
+      
+      const ast2 = parse("mod.value");
+      expect(ast2.type).toBe(NodeType.Binary);
+      expect((ast2 as any).left.name).toBe('mod');
+    });
+    
+    it('still parses operators correctly', () => {
+      const ast1 = parse("'hello' contains 'ell'");
+      expect(ast1.type).toBe(NodeType.Binary);
+      expect((ast1 as any).operator).toBe(TokenType.CONTAINS);
+      
+      const ast2 = parse("value as Patient");
+      expect(ast2.type).toBe(NodeType.TypeCast);
+      
+      const ast3 = parse("10 div 3");
+      expect(ast3.type).toBe(NodeType.Binary);
+      expect((ast3 as any).operator).toBe(TokenType.DIV);
     });
   });
 });
