@@ -8,7 +8,7 @@ describe('FHIRPath Lexer - Basic Tokens', () => {
     expect(tokens.map(t => t.type)).toEqual([
       TokenType.LPAREN, TokenType.RPAREN,
       TokenType.LBRACKET, TokenType.RBRACKET,
-      TokenType.NULL, // {}
+      TokenType.LBRACE, TokenType.RBRACE,
       TokenType.DOT, TokenType.COMMA,
       TokenType.PLUS, TokenType.MINUS,
       TokenType.STAR, TokenType.SLASH,
@@ -34,7 +34,7 @@ describe('FHIRPath Lexer - Basic Tokens', () => {
     expect(types).toEqual([
       TokenType.TRUE, TokenType.FALSE,
       TokenType.AND, TokenType.OR,
-      TokenType.IDENTIFIER, // 'not' is not a keyword
+      TokenType.NOT,
       TokenType.IN, TokenType.CONTAINS,
       TokenType.AS, TokenType.IS,
       TokenType.DIV, TokenType.MOD

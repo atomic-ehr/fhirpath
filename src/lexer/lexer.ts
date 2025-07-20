@@ -52,6 +52,7 @@ export class FHIRPathLexer {
     ['or', TokenType.OR],
     ['xor', TokenType.XOR],
     ['implies', TokenType.IMPLIES],
+    ['not', TokenType.NOT],
     ['is', TokenType.IS],
     ['as', TokenType.AS],
     // Time units (dateTimePrecision)
@@ -141,7 +142,8 @@ export class FHIRPathLexer {
         case 64: return this.scanDateTime();                  // @
         case 37: return this.scanEnvironmentVariable();       // %
         case 36: return this.scanSpecialVariable();           // $
-        case 123: return this.scanNullLiteral();              // {
+        case 123: return this.makeTokenAndAdvance(TokenType.LBRACE, '{');   // {
+        case 125: return this.makeTokenAndAdvance(TokenType.RBRACE, '}');   // }
         
         default:
           // Use lookup table for classification
@@ -428,15 +430,16 @@ export class FHIRPathLexer {
     this.advance(); // consume $
     
     const name = this.scanIdentifier();
+    const fullName = '$' + name;
     
     if (name === 'this') {
-      return this.makeToken(TokenType.THIS, '$this', start);
+      return this.makeToken(TokenType.THIS, fullName, start);
     } else if (name === 'index') {
-      return this.makeToken(TokenType.INDEX, '$index', start);
+      return this.makeToken(TokenType.INDEX, fullName, start);
     } else if (name === 'total') {
-      return this.makeToken(TokenType.TOTAL, '$total', start);
+      return this.makeToken(TokenType.TOTAL, fullName, start);
     } else {
-      throw this.error(`Invalid special variable: $${name}`);
+      throw this.error(`Invalid special variable: ${fullName}`);
     }
   }
   
@@ -596,19 +599,6 @@ export class FHIRPathLexer {
     
     const value = this.getTextFromPosition(start);
     return this.makeToken(TokenType.NUMBER, value, start);
-  }
-  
-  // Null Literal
-  private scanNullLiteral(): Token {
-    const start = this.savePosition();
-    this.advance(); // consume {
-    
-    if (this.peek() !== '}') {
-      throw this.error('Expected "}" for null literal');
-    }
-    
-    this.advance(); // consume }
-    return this.makeToken(TokenType.NULL, '{}', start);
   }
   
   // Delimited Identifiers

@@ -63,6 +63,11 @@ export enum TokenType {
   OR = 'OR',                     // or
   XOR = 'XOR',                   // xor
   IMPLIES = 'IMPLIES',           // implies
+  NOT = 'NOT',                   // not
+  
+  // Collection
+  LBRACE = 'LBRACE',             // {
+  RBRACE = 'RBRACE',             // }
   
   // Other
   COMMA = 'COMMA',               // ,

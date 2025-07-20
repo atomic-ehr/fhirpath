@@ -55,10 +55,6 @@ describe('FHIRPath Lexer - Error Cases', () => {
     expect(() => lex('`unterminated')).toThrow('Unterminated delimited identifier');
   });
   
-  it('should report unterminated null literal', () => {
-    expect(() => lex('{')).toThrow('Expected "}" for null literal');
-  });
-  
   it('should include position in errors', () => {
     try {
       lex('valid + @invalid');

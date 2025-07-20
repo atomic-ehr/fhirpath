@@ -59,11 +59,23 @@ describe('FHIRPath Lexer - Literals', () => {
     });
   });
   
-  describe('Null literal', () => {
-    it('should tokenize null literal', () => {
+  describe('Collection literals', () => {
+    it('should tokenize empty collection', () => {
       const tokens = lex('{}');
-      expect(tokens[0]!.type).toBe(TokenType.NULL);
-      expect(tokens[0]!.value).toBe('{}');
+      expect(tokens[0]!.type).toBe(TokenType.LBRACE);
+      expect(tokens[1]!.type).toBe(TokenType.RBRACE);
+      expect(tokens[2]!.type).toBe(TokenType.EOF);
+    });
+    
+    it('should tokenize collection with elements', () => {
+      const tokens = lex('{1, 2, 3}');
+      expect(tokens[0]!.type).toBe(TokenType.LBRACE);
+      expect(tokens[1]!.type).toBe(TokenType.NUMBER);
+      expect(tokens[2]!.type).toBe(TokenType.COMMA);
+      expect(tokens[3]!.type).toBe(TokenType.NUMBER);
+      expect(tokens[4]!.type).toBe(TokenType.COMMA);
+      expect(tokens[5]!.type).toBe(TokenType.NUMBER);
+      expect(tokens[6]!.type).toBe(TokenType.RBRACE);
     });
   });
   
