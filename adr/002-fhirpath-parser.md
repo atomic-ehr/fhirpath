@@ -41,7 +41,7 @@ Proposed
 
 We need to implement a FHIRPath parser that:
 - Uses tokens from the lexer (see ADR-001)
-- Produces S-expression AST as described in fhirpath-parser.md
+- Produces AST as described in fhirpath-parser.md
 - Makes implicit context (`$this`) explicit in the AST
 - Handles all FHIRPath language features correctly
 - Provides excellent error messages with position information
@@ -83,7 +83,7 @@ class FHIRPathParser {
     MEMBER: 130,           // highest precedence for member access
   };
   
-  parse(input: string): SExpression {
+  parse(input: string): Expression {
     this.tokens = lex(input);
     this.current = 0;
     const expr = this.expression(0);
@@ -92,7 +92,7 @@ class FHIRPathParser {
   }
   
   // Main Pratt parsing loop
-  private expression(minPrecedence: number): SExpression {
+  private expression(minPrecedence: number): Expression {
     let left = this.prefix();
     
     while (this.getPrecedence() >= minPrecedence) {
@@ -103,12 +103,12 @@ class FHIRPathParser {
   }
   
   // Parse prefix expressions (literals, identifiers, unary ops, etc.)
-  private prefix(): SExpression {
+  private prefix(): Expression {
     // Implementation shown in section 3.1
   }
   
   // Parse infix expressions (binary ops, member access, method calls, etc.)
-  private infix(left: SExpression): SExpression {
+  private infix(left: Expression): Expression {
     const token = this.peek();
     
     switch (token.type) {
@@ -131,12 +131,12 @@ class FHIRPathParser {
 }
 ```
 
-### 2. S-Expression AST Format
+### 2. AST Format
 
-The parser produces S-expressions using objects with a `type` field (keeping S-expression semantics):
+The parser produces an Abstract Syntax Tree using typed objects:
 
 ```typescript
-type SExpression = 
+type Expression = 
   | LiteralNode
   | VariableNode
   | EnvVarNode
@@ -169,33 +169,33 @@ interface EnvVarNode {
 interface MemberNode {
   type: 'member';
   property: string;
-  object: SExpression;
+  object: Expression;
 }
 
 interface MethodNode {
   type: 'method';
   name: string;
-  object?: SExpression; // Optional - when absent, uses $this from parent scope
-  args: SExpression[];
+  object?: Expression; // Optional - when absent, uses $this from parent scope
+  args: Expression[];
 }
 
 interface OperatorNode {
   type: 'operator';
   op: string;
-  left: SExpression;
-  right: SExpression;
+  left: Expression;
+  right: Expression;
 }
 
 interface UnaryNode {
   type: 'unary';
   op: '+' | '-';
-  operand: SExpression;
+  operand: Expression;
 }
 
 interface IndexNode {
   type: 'index';
-  object: SExpression;
-  index: SExpression;
+  object: Expression;
+  index: Expression;
 }
 
 interface TypeNode {
@@ -210,7 +210,7 @@ The parser adds implicit `$this` in these contexts:
 
 #### 3.1 Root Identifiers
 ```typescript
-private prefix(): SExpression {
+private prefix(): Expression {
   const token = this.peek();
   
   if (token.type === TokenType.IDENTIFIER) {
@@ -253,7 +253,7 @@ private prefix(): SExpression {
 #### 3.2 Inside Context-Changing Functions
 ```typescript
 // For parsing any function/method call
-private parseFunctionCall(name: string, object?: SExpression): SExpression {
+private parseFunctionCall(name: string, object?: Expression): Expression {
   this.expect(TokenType.LPAREN);
   
   // Track context depth for implicit $this handling
@@ -273,7 +273,7 @@ private parseFunctionCall(name: string, object?: SExpression): SExpression {
 }
 
 // Handle method calls (. operator)
-private parseMethodCall(object: SExpression, name?: string): SExpression {
+private parseMethodCall(object: Expression, name?: string): Expression {
   // If name not provided, consume identifier token
   if (!name) {
     name = this.advance().value;
@@ -618,9 +618,9 @@ This approach:
 
 1. **Pratt Parsing**: Handles complex precedence elegantly without grammar ambiguity
 2. **Separate Lexer**: Simplifies parser logic and improves error messages
-3. **S-Expression AST with Objects**: 
-   - Uses objects instead of arrays for better type safety and readability
-   - Maintains S-expression semantics (uniform node structure with `type` field)
+3. **Typed AST with Objects**: 
+   - Uses objects with discriminated unions for type safety
+   - Uniform node structure with `type` field for pattern matching
    - Easier to work with in TypeScript (intellisense, type checking)
 4. **Implicit $this**: Makes all member access explicit in AST for simpler evaluation
 5. **Uniform Function Treatment**: All functions follow the same context rules
@@ -692,8 +692,8 @@ class FHIRPathParser {
   }
   
   // Argument parsing
-  private parseArguments(): SExpression[] {
-    const args: SExpression[] = [];
+  private parseArguments(): Expression[] {
+    const args: Expression[] = [];
     
     if (!this.check(TokenType.RPAREN)) {
       do {
@@ -812,7 +812,7 @@ private parseTypeSpecifier(): string[] {
 
 ```typescript
 // Common syntax errors with helpful messages
-private parseExpression(): SExpression {
+private parseExpression(): Expression {
   // Empty expression
   if (this.isAtEnd()) {
     throw this.error("Unexpected end of expression");
@@ -857,7 +857,7 @@ src/
 │   ├── precedence.ts   // Precedence table
 │   └── context.ts      // Context tracking (iterative functions)
 ├── ast/
-│   ├── types.ts        // S-expression type definitions
+│   ├── types.ts        // AST type definitions
 │   └── builders.ts     // AST construction helpers
 └── errors/
     └── parse-error.ts  // Error types and formatting
@@ -891,12 +891,12 @@ src/
 
 ### 3. Generate from grammar
 - **Pros**: Automatic parser generation
-- **Cons**: Cannot easily produce our specific S-expression format
+- **Cons**: Cannot easily produce our specific AST format
 
 We chose hand-written Pratt parser because:
 1. FHIRPath's precedence rules are well-suited to Pratt parsing
 2. We need fine control over AST generation (implicit $this)
-3. S-expression format differs significantly from parse tree
+3. AST format differs significantly from parse tree
 4. Better error messages and debugging experience
 
 ## Implementation Checklist
