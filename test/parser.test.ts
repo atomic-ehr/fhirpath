@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { parse } from '../src/parser';
+import { parse, pprint } from '../src/parser';
 import { NodeType } from '../src/parser/ast';
 import { TokenType } from '../src/lexer/token';
 
@@ -338,6 +338,8 @@ describe('FHIRPath Parser', () => {
       expect(ast.type).toBe(NodeType.Literal);
       expect((ast as any).value).toBe(1);
     });
+
+
     
     it('parses complex navigation chain', () => {
       const ast = parse('Bundle.entry.resource.ofType(Patient).name.given');
@@ -356,6 +358,15 @@ describe('FHIRPath Parser', () => {
         }
       }
       expect(depth).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Playground', () => {
+    it('handles groups', () => {
+      //'name.select( given.first().substring(0, 1) + family)'
+      const expr = "defineVariable('sc', code).property.all((code = 'alternateCode') implies defineVariable('ac', value).%resource.repeat(concept).where(code = %ac).exists(property.where(code = 'alternateCode').value = %sc))";
+      const ast = parse(expr);
+      console.log(pprint(ast, true));
     });
   });
 });
