@@ -42,6 +42,20 @@ methods like `where` are special (high order function) and redefine `$this` for 
     (member 'name' (member 'Patient' $this)) 
     (op '=' (member 'use' $this) (literal 'string' 'official')))
 
+
+Methods without left chain are getting `$this[implicit]` as first argument.
+
+`where(use='official')` = `$this.where(use='official')`
+-> (method 'where' 
+    $this[implicit]
+    (literal 'string' 'official'))
+
+`where(use='official').given`
+-> (member 'given' 
+    (method 'where' 
+     $this[implicit]
+     (literal 'string' 'official')))
+
 `1 + 2`
 -> (op '+' 
      (literal 'integer' 1) 
