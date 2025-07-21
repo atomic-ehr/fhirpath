@@ -26,48 +26,62 @@ import { TypeSystem } from './types/type-system';
 // Import all function implementations to register them
 import './functions';
 
-// Type for node evaluator functions
-type NodeEvaluator = (node: any, input: any[], context: Context) => EvaluationResult;
-
 /**
  * FHIRPath Interpreter - evaluates AST nodes following the stream-processing model.
  * Every node is a processing unit: (input, context) → (output, new context)
- * 
- * This refactored version uses object lookup instead of switch statements.
  */
 export class Interpreter {
-  // Object lookup for node evaluators
-  private readonly nodeEvaluators: Record<NodeType, NodeEvaluator> = {
-    [NodeType.Literal]: this.evaluateLiteral.bind(this),
-    [NodeType.Identifier]: this.evaluateIdentifier.bind(this),
-    [NodeType.TypeOrIdentifier]: this.evaluateTypeOrIdentifier.bind(this),
-    [NodeType.Variable]: this.evaluateVariable.bind(this),
-    [NodeType.Binary]: this.evaluateBinary.bind(this),
-    [NodeType.Unary]: this.evaluateUnary.bind(this),
-    [NodeType.Function]: this.evaluateFunction.bind(this),
-    [NodeType.Collection]: this.evaluateCollection.bind(this),
-    [NodeType.Index]: this.evaluateIndex.bind(this),
-    [NodeType.Union]: this.evaluateUnion.bind(this),
-    [NodeType.MembershipTest]: this.evaluateMembershipTest.bind(this),
-    [NodeType.TypeCast]: this.evaluateTypeCast.bind(this),
-    [NodeType.TypeReference]: this.evaluateTypeReference.bind(this),
-  };
-
   /**
-   * Main evaluation method - uses object lookup instead of switch
+   * Main evaluation method - dispatches to specific node handlers
    */
   evaluate(node: ASTNode, input: any[], context: Context): EvaluationResult {
     try {
-      const evaluator = this.nodeEvaluators[node.type];
-      
-      if (!evaluator) {
-        throw new EvaluationError(
-          `Unknown node type: ${node.type}`,
-          node.position
-        );
+      switch (node.type) {
+        case NodeType.Literal:
+          return this.evaluateLiteral(node as LiteralNode, input, context);
+        
+        case NodeType.Identifier:
+          return this.evaluateIdentifier(node as IdentifierNode, input, context);
+        
+        case NodeType.TypeOrIdentifier:
+          return this.evaluateTypeOrIdentifier(node as TypeOrIdentifierNode, input, context);
+        
+        case NodeType.Variable:
+          return this.evaluateVariable(node as VariableNode, input, context);
+        
+        case NodeType.Binary:
+          return this.evaluateBinary(node as BinaryNode, input, context);
+        
+        case NodeType.Unary:
+          return this.evaluateUnary(node as UnaryNode, input, context);
+        
+        case NodeType.Function:
+          return this.evaluateFunction(node as FunctionNode, input, context);
+        
+        case NodeType.Collection:
+          return this.evaluateCollection(node as CollectionNode, input, context);
+        
+        case NodeType.Index:
+          return this.evaluateIndex(node as IndexNode, input, context);
+        
+        case NodeType.Union:
+          return this.evaluateUnion(node as UnionNode, input, context);
+        
+        case NodeType.MembershipTest:
+          return this.evaluateMembershipTest(node as MembershipTestNode, input, context);
+        
+        case NodeType.TypeCast:
+          return this.evaluateTypeCast(node as TypeCastNode, input, context);
+        
+        case NodeType.TypeReference:
+          return this.evaluateTypeReference(node as TypeReferenceNode, input, context);
+        
+        default:
+          throw new EvaluationError(
+            `Unknown node type: ${(node as any).type}`,
+            node.position
+          );
       }
-      
-      return evaluator(node, input, context);
     } catch (error) {
       // Add position information if not already present
       if (error instanceof EvaluationError && !error.position && node.position) {
@@ -77,6 +91,7 @@ export class Interpreter {
     }
   }
 
+  // Phase 2 implementations will go here
   private evaluateLiteral(node: LiteralNode, input: any[], context: Context): EvaluationResult {
     // Literals ignore input and return their value as a collection
     const value = node.value === null ? [] : [node.value];
@@ -119,18 +134,20 @@ export class Interpreter {
     let value: any[] = [];
     
     if (node.name.startsWith('$')) {
-      // Special environment variables - use object lookup
-      const envVarHandlers: Record<string, () => any[]> = {
-        '$this': () => context.env.$this || [],
-        '$index': () => context.env.$index !== undefined ? [context.env.$index] : [],
-        '$total': () => context.env.$total || [],
-      };
-      
-      const handler = envVarHandlers[node.name];
-      if (!handler) {
-        throw new EvaluationError(`Unknown special variable: ${node.name}`, node.position);
+      // Special environment variables
+      switch (node.name) {
+        case '$this':
+          value = context.env.$this || [];
+          break;
+        case '$index':
+          value = context.env.$index !== undefined ? [context.env.$index] : [];
+          break;
+        case '$total':
+          value = context.env.$total || [];
+          break;
+        default:
+          throw new EvaluationError(`Unknown special variable: ${node.name}`, node.position);
       }
-      value = handler();
     } else {
       // User-defined variables (remove % prefix if present)
       const varName = node.name.startsWith('%') ? node.name.substring(1) : node.name;
@@ -153,47 +170,40 @@ export class Interpreter {
     }
 
     // For other operators, evaluate left first, then right with threaded context
+    // This ensures variables defined on the left are available on the right
     const leftResult = this.evaluate(node.left, input, context);
     const rightResult = this.evaluate(node.right, input, leftResult.context);
 
-    // Use operator handlers object instead of if-else chains
-    const operatorHandlers: Record<string, () => any[]> = {
-      // Arithmetic operators
-      [TokenType.PLUS]: () => Operators.arithmetic(node.operator, leftResult.value, rightResult.value),
-      [TokenType.MINUS]: () => Operators.arithmetic(node.operator, leftResult.value, rightResult.value),
-      [TokenType.STAR]: () => Operators.arithmetic(node.operator, leftResult.value, rightResult.value),
-      [TokenType.SLASH]: () => Operators.arithmetic(node.operator, leftResult.value, rightResult.value),
-      [TokenType.DIV]: () => Operators.arithmetic(node.operator, leftResult.value, rightResult.value),
-      [TokenType.MOD]: () => Operators.arithmetic(node.operator, leftResult.value, rightResult.value),
-      
-      // Comparison operators
-      [TokenType.EQ]: () => Operators.comparison(node.operator, leftResult.value, rightResult.value),
-      [TokenType.NEQ]: () => Operators.comparison(node.operator, leftResult.value, rightResult.value),
-      [TokenType.LT]: () => Operators.comparison(node.operator, leftResult.value, rightResult.value),
-      [TokenType.GT]: () => Operators.comparison(node.operator, leftResult.value, rightResult.value),
-      [TokenType.LTE]: () => Operators.comparison(node.operator, leftResult.value, rightResult.value),
-      [TokenType.GTE]: () => Operators.comparison(node.operator, leftResult.value, rightResult.value),
-      
-      // Logical operators
-      [TokenType.AND]: () => Operators.logical(node.operator, leftResult.value, rightResult.value),
-      [TokenType.OR]: () => Operators.logical(node.operator, leftResult.value, rightResult.value),
-      [TokenType.XOR]: () => Operators.logical(node.operator, leftResult.value, rightResult.value),
-      [TokenType.IMPLIES]: () => Operators.logical(node.operator, leftResult.value, rightResult.value),
-      
-      // Membership operators
-      [TokenType.IN]: () => Operators.membership(node.operator, leftResult.value, rightResult.value),
-      [TokenType.CONTAINS]: () => Operators.membership(node.operator, leftResult.value, rightResult.value),
-      
-      // String concatenation
-      [TokenType.CONCAT]: () => Operators.concat(leftResult.value, rightResult.value),
-    };
-
-    const handler = operatorHandlers[node.operator];
-    if (!handler) {
+    let value: any[];
+    
+    // Arithmetic operators
+    if ([TokenType.PLUS, TokenType.MINUS, TokenType.STAR, TokenType.SLASH, 
+         TokenType.DIV, TokenType.MOD].includes(node.operator)) {
+      value = Operators.arithmetic(node.operator, leftResult.value, rightResult.value);
+    }
+    // Comparison operators
+    else if ([TokenType.EQ, TokenType.NEQ, TokenType.LT, TokenType.GT,
+              TokenType.LTE, TokenType.GTE].includes(node.operator)) {
+      value = Operators.comparison(node.operator, leftResult.value, rightResult.value);
+    }
+    // Logical operators
+    else if ([TokenType.AND, TokenType.OR, TokenType.XOR, TokenType.IMPLIES].includes(node.operator)) {
+      value = Operators.logical(node.operator, leftResult.value, rightResult.value);
+    }
+    // Membership operators
+    else if (node.operator === TokenType.IN || node.operator === TokenType.CONTAINS) {
+      value = Operators.membership(node.operator, leftResult.value, rightResult.value);
+    }
+    // String concatenation
+    else if (node.operator === TokenType.CONCAT) {
+      value = Operators.concat(leftResult.value, rightResult.value);
+    }
+    // TODO: Other operators
+    else {
       throw new EvaluationError(`Binary operator not yet implemented: ${node.operator}`, node.position);
     }
 
-    const value = handler();
+    // Return result with threaded context
     return { value, context: rightResult.context };
   }
 
@@ -201,29 +211,35 @@ export class Interpreter {
     // Evaluate operand
     const operandResult = this.evaluate(node.operand, input, context);
 
-    // Use object lookup for unary operators
-    const unaryHandlers: Record<string, () => any[]> = {
-      [TokenType.NOT]: () => Operators.logical(TokenType.NOT, operandResult.value),
-      [TokenType.PLUS]: () => operandResult.value, // Unary plus - just return the value
-      [TokenType.MINUS]: () => {
+    let value: any[];
+    
+    switch (node.operator) {
+      case TokenType.NOT:
+        value = Operators.logical(TokenType.NOT, operandResult.value);
+        break;
+        
+      case TokenType.PLUS:
+        // Unary plus - just return the value
+        value = operandResult.value;
+        break;
+        
+      case TokenType.MINUS:
         // Unary minus - negate numbers
         if (operandResult.value.length === 0) {
-          return [];
+          value = [];
+        } else {
+          const num = CollectionUtils.toSingleton(operandResult.value);
+          if (typeof num !== 'number') {
+            throw new EvaluationError('Unary minus requires a number', node.position);
+          }
+          value = [-num];
         }
-        const num = CollectionUtils.toSingleton(operandResult.value);
-        if (typeof num !== 'number') {
-          throw new EvaluationError('Unary minus requires a number', node.position);
-        }
-        return [-num];
-      },
-    };
-
-    const handler = unaryHandlers[node.operator];
-    if (!handler) {
-      throw new EvaluationError(`Unknown unary operator: ${node.operator}`, node.position);
+        break;
+        
+      default:
+        throw new EvaluationError(`Unknown unary operator: ${node.operator}`, node.position);
     }
 
-    const value = handler();
     return { value, context: operandResult.context };
   }
 
@@ -273,6 +289,7 @@ export class Interpreter {
 
   private evaluateUnion(node: UnionNode, input: any[], context: Context): EvaluationResult {
     // Union combines results from all operands
+    // Each operand is evaluated with the same input and context
     const results: any[] = [];
     let currentContext = context;
 
@@ -352,6 +369,7 @@ export function evaluateFHIRPath(
   
   // Set initial $this to the input collection if not already set
   if (!evalContext.env.$this) {
+    // Directly set $this as the entire collection
     evalContext = {
       ...evalContext,
       env: {

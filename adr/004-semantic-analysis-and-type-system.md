@@ -8,200 +8,371 @@ Proposed
 
 The current FHIRPath implementation has a parser that produces an untyped Abstract Syntax Tree (AST). We need a type analysis system that can:
 
-1. **Analyze Types**: Determine the types of expressions without modifying the existing interpreter.
+1. **Analyze Types**: Determine the types of expressions without modifying the existing interpreter, essentially performing "evaluation without data".
 
-2. **Provide Type Information**: Make type information available for tooling, validation, and documentation without runtime overhead.
+2. **Leverage Function Signatures**: The existing function registry already contains rich type information through function signatures that we can use for type inference.
 
-3. **Model Awareness**: Support multiple type models (System types, FHIR resources, custom models) in a pluggable way.
+3. **Navigate Complex Types**: Support property navigation through nested structures, handling both simple properties and complex paths like `Patient.name.given`.
 
-4. **Static Analysis**: Enable compile-time type checking and validation as a separate concern from execution.
+4. **Track Singleton vs Collection**: Determine whether expressions produce single values or collections, enabling validation of function requirements.
 
-5. **Development Tools**: Provide foundation for IDE features like autocomplete, hover information, and type-based refactoring.
+5. **Extend AST**: Add type information directly to AST nodes rather than creating wrapper structures.
 
-6. **Validation**: Support validating FHIRPath expressions against schemas without executing them.
+6. **Validation**: Support validating FHIRPath expressions and provide meaningful error messages without executing the expressions.
 
 ## Decision
 
 We will implement a pure type analysis system that operates on the AST without modifying the interpreter. This system will be completely separate from the runtime execution path:
 
-### 1. Type Information Infrastructure
+### 1. Core Concept: Type Analysis as Evaluation Without Data
 
-Create a type system that mirrors the FHIRPath specification:
+The type analyzer follows the same evaluation pattern as the interpreter, but instead of processing actual values, it tracks type information through the expression tree. This approach ensures consistency between type checking and runtime behavior.
 
-```typescript
-// Type information classes as per spec
-interface TypeInfo {
-  abstract accept<T>(visitor: TypeInfoVisitor<T>): T;
-}
+Each AST node is extended with optional fields:
+- `resultType`: The type that this expression will produce
+- `isSingleton`: Whether the expression produces a single value or a collection
 
-class SimpleTypeInfo implements TypeInfo {
-  constructor(
-    public namespace: string,
-    public name: string,
-    public baseType?: TypeSpecifier
-  ) {}
-}
+### 2. Function Registry with Type Signatures
 
-class ClassInfo implements TypeInfo {
-  constructor(
-    public namespace: string,
-    public name: string,
-    public baseType?: TypeSpecifier,
-    public elements: ClassInfoElement[] = []
-  ) {}
-}
+A comprehensive function registry must be created with predefined type signatures for all built-in functions. Each function signature specifies:
+- Input type constraints and singleton requirements
+- Parameter types and their singleton requirements  
+- Return type calculation (static or dynamic)
+- Whether the function returns a singleton or collection
 
-class ListTypeInfo implements TypeInfo {
-  constructor(public elementType: TypeSpecifier) {}
-}
+Functions fall into several categories based on their type behavior:
 
-class TupleTypeInfo implements TypeInfo {
-  constructor(public elements: TupleTypeInfoElement[]) {}
-}
+**Static Return Types**: Functions with fixed return types
+- `count()` → always returns Integer singleton
+- `exists()` → always returns Boolean singleton
+- `toString()` → always returns String (singleton if input is singleton)
+
+**Dynamic Return Types**: Functions that compute return type from inputs
+- `first()` → returns input type as singleton
+- `union()` → returns common base type of all inputs
+- `iif()` → returns common type of true/false branches
+
+**Expression-Based Types**: Functions that evaluate expressions to determine types
+- `select(expression)` → evaluates expression with each input item to determine result type
+- `where(condition)` → returns input type (filters don't change type)
+- `ofType(Type)` → returns the specified type
+
+**Any Return Types**: Functions where type cannot be determined statically
+- `trace()` → returns Any (same cardinality as input)
+- `children()` → returns Any collection
+- `descendants()` → returns Any collection
+
+The registry must support both simple type declarations and type computation functions that can analyze the AST of parameter expressions (particularly for `select()`, `where()`, etc.).
+
+### 3. Model Provider Interface
+
+The model provider is responsible for type resolution and property navigation. It supports:
+- Type name resolution (with namespace handling)
+- Property lookup on types, including polymorphic properties
+- Type compatibility checking
+- Union type representation for choice types
+
+For property navigation, the model provider handles both simple and polymorphic properties:
+- Simple properties: `Patient.name` → HumanName type
+- Nested navigation: `Patient.name.given` → String collection
+- Polymorphic properties: `Observation.value` → Union(Quantity | String | Boolean | Integer | Range | Ratio | SampledData | Period | CodeableConcept)
+
+Union types are essential for FHIR's choice types (like `value[x]`) where a property can hold values of different types. The type analyzer must track all possible types and propagate this information through subsequent operations.
+
+### 4. Type Analysis Algorithm
+
+The type analyzer visits each node in the AST and computes type information by following the same patterns as the interpreter:
+
+**For Literals**: The type is determined directly from the literal value (String, Integer, Boolean, etc.)
+
+**For Identifiers**: 
+- Use the model provider to look up the property type
+- Track whether the property returns a singleton or collection
+- For polymorphic properties, return a union type containing all possible types
+- Subsequent operations must handle union types appropriately
+
+**For Binary Operations**:
+- The dot operator (`.`) performs type-based property navigation
+- Arithmetic operators check numeric type compatibility
+- Comparison operators validate comparable types
+- Logical operators expect boolean-convertible types
+
+**For Functions**:
+- Look up the function signature from the registry
+- Validate input type against function requirements
+- Check singleton requirements for input and parameters
+- Calculate return type (may depend on input/parameter types)
+- Determine if result is singleton based on function behavior
+
+**For Type Operations** (`is`, `as`, `ofType`):
+- Resolve type names using the model provider
+- Track type narrowing for subsequent operations
+
+**For Union Types**:
+- When navigating from a union type, check the property on each type in the union
+- If all types have the property with the same type, return that type
+- If types differ, return a new union of all possible result types
+- If some types lack the property, the result may be empty
+
+**For Any Type**:
+- When a function returns `Any`, subsequent property access is allowed but returns `Any`
+- Type checking continues but with reduced precision
+- Singleton tracking may become uncertain
+
+The analyzer operates in two modes:
+- **Lenient mode**: Records type mismatches as warnings, continues analysis with `Any` type
+- **Strict mode**: Treats type mismatches as errors, but still handles `Any` type gracefully
+
+### 5. Step-by-Step Analysis Example
+
+Consider the expression: `Patient.name.where(use = 'official').given.first()`
+
+The analyzer processes this expression following the AST structure:
+
+**Step 1: Analyze the root (dot operator)**
+- AST: Binary(DOT, left: Binary(...), right: Function(first))
+- Process left side first to determine input for right side
+
+**Step 2: Analyze left side of root (another dot operator)**
+- AST: Binary(DOT, left: Binary(...), right: Identifier(given))
+- Process left side first
+
+**Step 3: Analyze `Patient.name.where(use = 'official')`**
+- This is another Binary(DOT) with Function(where) on the right
+- Continue decomposing...
+
+**Step 4: Analyze `Patient.name`**
+- Binary(DOT, left: Identifier(Patient), right: Identifier(name))
+- Left: `Patient` → TypeOrIdentifier resolved to Patient type
+- Right: `name` → Model provider returns: HumanName type, collection (not singleton)
+- Result: HumanName collection
+
+**Step 5: Analyze `.where(use = 'official')`**
+- Input type: HumanName collection
+- Function signature for `where`: returns same type as input, filters collection
+- Parameter expression `use = 'official'`:
+  - In context of HumanName: `use` property returns code type (singleton)
+  - Comparison with string literal is valid
+- Result: HumanName collection (same type, potentially fewer items)
+
+**Step 6: Analyze `.given`**
+- Input type: HumanName collection
+- Model provider lookup: HumanName.given → String type, collection
+- For each HumanName in input, `given` returns String collection
+- Result: String collection (flattened from collection of collections)
+
+**Step 7: Analyze `.first()`**
+- Input type: String collection
+- Function signature: first() → returns input type as singleton
+- Result: String singleton
+
+**Final annotated AST:**
+```
+Binary(DOT) → String, singleton
+├─ Binary(DOT) → String, collection
+│  ├─ Binary(DOT) → HumanName, collection
+│  │  ├─ Binary(DOT) → HumanName, collection
+│  │  │  ├─ Identifier(Patient) → Patient, singleton
+│  │  │  └─ Identifier(name) → HumanName, collection
+│  │  └─ Function(where) → HumanName, collection
+│  │     └─ Binary(EQ) → Boolean, singleton
+│  │        ├─ Identifier(use) → code, singleton
+│  │        └─ Literal('official') → String, singleton
+│  └─ Identifier(given) → String, collection
+└─ Function(first) → String, singleton
 ```
 
-### 2. Model Registry
+Each node is annotated with its result type and cardinality, enabling validation of type constraints and function requirements.
 
-Implement a registry for type models:
+### 6. Function and Operator Registry Examples
 
-```typescript
-interface ModelDefinition {
-  namespace: string;
-  types: Map<string, TypeInfo>;
-}
+The type system requires comprehensive registries for functions and operators. Here's how they might be structured:
 
-class ModelRegistry {
-  private models = new Map<string, ModelDefinition>();
-  
-  register(model: ModelDefinition): void;
-  resolveType(typeName: string, currentNamespace?: string): TypeInfo | undefined;
-  getTypeInfo(value: any): TypeInfo;
-}
+**Function Registry Example:**
+
 ```
-
-### 3. Type Analysis Result
-
-Create a separate type analysis result that doesn't modify the AST:
-
-```typescript
-interface TypeAnalysisResult {
-  // Map from AST node to its type information
-  nodeTypes: Map<ASTNode, TypeInfo>;
-  
-  // Map from AST node to cardinality info
-  nodeCardinality: Map<ASTNode, { min: number; max: number | '*' }>;
-  
-  // Collected errors and warnings
-  diagnostics: TypeDiagnostic[];
-  
-  // Symbol table for resolved identifiers
-  symbols: Map<string, SymbolInfo>;
+exists() → {
+  requiresSingleton: false,
+  parameters: [],
+  returnType: { name: 'Boolean', namespace: 'System' },
+  returnsSingleton: true
 }
 
-interface TypeDiagnostic {
-  severity: 'error' | 'warning' | 'info';
-  message: string;
-  node: ASTNode;
-  position: Position;
+count() → {
+  requiresSingleton: false,
+  parameters: [],
+  returnType: { name: 'Integer', namespace: 'System' },
+  returnsSingleton: true
 }
-```
 
-### 4. Type Analyzer
+first() → {
+  requiresSingleton: false,
+  parameters: [],
+  returnType: (input) => input,  // Same as input type
+  returnsSingleton: true
+}
 
-Create a visitor-based type analyzer that produces analysis results:
+select(expression) → {
+  requiresSingleton: false,
+  parameters: [{ expression: true }],  // Expression parameter
+  returnType: (input, params, analyzer) => {
+    // Analyze the expression in context of each input item
+    // Return the expression's result type
+    return analyzer.analyzeExpression(params[0], input);
+  },
+  returnsSingleton: false  // Always returns collection
+}
 
-```typescript
-class TypeAnalyzer {
-  constructor(
-    private modelRegistry: ModelRegistry,
-    private options: { strict: boolean } = { strict: false }
-  ) {}
-  
-  analyze(ast: ASTNode, contextType?: TypeInfo): TypeAnalysisResult {
-    // Walk AST and collect type information
-    // Resolve identifiers to types or properties
-    // Perform type checking based on strictness
-    // Return analysis result without modifying AST
+where(condition) → {
+  requiresSingleton: false,
+  parameters: [{ expression: true }],
+  returnType: (input) => input,  // Same as input type
+  returnsSingleton: false  // Maintains collection
+}
+
+toString() → {
+  requiresSingleton: false,
+  parameters: [],
+  returnType: { name: 'String', namespace: 'System' },
+  returnsSingleton: (input) => input  // Preserves input cardinality
+}
+
+children() → {
+  requiresSingleton: false,
+  parameters: [],
+  returnType: { name: 'Any', namespace: 'System' },
+  returnsSingleton: false  // Always collection
+}
+
+iif(condition, trueResult, falseResult) → {
+  requiresSingleton: true,  // Condition must be singleton
+  parameters: [
+    { requiresSingleton: true },  // condition
+    { expression: true },          // true branch
+    { expression: true }           // false branch
+  ],
+  returnType: (input, params, analyzer) => {
+    const trueType = analyzer.analyzeExpression(params[1], input);
+    const falseType = analyzer.analyzeExpression(params[2], input);
+    return analyzer.commonType(trueType, falseType);
+  },
+  returnsSingleton: (input, params) => {
+    // Result is singleton if both branches return singletons
+    return params[1].isSingleton && params[2].isSingleton;
   }
 }
 ```
 
-### 5. Analysis API
+**Operator Registry Example:**
 
-Provide a clean API for using type analysis:
+```
+'+' (arithmetic) → {
+  requiresLeftSingleton: true,
+  requiresRightSingleton: true,
+  acceptedTypes: [
+    { left: 'Integer', right: 'Integer', result: 'Integer' },
+    { left: 'Decimal', right: 'Decimal', result: 'Decimal' },
+    { left: 'Integer', right: 'Decimal', result: 'Decimal' },
+    { left: 'Decimal', right: 'Integer', result: 'Decimal' },
+    { left: 'String', right: 'String', result: 'String' }  // Concatenation
+  ],
+  returnsSingleton: true
+}
 
-```typescript
-class FHIRPathTypeChecker {
-  constructor(private modelRegistry: ModelRegistry) {}
-  
-  // Check expression validity without execution
-  validate(expression: string, contextType?: string): ValidationResult {
-    const ast = parse(expression);
-    const analysis = this.analyzer.analyze(ast, this.resolveType(contextType));
-    return {
-      valid: analysis.diagnostics.filter(d => d.severity === 'error').length === 0,
-      diagnostics: analysis.diagnostics
-    };
-  }
-  
-  // Get type of expression result
-  getExpressionType(expression: string, contextType?: string): TypeInfo | undefined {
-    const ast = parse(expression);
-    const analysis = this.analyzer.analyze(ast, this.resolveType(contextType));
-    return analysis.nodeTypes.get(ast);
-  }
-  
-  // Get available properties/methods at a position (for IDE)
-  getCompletions(expression: string, position: number, contextType?: string): CompletionItem[] {
-    // Analyze partial expression and return possible completions
+'=' (equality) → {
+  requiresLeftSingleton: false,  // Can compare collections
+  requiresRightSingleton: false,
+  acceptedTypes: 'any',  // Any types can be compared
+  returnType: { name: 'Boolean', namespace: 'System' },
+  returnsSingleton: true
+}
+
+'.' (dot/navigation) → {
+  requiresLeftSingleton: false,
+  requiresRightSingleton: false,
+  returnType: (left, right, analyzer) => {
+    // Special handling - right is evaluated in context of left
+    return analyzer.analyzeInContext(right, left);
+  },
+  returnsSingleton: (left, right) => {
+    // Singleton only if both sides are singleton
+    return left.isSingleton && right.isSingleton;
   }
 }
 
-### Implementation Phases
+'and' (logical) → {
+  requiresLeftSingleton: true,
+  requiresRightSingleton: true,
+  acceptedTypes: [
+    { left: 'Boolean', right: 'Boolean', result: 'Boolean' }
+  ],
+  returnsSingleton: true,
+  shortCircuit: true  // Can skip right evaluation if left is false
+}
 
-**Phase 1: Core Infrastructure (Week 1)**
-- Type information classes
-- Model registry
-- System model with primitive types
+'in' (membership) → {
+  requiresLeftSingleton: true,
+  requiresRightSingleton: false,  // Right is a collection to search in
+  returnType: { name: 'Boolean', namespace: 'System' },
+  returnsSingleton: true
+}
 
-**Phase 2: Type Analysis Engine (Week 2)**
-- Type analyzer visitor implementation
-- Type inference for expressions
-- Cardinality tracking
+'|' (union) → {
+  requiresLeftSingleton: false,
+  requiresRightSingleton: false,
+  returnType: (left, right, analyzer) => {
+    return analyzer.unionType(left, right);
+  },
+  returnsSingleton: false  // Always returns collection
+}
+```
 
-**Phase 3: Type Checking (Week 3)**
-- Operator type checking
-- Function signature validation
-- Diagnostic reporting
+These registries enable the type analyzer to:
+- Validate that functions receive appropriate inputs
+- Calculate result types based on input types
+- Track singleton vs collection through operations
+- Handle special cases like expression parameters and type unions
 
-**Phase 4: Analysis API (Week 4)**
-- Validation API
-- Type query API
-- IDE support APIs
+### 6. Implementation Phases
 
-**Phase 5: Advanced Features (Week 5)**
-- Strict type checking mode
-- FHIR model loader
-- Custom model support
-- Completion provider
+**Phase 1: Core Infrastructure**
+- Extend AST interfaces with type and singleton fields
+- Create TypeInfo type
+- Implement MockModelProvider for testing
+
+**Phase 2: Function Registry Enhancement**
+- Add type signature support to function registry
+- Define signatures for all built-in functions
+- Implement type computation functions for dynamic types
+- Support expression evaluation for select/where type inference
+
+**Phase 3: Type Analyzer**
+- Implement AST visitor for type analysis
+- Type inference for all node types
+- Singleton tracking through expressions
+
+**Phase 4: Type Checking**
+- Operator type compatibility
+- Singleton requirement validation
+- Strict mode implementation
 
 ## Consequences
 
 ### Positive
 
-- **No Runtime Impact**: Type analysis is completely separate from interpreter, no performance overhead
-- **Better Development Tools**: Enables IDE features without modifying core runtime
-- **Validation Without Execution**: Can validate expressions without running them
-- **Clean Separation**: Type checking is an optional layer, not required for execution
-- **Extensibility**: Easy to add new models without touching interpreter
-- **Reusable Analysis**: Type information can be cached and reused
+- **No Runtime Impact**: Type analysis runs independently from the interpreter with no performance overhead
+- **Early Validation**: Detects type errors before execution, improving development experience
+- **Consistent with Interpreter**: Uses the same traversal patterns, ensuring behavioral consistency
+- **Leverages Existing Infrastructure**: Reuses function signatures and registry
+- **Flexible Model System**: Model provider interface supports various type systems
+- **Progressive Enhancement**: AST extensions are optional and backward compatible
 
 ### Negative
 
-- **Duplicate Logic**: Some type-related logic may be duplicated between analyzer and interpreter
-- **Synchronization**: Need to keep type analyzer in sync with interpreter behavior
-- **Limited Runtime Benefits**: Can't use type information for runtime optimizations
-- **Additional API Surface**: More code to maintain alongside the interpreter
+- **Parallel Implementation**: Must maintain type rules that mirror interpreter behavior
+- **Synchronization Challenge**: Changes to interpreter semantics require analyzer updates
+- **Limited Runtime Benefits**: Type information isn't available for runtime optimizations
+- **Model Complexity**: Accurate type modeling for complex structures requires significant effort
 
 ### Neutral
 
@@ -253,11 +424,11 @@ Build type analysis as part of a full LSP implementation.
 
 The pure type analysis approach is chosen because:
 
-1. **Separation of Concerns**: Keeps type analysis completely separate from execution
-2. **No Runtime Impact**: Users who don't need type checking pay no performance cost
-3. **Tool Friendly**: Easy to build development tools on top of the analysis API
-4. **Incremental Adoption**: Can be added to existing projects without breaking changes
-5. **Flexibility**: Different tools can use type information differently
-6. **Maintainability**: Easier to evolve type system independently of interpreter
+1. **Conceptual Clarity**: Treating type analysis as "evaluation without data" provides a clear mental model
+2. **Behavioral Consistency**: Following interpreter patterns ensures type checking matches runtime behavior
+3. **No Runtime Impact**: Type checking remains completely optional with zero overhead
+4. **Reuses Existing Knowledge**: Function signatures already encode type rules
+5. **Supports Complex Navigation**: Model provider abstraction handles nested property paths naturally
+6. **Progressive Implementation**: Can start simple and add sophistication incrementally
 
-This approach treats type analysis as a development-time concern rather than a runtime concern, which aligns with the optional nature of type checking in FHIRPath and provides maximum flexibility for different use cases.
+This approach frames type analysis as a static simulation of expression evaluation, making it easier to ensure that type checking rules align with actual runtime behavior. The model provider abstraction allows for rich type systems while keeping the analyzer logic focused on traversal and validation.
