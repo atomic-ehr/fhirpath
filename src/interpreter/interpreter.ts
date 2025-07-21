@@ -21,6 +21,7 @@ import { EvaluationError, CollectionUtils } from './types';
 import { ContextManager } from './context';
 import { Operators } from './operators';
 import { FunctionRegistry } from './functions';
+import { TypeSystem } from './types/type-system';
 
 /**
  * FHIRPath Interpreter - evaluates AST nodes following the stream-processing model.
@@ -186,7 +187,15 @@ export class Interpreter {
     else if ([TokenType.AND, TokenType.OR, TokenType.XOR, TokenType.IMPLIES].includes(node.operator)) {
       value = Operators.logical(node.operator, leftResult.value, rightResult.value);
     }
-    // TODO: Other operators (union, contains, in, etc.)
+    // Membership operators
+    else if (node.operator === TokenType.IN || node.operator === TokenType.CONTAINS) {
+      value = Operators.membership(node.operator, leftResult.value, rightResult.value);
+    }
+    // String concatenation
+    else if (node.operator === TokenType.CONCAT) {
+      value = Operators.concat(leftResult.value, rightResult.value);
+    }
+    // TODO: Other operators
     else {
       throw new EvaluationError(`Binary operator not yet implemented: ${node.operator}`, node.position);
     }
@@ -250,8 +259,29 @@ export class Interpreter {
   }
 
   private evaluateIndex(node: IndexNode, input: any[], context: Context): EvaluationResult {
-    // TODO: Implement indexing
-    throw new EvaluationError('Index operation not yet implemented', node.position);
+    // Evaluate the expression being indexed
+    const exprResult = this.evaluate(node.expression, input, context);
+    
+    // Evaluate the index expression
+    const indexResult = this.evaluate(node.index, exprResult.value, exprResult.context);
+    
+    // Index must be a single integer
+    if (indexResult.value.length === 0) {
+      return { value: [], context: indexResult.context };
+    }
+    
+    const index = CollectionUtils.toSingleton(indexResult.value);
+    if (typeof index !== 'number' || !Number.isInteger(index)) {
+      throw new EvaluationError('Index must be an integer', node.position);
+    }
+    
+    // FHIRPath uses 0-based indexing
+    if (index < 0 || index >= exprResult.value.length) {
+      // Out of bounds returns empty
+      return { value: [], context: indexResult.context };
+    }
+    
+    return { value: [exprResult.value[index]], context: indexResult.context };
   }
 
   private evaluateUnion(node: UnionNode, input: any[], context: Context): EvaluationResult {
@@ -271,13 +301,42 @@ export class Interpreter {
   }
 
   private evaluateMembershipTest(node: MembershipTestNode, input: any[], context: Context): EvaluationResult {
-    // TODO: Implement 'is' operator
-    throw new EvaluationError('Membership test (is) not yet implemented', node.position);
+    // Evaluate the expression to get values to test
+    const exprResult = this.evaluate(node.expression, input, context);
+    
+    // For each value, check if it matches the type
+    const results: boolean[] = [];
+    for (const value of exprResult.value) {
+      results.push(TypeSystem.isType(value, node.targetType));
+    }
+    
+    // Return collection of booleans
+    return { value: results, context: exprResult.context };
   }
 
   private evaluateTypeCast(node: TypeCastNode, input: any[], context: Context): EvaluationResult {
-    // TODO: Implement 'as' operator
-    throw new EvaluationError('Type cast (as) not yet implemented', node.position);
+    // Evaluate the expression to get values to cast
+    const exprResult = this.evaluate(node.expression, input, context);
+    
+    // For each value, attempt to cast to the target type
+    const results: any[] = [];
+    for (const value of exprResult.value) {
+      // If already the correct type, keep it
+      if (TypeSystem.isType(value, node.targetType)) {
+        results.push(value);
+      }
+      // Otherwise, try to cast (returns null if fails)
+      else {
+        const castValue = TypeSystem.cast(value, node.targetType);
+        if (castValue !== null) {
+          results.push(castValue);
+        }
+        // Failed casts are filtered out (not added to results)
+      }
+    }
+    
+    // Return filtered collection
+    return { value: results, context: exprResult.context };
   }
 
   private evaluateTypeReference(node: TypeReferenceNode, input: any[], context: Context): EvaluationResult {
@@ -299,12 +358,27 @@ export function evaluateFHIRPath(
     ? require('../parser').parse(expression)
     : expression;
 
-  // Create context if not provided
-  const evalContext = context || ContextManager.create(CollectionUtils.toCollection(input));
+  // Convert input to collection
+  const inputCollection = CollectionUtils.toCollection(input);
+
+  // Create context if not provided and set initial $this
+  let evalContext = context || ContextManager.create(inputCollection);
+  
+  // Set initial $this to the input collection if not already set
+  if (!evalContext.env.$this) {
+    // Directly set $this as the entire collection
+    evalContext = {
+      ...evalContext,
+      env: {
+        ...evalContext.env,
+        $this: inputCollection
+      }
+    };
+  }
 
   // Create interpreter and evaluate
   const interpreter = new Interpreter();
-  const result = interpreter.evaluate(ast, CollectionUtils.toCollection(input), evalContext);
+  const result = interpreter.evaluate(ast, inputCollection, evalContext);
 
   return result.value;
 }

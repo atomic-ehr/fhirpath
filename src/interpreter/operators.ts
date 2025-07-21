@@ -6,6 +6,64 @@ import { CollectionUtils, EvaluationError } from './types';
  */
 export class Operators {
   /**
+   * Membership operators (in, contains)
+   */
+  static membership(operator: TokenType, left: any[], right: any[]): any[] {
+    // Empty propagation
+    if (left.length === 0 || right.length === 0) {
+      return [];
+    }
+
+    if (operator === TokenType.IN) {
+      // 'in' operator: check if left item(s) are in right collection
+      // Apply singleton conversion to left
+      const leftValue = CollectionUtils.toSingleton(left);
+      
+      // Check if leftValue exists in right collection
+      for (const rightItem of right) {
+        if (this.equals(leftValue, rightItem)) {
+          return [true];
+        }
+      }
+      return [false];
+    } else if (operator === TokenType.CONTAINS) {
+      // 'contains' operator: check if left collection contains right item(s)
+      // Apply singleton conversion to right
+      const rightValue = CollectionUtils.toSingleton(right);
+      
+      // Check if rightValue exists in left collection
+      for (const leftItem of left) {
+        if (this.equals(leftItem, rightValue)) {
+          return [true];
+        }
+      }
+      return [false];
+    }
+
+    throw new Error(`Unknown membership operator: ${operator}`);
+  }
+
+  /**
+   * String concatenation operator (&) - null-safe concatenation
+   */
+  static concat(left: any[], right: any[]): any[] {
+    // & operator returns empty if either operand is empty
+    if (left.length === 0 || right.length === 0) {
+      return [];
+    }
+
+    // Apply singleton conversion
+    const leftValue = CollectionUtils.toSingleton(left);
+    const rightValue = CollectionUtils.toSingleton(right);
+
+    // Both must be strings
+    if (typeof leftValue !== 'string' || typeof rightValue !== 'string') {
+      throw new Error('String concatenation (&) requires string operands');
+    }
+
+    return [leftValue + rightValue];
+  }
+  /**
    * Apply arithmetic operator with singleton conversion
    */
   static arithmetic(
@@ -247,7 +305,7 @@ export class Operators {
   /**
    * FHIRPath equality comparison
    */
-  private static equals(a: any, b: any): boolean {
+  static equals(a: any, b: any): boolean {
     // Handle null/undefined
     if (a == null && b == null) return true;
     if (a == null || b == null) return false;

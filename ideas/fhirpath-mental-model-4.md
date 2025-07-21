@@ -2,13 +2,31 @@
 
 ## Introduction
 
-FHIRPath is a path-based navigation and extraction language designed for FHIR resources. At first glance, expressions like `Patient.name.where(use = 'official').given` might seem like simple property access, but there's an elegant and powerful model underneath.
+FHIRPath is a path-based navigation and extraction language designed for FHIR resources. 
+At first glance, expressions like `Patient.name.where(use = 'official').given` might seem like simple property access, 
+but understanding how FHIRPath works may be quite tricky without proper mental model.
+Here are few latest discussions on FHIR zulip chat demonstrating the hidden complexity of the language:
+* [What should it do](https://chat.fhir.org/#narrow/channel/179266-fhirpath/topic/what.20should.20it.20do.3F/with/529563311) 
+* [Can we chain iif from left side](https://chat.fhir.org/#narrow/channel/179266-fhirpath/topic/Can.20we.20chain.20iif.20from.20left.20side.3F/with/529625685)
 
-This guide will help you build an accurate mental model of how FHIRPath works by introducing one concept at a time, using a single Patient example throughout.
+This guide will help you build an accurate mental model of how FHIRPath works by introducing "stream processing" model and walk 
+through the language by examples.
+
 
 ## The Core Mental Model: Everything is a Processing Node
 
-The key insight that makes FHIRPath intuitive is this: **every part of a FHIRPath expression is a processing node with the same interface**.
+We can represent FHIRPath expression as a tree of nodes.
+The key insight that makes FHIRPath intuitive is this: 
+**every part of a FHIRPath expression is a processing node with the same interface**.
+
+```javascript
+node(context, input, args) -> { output, context }
+```
+
+Context is a set of variables and services, which are available to the nodes.
+Some nodes may set variables in context, which will be available to the next nodes.
+Context may flow from node to node by `.` operator.
+
 
 ### The Universal Node Interface
 
@@ -47,7 +65,7 @@ A critical insight: **nodes control their arguments' evaluation**:
 
 ### How Nodes Connect
 
-FHIRPath expressions are trees of connected nodes. Data and context flow through these nodes:
+FHIRPath expressions are trees of connected nodes. **Data** (input) and **context** flow through these nodes:
 
 ```
 Expression: Patient.name.given
@@ -95,29 +113,27 @@ Understanding how context flows is crucial:
    - `defineVariable()`: adds a new variable
    - Modified context flows to all subsequent nodes
 
-## Collections: The Foundation
+Notes: In real implementation, context is more probably cloned and modified.
+TODO: elaborate on context visibility. For example, `defineVariable()` should ot leak `select()` context.
 
-Before we dive into specific nodes, understand that **everything in FHIRPath is a collection**:
+## Data flow as collections 
 
-### Collection Properties
+Before we dive into specific nodes, understand that **input** (data) are  always a collection:
+
+Collections can be:
+- **Can be empty**: `{ }` represents no value/unknown
 - **Ordered**: `[1, 2, 3]` is different from `[3, 2, 1]`
 - **Non-unique**: `[1, 1, 2]` is valid
+- **Singleton**: `[1]` is a collection of one element
 - **Typed**: Each element has a type
-- **Can be empty**: `{ }` represents no value/unknown
+- **Mixed**: Each element may have different type (`children()` returns mixed collection)
 
 ### The Empty Collection
 
 The empty collection `{ }` is special:
 - Represents missing or unknown values
-- Propagates through most operations
+- Propagates through most operations, unless the function/operation indicates that an exception should be thrown with no input (not too many of these).
 - Acts as "unknown" in three-valued logic
-
-Examples:
-```
-{ }.first() → { }
-{ } = 5 → { }
-{ } and true → { }
-```
 
 ## Meet Our Patient: Sarah Smith
 
@@ -154,60 +170,49 @@ Throughout this guide, we'll use this Patient resource:
 
 We'll explore how different nodes process this data step by step.
 
-## Context and Starting Points
+## Input & Context are Starting Point
+
+### What is Input?
+
+Input is a collection of items, which are being processed.
 
 ### What is Context?
 
 Context is the environment in which expressions evaluate. It contains:
 - **Variables**: Named values available during evaluation
 - **Special variables**: `$this`, `$index`, `$total`
-- **Standard FHIR variables**: `%context`, `%resource`, `%rootResource`
+- **Standard FHIR variables**: `%context`, `%resource`
 - **Environment**: External data like terminology servers
 
-### Initial Context Matters
+External variables are used in FHIR SDC in questionnaire calculations
+or another good example is %previous in FHIR Subscription processing.
 
-The same expression can have different meanings depending on where it starts. The initial context always includes these standard variables:
+The same expression can have different meanings depending on input and context.
 
+- **`$this`**: At the beginning set to input, can be modified by some function nodes (select, where, etc)
 - **`%context`**: The original input to the FHIRPath expression
-- **`%resource`**: The resource containing the current focus (may change during evaluation)
+- **`%resource`**: The resource containing the current focus (may change during evaluation when crossing resource boundaries such as domainresource.contained, or bundle.entry.resource)
 - **`%rootResource`**: The root resource (for nested resources)
 
+TODO: more on %context
+
 #### Starting with a Patient resource:
+
 ```
 Expression: name.given
-Input: [Patient Sarah Smith]
+Input: [Patient(Sarah Smith)]
 Initial Context: {
-  %context: [Patient Sarah Smith],
-  %resource: [Patient Sarah Smith],
-  %rootResource: [Patient Sarah Smith]
+  %context: [Patient(Sarah Smith)],
+  %resource: [Patient(Sarah Smith)],
+  %rootResource: [Patient(Sarah Smith)]
+  $this: [Patient(Sarah Smith)]
 }
 Output: ['Sarah', 'Jane', 'SJ']
 ```
 
-#### Starting with a Bundle containing Patients:
-```
-Expression: entry.resource.ofType(Patient).name.given
-Input: [Bundle]
-Initial Context: {
-  %context: [Bundle],
-  %resource: [Bundle],
-  %rootResource: [Bundle]
-}
-Output: ['Sarah', 'Jane', 'SJ', 'John', 'Mary', ...]  // From all Patients
-```
-
-#### Using Standard Variables:
-```fhirpath
-// From anywhere in the expression, access original input
-name.where(use = 'official').select(%context.id)
-
-// When navigating into contained resources
-Bundle.entry.resource.where(%resource.resourceType = 'Patient')
-```
-
 ### The Ambiguity of `Patient`
 
-When you see `Patient` in FHIRPath, it's ambiguous - the same syntax can mean different things depending on context:
+When you see `Patient` in FHIRPath, it's ambiguous - the same syntax can mean different things depending on input.
 
 ```fhirpath
 Patient.name  // What does "Patient" mean here?
@@ -220,7 +225,6 @@ This could be:
 The interpretation depends on:
 - Your input data structure
 - The data model being used
-- Implementation choices
 
 Examples of the ambiguity:
 ```fhirpath
@@ -228,24 +232,9 @@ Examples of the ambiguity:
 // Input: {Patient: {name: [{given: ["John"]}]}}
 Patient.name  → [{given: ["John"]}]  // Field navigation
 
-// Scenario 2: Input is a collection of resources
-// Input: [{resourceType: "Patient", name: [...]}, 
-//         {resourceType: "Person", name: [...]}]
-Patient.name  → names from Patient resources  // Type filter
-              // Person resources filtered out
-
-// Scenario 3: No Patient field or type
-// Input: {id: "123", name: [...]}
+// Scenario 2: Different resource type
+// Input: {resourceType: "Practitioner", id: "123", name: [...]}
 Patient.name  → { }  // Empty - neither field nor type match
-```
-
-To avoid ambiguity:
-```fhirpath
-// Explicit type filtering (recommended)
-ofType(Patient).name  // Clear intention: filter by type
-
-// Explicit field navigation
-$this.Patient.name    // Clear intention: access field
 ```
 
 ## Basic Navigation Nodes
@@ -257,49 +246,30 @@ Now let's explore how individual nodes work, starting with the simplest: navigat
 An identifier node extracts a named field from its input:
 
 ```
-Node: name
 Type: Identifier
+Node: name
 ```
 
 Processing our Patient:
 ```
-Input:    [Patient Sarah Smith]
+Input:    [Patient(Sarah Smith)]
 Context:  {initial context}
      ↓
-   name
+    name
      ↓
-Output:   [Name{use:'official'...}, Name{use:'nickname'...}]
+Output:   [HumanName{use:'official'...}, HumanName{use:'nickname'...}]
 Context:  {initial context} (unchanged)
 ```
 
 Key points:
 - Takes each item in input collection
 - Extracts the 'name' field
-- Flattens results into single collection
+- Flattens results into single collection and filters out empty values
 - Context passes through unchanged
 
 ### The Dot Operator: Sequential Processing and Context Threading
 
 The dot (`.`) is special - it connects nodes sequentially AND threads context:
-
-```
-Node: .
-Type: Binary operator (highest precedence)
-```
-
-How `name.family` works:
-
-```
-Input:    [Name{use:'official', family:'Smith', given:['Sarah','Jane']}]
-Context:  {initial}
-     ↓
-  name ──► [Name{...}] ──► family ──► ['Smith']
-     ↓                                    ↓
-   (left)                              (right)
-     ↓                                    ↓
-Output:   ['Smith']
-Context:  {initial} (unchanged in this case)
-```
 
 The dot operator does TWO critical jobs:
 1. **Data Pipeline**: Takes left's output as right's input
@@ -311,7 +281,7 @@ This dual role is why:
 defineVariable('x', 5).name.select(%x + 1)  // Works!
 
 // Without dots, context doesn't flow
-defineVariable('x', 5) name select(%x + 1)  // Syntax error!
+defineVariable('x', 5) | name.select(%x + 1)  // %x is not available here
 ```
 
 The dot operator:
@@ -324,37 +294,25 @@ The dot operator:
 
 Let's trace `name.family` (starting from a Patient resource):
 
+Dot operator evaluates left side with original input/context, 
+takes left's output as right's input and passes left's output context to right.
+Returns right's output and context.
+
 ```
 Step 1: name
-Input:  [Patient Sarah Smith]
-Output: [Name{official}, Name{nickname}]
+Input:  [Patient(Sarah Smith)]
+Output: [HumanName{official}, HumanName{nickname}]
 
 Step 2: family (with dot)
-Input:  [Name{official}, Name{nickname}]     // from step 1
-Process each Name:
-  - Name{official}.family → ['Smith']
-  - Name{nickname}.family → { }  // no family field
-Output: ['Smith']    // empty filtered out
+Input:  [HumanName{official}, HumanName{nickname}]
+Output: ['Smith'] 
 ```
-
-For deeper navigation, tracing `address.city`:
-```
-Input:  [Patient Sarah Smith]
-Step 1: address → [Address{city:'Boston', state:'MA'}]
-Step 2: city → ['Boston']
-```
-
-Key insight: Navigation automatically:
-- Processes each item in the collection
-- Extracts the requested field
-- Flattens nested collections
-- Filters out empty results
 
 ### Navigation Examples with Our Patient
 
 ```fhirpath
 // Starting from Patient resource
-name           → [Name{official}, Name{nickname}]
+name           → [HumanName{official}, HumanName{nickname}]
 name.use       → ['official', 'nickname']
 name.given     → ['Sarah', 'Jane', 'SJ']
 name.family    → ['Smith']  // Empty from nickname filtered out
@@ -380,7 +338,6 @@ Node: first()
 Type: Function
 ```
 
-Example with our Patient:
 ```
 Input:    ['Sarah', 'Jane', 'SJ']
 Context:  {initial}
@@ -391,20 +348,7 @@ Output:   ['Sarah']
 Context:  {initial} (unchanged)
 ```
 
-With empty input:
-```
-Input:    { }
-Output:   { }  // Empty propagates
-```
-
-#### `last()` - Get Last Element
-
-```
-name.given.last()
-
-Input:    ['Sarah', 'Jane', 'SJ']
-Output:   ['SJ']
-```
+Functions propagate empty input into empty output.
 
 #### `count()` - Count Elements
 
@@ -434,11 +378,6 @@ Process:  substring from position 0, length 2
 Output:   ['Sm']
 ```
 
-How substring orchestrates its arguments:
-1. **Evaluates arguments once** with original input/context
-2. **Waits for results** before processing
-3. **Uses results** to perform substring operation
-
 ```
 substring(0, 2) orchestration:
 1. Evaluate arg1: 0 → [0]
@@ -446,32 +385,42 @@ substring(0, 2) orchestration:
 3. Apply substring using [0] and [2]
 ```
 
+How substring orchestrates its arguments:
+1. **Evaluates arguments once** with parent $this as input (TODO: think more about this!!!!)
+2. **Uses results** to perform substring operation
+
 Can use expressions as arguments:
 ```fhirpath
-family.substring(1, family.length() - 2)
+name.family.substring(1, name.family.length() - 2)
 // Orchestration:
 // 1. Evaluate arg1: 1 → [1]
-// 2. Evaluate arg2: family.length() - 2 → [3]
+// 2. Evaluate arg2: name.family.length() - 2 → [3]
 // 3. Apply substring(1, 3) to input
+//or
 ```
 
-### More Simple Functions
+For example, this expression is probably not what you want:
 
 ```fhirpath
-// String functions
-name.family.upper()        → ['SMITH']
-name.family.lower()        → ['smith']
-name.family.length()       → [5]
-
-// Collection functions
-name.given.distinct()      → ['Sarah', 'Jane', 'SJ']  // no duplicates here
-name.use.exists()          → [true]  // at least one exists
-name.middle.empty()        → [true]  // none exist
-
-// Type checking
-active.type()              → ['System.Boolean']
-birthDate.type()           → ['System.Date']
+Patient.name.family.substring(1, length() - 2)
+//or even this expression in Patient context:
+'123456'.substring(1, length() - 2)
 ```
+
+Because `length()` will be evaluated with %context as input, which is Patient in our case
+and this expression is equivalent to `Patient.name.family.substring(1, Patient.length() - 2)`.
+or even `'123456'.substring(1, Patient.length() - 2)`.
+
+You probably need something like this:
+
+```fhirpath
+name.family.select(substring(1, length() - 2))
+// which means:
+name.family.select($this.substring(1, $this.length() - 2))
+```
+Here, `select` will set `$this` to each family string.
+
+See [discussion](https://chat.fhir.org/#narrow/channel/179266-fhirpath/topic/what.20should.20it.20do.3F/with/529563311)
 
 ## Literal and Operator Nodes
 
@@ -787,6 +736,23 @@ Patient
 // Result: ['Ms. Sarah Smith']
 ```
 
+Chaining iif - input becomes $this:
+```fhirpath
+Patient.name
+  .where(use = 'official')
+  .iif(given.count() > 1,        // $this is the official Name
+    given.join(' '),              // Multiple given names
+    given.first())                // Single given name
+  
+// Step by step:
+// 1. Patient.name → [Name{official}, Name{nickname}]
+// 2. where(...) → [Name{official}]
+// 3. iif gets Name{official} as input
+// 4. Inside iif, $this = Name{official}
+// 5. Evaluates: given.count() > 1 → true
+// 6. Returns: given.join(' ') → ['Sarah Jane']
+```
+
 ### The `defineVariable()` Function
 
 `defineVariable()` permanently adds a variable to the context:
@@ -836,6 +802,41 @@ Key points:
 - Variable is available to all subsequent nodes
 - Context modification is permanent
 - Input passes through unchanged
+
+Chaining defineVariable - input becomes $this:
+```fhirpath
+Patient.name
+  .where(use = 'official')
+  .defineVariable('fullName', given.join(' ') + ' ' + family)
+  .given  // Still operating on the Name, not Patient!
+
+// Step by step:
+// 1. Patient.name → [Name{official}, Name{nickname}]
+// 2. where(...) → [Name{official}]
+// 3. defineVariable gets Name{official} as input
+// 4. Inside defineVariable expression, $this = Name{official}
+// 5. Evaluates: given.join(' ') + ' ' + family → ['Sarah Jane Smith']
+// 6. Context: adds %fullName: ['Sarah Jane Smith']
+// 7. Output: [Name{official}] (passes through!)
+// 8. given operates on Name{official} → ['Sarah', 'Jane']
+```
+
+Using both together:
+```fhirpath
+Patient
+  .defineVariable('patientId', id)
+  .name
+  .where(use = 'official')
+  .iif(exists(),
+    defineVariable('hasOfficial', true),
+    defineVariable('hasOfficial', false))
+  .select(%patientId + ': ' + iif(%hasOfficial, given.join(' '), 'No official name'))
+
+// Shows how:
+// - defineVariable modifies context permanently
+// - iif receives whatever was piped to it
+// - Both can access $this from their position in the chain
+```
 
 ### Combining Control Flow
 

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'bun:test';
 import { Interpreter } from '../src/interpreter/interpreter';
 import { ContextManager } from '../src/interpreter/context';
-import { parse } from '../src/parser';
+import { parse, pprint } from '../src/parser';
 
 describe('FHIRPath Interpreter', () => {
   let interpreter: Interpreter;
@@ -558,6 +558,509 @@ describe('FHIRPath Interpreter', () => {
           expect(ContextManager.getVariable(finalContext, 'y')).toEqual([10]);
           expect(ContextManager.getVariable(finalContext, 'z')).toEqual([15]);
         });
+      });
+    });
+
+    describe('Type Operators (is/as)', () => {
+      it('is operator checks type', () => {
+        // Test with primitive types
+        const ast1 = parse("'hello'.is(String)");
+        const result1 = interpreter.evaluate(ast1, [], context);
+        expect(result1.value).toEqual([true]);
+
+        const ast2 = parse('42.is(Integer)');
+        const result2 = interpreter.evaluate(ast2, [], context);
+        expect(result2.value).toEqual([true]);
+
+        const ast3 = parse('3.14.is(Decimal)');
+        const result3 = interpreter.evaluate(ast3, [], context);
+        expect(result3.value).toEqual([true]);
+
+        const ast4 = parse('true.is(Boolean)');
+        const result4 = interpreter.evaluate(ast4, [], context);
+        expect(result4.value).toEqual([true]);
+      });
+
+      it('is operator returns false for wrong type', () => {
+        const ast1 = parse("'hello'.is(Integer)");
+        const result1 = interpreter.evaluate(ast1, [], context);
+        expect(result1.value).toEqual([false]);
+
+        const ast2 = parse('42.is(String)');
+        const result2 = interpreter.evaluate(ast2, [], context);
+        expect(result2.value).toEqual([false]);
+      });
+
+      it('is operator works with FHIR resource types', () => {
+        const patient = { resourceType: 'Patient', name: 'John' };
+        const observation = { resourceType: 'Observation', value: 100 };
+        
+        const ast1 = parse('$this.is(Patient)');
+        const ctx1 = ContextManager.setIteratorContext(context, patient, 0);
+        const result1 = interpreter.evaluate(ast1, [], ctx1);
+        expect(result1.value).toEqual([true]);
+
+        const ast2 = parse('$this.is(Observation)');
+        const ctx2 = ContextManager.setIteratorContext(context, patient, 0);
+        const result2 = interpreter.evaluate(ast2, [], ctx2);
+        expect(result2.value).toEqual([false]);
+      });
+
+      it('as operator filters by type', () => {
+        const input = [
+          { resourceType: 'Patient', id: '1' },
+          { resourceType: 'Observation', id: '2' },
+          { resourceType: 'Patient', id: '3' }
+        ];
+
+        const ast = parse('as(Patient)');
+        const result = interpreter.evaluate(ast, input, context);
+        expect(result.value).toHaveLength(2);
+        expect(result.value[0].id).toBe('1');
+        expect(result.value[1].id).toBe('3');
+      });
+
+      it('as operator returns empty for non-matching types', () => {
+        const input = [{ resourceType: 'Observation', id: '1' }];
+        const ast = parse('as(Patient)');
+        const result = interpreter.evaluate(ast, input, context);
+        expect(result.value).toEqual([]);
+      });
+    });
+
+    describe('Collection Operators (in/contains)', () => {
+      it('in operator checks membership', () => {
+        const ast1 = parse("'active' in {'active', 'inactive', 'pending'}");
+        const result1 = interpreter.evaluate(ast1, [], context);
+        expect(result1.value).toEqual([true]);
+
+        const ast2 = parse("'done' in {'active', 'inactive', 'pending'}");
+        const result2 = interpreter.evaluate(ast2, [], context);
+        expect(result2.value).toEqual([false]);
+
+        const ast3 = parse('5 in {1, 2, 3, 4, 5}');
+        const result3 = interpreter.evaluate(ast3, [], context);
+        expect(result3.value).toEqual([true]);
+      });
+
+      it('in operator with empty returns empty', () => {
+        const ast1 = parse("'test' in {}");
+        const result1 = interpreter.evaluate(ast1, [], context);
+        expect(result1.value).toEqual([]);
+
+        const ast2 = parse("{} in {'test'}");
+        const result2 = interpreter.evaluate(ast2, [], context);
+        expect(result2.value).toEqual([]);
+      });
+
+      it('contains operator checks containership', () => {
+        const ast1 = parse("{1, 2, 3, 4, 5} contains 3");
+        const result1 = interpreter.evaluate(ast1, [], context);
+        expect(result1.value).toEqual([true]);
+
+        const ast2 = parse("{1, 2, 3} contains 5");
+        const result2 = interpreter.evaluate(ast2, [], context);
+        expect(result2.value).toEqual([false]);
+
+        const input = [{ status: ['active', 'confirmed'] }];
+        const ast3 = parse("status contains 'active'");
+        const result3 = interpreter.evaluate(ast3, input, context);
+        expect(result3.value).toEqual([true]);
+      });
+
+      it('contains operator with empty returns empty', () => {
+        const ast1 = parse("{} contains 'test'");
+        const result1 = interpreter.evaluate(ast1, [], context);
+        expect(result1.value).toEqual([]);
+
+        const ast2 = parse("{'test'} contains {}");
+        const result2 = interpreter.evaluate(ast2, [], context);
+        expect(result2.value).toEqual([]);
+      });
+    });
+
+    describe('String Concatenation (&)', () => {
+      it('concatenates strings', () => {
+        const ast = parse("'Hello' & ' ' & 'World'");
+        const result = interpreter.evaluate(ast, [], context);
+        expect(result.value).toEqual(['Hello World']);
+      });
+
+      it('returns empty if any operand is empty', () => {
+        const input = [{ name: 'John' }];
+        
+        const ast1 = parse("name & ' ' & missing");
+        const result1 = interpreter.evaluate(ast1, input, context);
+        expect(result1.value).toEqual([]);
+
+        const ast2 = parse("{} & 'test'");
+        const result2 = interpreter.evaluate(ast2, [], context);
+        expect(result2.value).toEqual([]);
+      });
+
+      it('works with navigation', () => {
+        const input = [{ 
+          name: { 
+            given: ['John'], 
+            family: 'Doe' 
+          } 
+        }];
+        const ast = parse("name.given.first() & ' ' & name.family");
+        const result = interpreter.evaluate(ast, input, context);
+        expect(result.value).toEqual(['John Doe']);
+      });
+    });
+
+    describe('Existence Functions', () => {
+      it('empty() returns true for empty collection', () => {
+        const ast1 = parse('{}.empty()');
+        const result1 = interpreter.evaluate(ast1, [], context);
+        expect(result1.value).toEqual([true]);
+
+        const ast2 = parse('missing.empty()');
+        const result2 = interpreter.evaluate(ast2, [], context);
+        expect(result2.value).toEqual([true]);
+      });
+
+      it('empty() returns false for non-empty collection', () => {
+        const input = [{ name: 'John' }];
+        const ast = parse('name.empty()');
+        const result = interpreter.evaluate(ast, input, context);
+        expect(result.value).toEqual([false]);
+      });
+
+      it('exists() returns true for non-empty collection', () => {
+        const input = [{ name: 'John' }];
+        const ast = parse('name.exists()');
+        const result = interpreter.evaluate(ast, input, context);
+        expect(result.value).toEqual([true]);
+      });
+
+      it('exists() with criteria', () => {
+        const input = [{ values: [1, 2, 3, 4, 5] }];
+        const ast1 = parse('values.exists($this > 3)');
+        const result1 = interpreter.evaluate(ast1, input, context);
+        expect(result1.value).toEqual([true]);
+
+        const ast2 = parse('values.exists($this > 10)');
+        const result2 = interpreter.evaluate(ast2, input, context);
+        expect(result2.value).toEqual([false]);
+      });
+
+      it('count() returns number of items', () => {
+        const input = [{ values: [1, 2, 3] }];
+        const ast = parse('values.count()');
+        const result = interpreter.evaluate(ast, input, context);
+        expect(result.value).toEqual([3]);
+      });
+
+      it('all() checks if all items match criteria', () => {
+        const input = [{ values: [2, 4, 6, 8] }];
+        const ast1 = parse('values.all($this mod 2 = 0)');
+        const result1 = interpreter.evaluate(ast1, input, context);
+        expect(result1.value).toEqual([true]);
+
+        const ast2 = parse('values.all($this > 5)');
+        const result2 = interpreter.evaluate(ast2, input, context);
+        expect(result2.value).toEqual([false]);
+      });
+
+      it('boolean aggregate functions', () => {
+        const input1 = [{ values: [true, true, true] }];
+        const ast1 = parse('values.allTrue()');
+        const result1 = interpreter.evaluate(ast1, input1, context);
+        expect(result1.value).toEqual([true]);
+
+        const input2 = [{ values: [true, false, true] }];
+        const ast2 = parse('values.anyTrue()');
+        const result2 = interpreter.evaluate(ast2, input2, context);
+        expect(result2.value).toEqual([true]);
+
+        const ast3 = parse('values.anyFalse()');
+        const result3 = interpreter.evaluate(ast3, input2, context);
+        expect(result3.value).toEqual([true]);
+
+        const input3 = [{ values: [false, false] }];
+        const ast4 = parse('values.allFalse()');
+        const result4 = interpreter.evaluate(ast4, input3, context);
+        expect(result4.value).toEqual([true]);
+      });
+
+      it('distinct() removes duplicates', () => {
+        const input = [{ values: [1, 2, 2, 3, 3, 3, 4] }];
+        const ast = parse('values.distinct()');
+        const result = interpreter.evaluate(ast, input, context);
+        expect(result.value).toEqual([1, 2, 3, 4]);
+      });
+
+      it('isDistinct() checks for duplicates', () => {
+        const input1 = [{ values: [1, 2, 3, 4] }];
+        const ast1 = parse('values.isDistinct()');
+        const result1 = interpreter.evaluate(ast1, input1, context);
+        expect(result1.value).toEqual([true]);
+
+        const input2 = [{ values: [1, 2, 2, 3] }];
+        const ast2 = parse('values.isDistinct()');
+        const result2 = interpreter.evaluate(ast2, input2, context);
+        expect(result2.value).toEqual([false]);
+      });
+    });
+
+    describe('Subsetting Functions', () => {
+      it('indexer operator []', () => {
+        const input = [{ names: ['John', 'Jane', 'Bob'] }];
+        const ast1 = parse('names[0]');
+        const result1 = interpreter.evaluate(ast1, input, context);
+        expect(result1.value).toEqual(['John']);
+
+        const ast2 = parse('names[2]');
+        const result2 = interpreter.evaluate(ast2, input, context);
+        expect(result2.value).toEqual(['Bob']);
+
+        // Out of bounds returns empty
+        const ast3 = parse('names[10]');
+        const result3 = interpreter.evaluate(ast3, input, context);
+        expect(result3.value).toEqual([]);
+      });
+
+      it('last() returns last item', () => {
+        const input = [{ values: [1, 2, 3] }];
+        const ast = parse('values.last()');
+        const result = interpreter.evaluate(ast, input, context);
+        expect(result.value).toEqual([3]);
+      });
+
+      it('tail() returns all but first', () => {
+        const input = [{ values: [1, 2, 3, 4] }];
+        const ast = parse('values.tail()');
+        const result = interpreter.evaluate(ast, input, context);
+        expect(result.value).toEqual([2, 3, 4]);
+      });
+
+      it('skip(n) skips first n items', () => {
+        const input = [{ values: [1, 2, 3, 4, 5] }];
+        const ast = parse('values.skip(2)');
+        const result = interpreter.evaluate(ast, input, context);
+        expect(result.value).toEqual([3, 4, 5]);
+      });
+
+      it('take(n) takes first n items', () => {
+        const input = [{ values: [1, 2, 3, 4, 5] }];
+        const ast = parse('values.take(3)');
+        const result = interpreter.evaluate(ast, input, context);
+        expect(result.value).toEqual([1, 2, 3]);
+      });
+
+      it('single() returns single item or errors', () => {
+        const input1 = [{ value: [42] }];
+        const ast1 = parse('value.single()');
+        const result1 = interpreter.evaluate(ast1, input1, context);
+        expect(result1.value).toEqual([42]);
+
+        // Multiple items should error
+        const input2 = [{ values: [1, 2] }];
+        const ast2 = parse('values.single()');
+        expect(() => interpreter.evaluate(ast2, input2, context)).toThrow();
+      });
+    });
+
+    describe('Set Operations', () => {
+      it('intersect() returns common items', () => {
+        const ast = parse('{1, 2, 3, 4}.intersect({3, 4, 5, 6})');
+        const result = interpreter.evaluate(ast, [], context);
+        expect(result.value).toEqual([3, 4]);
+      });
+
+      it('exclude() removes items', () => {
+        const ast = parse('{1, 2, 3, 4}.exclude({3, 4})');
+        const result = interpreter.evaluate(ast, [], context);
+        expect(result.value).toEqual([1, 2]);
+      });
+
+      it('union() removes duplicates', () => {
+        const ast = parse('{1, 2, 3}.union({3, 4, 5})');
+        const result = interpreter.evaluate(ast, [], context);
+        expect(result.value).toEqual([1, 2, 3, 4, 5]);
+      });
+
+      it('combine() keeps duplicates', () => {
+        const ast = parse('{1, 2, 3}.combine({3, 4, 5})');
+        const result = interpreter.evaluate(ast, [], context);
+        expect(result.value).toEqual([1, 2, 3, 3, 4, 5]);
+      });
+    });
+
+    describe('String Functions', () => {
+      it('contains() checks for substring', () => {
+        const ast1 = parse("'hello world'.contains('world')");
+        const result1 = interpreter.evaluate(ast1, [], context);
+        expect(result1.value).toEqual([true]);
+
+        const ast2 = parse("'hello world'.contains('foo')");
+        const result2 = interpreter.evaluate(ast2, [], context);
+        expect(result2.value).toEqual([false]);
+      });
+
+      it('length() returns string length', () => {
+        const ast = parse("'hello'.length()");
+        const result = interpreter.evaluate(ast, [], context);
+        expect(result.value).toEqual([5]);
+      });
+
+      it('substring() extracts substring', () => {
+        const ast1 = parse("'hello world'.substring(6)");
+        const result1 = interpreter.evaluate(ast1, [], context);
+        expect(result1.value).toEqual(['world']);
+
+        const ast2 = parse("'hello world'.substring(0, 5)");
+        const result2 = interpreter.evaluate(ast2, [], context);
+        expect(result2.value).toEqual(['hello']);
+
+        // Out of bounds
+        const ast3 = parse("'hello'.substring(10)");
+        const result3 = interpreter.evaluate(ast3, [], context);
+        expect(result3.value).toEqual(['']);
+      });
+
+      it('startsWith() and endsWith()', () => {
+        const ast1 = parse("'hello world'.startsWith('hello')");
+        const result1 = interpreter.evaluate(ast1, [], context);
+        expect(result1.value).toEqual([true]);
+
+        const ast2 = parse("'hello world'.endsWith('world')");
+        const result2 = interpreter.evaluate(ast2, [], context);
+        expect(result2.value).toEqual([true]);
+
+        const ast3 = parse("'hello'.startsWith('world')");
+        const result3 = interpreter.evaluate(ast3, [], context);
+        expect(result3.value).toEqual([false]);
+      });
+
+      it('upper() and lower()', () => {
+        const ast1 = parse("'Hello World'.upper()");
+        const result1 = interpreter.evaluate(ast1, [], context);
+        expect(result1.value).toEqual(['HELLO WORLD']);
+
+        const ast2 = parse("'Hello World'.lower()");
+        const result2 = interpreter.evaluate(ast2, [], context);
+        expect(result2.value).toEqual(['hello world']);
+      });
+
+      it('replace() replaces all occurrences', () => {
+        const ast = parse("'hello world world'.replace('world', 'FHIRPath')");
+        const result = interpreter.evaluate(ast, [], context);
+        expect(result.value).toEqual(['hello FHIRPath FHIRPath']);
+      });
+
+      it('matches() tests regex', () => {
+        const ast1 = parse("'123-45-6789'.matches('^\\\\d{3}-\\\\d{2}-\\\\d{4}$')");
+        const result1 = interpreter.evaluate(ast1, [], context);
+        expect(result1.value).toEqual([true]);
+
+        const ast2 = parse("'hello'.matches('^\\\\d+$')");
+        const result2 = interpreter.evaluate(ast2, [], context);
+        expect(result2.value).toEqual([false]);
+      });
+
+      it('indexOf() finds substring position', () => {
+        const ast1 = parse("'hello world'.indexOf('world')");
+        const result1 = interpreter.evaluate(ast1, [], context);
+        expect(result1.value).toEqual([6]);
+
+        // Not found returns empty
+        const ast2 = parse("'hello'.indexOf('world')");
+        const result2 = interpreter.evaluate(ast2, [], context);
+        expect(result2.value).toEqual([]);
+      });
+    });
+
+    describe('Conversion Functions', () => {
+      it('toString() converts to string', () => {
+        const ast1 = parse('42.toString()');
+        const result1 = interpreter.evaluate(ast1, [], context);
+        expect(result1.value).toEqual(['42']);
+
+        const ast2 = parse('true.toString()');
+        const result2 = interpreter.evaluate(ast2, [], context);
+        expect(result2.value).toEqual(['true']);
+
+        const ast3 = parse("'hello'.toString()");
+        const result3 = interpreter.evaluate(ast3, [], context);
+        expect(result3.value).toEqual(['hello']);
+      });
+
+      it('toInteger() converts to integer', () => {
+        const ast1 = parse("'42'.toInteger()");
+        const result1 = interpreter.evaluate(ast1, [], context);
+        expect(result1.value).toEqual([42]);
+
+        const ast2 = parse('3.14.toInteger()');
+        const result2 = interpreter.evaluate(ast2, [], context);
+        expect(result2.value).toEqual([3]);
+
+        const ast3 = parse('true.toInteger()');
+        const result3 = interpreter.evaluate(ast3, [], context);
+        expect(result3.value).toEqual([1]);
+
+        // Failed conversion
+        const ast4 = parse("'hello'.toInteger()");
+        const result4 = interpreter.evaluate(ast4, [], context);
+        expect(result4.value).toEqual([]);
+      });
+
+      it('toDecimal() converts to decimal', () => {
+        const ast1 = parse("'3.14'.toDecimal()");
+        const result1 = interpreter.evaluate(ast1, [], context);
+        expect(result1.value).toEqual([3.14]);
+
+        const ast2 = parse('42.toDecimal()');
+        const result2 = interpreter.evaluate(ast2, [], context);
+        expect(result2.value).toEqual([42]);
+
+        const ast3 = parse('false.toDecimal()');
+        const result3 = interpreter.evaluate(ast3, [], context);
+        expect(result3.value).toEqual([0]);
+      });
+
+      it('toBoolean() converts to boolean', () => {
+        const ast1 = parse("'true'.toBoolean()");
+        const result1 = interpreter.evaluate(ast1, [], context);
+        expect(result1.value).toEqual([true]);
+
+        const ast2 = parse("'false'.toBoolean()");
+        const result2 = interpreter.evaluate(ast2, [], context);
+        expect(result2.value).toEqual([false]);
+
+        const ast3 = parse('1.toBoolean()');
+        const result3 = interpreter.evaluate(ast3, [], context);
+        expect(result3.value).toEqual([true]);
+
+        const ast4 = parse('0.toBoolean()');
+        const result4 = interpreter.evaluate(ast4, [], context);
+        expect(result4.value).toEqual([false]);
+
+        // Failed conversion
+        const ast5 = parse("'maybe'.toBoolean()");
+        const result5 = interpreter.evaluate(ast5, [], context);
+        expect(result5.value).toEqual([]);
+      });
+
+      it('convertsTo functions', () => {
+        const ast1 = parse("'true'.convertsToBoolean()");
+        const result1 = interpreter.evaluate(ast1, [], context);
+        expect(result1.value).toEqual([true]);
+
+        const ast2 = parse("'hello'.convertsToBoolean()");
+        const result2 = interpreter.evaluate(ast2, [], context);
+        expect(result2.value).toEqual([false]);
+
+        const ast3 = parse("'123'.convertsToInteger()");
+        const result3 = interpreter.evaluate(ast3, [], context);
+        expect(result3.value).toEqual([true]);
+
+        const ast4 = parse('42.convertsToString()');
+        const result4 = interpreter.evaluate(ast4, [], context);
+        expect(result4.value).toEqual([true]);
       });
     });
   });
