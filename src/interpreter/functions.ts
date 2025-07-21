@@ -5,6 +5,8 @@ import type { Interpreter } from './interpreter';
 import { EvaluationError, CollectionUtils } from './types';
 import { ContextManager } from './context';
 import { InputValidators, ArgumentValidators } from './helpers';
+import type { EnhancedFunctionDefinition } from './signature-system/types';
+import { enhancedToStandardFunction } from './signature-system/enhanced-registry';
 
 /**
  * Function definition for the registry
@@ -31,8 +33,14 @@ export class FunctionRegistry {
   /**
    * Register a function
    */
-  static register(fn: FunctionDefinition) {
-    this.functions.set(fn.name, fn);
+  static register(fn: FunctionDefinition | EnhancedFunctionDefinition) {
+    if ('arity' in fn) {
+      this.functions.set(fn.name, fn);
+    } else {
+      // Convert enhanced function to standard function
+      const standardFn = enhancedToStandardFunction(fn);
+      this.functions.set(standardFn.name, standardFn);
+    }
   }
 
   /**
@@ -138,7 +146,7 @@ FunctionRegistry.register({
   name: 'where',
   arity: 1,
   evaluateArgs: false, // We control evaluation with $this
-  evaluate: (interpreter, args, input, context) => {
+  evaluate: (interpreter: Interpreter, args: ASTNode[] | any[][], input: any[], context: Context): EvaluationResult => {
     const results: any[] = [];
     const astArgs = args as ASTNode[];
     const predicate = astArgs[0];
@@ -173,7 +181,7 @@ FunctionRegistry.register({
   name: 'select',
   arity: 1,
   evaluateArgs: false, // We control evaluation with $this
-  evaluate: (interpreter, args, input, context) => {
+  evaluate: (interpreter: Interpreter, args: ASTNode[] | any[][], input: any[], context: Context): EvaluationResult => {
     const results: any[] = [];
     const astArgs = args as ASTNode[];
     const expression = astArgs[0];
@@ -199,7 +207,7 @@ FunctionRegistry.register({
   name: 'iif',
   arity: 3,
   evaluateArgs: false, // We need lazy evaluation
-  evaluate: (interpreter, args, input, context) => {
+  evaluate: (interpreter: Interpreter, args: ASTNode[] | any[][], input: any[], context: Context): EvaluationResult => {
     const astArgs = args as ASTNode[];
     const [conditionExpr, thenExpr, elseExpr] = astArgs;
 
@@ -228,7 +236,7 @@ FunctionRegistry.register({
   name: 'defineVariable',
   arity: 2,
   evaluateArgs: false, // We need to handle the name specially
-  evaluate: (interpreter, args, input, context) => {
+  evaluate: (interpreter: Interpreter, args: ASTNode[] | any[][], input: any[], context: Context): EvaluationResult => {
     const astArgs = args as ASTNode[];
     if (astArgs.length !== 2) {
       throw new EvaluationError('defineVariable requires exactly 2 arguments');
@@ -257,7 +265,7 @@ FunctionRegistry.register({
 FunctionRegistry.register({
   name: 'first',
   arity: 0,
-  evaluate: (interpreter, args, input, context) => {
+  evaluate: (interpreter: Interpreter, args: ASTNode[] | any[][], input: any[], context: Context): EvaluationResult => {
     const result = input.length > 0 ? [input[0]] : [];
     return { value: result, context };
   }
@@ -268,7 +276,7 @@ FunctionRegistry.register({
   name: 'is',
   arity: 1,
   evaluateArgs: false, // We need the type name as AST
-  evaluate: (interpreter, args, input, context) => {
+  evaluate: (interpreter: Interpreter, args: ASTNode[] | any[][], input: any[], context: Context): EvaluationResult => {
     // Get the type name from the argument
     const astArgs = args as ASTNode[];
     const typeArg = astArgs[0]!;
@@ -300,7 +308,7 @@ FunctionRegistry.register({
   name: 'as',
   arity: 1,
   evaluateArgs: false, // We need the type name as AST
-  evaluate: (interpreter, args, input, context) => {
+  evaluate: (interpreter: Interpreter, args: ASTNode[] | any[][], input: any[], context: Context): EvaluationResult => {
     // Get the type name from the argument
     const astArgs = args as ASTNode[];
     const typeArg = astArgs[0]!;
@@ -339,7 +347,7 @@ FunctionRegistry.register({
 FunctionRegistry.register({
   name: 'empty',
   arity: 0,
-  evaluate: (interpreter, args, input, context) => {
+  evaluate: (interpreter: Interpreter, args: ASTNode[] | any[][], input: any[], context: Context): EvaluationResult => {
     return { value: [input.length === 0], context };
   }
 });
@@ -349,7 +357,7 @@ FunctionRegistry.register({
   name: 'exists',
   arity: { min: 0, max: 1 },
   evaluateArgs: false, // Need to control evaluation for criteria
-  evaluate: (interpreter, args, input, context) => {
+  evaluate: (interpreter: Interpreter, args: ASTNode[] | any[][], input: any[], context: Context): EvaluationResult => {
     const astArgs = args as ASTNode[];
     if (astArgs.length === 0) {
       // No criteria - just check if non-empty
@@ -382,7 +390,7 @@ FunctionRegistry.register({
 FunctionRegistry.register({
   name: 'count',
   arity: 0,
-  evaluate: (interpreter, args, input, context) => {
+  evaluate: (interpreter: Interpreter, args: ASTNode[] | any[][], input: any[], context: Context): EvaluationResult => {
     return { value: [input.length], context };
   }
 });
@@ -392,7 +400,7 @@ FunctionRegistry.register({
   name: 'all',
   arity: 1,
   evaluateArgs: false, // Need to control evaluation
-  evaluate: (interpreter, args, input, context) => {
+  evaluate: (interpreter: Interpreter, args: ASTNode[] | any[][], input: any[], context: Context): EvaluationResult => {
     if (input.length === 0) {
       // Empty collection: all() returns true
       return { value: [true], context };
@@ -428,7 +436,7 @@ FunctionRegistry.register({
 FunctionRegistry.register({
   name: 'anyTrue',
   arity: 0,
-  evaluate: (interpreter, args, input, context) => {
+  evaluate: (interpreter: Interpreter, args: ASTNode[] | any[][], input: any[], context: Context): EvaluationResult => {
     for (const item of input) {
       if (item === true) {
         return { value: [true], context };
@@ -442,7 +450,7 @@ FunctionRegistry.register({
 FunctionRegistry.register({
   name: 'allTrue',
   arity: 0,
-  evaluate: (interpreter, args, input, context) => {
+  evaluate: (interpreter: Interpreter, args: ASTNode[] | any[][], input: any[], context: Context): EvaluationResult => {
     if (input.length === 0) {
       return { value: [true], context }; // Empty collection
     }
@@ -460,7 +468,7 @@ FunctionRegistry.register({
 FunctionRegistry.register({
   name: 'anyFalse',
   arity: 0,
-  evaluate: (interpreter, args, input, context) => {
+  evaluate: (interpreter: Interpreter, args: ASTNode[] | any[][], input: any[], context: Context): EvaluationResult => {
     for (const item of input) {
       if (item === false) {
         return { value: [true], context };
@@ -474,7 +482,7 @@ FunctionRegistry.register({
 FunctionRegistry.register({
   name: 'allFalse',
   arity: 0,
-  evaluate: (interpreter, args, input, context) => {
+  evaluate: (interpreter: Interpreter, args: ASTNode[] | any[][], input: any[], context: Context): EvaluationResult => {
     if (input.length === 0) {
       return { value: [true], context }; // Empty collection
     }
@@ -492,7 +500,7 @@ FunctionRegistry.register({
 FunctionRegistry.register({
   name: 'distinct',
   arity: 0,
-  evaluate: (interpreter, args, input, context) => {
+  evaluate: (interpreter: Interpreter, args: ASTNode[] | any[][], input: any[], context: Context): EvaluationResult => {
     const seen = new Set<any>();
     const results: any[] = [];
     
@@ -514,7 +522,7 @@ FunctionRegistry.register({
 FunctionRegistry.register({
   name: 'isDistinct',
   arity: 0,
-  evaluate: (interpreter, args, input, context) => {
+  evaluate: (interpreter: Interpreter, args: ASTNode[] | any[][], input: any[], context: Context): EvaluationResult => {
     const seen = new Set<string>();
     
     for (const item of input) {
@@ -533,7 +541,7 @@ FunctionRegistry.register({
 FunctionRegistry.register({
   name: 'last',
   arity: 0,
-  evaluate: (interpreter, args, input, context) => {
+  evaluate: (interpreter: Interpreter, args: ASTNode[] | any[][], input: any[], context: Context): EvaluationResult => {
     const result = input.length > 0 ? [input[input.length - 1]] : [];
     return { value: result, context };
   }
@@ -543,7 +551,7 @@ FunctionRegistry.register({
 FunctionRegistry.register({
   name: 'tail',
   arity: 0,
-  evaluate: (interpreter, args, input, context) => {
+  evaluate: (interpreter: Interpreter, args: ASTNode[] | any[][], input: any[], context: Context): EvaluationResult => {
     const result = input.length > 0 ? input.slice(1) : [];
     return { value: result, context };
   }
@@ -553,7 +561,7 @@ FunctionRegistry.register({
 FunctionRegistry.register({
   name: 'skip',
   arity: 1,
-  evaluate: (interpreter, args, input, context) => {
+  evaluate: (interpreter: Interpreter, args: ASTNode[] | any[][], input: any[], context: Context): EvaluationResult => {
     // args are pre-evaluated collections
     const skipArg = args[0] as any[];
     if (args.length === 0 || skipArg.length === 0) {
@@ -577,7 +585,7 @@ FunctionRegistry.register({
 FunctionRegistry.register({
   name: 'take',
   arity: 1,
-  evaluate: (interpreter, args, input, context) => {
+  evaluate: (interpreter: Interpreter, args: ASTNode[] | any[][], input: any[], context: Context): EvaluationResult => {
     // args are pre-evaluated collections
     const takeArg = args[0] as any[];
     if (args.length === 0 || takeArg.length === 0) {
@@ -601,7 +609,7 @@ FunctionRegistry.register({
 FunctionRegistry.register({
   name: 'single',
   arity: 0,
-  evaluate: (interpreter, args, input, context) => {
+  evaluate: (interpreter: Interpreter, args: ASTNode[] | any[][], input: any[], context: Context): EvaluationResult => {
     if (input.length === 0) {
       return { value: [], context };
     }
@@ -616,7 +624,7 @@ FunctionRegistry.register({
 FunctionRegistry.register({
   name: 'intersect',
   arity: 1,
-  evaluate: (interpreter, args, input, context) => {
+  evaluate: (interpreter: Interpreter, args: ASTNode[] | any[][], input: any[], context: Context): EvaluationResult => {
     // args are pre-evaluated collections  
     const evaluatedArgs = args as any[][];
     const other = evaluatedArgs[0] || [];
@@ -642,7 +650,7 @@ FunctionRegistry.register({
 FunctionRegistry.register({
   name: 'exclude',
   arity: 1,
-  evaluate: (interpreter, args, input, context) => {
+  evaluate: (interpreter: Interpreter, args: ASTNode[] | any[][], input: any[], context: Context): EvaluationResult => {
     // args are pre-evaluated collections
     const evaluatedArgs = args as any[][];
     const other = evaluatedArgs[0] || [];
@@ -664,7 +672,7 @@ FunctionRegistry.register({
 FunctionRegistry.register({
   name: 'union',
   arity: 1,
-  evaluate: (interpreter, args, input, context) => {
+  evaluate: (interpreter: Interpreter, args: ASTNode[] | any[][], input: any[], context: Context): EvaluationResult => {
     // args are pre-evaluated collections
     const evaluatedArgs = args as any[][];
     const other = evaluatedArgs[0] || [];
@@ -697,7 +705,7 @@ FunctionRegistry.register({
 FunctionRegistry.register({
   name: 'combine',
   arity: 1,
-  evaluate: (interpreter, args, input, context) => {
+  evaluate: (interpreter: Interpreter, args: ASTNode[] | any[][], input: any[], context: Context): EvaluationResult => {
     // args are pre-evaluated collections
     const evaluatedArgs = args as any[][];
     const other = evaluatedArgs[0] || [];
@@ -711,7 +719,7 @@ FunctionRegistry.register({
 FunctionRegistry.register({
   name: 'contains',
   arity: 1,
-  evaluate: (interpreter, args, input, context) => {
+  evaluate: (interpreter: Interpreter, args: ASTNode[] | any[][], input: any[], context: Context): EvaluationResult => {
     const inputResult = InputValidators.handleEmptyInput(input, []);
     if (inputResult.isEmpty) {
       return { value: inputResult.value, context };
@@ -728,7 +736,7 @@ FunctionRegistry.register({
 FunctionRegistry.register({
   name: 'length',
   arity: 0,
-  evaluate: (interpreter, args, input, context) => {
+  evaluate: (interpreter: Interpreter, args: ASTNode[] | any[][], input: any[], context: Context): EvaluationResult => {
     const inputResult = InputValidators.handleEmptyInput(input, []);
     if (inputResult.isEmpty) {
       return { value: inputResult.value, context };
@@ -744,7 +752,7 @@ FunctionRegistry.register({
 FunctionRegistry.register({
   name: 'substring',
   arity: { min: 1, max: 2 },
-  evaluate: (interpreter, args, input, context) => {
+  evaluate: (interpreter: Interpreter, args: ASTNode[] | any[][], input: any[], context: Context): EvaluationResult => {
     const inputResult = InputValidators.handleEmptyInput(input, []);
     if (inputResult.isEmpty) {
       return { value: inputResult.value, context };
@@ -772,7 +780,7 @@ FunctionRegistry.register({
 FunctionRegistry.register({
   name: 'startsWith',
   arity: 1,
-  evaluate: (interpreter, args, input, context) => {
+  evaluate: (interpreter: Interpreter, args: ASTNode[] | any[][], input: any[], context: Context): EvaluationResult => {
     if (input.length === 0) {
       return { value: [], context };
     }
@@ -796,7 +804,7 @@ FunctionRegistry.register({
 FunctionRegistry.register({
   name: 'endsWith',
   arity: 1,
-  evaluate: (interpreter, args, input, context) => {
+  evaluate: (interpreter: Interpreter, args: ASTNode[] | any[][], input: any[], context: Context): EvaluationResult => {
     if (input.length === 0) {
       return { value: [], context };
     }
@@ -820,7 +828,7 @@ FunctionRegistry.register({
 FunctionRegistry.register({
   name: 'upper',
   arity: 0,
-  evaluate: (interpreter, args, input, context) => {
+  evaluate: (interpreter: Interpreter, args: ASTNode[] | any[][], input: any[], context: Context): EvaluationResult => {
     if (input.length === 0) {
       return { value: [], context };
     }
@@ -838,7 +846,7 @@ FunctionRegistry.register({
 FunctionRegistry.register({
   name: 'lower',
   arity: 0,
-  evaluate: (interpreter, args, input, context) => {
+  evaluate: (interpreter: Interpreter, args: ASTNode[] | any[][], input: any[], context: Context): EvaluationResult => {
     if (input.length === 0) {
       return { value: [], context };
     }
@@ -856,7 +864,7 @@ FunctionRegistry.register({
 FunctionRegistry.register({
   name: 'replace',
   arity: 2,
-  evaluate: (interpreter, args, input, context) => {
+  evaluate: (interpreter: Interpreter, args: ASTNode[] | any[][], input: any[], context: Context): EvaluationResult => {
     if (input.length === 0) {
       return { value: [], context };
     }
@@ -886,7 +894,7 @@ FunctionRegistry.register({
 FunctionRegistry.register({
   name: 'matches',
   arity: 1,
-  evaluate: (interpreter, args, input, context) => {
+  evaluate: (interpreter: Interpreter, args: ASTNode[] | any[][], input: any[], context: Context): EvaluationResult => {
     if (input.length === 0) {
       return { value: [], context };
     }
@@ -915,7 +923,7 @@ FunctionRegistry.register({
 FunctionRegistry.register({
   name: 'indexOf',
   arity: 1,
-  evaluate: (interpreter, args, input, context) => {
+  evaluate: (interpreter: Interpreter, args: ASTNode[] | any[][], input: any[], context: Context): EvaluationResult => {
     if (input.length === 0) {
       return { value: [], context };
     }
@@ -943,7 +951,7 @@ FunctionRegistry.register({
 FunctionRegistry.register({
   name: 'toString',
   arity: 0,
-  evaluate: (interpreter, args, input, context) => {
+  evaluate: (interpreter: Interpreter, args: ASTNode[] | any[][], input: any[], context: Context): EvaluationResult => {
     if (input.length === 0) {
       return { value: [], context };
     }
@@ -973,7 +981,7 @@ FunctionRegistry.register({
 FunctionRegistry.register({
   name: 'toInteger',
   arity: 0,
-  evaluate: (interpreter, args, input, context) => {
+  evaluate: (interpreter: Interpreter, args: ASTNode[] | any[][], input: any[], context: Context): EvaluationResult => {
     if (input.length === 0) {
       return { value: [], context };
     }
@@ -1011,7 +1019,7 @@ FunctionRegistry.register({
 FunctionRegistry.register({
   name: 'toDecimal',
   arity: 0,
-  evaluate: (interpreter, args, input, context) => {
+  evaluate: (interpreter: Interpreter, args: ASTNode[] | any[][], input: any[], context: Context): EvaluationResult => {
     if (input.length === 0) {
       return { value: [], context };
     }
@@ -1044,7 +1052,7 @@ FunctionRegistry.register({
 FunctionRegistry.register({
   name: 'toBoolean',
   arity: 0,
-  evaluate: (interpreter, args, input, context) => {
+  evaluate: (interpreter: Interpreter, args: ASTNode[] | any[][], input: any[], context: Context): EvaluationResult => {
     if (input.length === 0) {
       return { value: [], context };
     }
@@ -1086,7 +1094,7 @@ FunctionRegistry.register({
 FunctionRegistry.register({
   name: 'convertsToBoolean',
   arity: 0,
-  evaluate: (interpreter, args, input, context) => {
+  evaluate: (interpreter: Interpreter, args: ASTNode[] | any[][], input: any[], context: Context): EvaluationResult => {
     if (input.length === 0) {
       return { value: [false], context };
     }
@@ -1102,7 +1110,7 @@ FunctionRegistry.register({
 FunctionRegistry.register({
   name: 'convertsToInteger',
   arity: 0,
-  evaluate: (interpreter, args, input, context) => {
+  evaluate: (interpreter: Interpreter, args: ASTNode[] | any[][], input: any[], context: Context): EvaluationResult => {
     if (input.length === 0) {
       return { value: [false], context };
     }
@@ -1117,7 +1125,7 @@ FunctionRegistry.register({
 FunctionRegistry.register({
   name: 'convertsToDecimal',
   arity: 0,
-  evaluate: (interpreter, args, input, context) => {
+  evaluate: (interpreter: Interpreter, args: ASTNode[] | any[][], input: any[], context: Context): EvaluationResult => {
     if (input.length === 0) {
       return { value: [false], context };
     }
@@ -1132,7 +1140,7 @@ FunctionRegistry.register({
 FunctionRegistry.register({
   name: 'convertsToString',
   arity: 0,
-  evaluate: (interpreter, args, input, context) => {
+  evaluate: (interpreter: Interpreter, args: ASTNode[] | any[][], input: any[], context: Context): EvaluationResult => {
     if (input.length === 0) {
       return { value: [false], context };
     }

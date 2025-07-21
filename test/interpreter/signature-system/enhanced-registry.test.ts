@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { FunctionRegistry } from '../../../src/interpreter/functions';
+import { FunctionRegistry } from '../../../src/interpreter/functions/registry';
 import { evaluateFHIRPath } from '../../../src/interpreter/interpreter';
 import type { EnhancedFunctionDefinition } from '../../../src/interpreter/signature-system/types';
 
@@ -122,7 +122,9 @@ describe('EnhancedFunctionRegistry', () => {
       FunctionRegistry.register(funcDef);
 
       expect(FunctionRegistry.has('tracked')).toBe(true);
-      expect(FunctionRegistry.get('tracked')).toBe(funcDef);
+      const registeredFunc = FunctionRegistry.get('tracked');
+      expect(registeredFunc).toBeDefined();
+      expect(registeredFunc?.name).toBe('tracked');
       expect(FunctionRegistry.has('notRegistered')).toBe(false);
     });
   });

@@ -5,8 +5,18 @@ import { ContextManager } from '../src/interpreter/context';
 import { parse } from '../src/parser';
 import type { Context } from '../src/interpreter/types';
 
-// Import function implementations to register them
-import '../src/interpreter/functions';
+// Force function registration by requiring the modules
+import { FunctionRegistry } from '../src/interpreter/functions/registry';
+require('../src/interpreter/functions/filtering-functions');
+require('../src/interpreter/functions/core-functions');
+require('../src/interpreter/functions/existence-functions');
+require('../src/interpreter/functions/subsetting-functions');
+require('../src/interpreter/functions/combining-functions');
+require('../src/interpreter/functions/conversion-functions');
+require('../src/interpreter/functions/string-functions');
+require('../src/interpreter/functions/math-functions');
+require('../src/interpreter/functions/type-functions');
+require('../src/interpreter/functions/utility-functions');
 
 describe('FHIRPath Compiler', () => {
   let compiler: Compiler;
@@ -436,18 +446,20 @@ describe('FHIRPath Compiler', () => {
 
   describe('Error Handling', () => {
     it('propagates position information for runtime errors', () => {
-      // Test with an actual error - accessing property on null
-      const ast = parse('$this.name');
+      // Test that position information is preserved in runtime errors
+      const ast = parse('name');  // Simple property access
       const compiled = compiler.compile(ast);
       
-      try {
-        // This should work fine with valid input
-        const result = compiled([{ name: 'test' }], context);
-        expect(result.value).toEqual(['test']);
-      } catch (error: any) {
-        // Should not error with valid input
-        expect(true).toBe(false);
-      }
+      // First verify it works with valid input
+      const validResult = compiled([{ name: 'test' }], context);
+      expect(validResult.value).toEqual(['test']);
+      
+      // The compiler should handle null/undefined gracefully (return empty, not error)
+      const nullResult = compiled([null], context);
+      expect(nullResult.value).toEqual([]);
+      
+      // Test compilation preserves AST position info
+      expect(ast.position).toBeDefined();
     });
 
     it('handles compilation errors with position', () => {
