@@ -305,17 +305,20 @@ describe('TypeAnalyzer', () => {
     it('should analyze type analyzer', () => {
       const result = analyze('Patient.name.given.first().length()');
       expect(result.diagnostics).toHaveLength(0);
+
       const result2 = analyze('Patient.name.given.length()');
       expect(result2.diagnostics[0]).toMatchObject({
         message: "Function length requires singleton input",
         severity: 'error',
       });
+
       const result3 = analyze('Patient.birthDate.length()');
       expect(result3.diagnostics[0]).toMatchObject({
         message: "Function length requires string input, but got Date"
       });
 
-      const result4 = analyze('Patient.name.given.first().length()');
+      const result4 = analyze('Patient.name.given.first() + Patient.name.family.first()');
+      console.log(result4.diagnostics);
     });
   });
 });
