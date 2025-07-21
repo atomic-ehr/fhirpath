@@ -333,7 +333,7 @@ These registries enable the type analyzer to:
 - Track singleton vs collection through operations
 - Handle special cases like expression parameters and type unions
 
-### 6. Implementation Phases
+### 7. Implementation Phases
 
 **Phase 1: Core Infrastructure**
 - Extend AST interfaces with type and singleton fields
