@@ -29,8 +29,14 @@ We will implement a pure type analysis system that operates on the AST without m
 The type analyzer follows the same evaluation pattern as the interpreter, but instead of processing actual values, it tracks type information through the expression tree. This approach ensures consistency between type checking and runtime behavior.
 
 Each AST node is extended with optional fields:
-- `resultType`: The type that this expression will produce
+- `resultType`: An opaque type reference that only the model provider can interpret
 - `isSingleton`: Whether the expression produces a single value or a collection
+
+The type representation is deliberately opaque - it could be a string, object, or any other structure. Only the model provider knows how to:
+- Compare types for equality
+- Navigate properties on a type
+- Determine type compatibility
+- Resolve type names to type references
 
 ### 2. Function Registry with Type Signatures
 
@@ -66,18 +72,57 @@ The registry must support both simple type declarations and type computation fun
 
 ### 3. Model Provider Interface
 
-The model provider is responsible for type resolution and property navigation. It supports:
-- Type name resolution (with namespace handling)
-- Property lookup on types, including polymorphic properties
-- Type compatibility checking
-- Union type representation for choice types
+The model provider is responsible for type resolution and property navigation. It must handle several categories of types:
 
-For property navigation, the model provider handles both simple and polymorphic properties:
-- Simple properties: `Patient.name` → HumanName type
-- Nested navigation: `Patient.name.given` → String collection
-- Polymorphic properties: `Observation.value` → Union(Quantity | String | Boolean | Integer | Range | Ratio | SampledData | Period | CodeableConcept)
+**Named Types**: Types with explicit names in the model
+- `Patient`, `Observation`, `HumanName` → Resolved by type name
+- Have defined properties that can be looked up
 
-Union types are essential for FHIR's choice types (like `value[x]`) where a property can hold values of different types. The type analyzer must track all possible types and propagate this information through subsequent operations.
+**Anonymous/Inline Types**: Complex properties without standalone type names
+- `Patient.contact` → Returns anonymous type with properties: `relationship`, `name`, `telecom`, `address`, `gender`, `organization`, `period`
+- `Observation.component` → Returns anonymous type with properties: `code`, `value[x]`, `dataAbsentReason`, `interpretation`
+
+**Primitive Types**: Basic FHIR/System types
+- `String`, `Integer`, `Boolean`, `Date`, etc.
+
+**Union Types**: For polymorphic properties
+- `Observation.value[x]` → Union of possible types
+
+The model provider API works with opaque type references:
+```
+interface ModelProvider {
+  // Resolve a type name to an opaque type reference
+  resolveType(typeName: string): TypeRef | undefined;
+  
+  // Get property type from an opaque type reference
+  getPropertyType(type: TypeRef, propertyName: string): PropertyInfo | undefined;
+  
+  // Check type compatibility
+  isAssignable(from: TypeRef, to: TypeRef): boolean;
+  
+  // Get a human-readable name for a type (for error messages)
+  getTypeName(type: TypeRef): string;
+}
+
+interface PropertyInfo {
+  type: TypeRef;  // Another opaque reference
+  isSingleton: boolean;
+}
+
+type TypeRef = unknown;  // Opaque - could be string, object, symbol, etc.
+```
+
+This design allows the model provider complete freedom in how it represents types internally. For example:
+- Simple implementation might use strings: "Patient", "AnonymousType#Patient.contact"
+- Complex implementation might use objects with internal structure
+- Symbol-based implementation for performance
+
+Navigation example with opaque types:
+1. `Patient` → ModelProvider returns TypeRef (e.g., "fhir:Patient")
+2. `Patient.contact` → ModelProvider.getPropertyType("fhir:Patient", "contact") returns TypeRef (e.g., "anon:Patient.contact")
+3. `Patient.contact.name` → ModelProvider.getPropertyType("anon:Patient.contact", "name") returns TypeRef (e.g., "fhir:HumanName")
+
+The type analyzer never needs to understand what these TypeRefs contain - it just passes them back to the model provider for further operations.
 
 ### 4. Type Analysis Algorithm
 
@@ -194,21 +239,21 @@ The type system requires comprehensive registries for functions and operators. H
 exists() → {
   requiresSingleton: false,
   parameters: [],
-  returnType: { name: 'Boolean', namespace: 'System' },
+  returnType: (input, params, modelProvider) => modelProvider.resolveType('Boolean'),
   returnsSingleton: true
 }
 
 count() → {
   requiresSingleton: false,
   parameters: [],
-  returnType: { name: 'Integer', namespace: 'System' },
+  returnType: (input, params, modelProvider) => modelProvider.resolveType('Integer'),
   returnsSingleton: true
 }
 
 first() → {
   requiresSingleton: false,
   parameters: [],
-  returnType: (input) => input,  // Same as input type
+  returnType: (inputType) => inputType,  // Same as input type
   returnsSingleton: true
 }
 
