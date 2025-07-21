@@ -87,6 +87,151 @@ This approach:
 }
 ```
 
+## Compilation Algorithm
+
+The compiler uses a recursive descent approach to transform AST nodes into JavaScript closures:
+
+### 1. Entry Point
+```typescript
+function compile(ast: ASTNode): CompiledNode {
+  return compileNode(ast);
+}
+```
+
+### 2. Node Dispatch
+The compiler dispatches to specific compilation functions based on node type:
+
+```typescript
+function compileNode(node: ASTNode): CompiledNode {
+  switch (node.type) {
+    case NodeType.Literal:
+      return compileLiteral(node);
+    case NodeType.Identifier:
+      return compileIdentifier(node);
+    case NodeType.Binary:
+      return compileBinary(node);
+    case NodeType.Function:
+      return compileFunction(node);
+    // ... other node types
+  }
+}
+```
+
+### 3. Closure Generation Patterns
+
+**Direct Closures** (for simple nodes):
+```typescript
+function compileLiteral(node: LiteralNode): CompiledNode {
+  const value = node.value;
+  return (input, context) => ({ 
+    value: value === null ? [] : [value], 
+    context 
+  });
+}
+```
+
+**Composed Closures** (for operators):
+```typescript
+function compileBinary(node: BinaryNode): CompiledNode {
+  const left = compileNode(node.left);
+  const right = compileNode(node.right);
+  
+  if (node.operator === TokenType.DOT) {
+    // Special case: dot is a pipeline
+    return (input, context) => {
+      const leftResult = left(input, context);
+      return right(leftResult.value, leftResult.context);
+    };
+  }
+  
+  // Other operators evaluate both sides with same input
+  return (input, context) => {
+    const leftResult = left(input, context);
+    const rightResult = right(input, leftResult.context);
+    const value = applyOperator(node.operator, leftResult.value, rightResult.value);
+    return { value, context: rightResult.context };
+  };
+}
+```
+
+**Higher-Order Closures** (for functions with expression arguments):
+```typescript
+function compileFunction(node: FunctionNode): CompiledNode {
+  const name = node.name;
+  const compiledArgs = node.arguments.map(arg => compileNode(arg));
+  
+  // Return specialized implementations for known functions
+  if (name === 'where') {
+    const predicate = compiledArgs[0];
+    return (input, context) => {
+      const results = [];
+      for (let i = 0; i < input.length; i++) {
+        const item = input[i];
+        const iterContext = setIteratorContext(context, item, i);
+        const predResult = predicate([item], iterContext);
+        if (isTruthy(predResult.value)) {
+          results.push(item);
+        }
+      }
+      return { value: results, context };
+    };
+  }
+  
+  // Generic function compilation
+  return (input, context) => {
+    return callFunction(name, compiledArgs, input, context);
+  };
+}
+```
+
+### 4. Optimization Passes
+
+After basic compilation, apply optimization passes:
+
+**Constant Folding**:
+```typescript
+function optimizeConstantFolding(compiled: CompiledNode, ast: ASTNode): CompiledNode {
+  // If all children are literals, evaluate at compile time
+  if (isConstantExpression(ast)) {
+    const result = compiled([], createEmptyContext());
+    return (input, context) => result;
+  }
+  return compiled;
+}
+```
+
+**Inline Simple Operations**:
+```typescript
+function optimizeInlining(compiled: CompiledNode, ast: ASTNode): CompiledNode {
+  // Inline simple property access chains
+  if (ast.type === NodeType.Binary && ast.operator === TokenType.DOT) {
+    if (isSimpleIdentifierChain(ast)) {
+      const path = extractPropertyPath(ast);
+      return (input, context) => ({
+        value: input.flatMap(item => getPath(item, path)),
+        context
+      });
+    }
+  }
+  return compiled;
+}
+```
+
+### 5. Code Generation Strategy
+
+The compiler generates closures directly in memory rather than generating source code strings. This approach:
+- Avoids eval() and security issues
+- Maintains lexical scope for helper functions
+- Enables better minification and tree-shaking
+- Simplifies source map generation
+
+### 6. Context Threading
+
+Context is threaded through compilations to maintain variable bindings and environment:
+- Most operators pass context unchanged
+- Functions like `defineVariable` create new context
+- Iterator functions (`where`, `select`) create scoped context with `$this` and `$index`
+
 ## Consequences
 
 ### Positive
