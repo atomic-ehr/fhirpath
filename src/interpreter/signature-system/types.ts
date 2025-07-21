@@ -20,6 +20,7 @@ export interface EnhancedFunctionDefinition {
   inputType?: ArgumentType;
   outputType?: ArgumentType;
   propagateEmptyInput?: boolean;
+  typeSignature?: import('../../analyzer/types').FunctionTypeSignature;
   evaluate: (
     interpreter: Interpreter,
     context: Context,

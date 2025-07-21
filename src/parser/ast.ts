@@ -4,6 +4,9 @@ import type { TokenType } from '../lexer/token';
 export interface ASTNode {
   type: NodeType;
   position: Position;
+  // Type analysis fields (optional - added by analyzer)
+  resultType?: unknown;  // Opaque type reference
+  isSingleton?: boolean; // Whether this expression returns a single value
 }
 
 export interface Position {
