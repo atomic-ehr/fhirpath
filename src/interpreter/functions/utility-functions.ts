@@ -4,28 +4,6 @@ import { ContextManager } from '../context';
 // Utility functions
 
 // Standalone function implementations
-export const nowFn = (interpreter: any, context: any, input: any[]) => {
-  // Return current datetime in ISO format
-  return { value: [new Date().toISOString()], context };
-};
-
-export const todayFn = (interpreter: any, context: any, input: any[]) => {
-  // Return current date in YYYY-MM-DD format
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return { value: [`${year}-${month}-${day}`], context };
-};
-
-export const timeOfDayFn = (interpreter: any, context: any, input: any[]) => {
-  // Return current time in HH:MM:SS format
-  const now = new Date();
-  const hours = String(now.getHours()).padStart(2, '0');
-  const minutes = String(now.getMinutes()).padStart(2, '0');
-  const seconds = String(now.getSeconds()).padStart(2, '0');
-  return { value: [`${hours}:${minutes}:${seconds}`], context };
-};
 
 export const aggregateFn = (interpreter: any, context: any, input: any[], aggregatorExpr: any, init?: any) => {
   if (!aggregatorExpr) {
@@ -131,23 +109,6 @@ export const descendantsFn = (interpreter: any, context: any, input: any[]) => {
 
 // Register functions with new signature
 
-// now() - returns current datetime
-FunctionRegistry.register({
-  name: 'now',
-  evaluate: nowFn
-});
-
-// today() - returns current date
-FunctionRegistry.register({
-  name: 'today',
-  evaluate: todayFn
-});
-
-// timeOfDay() - returns current time
-FunctionRegistry.register({
-  name: 'timeOfDay',
-  evaluate: timeOfDayFn
-});
 
 // aggregate(aggregator, init) - general aggregation
 FunctionRegistry.register({

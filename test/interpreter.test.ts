@@ -952,15 +952,16 @@ describe('FHIRPath Interpreter', () => {
         expect(result.value).toEqual(['hello FHIRPath FHIRPath']);
       });
 
-      it('matches() tests regex', () => {
-        const ast1 = parse("'123-45-6789'.matches('^\\\\d{3}-\\\\d{2}-\\\\d{4}$')");
-        const result1 = interpreter.evaluate(ast1, [], context);
-        expect(result1.value).toEqual([true]);
+      // REMOVED FUNCTION - Task 012
+      // it('matches() tests regex', () => {
+      //   const ast1 = parse("'123-45-6789'.matches('^\\\\d{3}-\\\\d{2}-\\\\d{4}$')");
+      //   const result1 = interpreter.evaluate(ast1, [], context);
+      //   expect(result1.value).toEqual([true]);
 
-        const ast2 = parse("'hello'.matches('^\\\\d+$')");
-        const result2 = interpreter.evaluate(ast2, [], context);
-        expect(result2.value).toEqual([false]);
-      });
+      //   const ast2 = parse("'hello'.matches('^\\\\d+$')");
+      //   const result2 = interpreter.evaluate(ast2, [], context);
+      //   expect(result2.value).toEqual([false]);
+      // });
 
       it('indexOf() finds substring position', () => {
         const ast1 = parse("'hello world'.indexOf('world')");
@@ -1045,23 +1046,24 @@ describe('FHIRPath Interpreter', () => {
         expect(result5.value).toEqual([]);
       });
 
-      it('convertsTo functions', () => {
-        const ast1 = parse("'true'.convertsToBoolean()");
-        const result1 = interpreter.evaluate(ast1, [], context);
-        expect(result1.value).toEqual([true]);
+      // REMOVED FUNCTIONS - Task 012
+      // it('convertsTo functions', () => {
+      //   const ast1 = parse("'true'.convertsToBoolean()");
+      //   const result1 = interpreter.evaluate(ast1, [], context);
+      //   expect(result1.value).toEqual([true]);
 
-        const ast2 = parse("'hello'.convertsToBoolean()");
-        const result2 = interpreter.evaluate(ast2, [], context);
-        expect(result2.value).toEqual([false]);
+      //   const ast2 = parse("'hello'.convertsToBoolean()");
+      //   const result2 = interpreter.evaluate(ast2, [], context);
+      //   expect(result2.value).toEqual([false]);
 
-        const ast3 = parse("'123'.convertsToInteger()");
-        const result3 = interpreter.evaluate(ast3, [], context);
-        expect(result3.value).toEqual([true]);
+      //   const ast3 = parse("'123'.convertsToInteger()");
+      //   const result3 = interpreter.evaluate(ast3, [], context);
+      //   expect(result3.value).toEqual([true]);
 
-        const ast4 = parse('42.convertsToString()');
-        const result4 = interpreter.evaluate(ast4, [], context);
-        expect(result4.value).toEqual([true]);
-      });
+      //   const ast4 = parse('42.convertsToString()');
+      //   const result4 = interpreter.evaluate(ast4, [], context);
+      //   expect(result4.value).toEqual([true]);
+      // });
     });
   });
 });

@@ -85,9 +85,16 @@ export class ArgumentEvaluator {
 
     // Handle type-only evaluation
     if (mode === 'type-only') {
+      // Import NodeType at the top of the file if not already imported
+      const { NodeType } = require('../../parser/ast');
+      
       // For type references, just return the type name
-      if (argNode.type === 'TypeReference') {
-        return { value: argNode.typeName, context };
+      if (argNode.type === NodeType.TypeReference) {
+        return { value: (argNode as any).typeName, context };
+      }
+      // Also handle TypeOrIdentifier nodes (like String, Integer, etc.)
+      if (argNode.type === NodeType.TypeOrIdentifier || argNode.type === NodeType.Identifier) {
+        return { value: (argNode as any).name, context };
       }
       throw new EvaluationError(
         `${functionName}() ${argDef.name} requires a type reference`,

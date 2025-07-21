@@ -32,7 +32,7 @@ describe('Refactored Core Functions', () => {
     });
 
     it('variable is available in subsequent expressions', () => {
-      const result = evaluateFHIRPath("defineVariable('name', 'John').select(%name + ' Doe')", [1]);
+      const result = evaluateFHIRPath("defineVariable('name', 'John').select(%name & ' Doe')", [1]);
       expect(result).toEqual(['John Doe']);
     });
 

@@ -38,6 +38,10 @@ export const toIntegerFn = (interpreter: any, context: any, input: any[]) => {
     return { value: [Math.trunc(value)], context };
   }
   
+  if (typeof value === 'boolean') {
+    return { value: [value ? 1 : 0], context };
+  }
+  
   if (typeof value === 'string') {
     const num = parseInt(value, 10);
     if (!isNaN(num)) {
@@ -57,6 +61,10 @@ export const toDecimalFn = (interpreter: any, context: any, input: any[]) => {
   
   if (typeof value === 'number') {
     return { value: [value], context };
+  }
+  
+  if (typeof value === 'boolean') {
+    return { value: [value ? 1.0 : 0.0], context };
   }
   
   if (typeof value === 'string') {
@@ -98,62 +106,6 @@ export const toBooleanFn = (interpreter: any, context: any, input: any[]) => {
   return { value: [], context };
 };
 
-export const toDateFn = (interpreter: any, context: any, input: any[]) => {
-  if (input.length === 0) {
-    return { value: [], context };
-  }
-  
-  const value = CollectionUtils.toSingleton(input);
-  
-  if (typeof value === 'string') {
-    // Basic date validation - expects YYYY-MM-DD format
-    const datePattern = /^\d{4}-\d{2}-\d{2}$/;
-    if (datePattern.test(value)) {
-      const date = new Date(value + 'T00:00:00');
-      if (!isNaN(date.getTime())) {
-        return { value: [value], context };
-      }
-    }
-  }
-  
-  return { value: [], context };
-};
-
-export const toDateTimeFn = (interpreter: any, context: any, input: any[]) => {
-  if (input.length === 0) {
-    return { value: [], context };
-  }
-  
-  const value = CollectionUtils.toSingleton(input);
-  
-  if (typeof value === 'string') {
-    // Try to parse as ISO 8601 datetime
-    const date = new Date(value);
-    if (!isNaN(date.getTime())) {
-      return { value: [value], context };
-    }
-  }
-  
-  return { value: [], context };
-};
-
-export const toTimeFn = (interpreter: any, context: any, input: any[]) => {
-  if (input.length === 0) {
-    return { value: [], context };
-  }
-  
-  const value = CollectionUtils.toSingleton(input);
-  
-  if (typeof value === 'string') {
-    // Basic time validation - expects HH:MM:SS format
-    const timePattern = /^\d{2}:\d{2}:\d{2}$/;
-    if (timePattern.test(value)) {
-      return { value: [value], context };
-    }
-  }
-  
-  return { value: [], context };
-};
 
 export const toQuantityFn = (interpreter: any, context: any, input: any[], unit?: string) => {
   if (input.length === 0) {
@@ -218,26 +170,6 @@ FunctionRegistry.register({
   evaluate: toBooleanFn
 });
 
-// toDate() - convert to date
-FunctionRegistry.register({
-  name: 'toDate',
-  propagateEmptyInput: true,
-  evaluate: toDateFn
-});
-
-// toDateTime() - convert to datetime
-FunctionRegistry.register({
-  name: 'toDateTime',
-  propagateEmptyInput: true,
-  evaluate: toDateTimeFn
-});
-
-// toTime() - convert to time
-FunctionRegistry.register({
-  name: 'toTime',
-  propagateEmptyInput: true,
-  evaluate: toTimeFn
-});
 
 // toQuantity([unit]) - convert to quantity
 FunctionRegistry.register({

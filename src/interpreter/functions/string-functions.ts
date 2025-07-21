@@ -54,30 +54,13 @@ export const indexOfFn = (interpreter: any, context: any, input: any[], substrin
   return { value: index === -1 ? [] : [index], context };
 };
 
-export const matchesFn = (interpreter: any, context: any, input: any[], regex: string) => {
-  const str = input[0];
-  try {
-    const re = new RegExp(regex);
-    return { value: [re.test(str)], context };
-  } catch (e) {
-    throw new Error(`Invalid regular expression: ${regex}`);
-  }
-};
 
 export const replaceFn = (interpreter: any, context: any, input: any[], pattern: string, substitution: string) => {
   const str = input[0];
-  return { value: [str.replace(pattern, substitution)], context };
+  // Replace all occurrences
+  return { value: [str.split(pattern).join(substitution)], context };
 };
 
-export const replaceMatchesFn = (interpreter: any, context: any, input: any[], regex: string, substitution: string) => {
-  const str = input[0];
-  try {
-    const re = new RegExp(regex, 'g');
-    return { value: [str.replace(re, substitution)], context };
-  } catch (e) {
-    throw new Error(`Invalid regular expression: ${regex}`);
-  }
-};
 
 export const splitFn = (interpreter: any, context: any, input: any[], separator: string) => {
   const str = input[0];
@@ -193,17 +176,6 @@ FunctionRegistry.register({
   evaluate: indexOfFn
 });
 
-// matches(regex) - tests if string matches regex
-FunctionRegistry.register({
-  name: 'matches',
-  inputType: 'string',
-  propagateEmptyInput: true,
-  arguments: [{
-    name: 'regex',
-    type: 'string'
-  }],
-  evaluate: matchesFn
-});
 
 // replace(pattern, substitution) - replace first occurrence
 FunctionRegistry.register({
@@ -223,23 +195,6 @@ FunctionRegistry.register({
   evaluate: replaceFn
 });
 
-// replaceMatches(regex, substitution) - replace all regex matches
-FunctionRegistry.register({
-  name: 'replaceMatches',
-  inputType: 'string',
-  propagateEmptyInput: true,
-  arguments: [
-    {
-      name: 'regex',
-      type: 'string'
-    },
-    {
-      name: 'substitution',
-      type: 'string'
-    }
-  ],
-  evaluate: replaceMatchesFn
-});
 
 // split(separator) - splits string into array
 FunctionRegistry.register({

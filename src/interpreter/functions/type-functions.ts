@@ -14,29 +14,36 @@ export const typeFn = (interpreter: any, context: any, input: any[]) => {
   return { value: Array.from(types), context };
 };
 
-export const conformsToFn = (interpreter: any, context: any, input: any[], profile: string) => {
-  // This is a placeholder - real implementation would check FHIR profiles
-  // For now, always return empty (unknown)
-  return { value: [], context };
+export const isFn = (interpreter: any, context: any, input: any[], typeName: string) => {
+  const { TypeSystem } = require('../types/type-system');
+  
+  if (input.length === 0) {
+    return { value: [], context };
+  }
+  
+  // Check if all items match the type
+  for (const item of input) {
+    if (!TypeSystem.isType(item, typeName)) {
+      return { value: [false], context };
+    }
+  }
+  
+  return { value: [true], context };
 };
 
-export const memberOfFn = (interpreter: any, context: any, input: any[], valueset: string) => {
-  // This is a placeholder - real implementation would check against terminology server
-  // For now, always return empty (unknown)
-  return { value: [], context };
+export const asFn = (interpreter: any, context: any, input: any[], typeName: string) => {
+  const { TypeSystem } = require('../types/type-system');
+  const results: any[] = [];
+  
+  for (const item of input) {
+    if (TypeSystem.isType(item, typeName)) {
+      results.push(item);
+    }
+  }
+  
+  return { value: results, context };
 };
 
-export const subsumesFn = (interpreter: any, context: any, input: any[], code: any) => {
-  // This is a placeholder - real implementation would use terminology server
-  // For now, always return empty (unknown)
-  return { value: [], context };
-};
-
-export const subsumedByFn = (interpreter: any, context: any, input: any[], code: any) => {
-  // This is a placeholder - real implementation would use terminology server
-  // For now, always return empty (unknown)
-  return { value: [], context };
-};
 
 // Register functions with new signature
 
@@ -46,42 +53,25 @@ FunctionRegistry.register({
   evaluate: typeFn
 });
 
-// conformsTo(profile) - checks if conforms to profile
+// is(type) - checks if all items are of given type
 FunctionRegistry.register({
-  name: 'conformsTo',
+  name: 'is',
   arguments: [{
-    name: 'profile',
-    type: 'string'
+    name: 'type',
+    type: 'string',
+    evaluationMode: 'type-only'
   }],
-  evaluate: conformsToFn
+  evaluate: isFn
 });
 
-// memberOf(valueset) - checks if code is member of valueset
+// as(type) - filters items by type (same as ofType)
 FunctionRegistry.register({
-  name: 'memberOf',
+  name: 'as',
   arguments: [{
-    name: 'valueset',
-    type: 'string'
+    name: 'type',
+    type: 'string',
+    evaluationMode: 'type-only'
   }],
-  evaluate: memberOfFn
+  evaluate: asFn
 });
 
-// subsumes(code) - checks if code subsumes another
-FunctionRegistry.register({
-  name: 'subsumes',
-  arguments: [{
-    name: 'code',
-    type: 'any'
-  }],
-  evaluate: subsumesFn
-});
-
-// subsumedBy(code) - checks if code is subsumed by another
-FunctionRegistry.register({
-  name: 'subsumedBy',
-  arguments: [{
-    name: 'code',
-    type: 'any'
-  }],
-  evaluate: subsumedByFn
-});
