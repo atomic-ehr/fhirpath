@@ -4,6 +4,9 @@ import type { Operation, Operator, Function, Literal } from './types';
 export class Registry {
   private static operations = new Map<string, Operation>();
   private static tokenToOperation = new Map<TokenType, Operation>();
+  private static prefixOperators = new Map<TokenType, Operator>();
+  private static infixOperators = new Map<TokenType, Operator>();
+  private static postfixOperators = new Map<TokenType, Operator>();
   private static precedenceTable = new Map<TokenType, number>();
   private static literals: Literal[] = [];
   private static keywords = new Set<string>();
@@ -14,7 +17,20 @@ export class Registry {
     // Type-based registration
     switch (op.kind) {
       case 'operator':
-        this.tokenToOperation.set(op.syntax.token, op);
+        // Register by form to handle operators with same token but different forms
+        if (op.syntax.form === 'prefix') {
+          this.prefixOperators.set(op.syntax.token, op);
+        } else if (op.syntax.form === 'infix') {
+          this.infixOperators.set(op.syntax.token, op);
+        } else if (op.syntax.form === 'postfix') {
+          this.postfixOperators.set(op.syntax.token, op);
+        }
+        
+        // For backward compatibility, store in tokenToOperation (prioritize infix)
+        if (op.syntax.form === 'infix' || !this.tokenToOperation.has(op.syntax.token)) {
+          this.tokenToOperation.set(op.syntax.token, op);
+        }
+        
         this.precedenceTable.set(op.syntax.token, op.syntax.precedence);
         // Register keyword operators (and, or, not, etc.)
         if (/^[a-z]+$/.test(op.name)) {
@@ -40,7 +56,15 @@ export class Registry {
     return this.operations.get(name);
   }
   
-  static getByToken(token: TokenType): Operation | undefined {
+  static getByToken(token: TokenType, form?: 'prefix' | 'infix' | 'postfix'): Operation | undefined {
+    if (form === 'prefix') {
+      return this.prefixOperators.get(token);
+    } else if (form === 'infix') {
+      return this.infixOperators.get(token);
+    } else if (form === 'postfix') {
+      return this.postfixOperators.get(token);
+    }
+    // Default fallback
     return this.tokenToOperation.get(token);
   }
   
@@ -91,6 +115,9 @@ export class Registry {
   static clear() {
     this.operations.clear();
     this.tokenToOperation.clear();
+    this.prefixOperators.clear();
+    this.infixOperators.clear();
+    this.postfixOperators.clear();
     this.precedenceTable.clear();
     this.literals = [];
     this.keywords.clear();

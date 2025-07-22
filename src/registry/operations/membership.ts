@@ -35,9 +35,9 @@ export const inOperator: Operator = {
   },
   analyze: defaultOperatorAnalyze,
   evaluate: (interpreter, context, input, element, collection) => {
-    if (element.length === 0) return [false];
-    if (collection.length === 0) return [false];
-    return [isIn(element[0], collection)];
+    if (element.length === 0) return { value: [false], context };
+    if (collection.length === 0) return { value: [false], context };
+    return { value: [isIn(element[0], collection)], context };
   },
   compile: (compiler, input, args) => {
     const [elemExpr, collExpr] = args;
@@ -70,9 +70,9 @@ export const containsOperator: Operator = {
   },
   analyze: defaultOperatorAnalyze,
   evaluate: (interpreter, context, input, collection, element) => {
-    if (collection.length === 0) return [false];
-    if (element.length === 0) return [false];
-    return [isIn(element[0], collection)];
+    if (collection.length === 0) return { value: [false], context };
+    if (element.length === 0) return { value: [false], context };
+    return { value: [isIn(element[0], collection)], context };
   },
   compile: (compiler, input, args) => {
     const [collExpr, elemExpr] = args;

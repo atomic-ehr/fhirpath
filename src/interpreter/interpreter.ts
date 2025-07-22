@@ -19,12 +19,12 @@ import { TokenType } from '../lexer/token';
 import type { Context, EvaluationResult } from './types';
 import { EvaluationError, CollectionUtils } from './types';
 import { ContextManager } from './context';
-import { Operators } from './operators';
-import { FunctionRegistry } from './functions';
 import { TypeSystem } from './types/type-system';
+import { Registry } from '../registry';
+import type { Interpreter as IInterpreter } from '../registry/types';
 
-// Import all function implementations to register them
-import './functions';
+// Import registry to trigger operation registration
+import '../registry';
 
 // Type for node evaluator functions
 type NodeEvaluator = (node: any, input: any[], context: Context) => EvaluationResult;
@@ -35,7 +35,7 @@ type NodeEvaluator = (node: any, input: any[], context: Context) => EvaluationRe
  * 
  * This refactored version uses object lookup instead of switch statements.
  */
-export class Interpreter {
+export class Interpreter implements IInterpreter {
   // Object lookup for node evaluators
   private readonly nodeEvaluators: Record<NodeType, NodeEvaluator> = {
     [NodeType.Literal]: this.evaluateLiteral.bind(this),
@@ -78,7 +78,12 @@ export class Interpreter {
   }
 
   private evaluateLiteral(node: LiteralNode, input: any[], context: Context): EvaluationResult {
-    // Literals ignore input and return their value as a collection
+    // If literal has operation reference from parser
+    if (node.operation && node.operation.kind === 'literal') {
+      return node.operation.evaluate(this, context, input);
+    }
+    
+    // Fallback for legacy literals
     const value = node.value === null ? [] : [node.value];
     return { value, context };
   }
@@ -152,83 +157,73 @@ export class Interpreter {
       return rightResult;
     }
 
-    // For other operators, evaluate left first, then right with threaded context
+    // Get operation from registry (binary operators are infix)
+    const operation = node.operation || Registry.getByToken(node.operator, 'infix');
+    if (!operation || operation.kind !== 'operator') {
+      throw new EvaluationError(`Unknown operator: ${node.operator}`, node.position);
+    }
+    
+    // Evaluate operands
     const leftResult = this.evaluate(node.left, input, context);
     const rightResult = this.evaluate(node.right, input, leftResult.context);
-
-    // Use operator handlers object instead of if-else chains
-    const operatorHandlers: Record<string, () => any[]> = {
-      // Arithmetic operators
-      [TokenType.PLUS]: () => Operators.arithmetic(node.operator, leftResult.value, rightResult.value),
-      [TokenType.MINUS]: () => Operators.arithmetic(node.operator, leftResult.value, rightResult.value),
-      [TokenType.STAR]: () => Operators.arithmetic(node.operator, leftResult.value, rightResult.value),
-      [TokenType.SLASH]: () => Operators.arithmetic(node.operator, leftResult.value, rightResult.value),
-      [TokenType.DIV]: () => Operators.arithmetic(node.operator, leftResult.value, rightResult.value),
-      [TokenType.MOD]: () => Operators.arithmetic(node.operator, leftResult.value, rightResult.value),
-      
-      // Comparison operators
-      [TokenType.EQ]: () => Operators.comparison(node.operator, leftResult.value, rightResult.value),
-      [TokenType.NEQ]: () => Operators.comparison(node.operator, leftResult.value, rightResult.value),
-      [TokenType.LT]: () => Operators.comparison(node.operator, leftResult.value, rightResult.value),
-      [TokenType.GT]: () => Operators.comparison(node.operator, leftResult.value, rightResult.value),
-      [TokenType.LTE]: () => Operators.comparison(node.operator, leftResult.value, rightResult.value),
-      [TokenType.GTE]: () => Operators.comparison(node.operator, leftResult.value, rightResult.value),
-      
-      // Logical operators
-      [TokenType.AND]: () => Operators.logical(node.operator, leftResult.value, rightResult.value),
-      [TokenType.OR]: () => Operators.logical(node.operator, leftResult.value, rightResult.value),
-      [TokenType.XOR]: () => Operators.logical(node.operator, leftResult.value, rightResult.value),
-      [TokenType.IMPLIES]: () => Operators.logical(node.operator, leftResult.value, rightResult.value),
-      
-      // Membership operators
-      [TokenType.IN]: () => Operators.membership(node.operator, leftResult.value, rightResult.value),
-      [TokenType.CONTAINS]: () => Operators.membership(node.operator, leftResult.value, rightResult.value),
-      
-      // String concatenation
-      [TokenType.CONCAT]: () => Operators.concat(leftResult.value, rightResult.value),
-    };
-
-    const handler = operatorHandlers[node.operator];
-    if (!handler) {
-      throw new EvaluationError(`Binary operator not yet implemented: ${node.operator}`, node.position);
-    }
-
-    const value = handler();
-    return { value, context: rightResult.context };
+    
+    // Use operation's evaluate method
+    return operation.evaluate(this, rightResult.context, input, leftResult.value, rightResult.value);
   }
 
   private evaluateUnary(node: UnaryNode, input: any[], context: Context): EvaluationResult {
-    // Evaluate operand
-    const operandResult = this.evaluate(node.operand, input, context);
-
-    // Use object lookup for unary operators
-    const unaryHandlers: Record<string, () => any[]> = {
-      [TokenType.NOT]: () => Operators.logical(TokenType.NOT, operandResult.value),
-      [TokenType.PLUS]: () => operandResult.value, // Unary plus - just return the value
-      [TokenType.MINUS]: () => {
-        // Unary minus - negate numbers
-        if (operandResult.value.length === 0) {
-          return [];
-        }
-        const num = CollectionUtils.toSingleton(operandResult.value);
-        if (typeof num !== 'number') {
-          throw new EvaluationError('Unary minus requires a number', node.position);
-        }
-        return [-num];
-      },
-    };
-
-    const handler = unaryHandlers[node.operator];
-    if (!handler) {
+    // Get operation from registry (unary operators are prefix)
+    const operation = node.operation || Registry.getByToken(node.operator, 'prefix');
+    if (!operation || operation.kind !== 'operator') {
       throw new EvaluationError(`Unknown unary operator: ${node.operator}`, node.position);
     }
-
-    const value = handler();
-    return { value, context: operandResult.context };
+    
+    // Evaluate operand
+    const operandResult = this.evaluate(node.operand, input, context);
+    
+    // Use operation's evaluate method
+    return operation.evaluate(this, operandResult.context, input, operandResult.value);
   }
 
   private evaluateFunction(node: FunctionNode, input: any[], context: Context): EvaluationResult {
-    return FunctionRegistry.evaluate(this, node, input, context);
+    // Extract function name
+    let funcName: string;
+    if (node.name.type === NodeType.Identifier) {
+      funcName = (node.name as IdentifierNode).name;
+    } else {
+      throw new EvaluationError('Complex function names not yet supported', node.position);
+    }
+    
+    // Get function from registry
+    const operation = Registry.get(funcName);
+    if (!operation || operation.kind !== 'function') {
+      throw new EvaluationError(`Unknown function: ${funcName}`, node.position);
+    }
+    
+    // Check propagateEmptyInput flag
+    if (operation.signature.propagatesEmpty && input.length === 0) {
+      return { value: [], context };
+    }
+    
+    // Evaluate arguments based on parameter definitions
+    const evaluatedArgs: any[] = [];
+    for (let i = 0; i < node.arguments.length; i++) {
+      const arg = node.arguments[i];
+      const param = operation.signature.parameters[i];
+      
+      if (param && param.kind === 'expression') {
+        // Pass expression as-is, will be evaluated by the function
+        evaluatedArgs.push(arg);
+      } else {
+        // Evaluate the argument to get its value
+        const argResult = this.evaluate(arg, input, context);
+        evaluatedArgs.push(argResult.value);
+        context = argResult.context;
+      }
+    }
+    
+    // Use operation's evaluate method
+    return operation.evaluate(this, context, input, ...evaluatedArgs);
   }
 
   private evaluateCollection(node: CollectionNode, input: any[], context: Context): EvaluationResult {

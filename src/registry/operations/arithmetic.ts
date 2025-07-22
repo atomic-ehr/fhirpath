@@ -335,6 +335,135 @@ export const divOperator: Operator = {
   })
 };
 
+export const unaryPlusOperator: Operator = {
+  name: 'unary+',
+  kind: 'operator',
+  
+  syntax: {
+    form: 'prefix',
+    token: TokenType.PLUS,
+    precedence: 10, // High precedence for unary operators
+    notation: '+a'
+  },
+  
+  signature: {
+    parameters: [
+      { name: 'operand', types: { kind: 'union', types: ['Integer', 'Decimal'] }, cardinality: 'singleton' }
+    ],
+    output: {
+      type: 'preserve-input',
+      cardinality: 'singleton'
+    },
+    propagatesEmpty: true
+  },
+  
+  analyze: defaultOperatorAnalyze,
+  
+  evaluate: (interpreter, context, input, operand) => {
+    if (operand.length === 0) return { value: [], context };
+    return { value: operand, context }; // Unary plus is identity
+  },
+  
+  compile: (compiler, input, args) => ({
+    fn: (ctx) => args[0].fn(ctx),
+    type: args[0].type,
+    isSingleton: true,
+    source: `+${args[0].source || ''}`
+  })
+};
+
+export const unaryMinusOperator: Operator = {
+  name: 'unary-',
+  kind: 'operator',
+  
+  syntax: {
+    form: 'prefix',
+    token: TokenType.MINUS,
+    precedence: 10, // High precedence for unary operators
+    notation: '-a'
+  },
+  
+  signature: {
+    parameters: [
+      { name: 'operand', types: { kind: 'union', types: ['Integer', 'Decimal'] }, cardinality: 'singleton' }
+    ],
+    output: {
+      type: 'preserve-input',
+      cardinality: 'singleton'
+    },
+    propagatesEmpty: true
+  },
+  
+  analyze: defaultOperatorAnalyze,
+  
+  evaluate: (interpreter, context, input, operand) => {
+    if (operand.length === 0) return { value: [], context };
+    
+    const val = toSingleton(operand);
+    return { value: [-val], context };
+  },
+  
+  compile: (compiler, input, args) => ({
+    fn: (ctx) => {
+      const operand = args[0].fn(ctx);
+      if (operand.length === 0) return [];
+      return [-toSingleton(operand)];
+    },
+    type: args[0].type,
+    isSingleton: true,
+    source: `-${args[0].source || ''}`
+  })
+};
+
+export const concatOperator: Operator = {
+  name: '&',
+  kind: 'operator',
+  
+  syntax: {
+    form: 'infix',
+    token: TokenType.CONCAT,
+    precedence: 5,
+    associativity: 'left',
+    notation: 'a & b'
+  },
+  
+  signature: {
+    parameters: [
+      { name: 'left', types: { kind: 'primitive', types: ['String'] }, cardinality: 'singleton' },
+      { name: 'right', types: { kind: 'primitive', types: ['String'] }, cardinality: 'singleton' }
+    ],
+    output: {
+      type: 'String',
+      cardinality: 'singleton'
+    },
+    propagatesEmpty: true
+  },
+  
+  analyze: defaultOperatorAnalyze,
+  
+  evaluate: (interpreter, context, input, left, right) => {
+    if (left.length === 0 || right.length === 0) return { value: [], context };
+    
+    const l = toSingleton(left);
+    const r = toSingleton(right);
+    
+    return { value: [String(l) + String(r)], context };
+  },
+  
+  compile: (compiler, input, args) => ({
+    fn: (ctx) => {
+      const left = args[0].fn(ctx);
+      const right = args[1].fn(ctx);
+      if (left.length === 0 || right.length === 0) return [];
+      
+      return [String(toSingleton(left)) + String(toSingleton(right))];
+    },
+    type: compiler.resolveType('String'),
+    isSingleton: true,
+    source: `${args[0].source || ''} & ${args[1].source || ''}`
+  })
+};
+
 // Export all arithmetic operators
 export const arithmeticOperators = [
   plusOperator,
@@ -342,5 +471,8 @@ export const arithmeticOperators = [
   multiplyOperator,
   divideOperator,
   modOperator,
-  divOperator
+  divOperator,
+  concatOperator,
+  unaryPlusOperator,
+  unaryMinusOperator
 ];

@@ -43,8 +43,8 @@ export const eqOperator: Operator = {
   },
   analyze: defaultOperatorAnalyze,
   evaluate: (interpreter, context, input, left, right) => {
-    if (left.length === 0 || right.length === 0) return [];
-    return [isEqual(left[0], right[0])];
+    if (left.length === 0 || right.length === 0) return { value: [], context };
+    return { value: [isEqual(left[0], right[0])], context };
   },
   compile: (compiler, input, args) => {
     const [leftExpr, rightExpr] = args;
@@ -76,8 +76,8 @@ export const neqOperator: Operator = {
   },
   analyze: defaultOperatorAnalyze,
   evaluate: (interpreter, context, input, left, right) => {
-    if (left.length === 0 || right.length === 0) return [];
-    return [!isEqual(left[0], right[0])];
+    if (left.length === 0 || right.length === 0) return { value: [], context };
+    return { value: [!isEqual(left[0], right[0])], context };
   },
   compile: (compiler, input, args) => {
     const [leftExpr, rightExpr] = args;
@@ -109,13 +109,13 @@ export const ltOperator: Operator = {
   },
   analyze: defaultOperatorAnalyze,
   evaluate: (interpreter, context, input, left, right) => {
-    if (left.length === 0 || right.length === 0) return [];
+    if (left.length === 0 || right.length === 0) return { value: [], context };
     const l = left[0];
     const r = right[0];
-    if (typeof l === 'number' && typeof r === 'number') return [l < r];
-    if (typeof l === 'string' && typeof r === 'string') return [l < r];
-    if (l instanceof Date && r instanceof Date) return [l < r];
-    return [];
+    if (typeof l === 'number' && typeof r === 'number') return { value: [l < r], context };
+    if (typeof l === 'string' && typeof r === 'string') return { value: [l < r], context };
+    if (l instanceof Date && r instanceof Date) return { value: [l < r], context };
+    return { value: [], context };
   },
   compile: (compiler, input, args) => {
     const [leftExpr, rightExpr] = args;
@@ -152,13 +152,13 @@ export const gtOperator: Operator = {
   },
   analyze: defaultOperatorAnalyze,
   evaluate: (interpreter, context, input, left, right) => {
-    if (left.length === 0 || right.length === 0) return [];
+    if (left.length === 0 || right.length === 0) return { value: [], context };
     const l = left[0];
     const r = right[0];
-    if (typeof l === 'number' && typeof r === 'number') return [l > r];
-    if (typeof l === 'string' && typeof r === 'string') return [l > r];
-    if (l instanceof Date && r instanceof Date) return [l > r];
-    return [];
+    if (typeof l === 'number' && typeof r === 'number') return { value: [l > r], context };
+    if (typeof l === 'string' && typeof r === 'string') return { value: [l > r], context };
+    if (l instanceof Date && r instanceof Date) return { value: [l > r], context };
+    return { value: [], context };
   },
   compile: (compiler, input, args) => {
     const [leftExpr, rightExpr] = args;
@@ -195,13 +195,13 @@ export const lteOperator: Operator = {
   },
   analyze: defaultOperatorAnalyze,
   evaluate: (interpreter, context, input, left, right) => {
-    if (left.length === 0 || right.length === 0) return [];
+    if (left.length === 0 || right.length === 0) return { value: [], context };
     const l = left[0];
     const r = right[0];
-    if (typeof l === 'number' && typeof r === 'number') return [l <= r];
-    if (typeof l === 'string' && typeof r === 'string') return [l <= r];
-    if (l instanceof Date && r instanceof Date) return [l <= r];
-    return [];
+    if (typeof l === 'number' && typeof r === 'number') return { value: [l <= r], context };
+    if (typeof l === 'string' && typeof r === 'string') return { value: [l <= r], context };
+    if (l instanceof Date && r instanceof Date) return { value: [l <= r], context };
+    return { value: [], context };
   },
   compile: (compiler, input, args) => {
     const [leftExpr, rightExpr] = args;
@@ -238,13 +238,13 @@ export const gteOperator: Operator = {
   },
   analyze: defaultOperatorAnalyze,
   evaluate: (interpreter, context, input, left, right) => {
-    if (left.length === 0 || right.length === 0) return [];
+    if (left.length === 0 || right.length === 0) return { value: [], context };
     const l = left[0];
     const r = right[0];
-    if (typeof l === 'number' && typeof r === 'number') return [l >= r];
-    if (typeof l === 'string' && typeof r === 'string') return [l >= r];
-    if (l instanceof Date && r instanceof Date) return [l >= r];
-    return [];
+    if (typeof l === 'number' && typeof r === 'number') return { value: [l >= r], context };
+    if (typeof l === 'string' && typeof r === 'string') return { value: [l >= r], context };
+    if (l instanceof Date && r instanceof Date) return { value: [l >= r], context };
+    return { value: [], context };
   },
   compile: (compiler, input, args) => {
     const [leftExpr, rightExpr] = args;
@@ -281,17 +281,17 @@ export const equivOperator: Operator = {
   },
   analyze: defaultOperatorAnalyze,
   evaluate: (interpreter, context, input, left, right) => {
-    if (left.length === 0 || right.length === 0) return [];
+    if (left.length === 0 || right.length === 0) return { value: [], context };
     // Equivalence is more lenient than equality
     const l = left[0];
     const r = right[0];
-    if (l == null && r == null) return [true];
-    if (l == null || r == null) return [false];
+    if (l == null && r == null) return { value: [true], context };
+    if (l == null || r == null) return { value: [false], context };
     // For strings, case-insensitive comparison
     if (typeof l === 'string' && typeof r === 'string') {
-      return [l.toLowerCase() === r.toLowerCase()];
+      return { value: [l.toLowerCase() === r.toLowerCase()], context };
     }
-    return [isEqual(l, r)];
+    return { value: [isEqual(l, r)], context };
   },
   compile: (compiler, input, args) => {
     const [leftExpr, rightExpr] = args;
@@ -331,7 +331,7 @@ export const nequivOperator: Operator = {
   analyze: defaultOperatorAnalyze,
   evaluate: (interpreter, context, input, left, right) => {
     const equivResult = equivOperator.evaluate(interpreter, context, input, left, right);
-    return equivResult.length > 0 ? [!equivResult[0]] : [];
+    return equivResult.value.length > 0 ? { value: [!equivResult.value[0]], context } : { value: [], context };
   },
   compile: (compiler, input, args) => {
     const [leftExpr, rightExpr] = args;
