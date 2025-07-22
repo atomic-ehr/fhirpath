@@ -1,8 +1,7 @@
 import { TokenType } from '../../lexer/token';
 import type { Operator } from '../types';
 import { defaultOperatorAnalyze } from '../default-analyzers';
-import type { Context, EvaluationResult } from '../../interpreter/types';
-import type { CompiledExpression } from '../../compiler/types';
+import { defaultOperatorCompile } from '../default-compilers';
 
 // Helper function for equality comparison
 function isEqual(left: any, right: any): boolean {

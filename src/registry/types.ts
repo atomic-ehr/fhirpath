@@ -160,6 +160,3 @@ export interface Compiler {
 
 // Re-export TypeRef from analyzer
 export type { TypeRef } from '../analyzer/types';
-
-// Export types needed by operations
-export type { CompiledExpression, Analyzer, Interpreter, Compiler };

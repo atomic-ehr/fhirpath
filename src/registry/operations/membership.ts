@@ -1,8 +1,7 @@
 import { TokenType } from '../../lexer/token';
 import type { Operator } from '../types';
 import { defaultOperatorAnalyze } from '../default-analyzers';
-import type { Context, EvaluationResult } from '../../interpreter/types';
-import type { CompiledExpression } from '../../compiler/types';
+import { defaultOperatorCompile } from '../default-compilers';
 
 // Helper function to check if value is in collection
 function isIn(value: any, collection: any[]): boolean {
@@ -30,7 +29,7 @@ export const inOperator: Operator = {
     notation: 'a in b'
   },
   signature: {
-    parameters: [{ name: 'element' }, { name: 'collection' }],
+    parameters: [{ name: 'left' }, { name: 'right' }],
     propagatesEmpty: false
   },
   analyze: defaultOperatorAnalyze,
@@ -39,19 +38,7 @@ export const inOperator: Operator = {
     if (collection.length === 0) return { value: [false], context };
     return { value: [isIn(element[0], collection)], context };
   },
-  compile: (compiler, input, args) => {
-    const [elemExpr, collExpr] = args;
-    return {
-      fn: (ctx: Context, inp: any[]): EvaluationResult => {
-        const element = elemExpr.fn(ctx, inp);
-        const collection = collExpr.fn(ctx, inp);
-        if (element.length === 0) return [false];
-        if (collection.length === 0) return [false];
-        return [isIn(element[0], collection)];
-      },
-      source: `(${elemExpr.source || ''} in ${collExpr.source || ''})`
-    };
-  }
+  compile: defaultOperatorCompile
 };
 
 export const containsOperator: Operator = {
@@ -65,7 +52,7 @@ export const containsOperator: Operator = {
     notation: 'a contains b'
   },
   signature: {
-    parameters: [{ name: 'collection' }, { name: 'element' }],
+    parameters: [{ name: 'left' }, { name: 'right' }],
     propagatesEmpty: false
   },
   analyze: defaultOperatorAnalyze,
@@ -74,19 +61,7 @@ export const containsOperator: Operator = {
     if (element.length === 0) return { value: [false], context };
     return { value: [isIn(element[0], collection)], context };
   },
-  compile: (compiler, input, args) => {
-    const [collExpr, elemExpr] = args;
-    return {
-      fn: (ctx: Context, inp: any[]): EvaluationResult => {
-        const collection = collExpr.fn(ctx, inp);
-        const element = elemExpr.fn(ctx, inp);
-        if (collection.length === 0) return [false];
-        if (element.length === 0) return [false];
-        return [isIn(element[0], collection)];
-      },
-      source: `(${collExpr.source || ''} contains ${elemExpr.source || ''})`
-    };
-  }
+  compile: defaultOperatorCompile
 };
 
 // Export membership operators

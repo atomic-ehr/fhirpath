@@ -635,6 +635,19 @@ export class FHIRPathLexer {
     
     // Check if it's a keyword using registry
     if (Registry.isKeyword(internedValue)) {
+      // First try to find an operator with this name
+      const operators = [TokenType.CONTAINS, TokenType.IN, TokenType.AND, TokenType.OR, 
+                        TokenType.XOR, TokenType.IMPLIES, TokenType.AS, TokenType.IS,
+                        TokenType.NOT, TokenType.MOD, TokenType.DIV];
+      
+      for (const tokenType of operators) {
+        const op = Registry.getByToken(tokenType, 'infix') || Registry.getByToken(tokenType, 'prefix');
+        if (op && op.name === internedValue) {
+          return this.tokenPool.getToken(tokenType, internedValue, start);
+        }
+      }
+      
+      // Fallback to general lookup
       const op = Registry.get(internedValue);
       if (op && op.kind === 'operator' && op.syntax.token) {
         return this.tokenPool.getToken(op.syntax.token, internedValue, start);

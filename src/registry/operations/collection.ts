@@ -1,6 +1,7 @@
-import type { Function } from '../types';
-import { defaultFunctionAnalyze } from '../default-analyzers';
-import { defaultFunctionCompile } from '../default-compilers';
+import type { Function, Operator } from '../types';
+import { defaultFunctionAnalyze, defaultOperatorAnalyze } from '../default-analyzers';
+import { defaultFunctionCompile, defaultOperatorCompile } from '../default-compilers';
+import { TokenType } from '../../lexer/token';
 
 export const unionFunction: Function = {
   name: 'union',
@@ -212,3 +213,62 @@ export const excludeFunction: Function = {
   
   compile: defaultFunctionCompile
 };
+
+// Union operator (|) - combines collections removing duplicates
+export const unionOperator: Operator = {
+  name: '|',
+  kind: 'operator',
+  
+  syntax: {
+    form: 'infix',
+    token: TokenType.PIPE,
+    precedence: 13,  // Lower precedence than most operators
+    associativity: 'left',
+    notation: 'a | b'
+  },
+  
+  signature: {
+    parameters: [
+      { name: 'left' },
+      { name: 'right' }
+    ],
+    output: {
+      type: 'preserve-left',
+      cardinality: 'collection'
+    },
+    propagatesEmpty: false
+  },
+  
+  analyze: defaultOperatorAnalyze,
+  
+  evaluate: (interpreter, context, input, left, right) => {
+    // Union removes duplicates
+    const seen = new Set();
+    const result: any[] = [];
+    
+    for (const item of left) {
+      const key = JSON.stringify(item);
+      if (!seen.has(key)) {
+        seen.add(key);
+        result.push(item);
+      }
+    }
+    
+    for (const item of right) {
+      const key = JSON.stringify(item);
+      if (!seen.has(key)) {
+        seen.add(key);
+        result.push(item);
+      }
+    }
+    
+    return { value: result, context };
+  },
+  
+  compile: defaultOperatorCompile
+};
+
+// Export all collection operations
+export const collectionOperators = [
+  unionOperator
+];

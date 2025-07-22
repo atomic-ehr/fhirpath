@@ -28,7 +28,7 @@ import {
   toBooleanFunction, toQuantityFunction 
 } from './operations/type-conversion';
 import { tailFunction, skipFunction, takeFunction } from './operations/subsetting';
-import { unionFunction, combineFunction, intersectFunction, excludeFunction } from './operations/collection';
+import { unionFunction, combineFunction, intersectFunction, excludeFunction, collectionOperators } from './operations/collection';
 
 // Export types
 export * from './types';
@@ -42,6 +42,7 @@ export * from './default-analyzers';
   ...comparisonOperators,
   ...membershipOperators,
   ...typeOperators,
+  ...collectionOperators,
   ...literals,
   ...existenceFunctions,
   aggregateFunction,
