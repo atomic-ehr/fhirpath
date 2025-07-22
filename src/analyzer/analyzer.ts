@@ -12,7 +12,8 @@ import type {
   MembershipTestNode,
   TypeCastNode,
   TypeReferenceNode,
-  TypeOrIdentifierNode
+  TypeOrIdentifierNode,
+  Position
 } from '../parser/ast';
 import { NodeType } from '../parser/ast';
 import { TokenType } from '../lexer/token';
@@ -23,8 +24,8 @@ import type {
   TypeDiagnostic
 } from './types';
 import { AnalysisMode } from './types';
-import { functionSignatures } from './function-signatures';
-import * as operatorSignatures from './function-signatures';
+import { Registry } from '../registry';
+import type { TypeInfo as RegistryTypeInfo, Analyzer as IAnalyzer } from '../registry/types';
 
 // Type for node analyzer functions
 type NodeAnalyzer = (node: any, inputType: TypeRef | undefined, inputIsSingleton: boolean) => AnalysisResult;
@@ -38,8 +39,9 @@ interface AnalysisResult {
  * FHIRPath Type Analyzer - performs type analysis on AST nodes
  * Follows the same pattern as the interpreter but tracks types instead of values
  */
-export class TypeAnalyzer {
+export class TypeAnalyzer implements IAnalyzer {
   private diagnostics: TypeDiagnostic[] = [];
+  private currentPosition?: Position;
   
   // Object lookup for node analyzers (mirrors interpreter pattern)
   private readonly nodeAnalyzers: Record<NodeType, NodeAnalyzer> = {
@@ -62,6 +64,19 @@ export class TypeAnalyzer {
     private modelProvider: ModelProvider,
     private mode: AnalysisMode = AnalysisMode.Lenient
   ) {}
+  
+  // IAnalyzer interface implementation
+  error(message: string): void {
+    this.addDiagnostic('error', message, this.currentPosition);
+  }
+  
+  warning(message: string): void {
+    this.addDiagnostic('warning', message, this.currentPosition);
+  }
+  
+  resolveType(typeName: string): TypeRef {
+    return this.modelProvider.resolveType(typeName) || this.modelProvider.resolveType('Any')!;
+  }
   
   /**
    * Analyze a FHIRPath expression
@@ -108,6 +123,18 @@ export class TypeAnalyzer {
   }
   
   private analyzeLiteral(node: LiteralNode): AnalysisResult {
+    // If literal has operation reference from parser
+    if (node.operation && node.operation.kind === 'literal') {
+      const inputInfo: RegistryTypeInfo = { type: this.resolveType('Any'), isSingleton: true };
+      this.currentPosition = node.position;
+      const result = node.operation.analyze(this, inputInfo, []);
+      return {
+        type: result.type,
+        isSingleton: result.isSingleton
+      };
+    }
+    
+    // Fallback for legacy literals
     let typeName: string;
     
     switch (node.valueType) {
@@ -208,69 +235,35 @@ export class TypeAnalyzer {
   ): AnalysisResult {
     // Special handling for dot operator - it's a pipeline
     if (node.operator === TokenType.DOT) {
-      // Analyze left with original input
       const leftResult = this.analyzeNode(node.left, inputType, inputIsSingleton);
-      
-      // Analyze right with left's output as input
       const rightResult = this.analyzeNode(node.right, leftResult.type, leftResult.isSingleton);
-      
       return rightResult;
     }
     
-    // For other operators, analyze both sides
-    const leftResult = this.analyzeNode(node.left, inputType, inputIsSingleton);
-    const rightResult = this.analyzeNode(node.right, inputType, inputIsSingleton);
-    
-    // Get operator signature
-    const operatorSignature = this.getOperatorSignature(node.operator);
-    
-    if (!operatorSignature) {
+    // Get operation from registry
+    const operation = node.operation || Registry.getByToken(node.operator);
+    if (!operation || operation.kind !== 'operator') {
       this.addDiagnostic('error', `Unknown operator: ${node.operator}`, node.position);
       return { type: this.modelProvider.resolveType('Any'), isSingleton: true };
     }
     
-    // Check singleton requirements
-    if (operatorSignature.requiresLeftSingleton && !leftResult.isSingleton) {
-      this.addDiagnostic('error', `Left side of ${node.operator} must be singleton`, node.position);
-    }
-    if (operatorSignature.requiresRightSingleton && !rightResult.isSingleton) {
-      this.addDiagnostic('error', `Right side of ${node.operator} must be singleton`, node.position);
-    }
+    // Analyze operands
+    const leftResult = this.analyzeNode(node.left, inputType, inputIsSingleton);
+    const rightResult = this.analyzeNode(node.right, inputType, inputIsSingleton);
     
-    // Determine result type
-    let resultType: TypeRef | undefined;
+    // Convert to registry TypeInfo format
+    const inputInfo: RegistryTypeInfo = { type: inputType || this.resolveType('Any'), isSingleton: inputIsSingleton };
+    const leftInfo: RegistryTypeInfo = { type: leftResult.type || this.resolveType('Any'), isSingleton: leftResult.isSingleton };
+    const rightInfo: RegistryTypeInfo = { type: rightResult.type || this.resolveType('Any'), isSingleton: rightResult.isSingleton };
     
-    if (operatorSignature.returnType) {
-      resultType = operatorSignature.returnType(leftResult.type, rightResult.type, this.modelProvider);
-    } else if (operatorSignature.acceptedTypes === 'any') {
-      resultType = this.modelProvider.resolveType('Boolean'); // For comparisons
-    } else if (Array.isArray(operatorSignature.acceptedTypes)) {
-      // Find matching type combination
-      const leftTypeName = leftResult.type ? this.modelProvider.getTypeName(leftResult.type) : 'Any';
-      const rightTypeName = rightResult.type ? this.modelProvider.getTypeName(rightResult.type) : 'Any';
-      
-      const match = operatorSignature.acceptedTypes.find(
-        t => t.left === leftTypeName && t.right === rightTypeName
-      );
-      
-      if (match) {
-        resultType = this.modelProvider.resolveType(match.result);
-      } else {
-        this.addDiagnostic(
-          'error',
-          `Operator ${node.operator} cannot be applied to types ${leftTypeName} and ${rightTypeName}`,
-          node.position
-        );
-        resultType = this.modelProvider.resolveType('Any');
-      }
-    }
+    // Use operation's analyze method
+    this.currentPosition = node.position;
+    const result = operation.analyze(this, inputInfo, [leftInfo, rightInfo]);
     
-    // Determine result cardinality
-    const resultIsSingleton = typeof operatorSignature.returnsSingleton === 'function'
-      ? operatorSignature.returnsSingleton(leftResult.isSingleton, rightResult.isSingleton)
-      : operatorSignature.returnsSingleton;
-    
-    return { type: resultType, isSingleton: resultIsSingleton };
+    return {
+      type: result.type,
+      isSingleton: result.isSingleton
+    };
   }
   
   private analyzeUnary(
@@ -278,30 +271,28 @@ export class TypeAnalyzer {
     inputType: TypeRef | undefined,
     inputIsSingleton: boolean
   ): AnalysisResult {
+    // Get operation from registry
+    const operation = node.operation || Registry.getByToken(node.operator);
+    if (!operation || operation.kind !== 'operator') {
+      this.addDiagnostic('error', `Unknown unary operator: ${node.operator}`, node.position);
+      return { type: this.modelProvider.resolveType('Any'), isSingleton: true };
+    }
+    
+    // Analyze operand
     const operandResult = this.analyzeNode(node.operand, inputType, inputIsSingleton);
     
-    switch (node.operator) {
-      case TokenType.NOT:
-        return {
-          type: this.modelProvider.resolveType('Boolean'),
-          isSingleton: operandResult.isSingleton
-        };
-      
-      case TokenType.PLUS:
-      case TokenType.MINUS:
-        // Check numeric type
-        if (operandResult.type) {
-          const typeName = this.modelProvider.getTypeName(operandResult.type);
-          if (typeName !== 'Integer' && typeName !== 'Decimal') {
-            this.addDiagnostic('error', `Unary ${node.operator} requires numeric type`, node.position);
-          }
-        }
-        return operandResult;
-      
-      default:
-        this.addDiagnostic('error', `Unknown unary operator: ${node.operator}`, node.position);
-        return { type: this.modelProvider.resolveType('Any'), isSingleton: true };
-    }
+    // Convert to registry TypeInfo format
+    const inputInfo: RegistryTypeInfo = { type: inputType || this.resolveType('Any'), isSingleton: inputIsSingleton };
+    const operandInfo: RegistryTypeInfo = { type: operandResult.type || this.resolveType('Any'), isSingleton: operandResult.isSingleton };
+    
+    // Use operation's analyze method
+    this.currentPosition = node.position;
+    const result = operation.analyze(this, inputInfo, [operandInfo]);
+    
+    return {
+      type: result.type,
+      isSingleton: result.isSingleton
+    };
   }
   
   private analyzeFunction(
@@ -314,83 +305,35 @@ export class TypeAnalyzer {
     if (node.name.type === NodeType.Identifier) {
       funcName = (node.name as IdentifierNode).name;
     } else {
-      this.addDiagnostic('error', 'Complex function names not yet supported in type analysis', node.position);
+      this.addDiagnostic('error', 'Complex function names not yet supported', node.position);
       return { type: this.modelProvider.resolveType('Any'), isSingleton: false };
     }
     
-    // Get function signature
-    const signature = functionSignatures.get(funcName);
-    
-    if (!signature) {
+    // Get function from registry
+    const operation = Registry.get(funcName);
+    if (!operation || operation.kind !== 'function') {
       this.addDiagnostic('error', `Unknown function: ${funcName}`, node.position);
       return { type: this.modelProvider.resolveType('Any'), isSingleton: false };
     }
     
-    // Check singleton requirement
-    if (signature.requiresSingleton && !inputIsSingleton) {
-      this.addDiagnostic('error', `Function ${funcName} requires singleton input`, node.position);
-    }
+    // Analyze arguments
+    const argResults = node.arguments.map(arg => this.analyzeNode(arg, inputType, inputIsSingleton));
     
-    // Check input type requirement
-    if (signature.requiresInputType && inputType) {
-      if (signature.requiresInputType === 'numeric') {
-        // Special handling for numeric types
-        const numericTypes = ['integer', 'decimal', 'unsignedInt', 'positiveInt'];
-        const inputTypeName = this.modelProvider.getTypeName(inputType).toLowerCase();
-        if (!numericTypes.includes(inputTypeName)) {
-          this.addDiagnostic(
-            'error', 
-            `Function ${funcName} requires numeric input, but got ${this.modelProvider.getTypeName(inputType)}`, 
-            node.position
-          );
-        }
-      } else {
-        // Regular type check
-        const requiredType = this.modelProvider.resolveType(signature.requiresInputType);
-        if (requiredType && !this.modelProvider.isAssignable(inputType, requiredType)) {
-          const actualTypeName = this.modelProvider.getTypeName(inputType);
-          this.addDiagnostic(
-            'error', 
-            `Function ${funcName} requires ${signature.requiresInputType} input, but got ${actualTypeName}`, 
-            node.position
-          );
-        }
-      }
-    }
+    // Convert to registry TypeInfo format
+    const inputInfo: RegistryTypeInfo = { type: inputType || this.resolveType('Any'), isSingleton: inputIsSingleton };
+    const argInfos: RegistryTypeInfo[] = argResults.map(r => ({
+      type: r.type || this.resolveType('Any'),
+      isSingleton: r.isSingleton
+    }));
     
-    // Analyze parameters
-    const paramTypes: (TypeRef | undefined)[] = [];
-    const paramAreSingleton: boolean[] = [];
+    // Use operation's analyze method
+    this.currentPosition = node.position;
+    const result = operation.analyze(this, inputInfo, argInfos);
     
-    for (let i = 0; i < node.arguments.length; i++) {
-      const param = node.arguments[i];
-      const paramDef = signature.parameters?.[i];
-      
-      if (!param) continue;
-      
-      if (paramDef?.type === 'expression') {
-        // For expression parameters, analyze in context of input
-        const paramResult = this.analyzeNode(param, inputType, true); // Each item context
-        paramTypes.push(paramResult.type);
-        paramAreSingleton.push(paramResult.isSingleton);
-      } else {
-        // Regular parameters
-        const paramResult = this.analyzeNode(param, inputType, inputIsSingleton);
-        paramTypes.push(paramResult.type);
-        paramAreSingleton.push(paramResult.isSingleton);
-        
-        // Check singleton requirement
-        if (paramDef?.requiresSingleton && !paramResult.isSingleton) {
-          this.addDiagnostic('error', `Parameter ${i + 1} of ${funcName} must be singleton`, param.position);
-        }
-      }
-    }
-    
-    // Calculate return type
-    const returnType = signature.returnType(inputType, paramTypes, this.modelProvider);
-    const returnIsSingleton = signature.returnsSingleton(inputIsSingleton, paramAreSingleton);
-    
-    return { type: returnType, isSingleton: returnIsSingleton };
+    return {
+      type: result.type,
+      isSingleton: result.isSingleton
+    };
   }
   
   private analyzeCollection(
@@ -514,59 +457,10 @@ export class TypeAnalyzer {
     return { type: typeRef, isSingleton: true };
   }
   
-  private getOperatorSignature(operator: TokenType) {
-    switch (operator) {
-      // Arithmetic
-      case TokenType.PLUS:
-      case TokenType.MINUS:
-      case TokenType.STAR:
-      case TokenType.SLASH:
-      case TokenType.DIV:
-      case TokenType.MOD:
-        return operatorSignatures.arithmeticOperatorSignature;
-      
-      // String
-      case TokenType.CONCAT:
-        return operatorSignatures.concatOperatorSignature;
-      
-      // Comparison
-      case TokenType.EQ:
-      case TokenType.NEQ:
-      case TokenType.LT:
-      case TokenType.GT:
-      case TokenType.LTE:
-      case TokenType.GTE:
-        return operatorSignatures.comparisonOperatorSignature;
-      
-      // Logical
-      case TokenType.AND:
-      case TokenType.OR:
-      case TokenType.XOR:
-      case TokenType.IMPLIES:
-        return operatorSignatures.logicalOperatorSignature;
-      
-      // Membership
-      case TokenType.IN:
-      case TokenType.CONTAINS:
-        return operatorSignatures.membershipOperatorSignature;
-      
-      // Navigation
-      case TokenType.DOT:
-        return operatorSignatures.dotOperatorSignature;
-      
-      // Union
-      case TokenType.PIPE:
-        return operatorSignatures.unionOperatorSignature;
-      
-      default:
-        return undefined;
-    }
-  }
-  
   private addDiagnostic(
     severity: 'error' | 'warning',
     message: string,
-    position?: import('../parser/ast').Position
+    position?: Position
   ) {
     this.diagnostics.push({ severity, message, position });
   }

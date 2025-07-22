@@ -74,21 +74,6 @@ export class FHIRPathLexer {
   private nextToken(): Token | null {
     const start = this.savePosition();
     
-    // Try to match literals first using registry
-    const remaining = this.chars.slice(this.position).join('');
-    const literalMatch = Registry.matchLiteral(remaining);
-    if (literalMatch) {
-      // Advance position by matched length
-      const matchLength = literalMatch.operation.parse(remaining).length;
-      for (let i = 0; i < matchLength; i++) {
-        this.advance();
-      }
-      const token = this.tokenPool.getToken(TokenType.LITERAL, remaining.substring(0, matchLength), start);
-      token.operation = literalMatch.operation;
-      token.literalValue = literalMatch.value;
-      return token;
-    }
-    
     const char = this.peek();
     const code = char.charCodeAt(0);
     

@@ -6,6 +6,9 @@ import { StaticSchemaRegistry } from '../src/analyzer/schemas';
 import { AnalysisMode, type TypeRef } from '../src/analyzer/types';
 import { testSchemas } from './test-schemas';
 
+// Import registry to trigger operation registration
+import '../src/registry';
+
 describe('TypeAnalyzer', () => {
   // Create schema registry with test FHIR schemas
   const registry = new StaticSchemaRegistry(testSchemas);

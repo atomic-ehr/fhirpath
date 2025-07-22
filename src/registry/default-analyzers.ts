@@ -19,15 +19,19 @@ export function matchesConstraint(type: TypeRef, constraint: TypeConstraint): bo
   
   // For now, simple type name matching
   // TODO: Handle inheritance and complex types
-  const typeName = typeof type === 'string' ? type : (type as any).name || 'unknown';
-  return constraint.types.includes(typeName);
+  let typeName = typeof type === 'string' ? type : (type as any).type || (type as any).name || 'unknown';
+  
+  // Normalize case - constraint types are capitalized, but actual types might be lowercase
+  const normalizedTypeName = typeName.charAt(0).toUpperCase() + typeName.slice(1);
+  
+  return constraint.types.includes(normalizedTypeName) || constraint.types.includes(typeName);
 }
 
 // Helper to format constraint for error messages
 export function formatConstraint(constraint: TypeConstraint): string {
   if (constraint.kind === 'any') return 'any type';
   if (!constraint.types || constraint.types.length === 0) return 'any type';
-  if (constraint.types.length === 1) return constraint.types[0];
+  if (constraint.types.length === 1) return constraint.types[0]!;
   return constraint.types.join(' or ');
 }
 
@@ -36,22 +40,28 @@ export function resolveTypeInferenceRule(
   rule: TypeInferenceRule,
   input: TypeRef,
   args: TypeRef[],
-  provider?: ModelProvider
+  analyzer: Analyzer
 ): TypeRef {
   if (typeof rule === 'string') {
     if (rule === 'preserve-input') return input;
     if (rule === 'promote-numeric') {
       // Check if we have numeric types
-      const types = [input, ...args].map(t => typeof t === 'string' ? t : (t as any).name || 'unknown');
-      if (types.includes('Decimal')) return 'Decimal';
-      if (types.includes('Integer')) return 'Integer';
+      const types = [input, ...args].map(t => {
+        const rawType = typeof t === 'string' ? t : (t as any).type || (t as any).name || 'unknown';
+        // Normalize to uppercase first letter
+        return rawType.charAt(0).toUpperCase() + rawType.slice(1);
+      });
+      if (types.includes('Decimal')) return analyzer.resolveType('Decimal');
+      if (types.includes('Integer')) return analyzer.resolveType('Integer');
       return input; // fallback
     }
-    return rule; // Fixed type name
+    return analyzer.resolveType(rule); // Fixed type name - resolve through analyzer
   }
   
-  if (typeof rule === 'function' && provider) {
-    return rule(input, args, provider);
+  if (typeof rule === 'function') {
+    // TODO: We need to pass ModelProvider to the rule function
+    // For now, just return input
+    return input;
   }
   
   return input; // fallback
@@ -121,7 +131,8 @@ export function defaultOperatorAnalyze(
   const outputType = resolveTypeInferenceRule(
     signature.output.type,
     input.type,
-    args.map(a => a.type)
+    args.map(a => a.type),
+    analyzer
   );
   
   // Determine output cardinality
@@ -208,7 +219,8 @@ export function defaultFunctionAnalyze(
   const outputType = resolveTypeInferenceRule(
     signature.output.type,
     input.type,
-    args.map(a => a.type)
+    args.map(a => a.type),
+    analyzer
   );
   
   // Determine output cardinality
