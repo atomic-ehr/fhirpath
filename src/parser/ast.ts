@@ -58,11 +58,14 @@ export interface LiteralNode extends ASTNode {
   type: NodeType.Literal;
   value: any;
   valueType: 'string' | 'number' | 'boolean' | 'date' | 'time' | 'datetime' | 'null';
+  raw?: string;        // Raw string representation
+  operation?: any;     // Operation from registry (using any to avoid circular dependency)
 }
 
 export interface BinaryNode extends ASTNode {
   type: NodeType.Binary;
   operator: TokenType;
+  operation?: any;     // Operation from registry (using any to avoid circular dependency)
   left: ASTNode;
   right: ASTNode;
 }
@@ -70,6 +73,7 @@ export interface BinaryNode extends ASTNode {
 export interface UnaryNode extends ASTNode {
   type: NodeType.Unary;
   operator: TokenType;
+  operation?: any;     // Operation from registry (using any to avoid circular dependency)
   operand: ASTNode;
 }
 
@@ -77,6 +81,7 @@ export interface FunctionNode extends ASTNode {
   type: NodeType.Function;
   name: ASTNode;  // Usually an identifier
   arguments: ASTNode[];
+  operation?: any;     // Operation from registry (using any to avoid circular dependency)
 }
 
 export interface VariableNode extends ASTNode {

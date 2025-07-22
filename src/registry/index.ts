@@ -1,6 +1,9 @@
 import { Registry } from './registry';
 import { arithmeticOperators } from './operations/arithmetic';
 import { logicalOperators } from './operations/logical';
+import { comparisonOperators } from './operations/comparison';
+import { membershipOperators } from './operations/membership';
+import { typeOperators } from './operations/type-operators';
 import { literals } from './operations/literals';
 import { existenceFunctions } from './operations/existence';
 
@@ -13,6 +16,9 @@ export * from './default-analyzers';
 [
   ...arithmeticOperators,
   ...logicalOperators,
+  ...comparisonOperators,
+  ...membershipOperators,
+  ...typeOperators,
   ...literals,
   ...existenceFunctions
 ].forEach(op => Registry.register(op));

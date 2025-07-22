@@ -1,5 +1,6 @@
 export enum TokenType {
   // Literals
+  LITERAL = 'LITERAL',            // Generic literal token for registry-based literals
   NULL = 'NULL',                  // {} (nullLiteral in grammar)
   TRUE = 'TRUE',                  // true
   FALSE = 'FALSE',                // false
@@ -98,4 +99,6 @@ export interface Token {
   value: string;
   position: Position;
   channel?: Channel;  // Optional channel for trivia
+  operation?: any;    // Operation from registry (using any to avoid circular dependency)
+  literalValue?: any; // Parsed literal value for LITERAL tokens
 }

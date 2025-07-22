@@ -19,6 +19,7 @@ import {
   type TypeReferenceNode,
   NodeType
 } from './ast';
+import { Registry } from '../registry';
 
 export class ParseError extends Error {
   constructor(
@@ -30,23 +31,20 @@ export class ParseError extends Error {
   }
 }
 
-// Precedence table
-const PRECEDENCE = {
-  // Highest to lowest (matching spec numbering)
-  INVOCATION: 1,      // . (dot), function calls
-  POSTFIX: 2,         // [] indexing
-  UNARY: 3,           // unary +, -, not
-  MULTIPLICATIVE: 4,  // *, /, div, mod
-  ADDITIVE: 5,        // +, -, &
-  TYPE: 6,            // is, as
-  UNION: 7,           // |
-  RELATIONAL: 8,      // <, >, <=, >=
-  EQUALITY: 9,        // =, ~, !=, !~
-  MEMBERSHIP: 10,     // in, contains
-  AND: 11,            // and
-  OR: 12,             // or, xor
-  IMPLIES: 13,        // implies
-};
+// Precedence levels for reference (from spec)
+// INVOCATION: 1,      // . (dot), function calls
+// POSTFIX: 2,         // [] indexing
+// UNARY: 3,           // unary +, -, not
+// MULTIPLICATIVE: 4,  // *, /, div, mod
+// ADDITIVE: 5,        // +, -, &
+// TYPE: 6,            // is, as
+// UNION: 7,           // |
+// RELATIONAL: 8,      // <, >, <=, >=
+// EQUALITY: 9,        // =, ~, !=, !~
+// MEMBERSHIP: 10,     // in, contains
+// AND: 11,            // and
+// OR: 12,             // or, xor
+// IMPLIES: 13,        // implies
 
 export class FHIRPathParser {
   private tokens: Token[];
@@ -76,14 +74,14 @@ export class FHIRPathParser {
     
     while (!this.isAtEnd()) {
       // Handle postfix operators first
-      if (this.check(TokenType.LBRACKET) && minPrecedence >= PRECEDENCE.POSTFIX) {
+      if (this.check(TokenType.LBRACKET) && minPrecedence >= 2) { // POSTFIX precedence
         left = this.parseIndex(left);
         continue;
       }
       
       // Handle function calls that come from primary() or after dots
       // This allows for chained method calls like exists().not()
-      if (this.check(TokenType.DOT) && minPrecedence >= PRECEDENCE.INVOCATION) {
+      if (this.check(TokenType.DOT) && minPrecedence >= 1) { // INVOCATION precedence
         const dotToken = this.peek();
         const precedence = this.getPrecedence(dotToken);
         if (precedence > minPrecedence) break;
@@ -105,7 +103,20 @@ export class FHIRPathParser {
   
   // Parse primary expressions (recursive descent)
   private primary(): ASTNode {
-    // Handle literals
+    // Handle registry-based literals
+    if (this.match(TokenType.LITERAL)) {
+      const token = this.previous();
+      return {
+        type: NodeType.Literal,
+        value: token.literalValue ?? token.value,
+        valueType: this.inferLiteralType(token.literalValue ?? token.value),
+        raw: token.value,
+        operation: token.operation,
+        position: token.position
+      } as LiteralNode;
+    }
+    
+    // Handle legacy literals
     if (this.match(TokenType.NUMBER)) {
       const token = this.previous();
       return {
@@ -214,6 +225,7 @@ export class FHIRPathParser {
           const methodNode: BinaryNode = {
             type: NodeType.Binary,
             operator: TokenType.DOT,
+            operation: Registry.getByToken(TokenType.DOT),
             left: result,
             right: right,
             position: dotToken.position
@@ -224,6 +236,7 @@ export class FHIRPathParser {
           result = {
             type: NodeType.Binary,
             operator: TokenType.DOT,
+            operation: Registry.getByToken(TokenType.DOT),
             left: result,
             right: right,
             position: dotToken.position
@@ -247,10 +260,12 @@ export class FHIRPathParser {
     // Handle unary operators
     if (this.match(TokenType.PLUS, TokenType.MINUS, TokenType.NOT)) {
       const op = this.previous();
-      const right = this.expression(PRECEDENCE.UNARY);
+      const operation = op.operation || Registry.getByToken(op.type);
+      const right = this.expression(3); // UNARY precedence
       return {
         type: NodeType.Unary,
         operator: op.type,
+        operation: operation,
         operand: right,
         position: op.position
       } as UnaryNode;
@@ -297,6 +312,10 @@ export class FHIRPathParser {
   
   // Parse binary operators with precedence
   private parseBinary(left: ASTNode, op: Token, precedence: number): ASTNode {
+    const operation = op.operation || Registry.getByToken(op.type);
+    if (!operation && op.type !== TokenType.DOT && op.type !== TokenType.IS && op.type !== TokenType.AS) {
+      throw this.error(`Unknown operator: ${op.value}`);
+    }
     // Special handling for type operators
     if (op.type === TokenType.IS || op.type === TokenType.AS) {
       this.advance(); // consume operator
@@ -365,6 +384,7 @@ export class FHIRPathParser {
         const dotNode: BinaryNode = {
           type: NodeType.Binary,
           operator: TokenType.DOT,
+          operation: operation,
           left: left,
           right: right,
           position: op.position
@@ -375,6 +395,7 @@ export class FHIRPathParser {
       return {
         type: NodeType.Binary,
         operator: TokenType.DOT,
+        operation: operation,
         left: left,
         right: right,
         position: op.position
@@ -388,6 +409,7 @@ export class FHIRPathParser {
     return {
       type: NodeType.Binary,
       operator: op.type,
+      operation: operation,
       left: left,
       right: right,
       position: op.position
@@ -439,6 +461,7 @@ export class FHIRPathParser {
         const methodNode: BinaryNode = {
           type: NodeType.Binary,
           operator: TokenType.DOT,
+          operation: Registry.getByToken(TokenType.DOT),
           left: result,
           right: right,
           position: dotToken.position
@@ -449,6 +472,7 @@ export class FHIRPathParser {
         result = {
           type: NodeType.Binary,
           operator: TokenType.DOT,
+          operation: Registry.getByToken(TokenType.DOT),
           left: result,
           right: right,
           position: dotToken.position
@@ -530,36 +554,27 @@ export class FHIRPathParser {
   
   // Precedence lookup (high precedence = low number)
   private getPrecedence(token: Token): number {
-    switch (token.type) {
-      case TokenType.DOT: return 1;           // Highest precedence
-      // Indexing is postfix, handled separately
-      // Unary operators handled in primary()
-      case TokenType.STAR:
-      case TokenType.SLASH:
-      case TokenType.DIV:
-      case TokenType.MOD: return 4;
-      case TokenType.PLUS:
-      case TokenType.MINUS:
-      case TokenType.CONCAT: return 5;
-      case TokenType.IS:
-      case TokenType.AS: return 6;
-      case TokenType.PIPE: return 7;
-      case TokenType.LT:
-      case TokenType.GT:
-      case TokenType.LTE:
-      case TokenType.GTE: return 8;
-      case TokenType.EQ:
-      case TokenType.NEQ:
-      case TokenType.EQUIV:
-      case TokenType.NEQUIV: return 9;
-      case TokenType.IN:
-      case TokenType.CONTAINS: return 10;
-      case TokenType.AND: return 11;
-      case TokenType.OR:
-      case TokenType.XOR: return 12;
-      case TokenType.IMPLIES: return 13;      // Lowest precedence
-      default: return 0;
+    // Special case for DOT which might not be in registry yet
+    if (token.type === TokenType.DOT) return 1;
+    
+    // Use registry for all other operators
+    return Registry.getPrecedence(token.type);
+  }
+  
+  // Helper to infer literal type from value
+  private inferLiteralType(value: any): 'string' | 'number' | 'boolean' | 'date' | 'time' | 'datetime' | 'null' {
+    if (value === null) return 'null';
+    if (typeof value === 'boolean') return 'boolean';
+    if (typeof value === 'number') return 'number';
+    if (typeof value === 'string') return 'string';
+    if (value instanceof Date) {
+      // Check if it has time component
+      const hasTime = value.getHours() !== 0 || value.getMinutes() !== 0 || value.getSeconds() !== 0;
+      return hasTime ? 'datetime' : 'date';
     }
+    // Check for time-only values (stored as strings like "14:30:00")
+    if (typeof value === 'object' && value.type === 'time') return 'time';
+    return 'string'; // default
   }
   
   // Helper methods

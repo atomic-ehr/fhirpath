@@ -2,6 +2,8 @@ import type { Token, Position } from './token';
 import { TokenType, Channel } from './token';
 import { CHAR_FLAGS, FLAG_DIGIT, FLAG_IDENTIFIER_START, FLAG_IDENTIFIER_CONT, FLAG_WHITESPACE } from './char-tables';
 import { LexerError } from './errors';
+import { Registry } from '../registry';
+import type { Operation, Literal } from '../registry';
 
 // Token object pool to reduce allocations
 class TokenPool {
@@ -40,40 +42,6 @@ export class FHIRPathLexer {
   // String interning for common tokens
   private readonly internedStrings = new Map<string, string>();
   
-  // Keyword mapping
-  private readonly KEYWORDS = new Map<string, TokenType>([
-    ['true', TokenType.TRUE],
-    ['false', TokenType.FALSE],
-    ['div', TokenType.DIV],
-    ['mod', TokenType.MOD],
-    ['in', TokenType.IN],
-    ['contains', TokenType.CONTAINS],
-    ['and', TokenType.AND],
-    ['or', TokenType.OR],
-    ['xor', TokenType.XOR],
-    ['implies', TokenType.IMPLIES],
-    ['not', TokenType.NOT],
-    ['is', TokenType.IS],
-    ['as', TokenType.AS],
-    // Time units (dateTimePrecision)
-    ['year', TokenType.UNIT],
-    ['years', TokenType.UNIT],
-    ['month', TokenType.UNIT],
-    ['months', TokenType.UNIT],
-    ['week', TokenType.UNIT],
-    ['weeks', TokenType.UNIT],
-    ['day', TokenType.UNIT],
-    ['days', TokenType.UNIT],
-    ['hour', TokenType.UNIT],
-    ['hours', TokenType.UNIT],
-    ['minute', TokenType.UNIT],
-    ['minutes', TokenType.UNIT],
-    ['second', TokenType.UNIT],
-    ['seconds', TokenType.UNIT],
-    ['millisecond', TokenType.UNIT],
-    ['milliseconds', TokenType.UNIT],
-  ]);
-  
   constructor(input: string) {
     this.chars = Array.from(input);
     this.length = this.chars.length;
@@ -104,6 +72,23 @@ export class FHIRPathLexer {
   }
   
   private nextToken(): Token | null {
+    const start = this.savePosition();
+    
+    // Try to match literals first using registry
+    const remaining = this.chars.slice(this.position).join('');
+    const literalMatch = Registry.matchLiteral(remaining);
+    if (literalMatch) {
+      // Advance position by matched length
+      const matchLength = literalMatch.operation.parse(remaining).length;
+      for (let i = 0; i < matchLength; i++) {
+        this.advance();
+      }
+      const token = this.tokenPool.getToken(TokenType.LITERAL, remaining.substring(0, matchLength), start);
+      token.operation = literalMatch.operation;
+      token.literalValue = literalMatch.value;
+      return token;
+    }
+    
     const char = this.peek();
     const code = char.charCodeAt(0);
     
@@ -655,10 +640,28 @@ export class FHIRPathLexer {
     // Intern the string for efficient comparison
     const internedValue = this.intern(value);
     
-    // Check if it's a keyword
-    const keywordType = this.KEYWORDS.get(internedValue);
-    if (keywordType) {
-      return this.tokenPool.getToken(keywordType, internedValue, start);
+    // Special handling for boolean literals (to maintain compatibility)
+    if (internedValue === 'true') {
+      return this.tokenPool.getToken(TokenType.TRUE, internedValue, start);
+    }
+    if (internedValue === 'false') {
+      return this.tokenPool.getToken(TokenType.FALSE, internedValue, start);
+    }
+    
+    // Check if it's a keyword using registry
+    if (Registry.isKeyword(internedValue)) {
+      const op = Registry.get(internedValue);
+      if (op && op.kind === 'operator' && op.syntax.token) {
+        return this.tokenPool.getToken(op.syntax.token, internedValue, start);
+      }
+    }
+    
+    // Check for time units (these are handled as UNIT tokens)
+    const timeUnits = ['year', 'years', 'month', 'months', 'week', 'weeks', 
+                      'day', 'days', 'hour', 'hours', 'minute', 'minutes', 
+                      'second', 'seconds', 'millisecond', 'milliseconds'];
+    if (timeUnits.includes(internedValue)) {
+      return this.tokenPool.getToken(TokenType.UNIT, internedValue, start);
     }
     
     return this.tokenPool.getToken(TokenType.IDENTIFIER, internedValue, start);
