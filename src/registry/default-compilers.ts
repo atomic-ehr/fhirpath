@@ -5,5 +5,27 @@ export function defaultFunctionCompile(
   input: CompiledExpression,
   args: CompiledExpression[]
 ): CompiledExpression {
-  throw new Error('Compiler not implemented');
+  // Default implementation returns a simple pass-through
+  return {
+    fn: (ctx) => {
+      throw new Error('Function compile not implemented');
+    },
+    type: compiler.resolveType('Any'),
+    isSingleton: false
+  };
+}
+
+export function defaultOperatorCompile(
+  compiler: Compiler,
+  left: CompiledExpression,
+  right: CompiledExpression[]
+): CompiledExpression {
+  // Default implementation returns a simple pass-through
+  return {
+    fn: (ctx) => {
+      throw new Error('Operator compile not implemented');
+    },
+    type: compiler.resolveType('Any'),
+    isSingleton: false
+  };
 }

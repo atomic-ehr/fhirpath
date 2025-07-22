@@ -156,6 +156,16 @@ export class Interpreter implements IInterpreter {
       
       return rightResult;
     }
+    
+    // Handle case where parser incorrectly creates BinaryNode for unary minus
+    if (!node.left && !node.right && (node as any).operand) {
+      // This is actually a unary operation
+      const unaryOp = Registry.getByToken(node.operator, 'prefix');
+      if (unaryOp && unaryOp.kind === 'operator') {
+        const operandResult = this.evaluate((node as any).operand, input, context);
+        return unaryOp.evaluate(this, operandResult.context, input, operandResult.value);
+      }
+    }
 
     // Get operation from registry (binary operators are infix)
     const operation = node.operation || Registry.getByToken(node.operator, 'infix');
@@ -163,7 +173,10 @@ export class Interpreter implements IInterpreter {
       throw new EvaluationError(`Unknown operator: ${node.operator}`, node.position);
     }
     
-    // Evaluate operands
+    if (!node.left || !node.right) {
+      throw new EvaluationError(`Binary operator ${node.operator} missing operands`, node.position);
+    }
+    
     const leftResult = this.evaluate(node.left, input, context);
     const rightResult = this.evaluate(node.right, input, leftResult.context);
     
@@ -173,7 +186,8 @@ export class Interpreter implements IInterpreter {
 
   private evaluateUnary(node: UnaryNode, input: any[], context: Context): EvaluationResult {
     // Get operation from registry (unary operators are prefix)
-    const operation = node.operation || Registry.getByToken(node.operator, 'prefix');
+    // Don't use node.operation as parser might have assigned wrong operation
+    const operation = Registry.getByToken(node.operator, 'prefix');
     if (!operation || operation.kind !== 'operator') {
       throw new EvaluationError(`Unknown unary operator: ${node.operator}`, node.position);
     }

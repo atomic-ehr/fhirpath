@@ -55,7 +55,42 @@ export const whereFunction: Function = {
     return { value: results, context };
   },
   
-  compile: defaultFunctionCompile
+  compile: (compiler, input, args) => {
+    const criteria = args[0];
+    if (!criteria) {
+      throw new Error('where() requires a predicate expression');
+    }
+    
+    return {
+      fn: (ctx) => {
+        const inputValue = input.fn(ctx);
+        const results: any[] = [];
+        
+        for (let i = 0; i < inputValue.length; i++) {
+          const item = inputValue[i];
+          const iterCtx = {
+            ...ctx,
+            focus: [item],
+            env: {
+              ...ctx.env,
+              $index: i,
+              $this: [item]
+            }
+          };
+          const predicateResult = criteria.fn(iterCtx);
+          
+          if (isTruthy(predicateResult)) {
+            results.push(item);
+          }
+        }
+        
+        return results;
+      },
+      type: input.type,
+      isSingleton: false,
+      source: `${input.source || ''}.where(${criteria.source || ''})`
+    };
+  }
 };
 
 export const selectFunction: Function = {
@@ -106,7 +141,39 @@ export const selectFunction: Function = {
     return { value: results, context };
   },
   
-  compile: defaultFunctionCompile
+  compile: (compiler, input, args) => {
+    const expression = args[0];
+    if (!expression) {
+      throw new Error('select() requires an expression');
+    }
+    
+    return {
+      fn: (ctx) => {
+        const inputValue = input.fn(ctx);
+        const results: any[] = [];
+        
+        for (let i = 0; i < inputValue.length; i++) {
+          const item = inputValue[i];
+          const iterCtx = {
+            ...ctx,
+            focus: [item],
+            env: {
+              ...ctx.env,
+              $index: i,
+              $this: [item]
+            }
+          };
+          const exprResult = expression.fn(iterCtx);
+          results.push(...exprResult);
+        }
+        
+        return results;
+      },
+      type: expression.type,
+      isSingleton: false,
+      source: `${input.source || ''}.select(${expression.source || ''})`
+    };
+  }
 };
 
 export const ofTypeFunction: Function = {

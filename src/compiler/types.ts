@@ -18,3 +18,6 @@ export type NodeCompiler<T extends ASTNode = ASTNode> = (node: T) => CompiledNod
 export interface CompilationContext {
   // Future: optimization flags, source map info, etc.
 }
+
+// Re-export types from registry to avoid conflicts
+export type { CompiledExpression, RuntimeContext } from '../registry/types';

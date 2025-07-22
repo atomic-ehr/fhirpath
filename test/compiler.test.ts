@@ -29,11 +29,19 @@ describe('FHIRPath Compiler', () => {
     
     // Run through compiler
     const compiled = compiler.compile(ast);
-    const compilerResult = compiled(input, evalContext);
+    
+    // Convert Context to RuntimeContext, including variables
+    const runtimeEnv: Record<string, any> = { ...evalContext.env };
+    
+    // Copy variables from Context.variables to env
+    evalContext.variables.forEach((value, key) => {
+      runtimeEnv[key] = value;
+    });
+    
+    const compilerResult = compiled.fn({ input, focus: input, env: runtimeEnv });
     
     // Compare results
-    expect(compilerResult.value).toEqual(interpreterResult.value);
-    expect(compilerResult.context).toEqual(interpreterResult.context);
+    expect(compilerResult).toEqual(interpreterResult.value);
     
     return compilerResult;
   }
@@ -441,12 +449,12 @@ describe('FHIRPath Compiler', () => {
       const compiled = compiler.compile(ast);
       
       // First verify it works with valid input
-      const validResult = compiled([{ name: 'test' }], context);
-      expect(validResult.value).toEqual(['test']);
+      const validResult = compiled.fn({ input: [{ name: 'test' }], focus: [{ name: 'test' }], env: context.env });
+      expect(validResult).toEqual(['test']);
       
       // The compiler should handle null/undefined gracefully (return empty, not error)
-      const nullResult = compiled([null], context);
-      expect(nullResult.value).toEqual([]);
+      const nullResult = compiled.fn({ input: [null], focus: [null], env: context.env });
+      expect(nullResult).toEqual([]);
       
       // Test compilation preserves AST position info
       expect(ast.position).toBeDefined();
@@ -480,7 +488,7 @@ describe('FHIRPath Compiler', () => {
       
       // Warm up
       interpreter.evaluate(ast, input, context);
-      compiled(input, context);
+      compiled.fn({ input, focus: input, env: context.env });
       
       // Measure interpreter
       const interpreterStart = performance.now();
@@ -492,7 +500,7 @@ describe('FHIRPath Compiler', () => {
       // Measure compiler
       const compilerStart = performance.now();
       for (let i = 0; i < 1000; i++) {
-        compiled(input, context);
+        compiled.fn({ input, focus: input, env: context.env });
       }
       const compilerTime = performance.now() - compilerStart;
       
@@ -508,15 +516,15 @@ describe('FHIRPath Compiler', () => {
   describe('Helper Functions', () => {
     it('compile() function works with string input', () => {
       const compiled = compile('1 + 2');
-      const result = compiled([], context);
-      expect(result.value).toEqual([3]);
+      const result = compiled.fn({ input: [], focus: [], env: context.env });
+      expect(result).toEqual([3]);
     });
 
     it('compile() function works with AST input', () => {
       const ast = parse('1 + 2');
       const compiled = compile(ast);
-      const result = compiled([], context);
-      expect(result.value).toEqual([3]);
+      const result = compiled.fn({ input: [], focus: [], env: context.env });
+      expect(result).toEqual([3]);
     });
 
     it('evaluateCompiled() function works correctly', () => {
