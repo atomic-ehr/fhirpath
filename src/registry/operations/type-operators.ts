@@ -19,7 +19,11 @@ export const isOperator: Operator = {
     special: true  // Requires special parsing
   },
   signature: {
-    parameters: [{ name: 'value' }, { name: 'type' }],
+    parameters: [{ name: 'left' }, { name: 'right' }],
+    output: {
+      type: 'Boolean',
+      cardinality: 'singleton'
+    },
     propagatesEmpty: false
   },
   analyze: (analyzer: Analyzer, input: TypeInfo, args: TypeInfo[]): TypeInfo => {
@@ -50,7 +54,11 @@ export const asOperator: Operator = {
     special: true  // Requires special parsing
   },
   signature: {
-    parameters: [{ name: 'value' }, { name: 'type' }],
+    parameters: [{ name: 'left' }, { name: 'right' }],
+    output: {
+      type: 'preserve-input',
+      cardinality: 'preserve-input'
+    },
     propagatesEmpty: true
   },
   analyze: (analyzer: Analyzer, input: TypeInfo, args: TypeInfo[]): TypeInfo => {

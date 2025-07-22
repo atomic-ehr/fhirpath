@@ -1,4 +1,39 @@
-import { CollectionUtils } from '../types';
+import { CollectionUtils } from '../../interpreter/types';
+
+/**
+ * Convert collection to singleton value
+ */
+export function toSingleton(collection: any[]): any {
+  return CollectionUtils.toSingleton(collection);
+}
+
+/**
+ * Convert value to boolean according to FHIRPath rules
+ */
+export function toBoolean(value: any): boolean {
+  // Handle direct boolean
+  if (typeof value === 'boolean') {
+    return value;
+  }
+  
+  // Handle null/undefined as false
+  if (value == null) {
+    return false;
+  }
+  
+  // Handle empty string as false
+  if (value === '') {
+    return false;
+  }
+  
+  // Handle zero as false
+  if (value === 0) {
+    return false;
+  }
+  
+  // Everything else is true
+  return true;
+}
 
 /**
  * Determines if a value is truthy according to FHIRPath rules
@@ -9,7 +44,7 @@ export function isTruthy(value: any[]): boolean {
   }
   
   // Convert to singleton
-  const singleton = CollectionUtils.toSingleton(value);
+  const singleton = toSingleton(value);
   
   // Rule: true if singleton is true, false if singleton is false
   if (typeof singleton === 'boolean') {

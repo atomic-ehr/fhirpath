@@ -5,18 +5,8 @@ import { ContextManager } from '../src/interpreter/context';
 import { parse } from '../src/parser';
 import type { Context } from '../src/interpreter/types';
 
-// Force function registration by requiring the modules
-import { FunctionRegistry } from '../src/interpreter/functions/registry';
-require('../src/interpreter/functions/filtering-functions');
-require('../src/interpreter/functions/core-functions');
-require('../src/interpreter/functions/existence-functions');
-require('../src/interpreter/functions/subsetting-functions');
-require('../src/interpreter/functions/combining-functions');
-require('../src/interpreter/functions/conversion-functions');
-require('../src/interpreter/functions/string-functions');
-require('../src/interpreter/functions/math-functions');
-require('../src/interpreter/functions/type-functions');
-require('../src/interpreter/functions/utility-functions');
+// Import the global registry to ensure all operations are registered
+import '../src/registry';
 
 describe('FHIRPath Compiler', () => {
   let compiler: Compiler;

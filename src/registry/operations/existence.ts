@@ -1,6 +1,7 @@
 import type { Function } from '../types';
 import { defaultFunctionAnalyze } from '../default-analyzers';
-import { toSingleton } from '../../interpreter/helpers';
+import { isTruthy, toSingleton } from '../utils';
+import { ContextManager } from '../../interpreter/context';
 
 export const existsFunction: Function = {
   name: 'exists',
@@ -294,6 +295,284 @@ export const singleFunction: Function = {
   })
 };
 
+export const allFunction: Function = {
+  name: 'all',
+  kind: 'function',
+  
+  syntax: {
+    notation: 'all([criteria])'
+  },
+  
+  signature: {
+    input: {
+      types: { kind: 'any' },
+      cardinality: 'any'
+    },
+    parameters: [
+      {
+        name: 'criteria',
+        kind: 'expression',
+        types: { kind: 'any' },
+        cardinality: 'any',
+        optional: true
+      }
+    ],
+    output: {
+      type: 'Boolean',
+      cardinality: 'singleton'
+    },
+    propagatesEmpty: false,
+    deterministic: true
+  },
+  
+  analyze: defaultFunctionAnalyze,
+  
+  evaluate: (interpreter, context, input, criteria) => {
+    if (input.length === 0) {
+      return { value: [true], context };
+    }
+    
+    if (!criteria) {
+      return { value: [input.every(item => item === true)], context };
+    }
+    
+    for (let i = 0; i < input.length; i++) {
+      const item = input[i];
+      const iterContext = ContextManager.setIteratorContext(context, item, i);
+      const result = interpreter.evaluate(criteria, [item], iterContext);
+      
+      if (!isTruthy(result.value)) {
+        return { value: [false], context };
+      }
+    }
+    
+    return { value: [true], context };
+  },
+  
+  compile: (compiler, input, args) => {
+    throw new Error('Compiler not implemented');
+  }
+};
+
+export const allTrueFunction: Function = {
+  name: 'allTrue',
+  kind: 'function',
+  
+  syntax: {
+    notation: 'allTrue()'
+  },
+  
+  signature: {
+    input: {
+      types: { kind: 'primitive', types: ['Boolean'] },
+      cardinality: 'any'
+    },
+    parameters: [],
+    output: {
+      type: 'Boolean',
+      cardinality: 'singleton'
+    },
+    propagatesEmpty: false,
+    deterministic: true
+  },
+  
+  analyze: defaultFunctionAnalyze,
+  
+  evaluate: (interpreter, context, input) => {
+    return { value: [input.every(item => item === true)], context };
+  },
+  
+  compile: (compiler, input, args) => {
+    throw new Error('Compiler not implemented');
+  }
+};
+
+export const anyTrueFunction: Function = {
+  name: 'anyTrue',
+  kind: 'function',
+  
+  syntax: {
+    notation: 'anyTrue()'
+  },
+  
+  signature: {
+    input: {
+      types: { kind: 'primitive', types: ['Boolean'] },
+      cardinality: 'any'
+    },
+    parameters: [],
+    output: {
+      type: 'Boolean',
+      cardinality: 'singleton'
+    },
+    propagatesEmpty: false,
+    deterministic: true
+  },
+  
+  analyze: defaultFunctionAnalyze,
+  
+  evaluate: (interpreter, context, input) => {
+    return { value: [input.some(item => item === true)], context };
+  },
+  
+  compile: (compiler, input, args) => {
+    throw new Error('Compiler not implemented');
+  }
+};
+
+export const allFalseFunction: Function = {
+  name: 'allFalse',
+  kind: 'function',
+  
+  syntax: {
+    notation: 'allFalse()'
+  },
+  
+  signature: {
+    input: {
+      types: { kind: 'primitive', types: ['Boolean'] },
+      cardinality: 'any'
+    },
+    parameters: [],
+    output: {
+      type: 'Boolean',
+      cardinality: 'singleton'
+    },
+    propagatesEmpty: false,
+    deterministic: true
+  },
+  
+  analyze: defaultFunctionAnalyze,
+  
+  evaluate: (interpreter, context, input) => {
+    return { value: [input.every(item => item === false)], context };
+  },
+  
+  compile: (compiler, input, args) => {
+    throw new Error('Compiler not implemented');
+  }
+};
+
+export const anyFalseFunction: Function = {
+  name: 'anyFalse',
+  kind: 'function',
+  
+  syntax: {
+    notation: 'anyFalse()'
+  },
+  
+  signature: {
+    input: {
+      types: { kind: 'primitive', types: ['Boolean'] },
+      cardinality: 'any'
+    },
+    parameters: [],
+    output: {
+      type: 'Boolean',
+      cardinality: 'singleton'
+    },
+    propagatesEmpty: false,
+    deterministic: true
+  },
+  
+  analyze: defaultFunctionAnalyze,
+  
+  evaluate: (interpreter, context, input) => {
+    return { value: [input.some(item => item === false)], context };
+  },
+  
+  compile: (compiler, input, args) => {
+    throw new Error('Compiler not implemented');
+  }
+};
+
+export const distinctFunction: Function = {
+  name: 'distinct',
+  kind: 'function',
+  
+  syntax: {
+    notation: 'distinct()'
+  },
+  
+  signature: {
+    input: {
+      types: { kind: 'any' },
+      cardinality: 'any'
+    },
+    parameters: [],
+    output: {
+      type: 'preserve-input',
+      cardinality: 'collection'
+    },
+    propagatesEmpty: true,
+    deterministic: true
+  },
+  
+  analyze: defaultFunctionAnalyze,
+  
+  evaluate: (interpreter, context, input) => {
+    const seen = new Set();
+    const result: any[] = [];
+    
+    for (const item of input) {
+      const key = JSON.stringify(item);
+      if (!seen.has(key)) {
+        seen.add(key);
+        result.push(item);
+      }
+    }
+    
+    return { value: result, context };
+  },
+  
+  compile: (compiler, input, args) => {
+    throw new Error('Compiler not implemented');
+  }
+};
+
+export const isDistinctFunction: Function = {
+  name: 'isDistinct',
+  kind: 'function',
+  
+  syntax: {
+    notation: 'isDistinct()'
+  },
+  
+  signature: {
+    input: {
+      types: { kind: 'any' },
+      cardinality: 'any'
+    },
+    parameters: [],
+    output: {
+      type: 'Boolean',
+      cardinality: 'singleton'
+    },
+    propagatesEmpty: false,
+    deterministic: true
+  },
+  
+  analyze: defaultFunctionAnalyze,
+  
+  evaluate: (interpreter, context, input) => {
+    const seen = new Set();
+    
+    for (const item of input) {
+      const key = JSON.stringify(item);
+      if (seen.has(key)) {
+        return { value: [false], context };
+      }
+      seen.add(key);
+    }
+    
+    return { value: [true], context };
+  },
+  
+  compile: (compiler, input, args) => {
+    throw new Error('Compiler not implemented');
+  }
+};
+
 // Export all existence functions
 export const existenceFunctions = [
   existsFunction,
@@ -301,5 +580,12 @@ export const existenceFunctions = [
   countFunction,
   firstFunction,
   lastFunction,
-  singleFunction
+  singleFunction,
+  allFunction,
+  allTrueFunction,
+  anyTrueFunction,
+  allFalseFunction,
+  anyFalseFunction,
+  distinctFunction,
+  isDistinctFunction
 ];

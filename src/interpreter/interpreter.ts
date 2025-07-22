@@ -19,7 +19,7 @@ import { TokenType } from '../lexer/token';
 import type { Context, EvaluationResult } from './types';
 import { EvaluationError, CollectionUtils } from './types';
 import { ContextManager } from './context';
-import { TypeSystem } from './types/type-system';
+import { TypeSystem } from '../registry/utils/type-system';
 import { Registry } from '../registry';
 import type { Interpreter as IInterpreter } from '../registry/types';
 
@@ -216,7 +216,7 @@ export class Interpreter implements IInterpreter {
         evaluatedArgs.push(arg);
       } else {
         // Evaluate the argument to get its value
-        const argResult = this.evaluate(arg, input, context);
+        const argResult = this.evaluate(arg!, input, context);
         evaluatedArgs.push(argResult.value);
         context = argResult.context;
       }

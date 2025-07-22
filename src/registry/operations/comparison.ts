@@ -39,6 +39,10 @@ export const eqOperator: Operator = {
   },
   signature: {
     parameters: [{ name: 'left' }, { name: 'right' }],
+    output: {
+      type: 'Boolean',
+      cardinality: 'singleton'
+    },
     propagatesEmpty: false
   },
   analyze: defaultOperatorAnalyze,
@@ -72,6 +76,10 @@ export const neqOperator: Operator = {
   },
   signature: {
     parameters: [{ name: 'left' }, { name: 'right' }],
+    output: {
+      type: 'Boolean',
+      cardinality: 'singleton'
+    },
     propagatesEmpty: false
   },
   analyze: defaultOperatorAnalyze,
@@ -105,6 +113,10 @@ export const ltOperator: Operator = {
   },
   signature: {
     parameters: [{ name: 'left' }, { name: 'right' }],
+    output: {
+      type: 'Boolean',
+      cardinality: 'singleton'
+    },
     propagatesEmpty: false
   },
   analyze: defaultOperatorAnalyze,
@@ -148,6 +160,10 @@ export const gtOperator: Operator = {
   },
   signature: {
     parameters: [{ name: 'left' }, { name: 'right' }],
+    output: {
+      type: 'Boolean',
+      cardinality: 'singleton'
+    },
     propagatesEmpty: false
   },
   analyze: defaultOperatorAnalyze,
@@ -191,6 +207,10 @@ export const lteOperator: Operator = {
   },
   signature: {
     parameters: [{ name: 'left' }, { name: 'right' }],
+    output: {
+      type: 'Boolean',
+      cardinality: 'singleton'
+    },
     propagatesEmpty: false
   },
   analyze: defaultOperatorAnalyze,
@@ -234,6 +254,10 @@ export const gteOperator: Operator = {
   },
   signature: {
     parameters: [{ name: 'left' }, { name: 'right' }],
+    output: {
+      type: 'Boolean',
+      cardinality: 'singleton'
+    },
     propagatesEmpty: false
   },
   analyze: defaultOperatorAnalyze,
@@ -277,6 +301,10 @@ export const equivOperator: Operator = {
   },
   signature: {
     parameters: [{ name: 'left' }, { name: 'right' }],
+    output: {
+      type: 'Boolean',
+      cardinality: 'singleton'
+    },
     propagatesEmpty: false
   },
   analyze: defaultOperatorAnalyze,
@@ -326,6 +354,10 @@ export const nequivOperator: Operator = {
   },
   signature: {
     parameters: [{ name: 'left' }, { name: 'right' }],
+    output: {
+      type: 'Boolean',
+      cardinality: 'singleton'
+    },
     propagatesEmpty: false
   },
   analyze: defaultOperatorAnalyze,

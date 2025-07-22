@@ -1,7 +1,7 @@
 import { TokenType } from '../../lexer/token';
 import type { Operator } from '../types';
 import { defaultOperatorAnalyze } from '../default-analyzers';
-import { toBoolean, toSingleton } from '../../interpreter/helpers';
+import { toBoolean, toSingleton } from '../utils';
 
 export const andOperator: Operator = {
   name: 'and',

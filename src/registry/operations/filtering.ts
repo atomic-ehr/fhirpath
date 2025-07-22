@@ -1,0 +1,239 @@
+import type { Function } from '../types';
+import { defaultFunctionAnalyze } from '../default-analyzers';
+import { defaultFunctionCompile } from '../default-compilers';
+import { ContextManager } from '../../interpreter/context';
+import { isTruthy } from '../utils';
+
+export const whereFunction: Function = {
+  name: 'where',
+  kind: 'function',
+  
+  syntax: {
+    notation: 'where(criteria)'
+  },
+  
+  signature: {
+    input: {
+      types: { kind: 'any' },
+      cardinality: 'any'
+    },
+    parameters: [
+      {
+        name: 'criteria',
+        kind: 'expression',
+        types: { kind: 'any' },
+        cardinality: 'any',
+        optional: false
+      }
+    ],
+    output: {
+      type: 'preserve-input',
+      cardinality: 'collection'
+    },
+    propagatesEmpty: true,
+    deterministic: true
+  },
+  
+  analyze: defaultFunctionAnalyze,
+  
+  evaluate: (interpreter, context, input, criteria) => {
+    const results: any[] = [];
+    if (!criteria) {
+      throw new Error('where() requires a predicate expression');
+    }
+
+    for (let i = 0; i < input.length; i++) {
+      const item = input[i];
+      const iterContext = ContextManager.setIteratorContext(context, item, i);
+      const result = interpreter.evaluate(criteria, [item], iterContext);
+      
+      if (isTruthy(result.value)) {
+        results.push(item);
+      }
+    }
+
+    return { value: results, context };
+  },
+  
+  compile: defaultFunctionCompile
+};
+
+export const selectFunction: Function = {
+  name: 'select',
+  kind: 'function',
+  
+  syntax: {
+    notation: 'select(expression)'
+  },
+  
+  signature: {
+    input: {
+      types: { kind: 'any' },
+      cardinality: 'any'
+    },
+    parameters: [
+      {
+        name: 'expression',
+        kind: 'expression',
+        types: { kind: 'any' },
+        cardinality: 'any',
+        optional: false
+      }
+    ],
+    output: {
+      type: 'any',
+      cardinality: 'collection'
+    },
+    propagatesEmpty: true,
+    deterministic: true
+  },
+  
+  analyze: defaultFunctionAnalyze,
+  
+  evaluate: (interpreter, context, input, expression) => {
+    const results: any[] = [];
+    if (!expression) {
+      throw new Error('select() requires an expression');
+    }
+
+    for (let i = 0; i < input.length; i++) {
+      const item = input[i];
+      const iterContext = ContextManager.setIteratorContext(context, item, i);
+      const result = interpreter.evaluate(expression, [item], iterContext);
+      results.push(...result.value);
+    }
+
+    return { value: results, context };
+  },
+  
+  compile: defaultFunctionCompile
+};
+
+export const ofTypeFunction: Function = {
+  name: 'ofType',
+  kind: 'function',
+  
+  syntax: {
+    notation: 'ofType(type)'
+  },
+  
+  signature: {
+    input: {
+      types: { kind: 'any' },
+      cardinality: 'any'
+    },
+    parameters: [
+      {
+        name: 'type',
+        kind: 'value',
+        types: { kind: 'primitive', types: ['String'] },
+        cardinality: 'singleton',
+        optional: false
+      }
+    ],
+    output: {
+      type: 'preserve-input',
+      cardinality: 'collection'
+    },
+    propagatesEmpty: true,
+    deterministic: true
+  },
+  
+  analyze: defaultFunctionAnalyze,
+  
+  evaluate: (interpreter, context, input, typeName) => {
+    const results: any[] = [];
+    
+    for (const item of input) {
+      if (isOfType(item, typeName)) {
+        results.push(item);
+      }
+    }
+    
+    return { value: results, context };
+  },
+  
+  compile: defaultFunctionCompile
+};
+
+export const repeatFunction: Function = {
+  name: 'repeat',
+  kind: 'function',
+  
+  syntax: {
+    notation: 'repeat(expression)'
+  },
+  
+  signature: {
+    input: {
+      types: { kind: 'any' },
+      cardinality: 'any'
+    },
+    parameters: [
+      {
+        name: 'expression',
+        kind: 'expression',
+        types: { kind: 'any' },
+        cardinality: 'any',
+        optional: false
+      }
+    ],
+    output: {
+      type: 'preserve-input',
+      cardinality: 'collection'
+    },
+    propagatesEmpty: true,
+    deterministic: true
+  },
+  
+  analyze: defaultFunctionAnalyze,
+  
+  evaluate: (interpreter, context, input, expression) => {
+    let current = input;
+    const seen = new Set();
+    
+    while (current.length > 0) {
+      const nextResults: any[] = [];
+      
+      for (let i = 0; i < current.length; i++) {
+        const item = current[i];
+        const itemKey = JSON.stringify(item);
+        
+        if (!seen.has(itemKey)) {
+          seen.add(itemKey);
+          const iterContext = ContextManager.setIteratorContext(context, item, i);
+          const result = interpreter.evaluate(expression, [item], iterContext);
+          nextResults.push(...result.value);
+        }
+      }
+      
+      current = nextResults;
+    }
+    
+    return { value: Array.from(seen).map(key => JSON.parse(key as string)), context };
+  },
+  
+  compile: defaultFunctionCompile
+};
+
+// Helper function for type checking
+function isOfType(item: any, typeName: string): boolean {
+  // Handle FHIR resource types
+  if (item && typeof item === 'object' && item.resourceType === typeName) {
+    return true;
+  }
+  
+  // Handle primitive types
+  switch (typeName) {
+    case 'String':
+      return typeof item === 'string';
+    case 'Boolean':
+      return typeof item === 'boolean';
+    case 'Integer':
+      return typeof item === 'number' && Number.isInteger(item);
+    case 'Decimal':
+      return typeof item === 'number';
+    default:
+      return false;
+  }
+}

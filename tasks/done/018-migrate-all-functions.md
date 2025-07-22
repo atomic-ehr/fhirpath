@@ -1,5 +1,31 @@
 # Task 018: Migrate All Functions from Interpreter to Global Registry
 
+## Status: COMPLETED
+
+## What was done:
+- Migrated 46 functions from the old interpreter function system to the global registry
+- Created new operation files organized by category:
+  - `/src/registry/operations/utility.ts` - 7 functions: aggregate, children, descendants, iif, defineVariable, trace, check
+  - `/src/registry/operations/type-checking.ts` - 3 functions: type, is, as
+  - `/src/registry/operations/math.ts` - 3 functions: abs, round, sqrt
+  - `/src/registry/operations/filtering.ts` - 4 functions: where, select, ofType, repeat
+  - `/src/registry/operations/string.ts` - 13 functions: contains, length, substring, startsWith, endsWith, upper, lower, indexOf, replace, split, join, trim, toChars
+  - `/src/registry/operations/type-conversion.ts` - 5 functions: toString, toInteger, toDecimal, toBoolean, toQuantity
+  - `/src/registry/operations/subsetting.ts` - 3 functions: tail, skip, take
+  - `/src/registry/operations/collection.ts` - 4 functions: union, combine, intersect, exclude
+  - Updated `/src/registry/operations/existence.ts` - added 7 functions: all, allTrue, anyTrue, allFalse, anyFalse, distinct, isDistinct
+
+- Fixed TypeScript type issues:
+  - Changed all `type: 'specific', specificType: 'X'` to `type: 'X'`
+  - Changed all `cardinality: 'single'` to `cardinality: 'singleton'`
+  - Changed all `types: { kind: 'specific' }` to `types: { kind: 'primitive' }`
+  - Changed all `types: { kind: 'choice' }` to `types: { kind: 'union' }`
+
+- All functions now implement the unified Operation interface with analyze/evaluate/compile methods
+- Updated registry index to register all new functions
+
+Note: 6 functions (exists, empty, count, first, last, single) were already in the registry
+
 ## Objective
 Migrate all existing FHIRPath functions and their signatures from the interpreter's function system to the global registry, ensuring all functions use the unified Operation interface.
 

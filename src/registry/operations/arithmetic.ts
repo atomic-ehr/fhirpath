@@ -1,7 +1,7 @@
 import { TokenType } from '../../lexer/token';
 import type { Operator, TypeRef } from '../types';
 import { defaultOperatorAnalyze } from '../default-analyzers';
-import { toSingleton } from '../../interpreter/helpers';
+import { toSingleton } from '../utils';
 
 // Helper to promote numeric types
 function promoteNumericType(left: TypeRef, right: TypeRef): TypeRef {

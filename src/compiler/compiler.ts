@@ -20,12 +20,11 @@ import type { CompiledNode } from './types';
 import type { Context, EvaluationResult } from '../interpreter/types';
 import { EvaluationError, CollectionUtils } from '../interpreter/types';
 import { ContextManager } from '../interpreter/context';
-import { Operators } from '../interpreter/operators';
-import { isTruthy } from '../interpreter/helpers';
-import { FunctionRegistry } from '../interpreter/functions/registry';
-
-// Import all function implementations to register them
-import '../interpreter/functions';
+// Operators are now in the registry
+import { isTruthy } from '../registry/utils';
+// Import the global registry to ensure all operations are registered
+import '../registry';
+import { Registry } from '../registry';
 
 /**
  * FHIRPath to JavaScript Closure Compiler
@@ -342,8 +341,8 @@ export class Compiler {
     const functionName = (node.name as IdentifierNode).name;
     
     // Check if function is registered
-    const funcDef = FunctionRegistry.get(functionName);
-    if (!funcDef) {
+    const operation = Registry.get(functionName);
+    if (!operation || operation.kind !== 'function') {
       throw new EvaluationError(`Unknown function: ${functionName}`, position);
     }
     
@@ -416,7 +415,8 @@ export class Compiler {
       try {
         // Create a temporary interpreter instance to evaluate the function
         const interpreter = new (require('../interpreter/interpreter').Interpreter)();
-        return FunctionRegistry.evaluate(interpreter, node, input, context);
+        // Evaluate the function using the interpreter
+        return interpreter.evaluate(node, input, context);
       } catch (error) {
         if (error instanceof EvaluationError && !error.position) {
           error.position = position;
