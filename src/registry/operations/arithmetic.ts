@@ -1,0 +1,346 @@
+import { TokenType } from '../../lexer/token';
+import type { Operator, TypeRef } from '../types';
+import { defaultOperatorAnalyze } from '../default-analyzers';
+import { toSingleton } from '../../interpreter/helpers';
+
+// Helper to promote numeric types
+function promoteNumericType(left: TypeRef, right: TypeRef): TypeRef {
+  const leftName = typeof left === 'string' ? left : (left as any).name;
+  const rightName = typeof right === 'string' ? right : (right as any).name;
+  
+  if (leftName === 'Decimal' || rightName === 'Decimal') return 'Decimal';
+  if (leftName === 'Integer' && rightName === 'Integer') return 'Integer';
+  return 'Decimal'; // Default to Decimal for safety
+}
+
+export const plusOperator: Operator = {
+  name: '+',
+  kind: 'operator',
+  
+  syntax: {
+    form: 'infix',
+    token: TokenType.PLUS,
+    precedence: 5,
+    associativity: 'left',
+    notation: 'a + b'
+  },
+  
+  signature: {
+    parameters: [
+      { name: 'left', types: { kind: 'union', types: ['Integer', 'Decimal', 'String', 'Date', 'DateTime', 'Time'] }, cardinality: 'singleton' },
+      { name: 'right', types: { kind: 'union', types: ['Integer', 'Decimal', 'String', 'Quantity'] }, cardinality: 'singleton' }
+    ],
+    output: {
+      type: 'promote-numeric',
+      cardinality: 'singleton'
+    },
+    propagatesEmpty: true
+  },
+  
+  analyze: defaultOperatorAnalyze,
+  
+  evaluate: (interpreter, context, input, left, right) => {
+    if (left.length === 0 || right.length === 0) return { value: [], context };
+    
+    const l = toSingleton(left);
+    const r = toSingleton(right);
+    
+    // String concatenation
+    if (typeof l === 'string' || typeof r === 'string') {
+      return { value: [String(l) + String(r)], context };
+    }
+    
+    // Numeric addition
+    return { value: [l + r], context };
+  },
+  
+  compile: (compiler, input, args) => ({
+    fn: (ctx) => {
+      const left = args[0].fn(ctx);
+      const right = args[1].fn(ctx);
+      if (left.length === 0 || right.length === 0) return [];
+      
+      const l = toSingleton(left);
+      const r = toSingleton(right);
+      
+      if (typeof l === 'string' || typeof r === 'string') {
+        return [String(l) + String(r)];
+      }
+      
+      return [l + r];
+    },
+    type: promoteNumericType(args[0].type, args[1].type),
+    isSingleton: true,
+    source: `${args[0].source || ''} + ${args[1].source || ''}`
+  })
+};
+
+export const minusOperator: Operator = {
+  name: '-',
+  kind: 'operator',
+  
+  syntax: {
+    form: 'infix',
+    token: TokenType.MINUS,
+    precedence: 5,
+    associativity: 'left',
+    notation: 'a - b'
+  },
+  
+  signature: {
+    parameters: [
+      { name: 'left', types: { kind: 'union', types: ['Integer', 'Decimal', 'Date', 'DateTime', 'Time'] }, cardinality: 'singleton' },
+      { name: 'right', types: { kind: 'union', types: ['Integer', 'Decimal', 'Quantity'] }, cardinality: 'singleton' }
+    ],
+    output: {
+      type: 'promote-numeric',
+      cardinality: 'singleton'
+    },
+    propagatesEmpty: true
+  },
+  
+  analyze: defaultOperatorAnalyze,
+  
+  evaluate: (interpreter, context, input, left, right) => {
+    if (left.length === 0 || right.length === 0) return { value: [], context };
+    
+    const l = toSingleton(left);
+    const r = toSingleton(right);
+    
+    return { value: [l - r], context };
+  },
+  
+  compile: (compiler, input, args) => ({
+    fn: (ctx) => {
+      const left = args[0].fn(ctx);
+      const right = args[1].fn(ctx);
+      if (left.length === 0 || right.length === 0) return [];
+      
+      return [toSingleton(left) - toSingleton(right)];
+    },
+    type: promoteNumericType(args[0].type, args[1].type),
+    isSingleton: true,
+    source: `${args[0].source || ''} - ${args[1].source || ''}`
+  })
+};
+
+export const multiplyOperator: Operator = {
+  name: '*',
+  kind: 'operator',
+  
+  syntax: {
+    form: 'infix',
+    token: TokenType.STAR,
+    precedence: 6,
+    associativity: 'left',
+    notation: 'a * b'
+  },
+  
+  signature: {
+    parameters: [
+      { name: 'left', types: { kind: 'union', types: ['Integer', 'Decimal'] }, cardinality: 'singleton' },
+      { name: 'right', types: { kind: 'union', types: ['Integer', 'Decimal'] }, cardinality: 'singleton' }
+    ],
+    output: {
+      type: 'promote-numeric',
+      cardinality: 'singleton'
+    },
+    propagatesEmpty: true
+  },
+  
+  analyze: defaultOperatorAnalyze,
+  
+  evaluate: (interpreter, context, input, left, right) => {
+    if (left.length === 0 || right.length === 0) return { value: [], context };
+    
+    const l = toSingleton(left);
+    const r = toSingleton(right);
+    
+    return { value: [l * r], context };
+  },
+  
+  compile: (compiler, input, args) => ({
+    fn: (ctx) => {
+      const left = args[0].fn(ctx);
+      const right = args[1].fn(ctx);
+      if (left.length === 0 || right.length === 0) return [];
+      
+      return [toSingleton(left) * toSingleton(right)];
+    },
+    type: promoteNumericType(args[0].type, args[1].type),
+    isSingleton: true,
+    source: `${args[0].source || ''} * ${args[1].source || ''}`
+  })
+};
+
+export const divideOperator: Operator = {
+  name: '/',
+  kind: 'operator',
+  
+  syntax: {
+    form: 'infix',
+    token: TokenType.SLASH,
+    precedence: 6,
+    associativity: 'left',
+    notation: 'a / b'
+  },
+  
+  signature: {
+    parameters: [
+      { name: 'left', types: { kind: 'union', types: ['Integer', 'Decimal'] }, cardinality: 'singleton' },
+      { name: 'right', types: { kind: 'union', types: ['Integer', 'Decimal'] }, cardinality: 'singleton' }
+    ],
+    output: {
+      type: 'Decimal', // Division always returns Decimal
+      cardinality: 'singleton'
+    },
+    propagatesEmpty: true
+  },
+  
+  analyze: defaultOperatorAnalyze,
+  
+  evaluate: (interpreter, context, input, left, right) => {
+    if (left.length === 0 || right.length === 0) return { value: [], context };
+    
+    const l = toSingleton(left);
+    const r = toSingleton(right);
+    
+    if (r === 0) return { value: [], context }; // Division by zero returns empty
+    
+    return { value: [l / r], context };
+  },
+  
+  compile: (compiler, input, args) => ({
+    fn: (ctx) => {
+      const left = args[0].fn(ctx);
+      const right = args[1].fn(ctx);
+      if (left.length === 0 || right.length === 0) return [];
+      
+      const r = toSingleton(right);
+      if (r === 0) return [];
+      
+      return [toSingleton(left) / r];
+    },
+    type: compiler.resolveType('Decimal'),
+    isSingleton: true,
+    source: `${args[0].source || ''} / ${args[1].source || ''}`
+  })
+};
+
+export const modOperator: Operator = {
+  name: 'mod',
+  kind: 'operator',
+  
+  syntax: {
+    form: 'infix',
+    token: TokenType.MOD,
+    precedence: 6,
+    associativity: 'left',
+    notation: 'a mod b'
+  },
+  
+  signature: {
+    parameters: [
+      { name: 'left', types: { kind: 'union', types: ['Integer', 'Decimal'] }, cardinality: 'singleton' },
+      { name: 'right', types: { kind: 'union', types: ['Integer', 'Decimal'] }, cardinality: 'singleton' }
+    ],
+    output: {
+      type: 'promote-numeric',
+      cardinality: 'singleton'
+    },
+    propagatesEmpty: true
+  },
+  
+  analyze: defaultOperatorAnalyze,
+  
+  evaluate: (interpreter, context, input, left, right) => {
+    if (left.length === 0 || right.length === 0) return { value: [], context };
+    
+    const l = toSingleton(left);
+    const r = toSingleton(right);
+    
+    if (r === 0) return { value: [], context }; // Modulo by zero returns empty
+    
+    return { value: [l % r], context };
+  },
+  
+  compile: (compiler, input, args) => ({
+    fn: (ctx) => {
+      const left = args[0].fn(ctx);
+      const right = args[1].fn(ctx);
+      if (left.length === 0 || right.length === 0) return [];
+      
+      const r = toSingleton(right);
+      if (r === 0) return [];
+      
+      return [toSingleton(left) % r];
+    },
+    type: promoteNumericType(args[0].type, args[1].type),
+    isSingleton: true,
+    source: `${args[0].source || ''} mod ${args[1].source || ''}`
+  })
+};
+
+export const divOperator: Operator = {
+  name: 'div',
+  kind: 'operator',
+  
+  syntax: {
+    form: 'infix',
+    token: TokenType.DIV,
+    precedence: 6,
+    associativity: 'left',
+    notation: 'a div b'
+  },
+  
+  signature: {
+    parameters: [
+      { name: 'left', types: { kind: 'union', types: ['Integer', 'Decimal'] }, cardinality: 'singleton' },
+      { name: 'right', types: { kind: 'union', types: ['Integer', 'Decimal'] }, cardinality: 'singleton' }
+    ],
+    output: {
+      type: 'Integer', // Integer division
+      cardinality: 'singleton'
+    },
+    propagatesEmpty: true
+  },
+  
+  analyze: defaultOperatorAnalyze,
+  
+  evaluate: (interpreter, context, input, left, right) => {
+    if (left.length === 0 || right.length === 0) return { value: [], context };
+    
+    const l = toSingleton(left);
+    const r = toSingleton(right);
+    
+    if (r === 0) return { value: [], context }; // Division by zero returns empty
+    
+    return { value: [Math.floor(l / r)], context };
+  },
+  
+  compile: (compiler, input, args) => ({
+    fn: (ctx) => {
+      const left = args[0].fn(ctx);
+      const right = args[1].fn(ctx);
+      if (left.length === 0 || right.length === 0) return [];
+      
+      const r = toSingleton(right);
+      if (r === 0) return [];
+      
+      return [Math.floor(toSingleton(left) / r)];
+    },
+    type: compiler.resolveType('Integer'),
+    isSingleton: true,
+    source: `${args[0].source || ''} div ${args[1].source || ''}`
+  })
+};
+
+// Export all arithmetic operators
+export const arithmeticOperators = [
+  plusOperator,
+  minusOperator,
+  multiplyOperator,
+  divideOperator,
+  modOperator,
+  divOperator
+];

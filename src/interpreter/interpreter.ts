@@ -20,7 +20,7 @@ import type { Context, EvaluationResult } from './types';
 import { EvaluationError, CollectionUtils } from './types';
 import { ContextManager } from './context';
 import { Operators } from './operators';
-import { FunctionRegistry } from './functions/registry';
+import { FunctionRegistry } from './functions';
 import { TypeSystem } from './types/type-system';
 
 // Import all function implementations to register them

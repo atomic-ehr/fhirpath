@@ -1,6 +1,6 @@
 // Re-export the function registry
 export { FunctionRegistry } from './registry';
-export type { EnhancedFunctionDefinition as FunctionDefinition } from '../signature-system/types';
+export type { FunctionDefinition } from '../signature-system/types';
 
 // Import all function implementations
 import './core-functions';

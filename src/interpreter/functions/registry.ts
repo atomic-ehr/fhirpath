@@ -5,25 +5,25 @@ import type { Context, EvaluationResult } from '../types';
 import type { Interpreter } from '../interpreter';
 import { EvaluationError } from '../types';
 import { ArgumentEvaluator } from '../signature-system/argument-evaluator';
-import type { EnhancedFunctionDefinition } from '../signature-system/types';
+import type { FunctionDefinition } from '../signature-system/types';
 
 /**
  * Registry of built-in FHIRPath functions using the new signature system
  */
 export class FunctionRegistry {
-  private static functions = new Map<string, EnhancedFunctionDefinition>();
+  private static functions = new Map<string, FunctionDefinition>();
 
   /**
    * Register a function
    */
-  static register(fn: EnhancedFunctionDefinition) {
+  static register(fn: FunctionDefinition) {
     this.functions.set(fn.name, fn);
   }
 
   /**
    * Get a function definition
    */
-  static get(name: string): EnhancedFunctionDefinition | undefined {
+  static get(name: string): FunctionDefinition | undefined {
     return this.functions.get(name);
   }
 

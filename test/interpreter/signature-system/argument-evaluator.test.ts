@@ -4,7 +4,7 @@ import { Interpreter } from '../../../src/interpreter/interpreter';
 import { ContextManager } from '../../../src/interpreter/context';
 import { FHIRPathParser } from '../../../src/parser/parser';
 import { FHIRPathLexer } from '../../../src/lexer/lexer';
-import type { EnhancedFunctionDefinition } from '../../../src/interpreter/signature-system/types';
+import type { FunctionDefinition } from '../../../src/interpreter/signature-system/types';
 import type { FunctionNode } from '../../../src/parser/ast';
 
 describe('ArgumentEvaluator', () => {
@@ -21,7 +21,7 @@ describe('ArgumentEvaluator', () => {
 
   describe('evaluateArguments', () => {
     it('should evaluate eager arguments by default', () => {
-      const funcDef: EnhancedFunctionDefinition = {
+      const funcDef: FunctionDefinition = {
         name: 'test',
         arguments: [{
           name: 'value',
@@ -43,7 +43,7 @@ describe('ArgumentEvaluator', () => {
     });
 
     it('should handle lazy evaluation mode', () => {
-      const funcDef: EnhancedFunctionDefinition = {
+      const funcDef: FunctionDefinition = {
         name: 'test',
         arguments: [{
           name: 'expr',
@@ -68,7 +68,7 @@ describe('ArgumentEvaluator', () => {
     });
 
     it('should handle optional arguments', () => {
-      const funcDef: EnhancedFunctionDefinition = {
+      const funcDef: FunctionDefinition = {
         name: 'test',
         arguments: [
           { name: 'required', type: 'string' },
@@ -90,7 +90,7 @@ describe('ArgumentEvaluator', () => {
     });
 
     it('should use different evaluation contexts', () => {
-      const funcDef: EnhancedFunctionDefinition = {
+      const funcDef: FunctionDefinition = {
         name: 'test',
         arguments: [{
           name: 'value',
@@ -113,7 +113,7 @@ describe('ArgumentEvaluator', () => {
     });
 
     it('should validate arity', () => {
-      const funcDef: EnhancedFunctionDefinition = {
+      const funcDef: FunctionDefinition = {
         name: 'test',
         arguments: [
           { name: 'arg1', type: 'string' },
@@ -130,7 +130,7 @@ describe('ArgumentEvaluator', () => {
     });
 
     it('should handle variable arity', () => {
-      const funcDef: EnhancedFunctionDefinition = {
+      const funcDef: FunctionDefinition = {
         name: 'test',
         arguments: [
           { name: 'required', type: 'string' },
@@ -154,7 +154,7 @@ describe('ArgumentEvaluator', () => {
     });
 
     it('should apply custom validators', () => {
-      const funcDef: EnhancedFunctionDefinition = {
+      const funcDef: FunctionDefinition = {
         name: 'test',
         arguments: [{
           name: 'value',

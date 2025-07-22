@@ -5,13 +5,13 @@ import { EvaluationError, CollectionUtils } from '../types';
 import { ContextManager } from '../context';
 import type { 
   ArgumentDefinition, 
-  EnhancedFunctionDefinition, 
+  FunctionDefinition, 
   EvaluatedArguments 
 } from './types';
 
 export class ArgumentEvaluator {
   static evaluateArguments(
-    funcDef: EnhancedFunctionDefinition,
+    funcDef: FunctionDefinition,
     node: FunctionNode,
     input: any[],
     context: Context,

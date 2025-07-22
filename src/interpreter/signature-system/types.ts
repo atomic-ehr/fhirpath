@@ -14,7 +14,7 @@ export interface ArgumentDefinition {
   defaultValue?: any;
 }
 
-export interface EnhancedFunctionDefinition {
+export interface FunctionDefinition {
   name: string;
   arguments?: ArgumentDefinition[];
   inputType?: ArgumentType;

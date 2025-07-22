@@ -1,19 +1,19 @@
 import { describe, it, expect } from 'bun:test';
 import { FunctionRegistry } from '../../../src/interpreter/functions/registry';
 import { evaluateFHIRPath } from '../../../src/interpreter/interpreter';
-import type { EnhancedFunctionDefinition } from '../../../src/interpreter/signature-system/types';
+import type { FunctionDefinition } from '../../../src/interpreter/signature-system/types';
 
-describe('EnhancedFunctionRegistry', () => {
+describe('FunctionRegistry', () => {
   describe('register', () => {
-    it('should register enhanced function and make it available via FunctionRegistry', () => {
-      const funcDef: EnhancedFunctionDefinition = {
-        name: 'testEnhanced',
+    it('should register function and make it available via FunctionRegistry', () => {
+      const funcDef: FunctionDefinition = {
+        name: 'testFunc',
         arguments: [{
           name: 'value',
           type: 'string'
         }],
         evaluate: (_, context, input, value) => ({ 
-          value: [`Enhanced: ${value}`], 
+          value: [`Result: ${value}`], 
           context 
         })
       };
@@ -21,15 +21,15 @@ describe('EnhancedFunctionRegistry', () => {
       FunctionRegistry.register(funcDef);
 
       // Should be available in main registry
-      expect(FunctionRegistry.has('testEnhanced')).toBe(true);
+      expect(FunctionRegistry.has('testFunc')).toBe(true);
 
       // Should work with evaluateFHIRPath
-      const result = evaluateFHIRPath("testEnhanced('hello')", []);
-      expect(result).toEqual(['Enhanced: hello']);
+      const result = evaluateFHIRPath("testFunc('hello')", []);
+      expect(result).toEqual(['Result: hello']);
     });
 
     it('should validate input type when specified', () => {
-      const funcDef: EnhancedFunctionDefinition = {
+      const funcDef: FunctionDefinition = {
         name: 'stringOnly',
         inputType: 'string',
         evaluate: (_, context, input) => ({ value: input, context })
@@ -48,7 +48,7 @@ describe('EnhancedFunctionRegistry', () => {
     });
 
     it('should support functions with lazy evaluation', () => {
-      const funcDef: EnhancedFunctionDefinition = {
+      const funcDef: FunctionDefinition = {
         name: 'lazyMap',
         arguments: [{
           name: 'expr',
@@ -86,7 +86,7 @@ describe('EnhancedFunctionRegistry', () => {
     });
 
     it('should support optional arguments with defaults', () => {
-      const funcDef: EnhancedFunctionDefinition = {
+      const funcDef: FunctionDefinition = {
         name: 'withDefaults',
         arguments: [
           { name: 'required', type: 'string' },
@@ -114,7 +114,7 @@ describe('EnhancedFunctionRegistry', () => {
 
   describe('function registry', () => {
     it('should track functions', () => {
-      const funcDef: EnhancedFunctionDefinition = {
+      const funcDef: FunctionDefinition = {
         name: 'tracked',
         evaluate: () => ({ value: ['tracked'], context: {} as any })
       };

@@ -2,6 +2,6 @@ export { ArgumentEvaluator } from './argument-evaluator';
 export type { 
   ArgumentType,
   ArgumentDefinition,
-  EnhancedFunctionDefinition,
+  FunctionDefinition,
   EvaluatedArguments
 } from './types';

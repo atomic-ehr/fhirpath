@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'bun:test';
 import { evaluateFHIRPath } from '../../../src/interpreter/interpreter';
 
-describe('Enhanced String Functions', () => {
+describe('String Functions Extended', () => {
   describe('contains()', () => {
     it('should check if string contains substring', () => {
       expect(evaluateFHIRPath("'hello world'.contains('world')", [])).toEqual([true]);
