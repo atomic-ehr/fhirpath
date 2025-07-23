@@ -1,0 +1,65 @@
+{
+  "name": "Membership Operators",
+  "description": "Tests for membership operations",
+  "tests": [
+    {
+      "name": "in - string in collection",
+      "expression": "'active' in {'active', 'inactive', 'pending'}",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "membership", "in"]
+    },
+    {
+      "name": "in - number in collection",
+      "expression": "1 in {1, 2, 3}",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "membership", "in"]
+    },
+    {
+      "name": "in - substring",
+      "expression": "'a' in 'abc'",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "membership", "in", "string"],
+      "skip": {
+        "interpreter": true,
+        "compiler": true,
+        "reason": "String 'in' operator not fully implemented"
+      }
+    },
+    {
+      "name": "in - not found",
+      "expression": "4 in {1, 2, 3}",
+      "input": [],
+      "expected": [false],
+      "tags": ["operator", "membership", "in"]
+    },
+    {
+      "name": "contains - collection contains item",
+      "expression": "{1, 2, 3} contains 1",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "membership", "contains"]
+    },
+    {
+      "name": "contains - string contains substring",
+      "expression": "'abc' contains 'a'",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "membership", "contains", "string"],
+      "skip": {
+        "interpreter": true,
+        "compiler": true,
+        "reason": "String 'contains' operator conflicts with contains() function"
+      }
+    },
+    {
+      "name": "contains - not found",
+      "expression": "{1, 2, 3} contains 4",
+      "input": [],
+      "expected": [false],
+      "tags": ["operator", "membership", "contains"]
+    }
+  ]
+}

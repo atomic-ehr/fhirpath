@@ -1,0 +1,90 @@
+{
+  "name": "Literals",
+  "description": "Tests for literal values including numbers, strings, booleans, and collections",
+  "tests": [
+    {
+      "name": "number literal - integer",
+      "expression": "42",
+      "input": [],
+      "expected": [42],
+      "tags": ["basic", "literal", "number"]
+    },
+    {
+      "name": "number literal - decimal",
+      "expression": "3.14",
+      "input": [],
+      "expected": [3.14],
+      "tags": ["basic", "literal", "number"]
+    },
+    {
+      "name": "number literal - negative",
+      "expression": "-17",
+      "input": [],
+      "expected": [-17],
+      "tags": ["basic", "literal", "number"]
+    },
+    {
+      "name": "string literal - simple",
+      "expression": "'hello'",
+      "input": [],
+      "expected": ["hello"],
+      "tags": ["basic", "literal", "string"]
+    },
+    {
+      "name": "string literal - empty",
+      "expression": "''",
+      "input": [],
+      "expected": [""],
+      "tags": ["basic", "literal", "string"]
+    },
+    {
+      "name": "boolean literal - true",
+      "expression": "true",
+      "input": [],
+      "expected": [true],
+      "tags": ["basic", "literal", "boolean"]
+    },
+    {
+      "name": "boolean literal - false",
+      "expression": "false",
+      "input": [],
+      "expected": [false],
+      "tags": ["basic", "literal", "boolean"]
+    },
+    {
+      "name": "null literal as empty collection",
+      "expression": "null",
+      "input": [],
+      "expected": [],
+      "tags": ["basic", "literal", "null"]
+    },
+    {
+      "name": "empty collection literal",
+      "expression": "{}",
+      "input": [],
+      "expected": [],
+      "tags": ["basic", "literal", "collection"]
+    },
+    {
+      "name": "collection literal - numbers",
+      "expression": "{1, 2, 3}",
+      "input": [],
+      "expected": [1, 2, 3],
+      "tags": ["basic", "literal", "collection"]
+    },
+    {
+      "name": "collection literal - strings",
+      "expression": "{'a', 'b', 'c'}",
+      "input": [],
+      "expected": ["a", "b", "c"],
+      "tags": ["basic", "literal", "collection"]
+    },
+    {
+      "name": "collection literal - booleans",
+      "expression": "{true, false, true}",
+      "input": [],
+      "expected": [true, false, true],
+      "tags": ["basic", "literal", "collection"]
+    }
+  ]
+}

@@ -1,0 +1,98 @@
+{
+  "name": "Comparison Operators",
+  "description": "Tests for comparison operations",
+  "tests": [
+    {
+      "name": "equality - numbers true",
+      "expression": "5 = 5",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "comparison", "equality"]
+    },
+    {
+      "name": "equality - numbers false",
+      "expression": "1 = 2",
+      "input": [],
+      "expected": [false],
+      "tags": ["operator", "comparison", "equality"]
+    },
+    {
+      "name": "equality - strings",
+      "expression": "'hello' = 'hello'",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "comparison", "equality", "string"]
+    },
+    {
+      "name": "equality - booleans",
+      "expression": "true = true",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "comparison", "equality", "boolean"]
+    },
+    {
+      "name": "inequality - numbers",
+      "expression": "5 != 3",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "comparison", "inequality"]
+    },
+    {
+      "name": "inequality - strings",
+      "expression": "'hello' != 'world'",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "comparison", "inequality", "string"]
+    },
+    {
+      "name": "less than - numbers",
+      "expression": "3 < 5",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "comparison", "less-than"]
+    },
+    {
+      "name": "less than - strings",
+      "expression": "'a' < 'b'",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "comparison", "less-than", "string"]
+    },
+    {
+      "name": "greater than - numbers",
+      "expression": "5 > 3",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "comparison", "greater-than"]
+    },
+    {
+      "name": "greater than - strings",
+      "expression": "'b' > 'a'",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "comparison", "greater-than", "string"]
+    },
+    {
+      "name": "less than or equal",
+      "expression": "3 <= 5",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "comparison", "less-equal"],
+      "skip": {
+        "interpreter": true,
+        "reason": "Not implemented in current interpreter tests"
+      }
+    },
+    {
+      "name": "greater than or equal",
+      "expression": "5 >= 3",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "comparison", "greater-equal"],
+      "skip": {
+        "interpreter": true,
+        "reason": "Not implemented in current interpreter tests"
+      }
+    }
+  ]
+}

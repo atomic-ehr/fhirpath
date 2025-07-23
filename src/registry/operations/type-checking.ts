@@ -72,9 +72,22 @@ export const isFunction: Function = {
   
   analyze: defaultFunctionAnalyze,
   
-  evaluate: (interpreter, context, input, typeName) => {
+  evaluate: (interpreter, context, input, typeNameOrNode) => {
     if (input.length === 0) {
       return { value: [], context };
+    }
+    
+    // Handle case where type is passed as an AST node (e.g., is(String))
+    let typeName: string;
+    if (typeof typeNameOrNode === 'string') {
+      typeName = typeNameOrNode;
+    } else if (Array.isArray(typeNameOrNode) && typeNameOrNode.length === 1) {
+      typeName = typeNameOrNode[0];
+    } else if (typeNameOrNode && typeof typeNameOrNode === 'object' && 'name' in typeNameOrNode) {
+      // TypeOrIdentifier node
+      typeName = typeNameOrNode.name;
+    } else {
+      throw new Error('is() requires a type name');
     }
     
     for (const item of input) {
@@ -121,9 +134,21 @@ export const asFunction: Function = {
   
   analyze: defaultFunctionAnalyze,
   
-  evaluate: (interpreter, context, input, typeName) => {
-    const results: any[] = [];
+  evaluate: (interpreter, context, input, typeNameOrNode) => {
+    // Handle case where type is passed as an AST node (e.g., as(String))
+    let typeName: string;
+    if (typeof typeNameOrNode === 'string') {
+      typeName = typeNameOrNode;
+    } else if (Array.isArray(typeNameOrNode) && typeNameOrNode.length === 1) {
+      typeName = typeNameOrNode[0];
+    } else if (typeNameOrNode && typeof typeNameOrNode === 'object' && 'name' in typeNameOrNode) {
+      // TypeOrIdentifier node
+      typeName = typeNameOrNode.name;
+    } else {
+      throw new Error('as() requires a type name');
+    }
     
+    const results: any[] = [];
     for (const item of input) {
       if (TypeSystem.isType(item, typeName)) {
         results.push(item);

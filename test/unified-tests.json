@@ -1,0 +1,814 @@
+{
+  "testSuites": [
+    {
+      "name": "Literals",
+      "description": "Tests for literal values including numbers, strings, booleans, and collections",
+      "tests": [
+        {
+          "name": "number literal - integer",
+          "expression": "42",
+          "input": [],
+          "expected": [42],
+          "tags": ["basic", "literal", "number"]
+        },
+        {
+          "name": "number literal - decimal",
+          "expression": "3.14",
+          "input": [],
+          "expected": [3.14],
+          "tags": ["basic", "literal", "number"]
+        },
+        {
+          "name": "number literal - negative",
+          "expression": "-17",
+          "input": [],
+          "expected": [-17],
+          "tags": ["basic", "literal", "number"]
+        },
+        {
+          "name": "string literal - simple",
+          "expression": "'hello'",
+          "input": [],
+          "expected": ["hello"],
+          "tags": ["basic", "literal", "string"]
+        },
+        {
+          "name": "string literal - empty",
+          "expression": "''",
+          "input": [],
+          "expected": [""],
+          "tags": ["basic", "literal", "string"]
+        },
+        {
+          "name": "boolean literal - true",
+          "expression": "true",
+          "input": [],
+          "expected": [true],
+          "tags": ["basic", "literal", "boolean"]
+        },
+        {
+          "name": "boolean literal - false",
+          "expression": "false",
+          "input": [],
+          "expected": [false],
+          "tags": ["basic", "literal", "boolean"]
+        },
+        {
+          "name": "null literal as empty collection",
+          "expression": "null",
+          "input": [],
+          "expected": [],
+          "tags": ["basic", "literal", "null"]
+        },
+        {
+          "name": "empty collection literal",
+          "expression": "{}",
+          "input": [],
+          "expected": [],
+          "tags": ["basic", "literal", "collection"]
+        },
+        {
+          "name": "collection literal - numbers",
+          "expression": "{1, 2, 3}",
+          "input": [],
+          "expected": [1, 2, 3],
+          "tags": ["basic", "literal", "collection"]
+        },
+        {
+          "name": "collection literal - strings",
+          "expression": "{'a', 'b', 'c'}",
+          "input": [],
+          "expected": ["a", "b", "c"],
+          "tags": ["basic", "literal", "collection"]
+        },
+        {
+          "name": "collection literal - booleans",
+          "expression": "{true, false, true}",
+          "input": [],
+          "expected": [true, false, true],
+          "tags": ["basic", "literal", "collection"]
+        }
+      ]
+    },
+    {
+      "name": "Property Navigation",
+      "description": "Tests for navigating object properties",
+      "tests": [
+        {
+          "name": "simple property access",
+          "expression": "name",
+          "input": [{ "name": "John" }],
+          "expected": ["John"],
+          "tags": ["navigation", "property"]
+        },
+        {
+          "name": "missing property returns empty",
+          "expression": "name",
+          "input": [{ "age": 30 }],
+          "expected": [],
+          "tags": ["navigation", "property", "empty"]
+        },
+        {
+          "name": "navigate multiple items",
+          "expression": "name",
+          "input": [
+            { "name": "John" },
+            { "name": "Jane" },
+            { "age": 30 }
+          ],
+          "expected": ["John", "Jane"],
+          "tags": ["navigation", "property", "multiple"]
+        },
+        {
+          "name": "flatten array properties",
+          "expression": "name",
+          "input": [{
+            "name": [
+              { "given": ["John", "J"], "family": "Doe" },
+              { "given": ["Jane"], "family": "Smith" }
+            ]
+          }],
+          "expected": [
+            { "given": ["John", "J"], "family": "Doe" },
+            { "given": ["Jane"], "family": "Smith" }
+          ],
+          "tags": ["navigation", "property", "array", "flatten"]
+        },
+        {
+          "name": "dot navigation - simple",
+          "expression": "patient.name",
+          "input": [{ "patient": { "name": "John" } }],
+          "expected": ["John"],
+          "tags": ["navigation", "dot", "chain"]
+        },
+        {
+          "name": "dot navigation - deep",
+          "expression": "patient.name.given",
+          "input": [{
+            "patient": {
+              "name": {
+                "given": ["John", "J"],
+                "family": "Doe"
+              }
+            }
+          }],
+          "expected": ["John", "J"],
+          "tags": ["navigation", "dot", "chain", "deep"]
+        },
+        {
+          "name": "dot navigation - empty intermediate",
+          "expression": "patient.name.given",
+          "input": [{ "patient": {} }],
+          "expected": [],
+          "tags": ["navigation", "dot", "chain", "empty"]
+        },
+        {
+          "name": "dot navigation - multiple levels",
+          "expression": "a.b.c",
+          "input": [{ "a": { "b": { "c": 42 } } }],
+          "expected": [42],
+          "tags": ["navigation", "dot", "chain", "deep"]
+        }
+      ]
+    },
+    {
+      "name": "Variables",
+      "description": "Tests for variable references",
+      "tests": [
+        {
+          "name": "$this with simple value",
+          "expression": "$this",
+          "input": [],
+          "context": {
+            "rootContext": [42]
+          },
+          "expected": [42],
+          "tags": ["variable", "$this"],
+          "skip": {
+            "interpreter": true,
+            "compiler": true,
+            "reason": "$this requires special context setup"
+          }
+        },
+        {
+          "name": "$this with object",
+          "expression": "$this.name",
+          "input": [],
+          "context": {
+            "rootContext": [{ "name": "John" }]
+          },
+          "expected": ["John"],
+          "tags": ["variable", "$this", "navigation"],
+          "skip": {
+            "interpreter": true,
+            "compiler": true,
+            "reason": "$this requires special context setup"
+          }
+        },
+        {
+          "name": "$index in context",
+          "expression": "$index",
+          "input": [],
+          "context": {
+            "env": { "$index": 5 }
+          },
+          "expected": [5],
+          "tags": ["variable", "$index"]
+        },
+        {
+          "name": "user-defined variable",
+          "expression": "%myVar",
+          "input": [],
+          "context": {
+            "variables": { "myVar": [1, 2, 3] }
+          },
+          "expected": [1, 2, 3],
+          "tags": ["variable", "user-defined"]
+        },
+        {
+          "name": "undefined variable returns empty",
+          "expression": "%undefinedVar",
+          "input": [],
+          "expected": [],
+          "tags": ["variable", "undefined", "empty"]
+        }
+      ]
+    },
+    {
+      "name": "Arithmetic Operators",
+      "description": "Tests for arithmetic operations",
+      "tests": [
+        {
+          "name": "addition - integers",
+          "expression": "2 + 3",
+          "input": [],
+          "expected": [5],
+          "tags": ["operator", "arithmetic", "addition"]
+        },
+        {
+          "name": "addition - decimals",
+          "expression": "2.5 + 3.5",
+          "input": [],
+          "expected": [6],
+          "tags": ["operator", "arithmetic", "addition", "decimal"]
+        },
+        {
+          "name": "subtraction - integers",
+          "expression": "5 - 3",
+          "input": [],
+          "expected": [2],
+          "tags": ["operator", "arithmetic", "subtraction"]
+        },
+        {
+          "name": "subtraction - decimals",
+          "expression": "1.5 - 0.5",
+          "input": [],
+          "expected": [1],
+          "tags": ["operator", "arithmetic", "subtraction", "decimal"]
+        },
+        {
+          "name": "multiplication",
+          "expression": "4 * 3",
+          "input": [],
+          "expected": [12],
+          "tags": ["operator", "arithmetic", "multiplication"]
+        },
+        {
+          "name": "multiplication - decimals",
+          "expression": "2.5 * 2",
+          "input": [],
+          "expected": [5],
+          "tags": ["operator", "arithmetic", "multiplication", "decimal"]
+        },
+        {
+          "name": "division",
+          "expression": "10 / 2",
+          "input": [],
+          "expected": [5],
+          "tags": ["operator", "arithmetic", "division"]
+        },
+        {
+          "name": "division - decimals",
+          "expression": "7.5 / 2.5",
+          "input": [],
+          "expected": [3],
+          "tags": ["operator", "arithmetic", "division", "decimal"]
+        },
+        {
+          "name": "integer division",
+          "expression": "7 div 3",
+          "input": [],
+          "expected": [2],
+          "tags": ["operator", "arithmetic", "div"]
+        },
+        {
+          "name": "integer division - larger",
+          "expression": "10 div 3",
+          "input": [],
+          "expected": [3],
+          "tags": ["operator", "arithmetic", "div"]
+        },
+        {
+          "name": "modulo",
+          "expression": "7 mod 3",
+          "input": [],
+          "expected": [1],
+          "tags": ["operator", "arithmetic", "mod"]
+        },
+        {
+          "name": "modulo - larger",
+          "expression": "10 mod 3",
+          "input": [],
+          "expected": [1],
+          "tags": ["operator", "arithmetic", "mod"]
+        },
+        {
+          "name": "arithmetic with navigation",
+          "expression": "value + 3",
+          "input": [{ "value": 5 }],
+          "expected": [8],
+          "tags": ["operator", "arithmetic", "navigation"]
+        }
+      ]
+    },
+    {
+      "name": "Comparison Operators",
+      "description": "Tests for comparison operations",
+      "tests": [
+        {
+          "name": "equality - numbers true",
+          "expression": "5 = 5",
+          "input": [],
+          "expected": [true],
+          "tags": ["operator", "comparison", "equality"]
+        },
+        {
+          "name": "equality - numbers false",
+          "expression": "1 = 2",
+          "input": [],
+          "expected": [false],
+          "tags": ["operator", "comparison", "equality"]
+        },
+        {
+          "name": "equality - strings",
+          "expression": "'hello' = 'hello'",
+          "input": [],
+          "expected": [true],
+          "tags": ["operator", "comparison", "equality", "string"]
+        },
+        {
+          "name": "equality - booleans",
+          "expression": "true = true",
+          "input": [],
+          "expected": [true],
+          "tags": ["operator", "comparison", "equality", "boolean"]
+        },
+        {
+          "name": "inequality - numbers",
+          "expression": "5 != 3",
+          "input": [],
+          "expected": [true],
+          "tags": ["operator", "comparison", "inequality"]
+        },
+        {
+          "name": "inequality - strings",
+          "expression": "'hello' != 'world'",
+          "input": [],
+          "expected": [true],
+          "tags": ["operator", "comparison", "inequality", "string"]
+        },
+        {
+          "name": "less than - numbers",
+          "expression": "3 < 5",
+          "input": [],
+          "expected": [true],
+          "tags": ["operator", "comparison", "less-than"]
+        },
+        {
+          "name": "less than - strings",
+          "expression": "'a' < 'b'",
+          "input": [],
+          "expected": [true],
+          "tags": ["operator", "comparison", "less-than", "string"]
+        },
+        {
+          "name": "greater than - numbers",
+          "expression": "5 > 3",
+          "input": [],
+          "expected": [true],
+          "tags": ["operator", "comparison", "greater-than"]
+        },
+        {
+          "name": "greater than - strings",
+          "expression": "'b' > 'a'",
+          "input": [],
+          "expected": [true],
+          "tags": ["operator", "comparison", "greater-than", "string"]
+        },
+        {
+          "name": "less than or equal",
+          "expression": "3 <= 5",
+          "input": [],
+          "expected": [true],
+          "tags": ["operator", "comparison", "less-equal"],
+          "skip": {
+            "interpreter": true,
+            "reason": "Not implemented in current interpreter tests"
+          }
+        },
+        {
+          "name": "greater than or equal",
+          "expression": "5 >= 3",
+          "input": [],
+          "expected": [true],
+          "tags": ["operator", "comparison", "greater-equal"],
+          "skip": {
+            "interpreter": true,
+            "reason": "Not implemented in current interpreter tests"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Logical Operators",
+      "description": "Tests for logical operations",
+      "tests": [
+        {
+          "name": "and - true and true",
+          "expression": "true and true",
+          "input": [],
+          "expected": [true],
+          "tags": ["operator", "logical", "and"]
+        },
+        {
+          "name": "and - true and false",
+          "expression": "true and false",
+          "input": [],
+          "expected": [false],
+          "tags": ["operator", "logical", "and"]
+        },
+        {
+          "name": "and - false and true",
+          "expression": "false and true",
+          "input": [],
+          "expected": [false],
+          "tags": ["operator", "logical", "and"]
+        },
+        {
+          "name": "and - false and false",
+          "expression": "false and false",
+          "input": [],
+          "expected": [false],
+          "tags": ["operator", "logical", "and"]
+        },
+        {
+          "name": "or - true or true",
+          "expression": "true or true",
+          "input": [],
+          "expected": [true],
+          "tags": ["operator", "logical", "or"]
+        },
+        {
+          "name": "or - true or false",
+          "expression": "true or false",
+          "input": [],
+          "expected": [true],
+          "tags": ["operator", "logical", "or"]
+        },
+        {
+          "name": "or - false or true",
+          "expression": "false or true",
+          "input": [],
+          "expected": [true],
+          "tags": ["operator", "logical", "or"]
+        },
+        {
+          "name": "or - false or false",
+          "expression": "false or false",
+          "input": [],
+          "expected": [false],
+          "tags": ["operator", "logical", "or"]
+        },
+        {
+          "name": "not - true",
+          "expression": "not true",
+          "input": [],
+          "expected": [false],
+          "tags": ["operator", "logical", "not"]
+        },
+        {
+          "name": "not - false",
+          "expression": "not false",
+          "input": [],
+          "expected": [true],
+          "tags": ["operator", "logical", "not"]
+        },
+        {
+          "name": "not - empty",
+          "expression": "not {}",
+          "input": [],
+          "expected": [true],
+          "tags": ["operator", "logical", "not", "empty"]
+        }
+      ]
+    },
+    {
+      "name": "String Operators",
+      "description": "Tests for string operations",
+      "tests": [
+        {
+          "name": "concatenation - simple",
+          "expression": "'Hello' & ' ' & 'World'",
+          "input": [],
+          "expected": ["Hello World"],
+          "tags": ["operator", "string", "concatenation"]
+        },
+        {
+          "name": "concatenation - two strings",
+          "expression": "'FHIR' & 'Path'",
+          "input": [],
+          "expected": ["FHIRPath"],
+          "tags": ["operator", "string", "concatenation"]
+        },
+        {
+          "name": "concatenation with navigation",
+          "expression": "name.given.first() & ' ' & name.family",
+          "input": [{
+            "name": {
+              "given": ["John"],
+              "family": "Doe"
+            }
+          }],
+          "expected": ["John Doe"],
+          "tags": ["operator", "string", "concatenation", "navigation"]
+        }
+      ]
+    },
+    {
+      "name": "Union Operator",
+      "description": "Tests for union operations",
+      "tests": [
+        {
+          "name": "union - numbers",
+          "expression": "{1, 2} | {3, 4}",
+          "input": [],
+          "expected": [1, 2, 3, 4],
+          "tags": ["operator", "union", "collection"]
+        },
+        {
+          "name": "union - strings",
+          "expression": "{'a', 'b'} | {'c', 'd'}",
+          "input": [],
+          "expected": ["a", "b", "c", "d"],
+          "tags": ["operator", "union", "collection", "string"]
+        },
+        {
+          "name": "union - multiple",
+          "expression": "{1} | {2} | {3}",
+          "input": [],
+          "expected": [1, 2, 3],
+          "tags": ["operator", "union", "collection", "multiple"]
+        },
+        {
+          "name": "union with navigation",
+          "expression": "a | b | c",
+          "input": [{ "a": 1, "b": 2, "c": 3 }],
+          "expected": [1, 2, 3],
+          "tags": ["operator", "union", "navigation"]
+        }
+      ]
+    },
+    {
+      "name": "Membership Operators",
+      "description": "Tests for membership operations",
+      "tests": [
+        {
+          "name": "in - string in collection",
+          "expression": "'active' in {'active', 'inactive', 'pending'}",
+          "input": [],
+          "expected": [true],
+          "tags": ["operator", "membership", "in"]
+        },
+        {
+          "name": "in - number in collection",
+          "expression": "1 in {1, 2, 3}",
+          "input": [],
+          "expected": [true],
+          "tags": ["operator", "membership", "in"]
+        },
+        {
+          "name": "in - substring",
+          "expression": "'a' in 'abc'",
+          "input": [],
+          "expected": [true],
+          "tags": ["operator", "membership", "in", "string"],
+          "skip": {
+            "interpreter": true,
+            "compiler": true,
+            "reason": "String 'in' operator not fully implemented"
+          }
+        },
+        {
+          "name": "in - not found",
+          "expression": "4 in {1, 2, 3}",
+          "input": [],
+          "expected": [false],
+          "tags": ["operator", "membership", "in"]
+        },
+        {
+          "name": "contains - collection contains item",
+          "expression": "{1, 2, 3} contains 1",
+          "input": [],
+          "expected": [true],
+          "tags": ["operator", "membership", "contains"]
+        },
+        {
+          "name": "contains - string contains substring",
+          "expression": "'abc' contains 'a'",
+          "input": [],
+          "expected": [true],
+          "tags": ["operator", "membership", "contains", "string"],
+          "skip": {
+            "interpreter": true,
+            "compiler": true,
+            "reason": "String 'contains' operator conflicts with contains() function"
+          }
+        },
+        {
+          "name": "contains - not found",
+          "expression": "{1, 2, 3} contains 4",
+          "input": [],
+          "expected": [false],
+          "tags": ["operator", "membership", "contains"]
+        }
+      ]
+    },
+    {
+      "name": "Functions - where",
+      "description": "Tests for the where() function",
+      "tests": [
+        {
+          "name": "where - simple filter",
+          "expression": "where($this > 2)",
+          "input": [1, 2, 3, 4, 5],
+          "expected": [3, 4, 5],
+          "tags": ["function", "where", "filter"]
+        },
+        {
+          "name": "where - filter by property",
+          "expression": "where(age > 30)",
+          "input": [
+            { "name": "John", "age": 30 },
+            { "name": "Jane", "age": 25 },
+            { "name": "Bob", "age": 35 }
+          ],
+          "expected": [
+            { "name": "Bob", "age": 35 }
+          ],
+          "tags": ["function", "where", "filter", "property"]
+        },
+        {
+          "name": "where - empty input",
+          "expression": "{}.where($this > 0)",
+          "input": [],
+          "expected": [],
+          "tags": ["function", "where", "empty"]
+        },
+        {
+          "name": "where - no matches",
+          "expression": "where($this > 10)",
+          "input": [1, 2, 3],
+          "expected": [],
+          "tags": ["function", "where", "filter", "empty"]
+        },
+        {
+          "name": "where - complex predicate without parentheses",
+          "expression": "items.where(price > 12 and price < 18)",
+          "input": [{
+            "items": [
+              { "name": "A", "price": 10 },
+              { "name": "B", "price": 20 },
+              { "name": "C", "price": 15 }
+            ]
+          }],
+          "expected": [],
+          "tags": ["function", "where", "filter", "complex", "precedence"]
+        },
+        {
+          "name": "where - complex predicate with parentheses",
+          "expression": "items.where((price > 12) and (price < 18))",
+          "input": [{
+            "items": [
+              { "name": "A", "price": 10 },
+              { "name": "B", "price": 20 },
+              { "name": "C", "price": 15 }
+            ]
+          }],
+          "expected": [
+            { "name": "C", "price": 15 }
+          ],
+          "tags": ["function", "where", "filter", "complex"]
+        }
+      ]
+    },
+    {
+      "name": "Functions - select",
+      "description": "Tests for the select() function",
+      "tests": [
+        {
+          "name": "select - property extraction",
+          "expression": "select(name)",
+          "input": [
+            { "name": "John", "age": 30 },
+            { "name": "Jane", "age": 25 }
+          ],
+          "expected": ["John", "Jane"],
+          "tags": ["function", "select", "transform"]
+        },
+        {
+          "name": "select - expression",
+          "expression": "select($this * 2)",
+          "input": [1, 2, 3],
+          "expected": [2, 4, 6],
+          "tags": ["function", "select", "transform", "expression"]
+        },
+        {
+          "name": "select - flattening",
+          "expression": "select(names)",
+          "input": [
+            { "names": ["John", "J"] },
+            { "names": ["Jane"] }
+          ],
+          "expected": ["John", "J", "Jane"],
+          "tags": ["function", "select", "transform", "flatten"]
+        },
+        {
+          "name": "select - empty input",
+          "expression": "{}.select(name)",
+          "input": [],
+          "expected": [],
+          "tags": ["function", "select", "empty"]
+        },
+        {
+          "name": "select - complex expression",
+          "expression": "select(first & ' ' & last)",
+          "input": [
+            { "first": "John", "last": "Doe" },
+            { "first": "Jane", "last": "Smith" }
+          ],
+          "expected": ["John Doe", "Jane Smith"],
+          "tags": ["function", "select", "transform", "complex"]
+        }
+      ]
+    },
+    {
+      "name": "Complex Expressions",
+      "description": "Tests for complex combined expressions",
+      "tests": [
+        {
+          "name": "chained functions",
+          "expression": "where(age > 25).select(name)",
+          "input": [
+            { "name": "John", "age": 30 },
+            { "name": "Jane", "age": 25 },
+            { "name": "Bob", "age": 35 }
+          ],
+          "expected": ["John", "Bob"],
+          "tags": ["complex", "chain", "function"]
+        },
+        {
+          "name": "navigation with filter",
+          "expression": "patients.where(active).name",
+          "input": [{
+            "patients": [
+              { "name": "John", "active": true },
+              { "name": "Jane", "active": false },
+              { "name": "Bob", "active": true }
+            ]
+          }],
+          "expected": ["John", "Bob"],
+          "tags": ["complex", "navigation", "filter"]
+        },
+        {
+          "name": "arithmetic in comparison",
+          "expression": "(a + b) * 2 > 10",
+          "input": [{ "a": 5, "b": 3 }],
+          "expected": [true],
+          "tags": ["complex", "arithmetic", "comparison"]
+        },
+        {
+          "name": "nested navigation",
+          "expression": "name.where(use = 'official').given",
+          "input": [{
+            "name": [
+              { "use": "official", "given": ["John"], "family": "Doe" },
+              { "use": "nickname", "given": ["Johnny"], "family": "D" }
+            ]
+          }],
+          "expected": ["John"],
+          "tags": ["complex", "navigation", "filter"]
+        }
+      ]
+    }
+  ]
+}

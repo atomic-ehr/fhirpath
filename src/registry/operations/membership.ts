@@ -38,7 +38,20 @@ export const inOperator: Operator = {
     if (collection.length === 0) return { value: [false], context };
     return { value: [isIn(element[0], collection)], context };
   },
-  compile: defaultOperatorCompile
+  compile: (compiler, input, args) => {
+    const [leftExpr, rightExpr] = args;
+    return {
+      fn: (ctx) => {
+        const left = leftExpr.fn(ctx);
+        const right = rightExpr.fn(ctx);
+        if (left.length === 0) return [false];
+        if (right.length === 0) return [false];
+        return [isIn(left[0], right)];
+      },
+      type: compiler.resolveType('Boolean'),
+      isSingleton: true
+    };
+  }
 };
 
 export const containsOperator: Operator = {
@@ -61,7 +74,20 @@ export const containsOperator: Operator = {
     if (element.length === 0) return { value: [false], context };
     return { value: [isIn(element[0], collection)], context };
   },
-  compile: defaultOperatorCompile
+  compile: (compiler, input, args) => {
+    const [leftExpr, rightExpr] = args;
+    return {
+      fn: (ctx) => {
+        const left = leftExpr.fn(ctx);
+        const right = rightExpr.fn(ctx);
+        if (left.length === 0) return [false];
+        if (right.length === 0) return [false];
+        return [isIn(left[0], right)];
+      },
+      type: compiler.resolveType('Boolean'),
+      isSingleton: true
+    };
+  }
 };
 
 // Export membership operators

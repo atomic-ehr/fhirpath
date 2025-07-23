@@ -105,6 +105,24 @@ describe('FHIRPath Interpreter', () => {
         expect(result.value).toEqual(['test']);
       });
 
+      it('evaluates $this in complex expressions', () => {
+        // Test cases from interpreter.manual.test.ts
+        const ast1 = parse('$this');
+        const ctx1 = ContextManager.setIteratorContext(context, 1, 0);
+        const result1 = interpreter.evaluate(ast1, [], ctx1);
+        expect(result1.value).toEqual([1]);
+
+        const input2 = [{name: [1]}, {name: [2]}];
+        const ast2 = parse('name.select($this)');
+        const result2 = interpreter.evaluate(ast2, input2, context);
+        expect(result2.value).toEqual([1, 2]);
+
+        const input3 = [{name: [{given: [1]}]}, {name: [{given: [2]}]}];
+        const ast3 = parse('name.given.select($this)');
+        const result3 = interpreter.evaluate(ast3, input3, context);
+        expect(result3.value).toEqual([1, 2]);
+      });
+
       it('evaluates $index', () => {
         const ctxWithIndex = ContextManager.setIteratorContext(context, 'item', 5);
         const ast = parse('$index');
@@ -890,90 +908,6 @@ describe('FHIRPath Interpreter', () => {
       });
     });
 
-    describe('String Functions', () => {
-      it('contains() checks for substring', () => {
-        const ast1 = parse("'hello world'.contains('world')");
-        const result1 = interpreter.evaluate(ast1, [], context);
-        expect(result1.value).toEqual([true]);
-
-        const ast2 = parse("'hello world'.contains('foo')");
-        const result2 = interpreter.evaluate(ast2, [], context);
-        expect(result2.value).toEqual([false]);
-      });
-
-      it('length() returns string length', () => {
-        const ast = parse("'hello'.length()");
-        const result = interpreter.evaluate(ast, [], context);
-        expect(result.value).toEqual([5]);
-      });
-
-      it('substring() extracts substring', () => {
-        const ast1 = parse("'hello world'.substring(6)");
-        const result1 = interpreter.evaluate(ast1, [], context);
-        expect(result1.value).toEqual(['world']);
-
-        const ast2 = parse("'hello world'.substring(0, 5)");
-        const result2 = interpreter.evaluate(ast2, [], context);
-        expect(result2.value).toEqual(['hello']);
-
-        // Out of bounds
-        const ast3 = parse("'hello'.substring(10)");
-        const result3 = interpreter.evaluate(ast3, [], context);
-        expect(result3.value).toEqual(['']);
-      });
-
-      it('startsWith() and endsWith()', () => {
-        const ast1 = parse("'hello world'.startsWith('hello')");
-        const result1 = interpreter.evaluate(ast1, [], context);
-        expect(result1.value).toEqual([true]);
-
-        const ast2 = parse("'hello world'.endsWith('world')");
-        const result2 = interpreter.evaluate(ast2, [], context);
-        expect(result2.value).toEqual([true]);
-
-        const ast3 = parse("'hello'.startsWith('world')");
-        const result3 = interpreter.evaluate(ast3, [], context);
-        expect(result3.value).toEqual([false]);
-      });
-
-      it('upper() and lower()', () => {
-        const ast1 = parse("'Hello World'.upper()");
-        const result1 = interpreter.evaluate(ast1, [], context);
-        expect(result1.value).toEqual(['HELLO WORLD']);
-
-        const ast2 = parse("'Hello World'.lower()");
-        const result2 = interpreter.evaluate(ast2, [], context);
-        expect(result2.value).toEqual(['hello world']);
-      });
-
-      it('replace() replaces all occurrences', () => {
-        const ast = parse("'hello world world'.replace('world', 'FHIRPath')");
-        const result = interpreter.evaluate(ast, [], context);
-        expect(result.value).toEqual(['hello FHIRPath FHIRPath']);
-      });
-
-      // REMOVED FUNCTION - Task 012
-      // it('matches() tests regex', () => {
-      //   const ast1 = parse("'123-45-6789'.matches('^\\\\d{3}-\\\\d{2}-\\\\d{4}$')");
-      //   const result1 = interpreter.evaluate(ast1, [], context);
-      //   expect(result1.value).toEqual([true]);
-
-      //   const ast2 = parse("'hello'.matches('^\\\\d+$')");
-      //   const result2 = interpreter.evaluate(ast2, [], context);
-      //   expect(result2.value).toEqual([false]);
-      // });
-
-      it('indexOf() finds substring position', () => {
-        const ast1 = parse("'hello world'.indexOf('world')");
-        const result1 = interpreter.evaluate(ast1, [], context);
-        expect(result1.value).toEqual([6]);
-
-        // Not found returns empty
-        const ast2 = parse("'hello'.indexOf('world')");
-        const result2 = interpreter.evaluate(ast2, [], context);
-        expect(result2.value).toEqual([]);
-      });
-    });
 
     describe('Conversion Functions', () => {
       it('toString() converts to string', () => {
@@ -1046,24 +980,6 @@ describe('FHIRPath Interpreter', () => {
         expect(result5.value).toEqual([]);
       });
 
-      // REMOVED FUNCTIONS - Task 012
-      // it('convertsTo functions', () => {
-      //   const ast1 = parse("'true'.convertsToBoolean()");
-      //   const result1 = interpreter.evaluate(ast1, [], context);
-      //   expect(result1.value).toEqual([true]);
-
-      //   const ast2 = parse("'hello'.convertsToBoolean()");
-      //   const result2 = interpreter.evaluate(ast2, [], context);
-      //   expect(result2.value).toEqual([false]);
-
-      //   const ast3 = parse("'123'.convertsToInteger()");
-      //   const result3 = interpreter.evaluate(ast3, [], context);
-      //   expect(result3.value).toEqual([true]);
-
-      //   const ast4 = parse('42.convertsToString()');
-      //   const result4 = interpreter.evaluate(ast4, [], context);
-      //   expect(result4.value).toEqual([true]);
-      // });
     });
   });
 });

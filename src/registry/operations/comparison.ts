@@ -47,18 +47,33 @@ export const eqOperator: Operator = {
   analyze: defaultOperatorAnalyze,
   evaluate: (interpreter, context, input, left, right) => {
     if (left.length === 0 || right.length === 0) return { value: [], context };
+    
+    // FHIRPath equality compares entire collections if both have multiple items
+    if (left.length > 1 || right.length > 1) {
+      // Collection equality
+      return { value: [isEqual(left, right)], context };
+    }
+    
+    // Singleton comparison
     return { value: [isEqual(left[0], right[0])], context };
   },
   compile: (compiler, input, args) => {
     const [leftExpr, rightExpr] = args;
     return {
-      fn: (ctx: Context, inp: any[]): EvaluationResult => {
-        const left = leftExpr.fn(ctx, inp);
-        const right = rightExpr.fn(ctx, inp);
+      fn: (ctx) => {
+        const left = leftExpr.fn(ctx);
+        const right = rightExpr.fn(ctx);
         if (left.length === 0 || right.length === 0) return [];
+        
+        // FHIRPath equality compares entire collections if both have multiple items
+        if (left.length > 1 || right.length > 1) {
+          return [isEqual(left, right)];
+        }
+        
         return [isEqual(left[0], right[0])];
       },
-      source: `(${leftExpr.source || ''} = ${rightExpr.source || ''})`
+      type: compiler.resolveType('Boolean'),
+      isSingleton: true
     };
   }
 };
@@ -84,18 +99,31 @@ export const neqOperator: Operator = {
   analyze: defaultOperatorAnalyze,
   evaluate: (interpreter, context, input, left, right) => {
     if (left.length === 0 || right.length === 0) return { value: [], context };
+    
+    // FHIRPath inequality compares entire collections if both have multiple items
+    if (left.length > 1 || right.length > 1) {
+      return { value: [!isEqual(left, right)], context };
+    }
+    
     return { value: [!isEqual(left[0], right[0])], context };
   },
   compile: (compiler, input, args) => {
     const [leftExpr, rightExpr] = args;
     return {
-      fn: (ctx: Context, inp: any[]): EvaluationResult => {
-        const left = leftExpr.fn(ctx, inp);
-        const right = rightExpr.fn(ctx, inp);
+      fn: (ctx) => {
+        const left = leftExpr.fn(ctx);
+        const right = rightExpr.fn(ctx);
         if (left.length === 0 || right.length === 0) return [];
+        
+        // FHIRPath inequality compares entire collections if both have multiple items
+        if (left.length > 1 || right.length > 1) {
+          return [!isEqual(left, right)];
+        }
+        
         return [!isEqual(left[0], right[0])];
       },
-      source: `(${leftExpr.source || ''} != ${rightExpr.source || ''})`
+      type: compiler.resolveType('Boolean'),
+      isSingleton: true
     };
   }
 };
@@ -131,9 +159,9 @@ export const ltOperator: Operator = {
   compile: (compiler, input, args) => {
     const [leftExpr, rightExpr] = args;
     return {
-      fn: (ctx: Context, inp: any[]): EvaluationResult => {
-        const left = leftExpr.fn(ctx, inp);
-        const right = rightExpr.fn(ctx, inp);
+      fn: (ctx) => {
+        const left = leftExpr.fn(ctx);
+        const right = rightExpr.fn(ctx);
         if (left.length === 0 || right.length === 0) return [];
         const l = left[0];
         const r = right[0];
@@ -142,7 +170,8 @@ export const ltOperator: Operator = {
         if (l instanceof Date && r instanceof Date) return [l < r];
         return [];
       },
-      source: `(${leftExpr.source || ''} < ${rightExpr.source || ''})`
+      type: compiler.resolveType('Boolean'),
+      isSingleton: true
     };
   }
 };
@@ -178,9 +207,9 @@ export const gtOperator: Operator = {
   compile: (compiler, input, args) => {
     const [leftExpr, rightExpr] = args;
     return {
-      fn: (ctx: Context, inp: any[]): EvaluationResult => {
-        const left = leftExpr.fn(ctx, inp);
-        const right = rightExpr.fn(ctx, inp);
+      fn: (ctx) => {
+        const left = leftExpr.fn(ctx);
+        const right = rightExpr.fn(ctx);
         if (left.length === 0 || right.length === 0) return [];
         const l = left[0];
         const r = right[0];
@@ -189,7 +218,8 @@ export const gtOperator: Operator = {
         if (l instanceof Date && r instanceof Date) return [l > r];
         return [];
       },
-      source: `(${leftExpr.source || ''} > ${rightExpr.source || ''})`
+      type: compiler.resolveType('Boolean'),
+      isSingleton: true
     };
   }
 };
@@ -225,9 +255,9 @@ export const lteOperator: Operator = {
   compile: (compiler, input, args) => {
     const [leftExpr, rightExpr] = args;
     return {
-      fn: (ctx: Context, inp: any[]): EvaluationResult => {
-        const left = leftExpr.fn(ctx, inp);
-        const right = rightExpr.fn(ctx, inp);
+      fn: (ctx) => {
+        const left = leftExpr.fn(ctx);
+        const right = rightExpr.fn(ctx);
         if (left.length === 0 || right.length === 0) return [];
         const l = left[0];
         const r = right[0];
@@ -236,7 +266,8 @@ export const lteOperator: Operator = {
         if (l instanceof Date && r instanceof Date) return [l <= r];
         return [];
       },
-      source: `(${leftExpr.source || ''} <= ${rightExpr.source || ''})`
+      type: compiler.resolveType('Boolean'),
+      isSingleton: true
     };
   }
 };
@@ -272,9 +303,9 @@ export const gteOperator: Operator = {
   compile: (compiler, input, args) => {
     const [leftExpr, rightExpr] = args;
     return {
-      fn: (ctx: Context, inp: any[]): EvaluationResult => {
-        const left = leftExpr.fn(ctx, inp);
-        const right = rightExpr.fn(ctx, inp);
+      fn: (ctx) => {
+        const left = leftExpr.fn(ctx);
+        const right = rightExpr.fn(ctx);
         if (left.length === 0 || right.length === 0) return [];
         const l = left[0];
         const r = right[0];
@@ -283,7 +314,8 @@ export const gteOperator: Operator = {
         if (l instanceof Date && r instanceof Date) return [l >= r];
         return [];
       },
-      source: `(${leftExpr.source || ''} >= ${rightExpr.source || ''})`
+      type: compiler.resolveType('Boolean'),
+      isSingleton: true
     };
   }
 };
@@ -323,9 +355,9 @@ export const equivOperator: Operator = {
   compile: (compiler, input, args) => {
     const [leftExpr, rightExpr] = args;
     return {
-      fn: (ctx: Context, inp: any[]): EvaluationResult => {
-        const left = leftExpr.fn(ctx, inp);
-        const right = rightExpr.fn(ctx, inp);
+      fn: (ctx) => {
+        const left = leftExpr.fn(ctx);
+        const right = rightExpr.fn(ctx);
         if (left.length === 0 || right.length === 0) return [];
         const l = left[0];
         const r = right[0];
@@ -336,7 +368,8 @@ export const equivOperator: Operator = {
         }
         return [isEqual(l, r)];
       },
-      source: `(${leftExpr.source || ''} ~ ${rightExpr.source || ''})`
+      type: compiler.resolveType('Boolean'),
+      isSingleton: true
     };
   }
 };
@@ -367,9 +400,9 @@ export const nequivOperator: Operator = {
   compile: (compiler, input, args) => {
     const [leftExpr, rightExpr] = args;
     return {
-      fn: (ctx: Context, inp: any[]): EvaluationResult => {
-        const left = leftExpr.fn(ctx, inp);
-        const right = rightExpr.fn(ctx, inp);
+      fn: (ctx) => {
+        const left = leftExpr.fn(ctx);
+        const right = rightExpr.fn(ctx);
         if (left.length === 0 || right.length === 0) return [];
         const l = left[0];
         const r = right[0];
@@ -380,7 +413,8 @@ export const nequivOperator: Operator = {
         }
         return [!isEqual(l, r)];
       },
-      source: `(${leftExpr.source || ''} !~ ${rightExpr.source || ''})`
+      type: compiler.resolveType('Boolean'),
+      isSingleton: true
     };
   }
 };

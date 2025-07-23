@@ -1,0 +1,32 @@
+{
+  "name": "String Operators",
+  "description": "Tests for string operations",
+  "tests": [
+    {
+      "name": "concatenation - simple",
+      "expression": "'Hello' & ' ' & 'World'",
+      "input": [],
+      "expected": ["Hello World"],
+      "tags": ["operator", "string", "concatenation"]
+    },
+    {
+      "name": "concatenation - two strings",
+      "expression": "'FHIR' & 'Path'",
+      "input": [],
+      "expected": ["FHIRPath"],
+      "tags": ["operator", "string", "concatenation"]
+    },
+    {
+      "name": "concatenation with navigation",
+      "expression": "name.given.first() & ' ' & name.family",
+      "input": [{
+        "name": {
+          "given": ["John"],
+          "family": "Doe"
+        }
+      }],
+      "expected": ["John Doe"],
+      "tags": ["operator", "string", "concatenation", "navigation"]
+    }
+  ]
+}

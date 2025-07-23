@@ -1,6 +1,7 @@
 import { TokenType } from '../../lexer/token';
 import type { Operator } from '../types';
 import type { Analyzer, TypeInfo } from '../types';
+import { EvaluationError } from '../../interpreter/types';
 import type { Context, EvaluationResult } from '../../interpreter/types';
 import type { CompiledExpression } from '../../compiler/types';
 
@@ -38,7 +39,7 @@ export const isOperator: Operator = {
     throw new Error('is operator requires special handling');
   },
   compile: (compiler, input, args) => {
-    throw new Error('is operator requires special compilation');
+    throw new EvaluationError('is operator requires special compilation');
   }
 };
 
@@ -74,7 +75,7 @@ export const asOperator: Operator = {
     throw new Error('as operator requires special handling');
   },
   compile: (compiler, input, args) => {
-    throw new Error('as operator requires special compilation');
+    throw new EvaluationError('as operator requires special compilation');
   }
 };
 

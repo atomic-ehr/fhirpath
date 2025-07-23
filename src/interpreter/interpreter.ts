@@ -200,10 +200,27 @@ export class Interpreter implements IInterpreter {
   }
 
   private evaluateFunction(node: FunctionNode, input: any[], context: Context): EvaluationResult {
-    // Extract function name
+    // Extract function name and handle method call syntax
     let funcName: string;
+    let functionInput = input;
+    
     if (node.name.type === NodeType.Identifier) {
       funcName = (node.name as IdentifierNode).name;
+    } else if (node.name.type === NodeType.Binary && (node.name as BinaryNode).operator === TokenType.DOT) {
+      // Method call syntax: expression.function(args)
+      const binaryNode = node.name as BinaryNode;
+      
+      // Evaluate the left side to get the input
+      const leftResult = this.evaluate(binaryNode.left, input, context);
+      functionInput = leftResult.value;
+      context = leftResult.context;
+      
+      // Get the function name from the right side
+      if (binaryNode.right.type === NodeType.Identifier) {
+        funcName = (binaryNode.right as IdentifierNode).name;
+      } else {
+        throw new EvaluationError('Invalid method call syntax', node.position);
+      }
     } else {
       throw new EvaluationError('Complex function names not yet supported', node.position);
     }
@@ -215,7 +232,7 @@ export class Interpreter implements IInterpreter {
     }
     
     // Check propagateEmptyInput flag
-    if (operation.signature.propagatesEmpty && input.length === 0) {
+    if (operation.signature.propagatesEmpty && functionInput.length === 0) {
       return { value: [], context };
     }
     
@@ -230,14 +247,14 @@ export class Interpreter implements IInterpreter {
         evaluatedArgs.push(arg);
       } else {
         // Evaluate the argument to get its value
-        const argResult = this.evaluate(arg!, input, context);
+        const argResult = this.evaluate(arg!, functionInput, context);
         evaluatedArgs.push(argResult.value);
         context = argResult.context;
       }
     }
     
     // Use operation's evaluate method
-    return operation.evaluate(this, context, input, ...evaluatedArgs);
+    return operation.evaluate(this, context, functionInput, ...evaluatedArgs);
   }
 
   private evaluateCollection(node: CollectionNode, input: any[], context: Context): EvaluationResult {
