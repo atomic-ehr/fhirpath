@@ -152,7 +152,7 @@ export const isOperator: Operator = {
           if (source && /^[A-Z]/.test(source)) {
             typeName = source;
           } else {
-            throw new Error(`Cannot determine type name: ${e.message}`);
+            throw new Error(`Cannot determine type name: ${(e as Error).message}`);
           }
         }
         

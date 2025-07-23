@@ -211,12 +211,12 @@ export function runSingleTest(test: UnifiedTest, mode: 'interpreter' | 'compiler
       });
       
       const runtimeContext = {
-        data: test.input,
+        input: test.input,
         env: runtimeEnv,
-        rootData: context.rootContext
+        focus: test.context?.rootContext
       };
       
-      const result = compiled(runtimeContext);
+      const result = compiled.fn(runtimeContext);
       const endTime = performance.now();
       
       if (test.error) {

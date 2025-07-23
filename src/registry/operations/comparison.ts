@@ -61,8 +61,8 @@ export const eqOperator: Operator = {
     const [leftExpr, rightExpr] = args;
     return {
       fn: (ctx) => {
-        const left = leftExpr.fn(ctx);
-        const right = rightExpr.fn(ctx);
+        const left = leftExpr?.fn(ctx) || [];
+        const right = rightExpr?.fn(ctx) || [];
         if (left.length === 0 || right.length === 0) return [];
         
         // FHIRPath equality compares entire collections if both have multiple items
@@ -111,8 +111,8 @@ export const neqOperator: Operator = {
     const [leftExpr, rightExpr] = args;
     return {
       fn: (ctx) => {
-        const left = leftExpr.fn(ctx);
-        const right = rightExpr.fn(ctx);
+        const left = leftExpr?.fn(ctx) || [];
+        const right = rightExpr?.fn(ctx) || [];
         if (left.length === 0 || right.length === 0) return [];
         
         // FHIRPath inequality compares entire collections if both have multiple items
@@ -160,8 +160,8 @@ export const ltOperator: Operator = {
     const [leftExpr, rightExpr] = args;
     return {
       fn: (ctx) => {
-        const left = leftExpr.fn(ctx);
-        const right = rightExpr.fn(ctx);
+        const left = leftExpr?.fn(ctx) || [];
+        const right = rightExpr?.fn(ctx) || [];
         if (left.length === 0 || right.length === 0) return [];
         const l = left[0];
         const r = right[0];
@@ -208,8 +208,8 @@ export const gtOperator: Operator = {
     const [leftExpr, rightExpr] = args;
     return {
       fn: (ctx) => {
-        const left = leftExpr.fn(ctx);
-        const right = rightExpr.fn(ctx);
+        const left = leftExpr?.fn(ctx) || [];
+        const right = rightExpr?.fn(ctx) || [];
         if (left.length === 0 || right.length === 0) return [];
         const l = left[0];
         const r = right[0];
@@ -256,8 +256,8 @@ export const lteOperator: Operator = {
     const [leftExpr, rightExpr] = args;
     return {
       fn: (ctx) => {
-        const left = leftExpr.fn(ctx);
-        const right = rightExpr.fn(ctx);
+        const left = leftExpr?.fn(ctx) || [];
+        const right = rightExpr?.fn(ctx) || [];
         if (left.length === 0 || right.length === 0) return [];
         const l = left[0];
         const r = right[0];
@@ -304,8 +304,8 @@ export const gteOperator: Operator = {
     const [leftExpr, rightExpr] = args;
     return {
       fn: (ctx) => {
-        const left = leftExpr.fn(ctx);
-        const right = rightExpr.fn(ctx);
+        const left = leftExpr?.fn(ctx) || [];
+        const right = rightExpr?.fn(ctx) || [];
         if (left.length === 0 || right.length === 0) return [];
         const l = left[0];
         const r = right[0];
@@ -356,8 +356,8 @@ export const equivOperator: Operator = {
     const [leftExpr, rightExpr] = args;
     return {
       fn: (ctx) => {
-        const left = leftExpr.fn(ctx);
-        const right = rightExpr.fn(ctx);
+        const left = leftExpr?.fn(ctx) || [];
+        const right = rightExpr?.fn(ctx) || [];
         if (left.length === 0 || right.length === 0) return [];
         const l = left[0];
         const r = right[0];
@@ -401,8 +401,8 @@ export const nequivOperator: Operator = {
     const [leftExpr, rightExpr] = args;
     return {
       fn: (ctx) => {
-        const left = leftExpr.fn(ctx);
-        const right = rightExpr.fn(ctx);
+        const left = leftExpr?.fn(ctx) || [];
+        const right = rightExpr?.fn(ctx) || [];
         if (left.length === 0 || right.length === 0) return [];
         const l = left[0];
         const r = right[0];

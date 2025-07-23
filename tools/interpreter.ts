@@ -12,7 +12,7 @@ if (args.length < 1) {
   process.exit(1);
 }
 
-const expression = args[0];
+const expression = args[0]!;
 let input: any = {};
 
 if (args[1]) {

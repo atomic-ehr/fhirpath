@@ -113,11 +113,11 @@ if (args[0] === "--tags") {
   
   sortedTags.forEach(tag => {
     if (tag.includes("-")) {
-      const category = tag.split("-")[0];
+      const category = tag.split("-")[0]!;
       if (!categorizedTags.has(category)) {
-        categorizedTags.set(category, []);
+        categorizedTags.set(category!, []);
       }
-      categorizedTags.get(category)!.push(tag);
+      categorizedTags.get(category!)!.push(tag);
     } else {
       uncategorized.push(tag);
     }
@@ -389,6 +389,12 @@ const testFile = args[0];
 const testName = args[1];
 const mode = args[2] as "interpreter" | "compiler" | "both" | undefined;
 
+// Check if testFile is provided
+if (!testFile) {
+  console.error("Test file is required");
+  process.exit(1);
+}
+
 // Build the full path
 const testPath = testFile.startsWith("/") || testFile.startsWith("../") 
   ? testFile 
@@ -422,12 +428,12 @@ if (testName === "--list") {
 try {
   if (testName && testName !== "--list") {
     // Run specific test
-    console.log(`\n🎯 Running test from: ${basename(testPath)}`);
-    runTestFromFile(testPath, testName, mode || "both");
+    console.log(`\n🎯 Running test from: ${basename(testPath!)}`);
+    runTestFromFile(testPath!, testName, mode || "both");
   } else {
     // Run all tests in the file
     console.log(`\n🎯 Running all tests from: ${basename(testPath)}`);
-    runAllTestsFromFile(testPath, mode || "both");
+    runAllTestsFromFile(testPath!, mode || "both");
   }
 } catch (error: any) {
   console.error(`\n❌ Error: ${error.message}`);

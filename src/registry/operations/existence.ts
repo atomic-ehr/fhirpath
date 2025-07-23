@@ -85,7 +85,7 @@ export const existsFunction: Function = {
               $index: i
             }
           };
-          const result = criteria.fn(newCtx);
+          const result = criteria?.fn(newCtx) || [];
           if (result.length > 0 && toSingleton(result)) {
             return [true];
           }
@@ -94,7 +94,7 @@ export const existsFunction: Function = {
       },
       type: compiler.resolveType('Boolean'),
       isSingleton: true,
-      source: `${input.source || ''}.exists(${criteria.source || ''})`
+      source: `${input.source || ''}.exists(${criteria?.source || ''})`
     };
   }
 };
@@ -397,7 +397,7 @@ export const allFunction: Function = {
               $index: i
             }
           };
-          const result = criteria.fn(newCtx);
+          const result = criteria?.fn(newCtx) || [];
           
           if (!isTruthy(result)) {
             return [false];

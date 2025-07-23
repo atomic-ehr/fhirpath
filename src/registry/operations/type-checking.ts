@@ -31,7 +31,7 @@ export const typeFunction: Function = {
     const types = new Set<string>();
     
     for (const item of input) {
-      types.add(TypeSystem.getType(item));
+      types.add(TypeSystem.getType(item).name);
     }
     
     return { value: Array.from(types), context };

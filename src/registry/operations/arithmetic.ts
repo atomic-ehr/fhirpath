@@ -42,8 +42,8 @@ export const plusOperator: Operator = {
     const result = defaultOperatorAnalyze.call(this, analyzer, input, args);
     
     // Additional validation: both operands should be same "category" (numeric vs string)
-    const leftType = args[0].type;
-    const rightType = args[1].type;
+    const leftType = args[0]?.type;
+    const rightType = args[1]?.type;
     
     const leftTypeName = typeof leftType === 'string' ? leftType : (leftType as any).type || (leftType as any).name || 'unknown';
     const rightTypeName = typeof rightType === 'string' ? rightType : (rightType as any).type || (rightType as any).name || 'unknown';
@@ -78,8 +78,8 @@ export const plusOperator: Operator = {
   
   compile: (compiler, input, args) => ({
     fn: (ctx) => {
-      const left = args[0].fn(ctx);
-      const right = args[1].fn(ctx);
+      const left = args[0]?.fn(ctx) || [];
+      const right = args[1]?.fn(ctx) || [];
       if (left.length === 0 || right.length === 0) return [];
       
       const l = toSingleton(left);
@@ -91,9 +91,9 @@ export const plusOperator: Operator = {
       
       return [l + r];
     },
-    type: promoteNumericType(args[0].type, args[1].type),
+    type: promoteNumericType(args[0]?.type, args[1]?.type),
     isSingleton: true,
-    source: `${args[0].source || ''} + ${args[1].source || ''}`
+    source: `${args[0]?.source || ''} + ${args[1]?.source || ''}`
   })
 };
 
@@ -134,15 +134,15 @@ export const minusOperator: Operator = {
   
   compile: (compiler, input, args) => ({
     fn: (ctx) => {
-      const left = args[0].fn(ctx);
-      const right = args[1].fn(ctx);
+      const left = args[0]?.fn(ctx) || [];
+      const right = args[1]?.fn(ctx) || [];
       if (left.length === 0 || right.length === 0) return [];
       
       return [toSingleton(left) - toSingleton(right)];
     },
-    type: promoteNumericType(args[0].type, args[1].type),
+    type: promoteNumericType(args[0]?.type, args[1]?.type),
     isSingleton: true,
-    source: `${args[0].source || ''} - ${args[1].source || ''}`
+    source: `${args[0]?.source || ''} - ${args[1]?.source || ''}`
   })
 };
 
@@ -183,15 +183,15 @@ export const multiplyOperator: Operator = {
   
   compile: (compiler, input, args) => ({
     fn: (ctx) => {
-      const left = args[0].fn(ctx);
-      const right = args[1].fn(ctx);
+      const left = args[0]?.fn(ctx) || [];
+      const right = args[1]?.fn(ctx) || [];
       if (left.length === 0 || right.length === 0) return [];
       
       return [toSingleton(left) * toSingleton(right)];
     },
-    type: promoteNumericType(args[0].type, args[1].type),
+    type: promoteNumericType(args[0]?.type, args[1]?.type),
     isSingleton: true,
-    source: `${args[0].source || ''} * ${args[1].source || ''}`
+    source: `${args[0]?.source || ''} * ${args[1]?.source || ''}`
   })
 };
 
@@ -234,8 +234,8 @@ export const divideOperator: Operator = {
   
   compile: (compiler, input, args) => ({
     fn: (ctx) => {
-      const left = args[0].fn(ctx);
-      const right = args[1].fn(ctx);
+      const left = args[0]?.fn(ctx) || [];
+      const right = args[1]?.fn(ctx) || [];
       if (left.length === 0 || right.length === 0) return [];
       
       const r = toSingleton(right);
@@ -245,7 +245,7 @@ export const divideOperator: Operator = {
     },
     type: compiler.resolveType('Decimal'),
     isSingleton: true,
-    source: `${args[0].source || ''} / ${args[1].source || ''}`
+    source: `${args[0]?.source || ''} / ${args[1]?.source || ''}`
   })
 };
 
@@ -288,8 +288,8 @@ export const modOperator: Operator = {
   
   compile: (compiler, input, args) => ({
     fn: (ctx) => {
-      const left = args[0].fn(ctx);
-      const right = args[1].fn(ctx);
+      const left = args[0]?.fn(ctx) || [];
+      const right = args[1]?.fn(ctx) || [];
       if (left.length === 0 || right.length === 0) return [];
       
       const r = toSingleton(right);
@@ -297,9 +297,9 @@ export const modOperator: Operator = {
       
       return [toSingleton(left) % r];
     },
-    type: promoteNumericType(args[0].type, args[1].type),
+    type: promoteNumericType(args[0]?.type, args[1]?.type),
     isSingleton: true,
-    source: `${args[0].source || ''} mod ${args[1].source || ''}`
+    source: `${args[0]?.source || ''} mod ${args[1]?.source || ''}`
   })
 };
 
@@ -342,8 +342,8 @@ export const divOperator: Operator = {
   
   compile: (compiler, input, args) => ({
     fn: (ctx) => {
-      const left = args[0].fn(ctx);
-      const right = args[1].fn(ctx);
+      const left = args[0]?.fn(ctx) || [];
+      const right = args[1]?.fn(ctx) || [];
       if (left.length === 0 || right.length === 0) return [];
       
       const r = toSingleton(right);
@@ -353,7 +353,7 @@ export const divOperator: Operator = {
     },
     type: compiler.resolveType('Integer'),
     isSingleton: true,
-    source: `${args[0].source || ''} div ${args[1].source || ''}`
+    source: `${args[0]?.source || ''} div ${args[1]?.source || ''}`
   })
 };
 
@@ -387,10 +387,10 @@ export const unaryPlusOperator: Operator = {
   },
   
   compile: (compiler, input, args) => ({
-    fn: (ctx) => args[0].fn(ctx),
-    type: args[0].type,
+    fn: (ctx) => args[0]?.fn(ctx) || [],
+    type: args[0]?.type,
     isSingleton: true,
-    source: `+${args[0].source || ''}`
+    source: `+${args[0]?.source || ''}`
   })
 };
 
@@ -427,13 +427,13 @@ export const unaryMinusOperator: Operator = {
   
   compile: (compiler, input, args) => ({
     fn: (ctx) => {
-      const operand = args[0].fn(ctx);
+      const operand = args[0]?.fn(ctx) || [];
       if (operand.length === 0) return [];
       return [-toSingleton(operand)];
     },
-    type: args[0].type,
+    type: args[0]?.type,
     isSingleton: true,
-    source: `-${args[0].source || ''}`
+    source: `-${args[0]?.source || ''}`
   })
 };
 
@@ -477,8 +477,8 @@ export const concatOperator: Operator = {
   
   compile: (compiler, input, args) => ({
     fn: (ctx) => {
-      const left = args[0].fn(ctx);
-      const right = args[1].fn(ctx);
+      const left = args[0]?.fn(ctx) || [];
+      const right = args[1]?.fn(ctx) || [];
       if (left.length === 0 || right.length === 0) return [];
       
       // String concatenation requires both operands to be singletons
@@ -488,7 +488,7 @@ export const concatOperator: Operator = {
     },
     type: compiler.resolveType('String'),
     isSingleton: true,
-    source: `${args[0].source || ''} & ${args[1].source || ''}`
+    source: `${args[0]?.source || ''} & ${args[1]?.source || ''}`
   })
 };
 

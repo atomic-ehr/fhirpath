@@ -75,8 +75,8 @@ export const andOperator: Operator = {
   
   compile: (compiler, input, args) => ({
     fn: (ctx) => {
-      const left = args[0].fn(ctx);
-      const right = args[1].fn(ctx);
+      const left = args[0]?.fn(ctx) || [];
+      const right = args[1]?.fn(ctx) || [];
       
       const leftEmpty = left.length === 0;
       const rightEmpty = right.length === 0;
@@ -95,7 +95,7 @@ export const andOperator: Operator = {
     },
     type: compiler.resolveType('Boolean'),
     isSingleton: true,
-    source: `${args[0].source || ''} and ${args[1].source || ''}`
+    source: `${args[0]?.source || ''} and ${args[1]?.source || ''}`
   })
 };
 
@@ -171,8 +171,8 @@ export const orOperator: Operator = {
   
   compile: (compiler, input, args) => ({
     fn: (ctx) => {
-      const left = args[0].fn(ctx);
-      const right = args[1].fn(ctx);
+      const left = args[0]?.fn(ctx) || [];
+      const right = args[1]?.fn(ctx) || [];
       
       const leftEmpty = left.length === 0;
       const rightEmpty = right.length === 0;
@@ -191,7 +191,7 @@ export const orOperator: Operator = {
     },
     type: compiler.resolveType('Boolean'),
     isSingleton: true,
-    source: `${args[0].source || ''} or ${args[1].source || ''}`
+    source: `${args[0]?.source || ''} or ${args[1]?.source || ''}`
   })
 };
 
@@ -232,13 +232,13 @@ export const notOperator: Operator = {
   
   compile: (compiler, input, args) => ({
     fn: (ctx) => {
-      const operand = args[0].fn(ctx);
+      const operand = args[0]?.fn(ctx) || [];
       if (operand.length === 0) return [true];
       return operand.map((item: any) => !toBoolean(item));
     },
     type: compiler.resolveType('Boolean'),
-    isSingleton: args[0].isSingleton,
-    source: `not ${args[0].source || ''}`
+    isSingleton: args[0]?.isSingleton ?? false,
+    source: `not ${args[0]?.source || ''}`
   })
 };
 
@@ -280,8 +280,8 @@ export const xorOperator: Operator = {
   
   compile: (compiler, input, args) => ({
     fn: (ctx) => {
-      const left = args[0].fn(ctx);
-      const right = args[1].fn(ctx);
+      const left = args[0]?.fn(ctx) || [];
+      const right = args[1]?.fn(ctx) || [];
       
       if (left.length === 0 || right.length === 0) return [];
       
@@ -292,7 +292,7 @@ export const xorOperator: Operator = {
     },
     type: compiler.resolveType('Boolean'),
     isSingleton: true,
-    source: `${args[0].source || ''} xor ${args[1].source || ''}`
+    source: `${args[0]?.source || ''} xor ${args[1]?.source || ''}`
   })
 };
 
@@ -368,8 +368,8 @@ export const impliesOperator: Operator = {
   
   compile: (compiler, input, args) => ({
     fn: (ctx) => {
-      const left = args[0].fn(ctx);
-      const right = args[1].fn(ctx);
+      const left = args[0]?.fn(ctx) || [];
+      const right = args[1]?.fn(ctx) || [];
       
       const leftEmpty = left.length === 0;
       const rightEmpty = right.length === 0;
@@ -388,7 +388,7 @@ export const impliesOperator: Operator = {
     },
     type: compiler.resolveType('Boolean'),
     isSingleton: true,
-    source: `${args[0].source || ''} implies ${args[1].source || ''}`
+    source: `${args[0]?.source || ''} implies ${args[1]?.source || ''}`
   })
 };
 

@@ -15,28 +15,27 @@ export const aggregateFunction: Function = {
   signature: {
     input: {
       types: { kind: 'any' },
-      cardinality: 'any'
+      cardinality: 'collection'
     },
     parameters: [
       {
         name: 'aggregator',
         kind: 'expression',
         types: { kind: 'any' },
-        cardinality: 'any',
+        cardinality: 'collection',
         optional: false
       },
       {
         name: 'init',
         kind: 'value',
         types: { kind: 'any' },
-        cardinality: 'any',
+        cardinality: 'collection',
         optional: true
       }
     ],
     output: {
-      type: 'preserve-parameter',
-      parameterIndex: 0,
-      cardinality: 'any'
+      type: 'any',
+      cardinality: 'collection'
     },
     propagatesEmpty: false,
     deterministic: true
@@ -84,7 +83,7 @@ export const childrenFunction: Function = {
   signature: {
     input: {
       types: { kind: 'any' },
-      cardinality: 'any'
+      cardinality: 'collection'
     },
     parameters: [],
     output: {
@@ -132,7 +131,7 @@ export const descendantsFunction: Function = {
   signature: {
     input: {
       types: { kind: 'any' },
-      cardinality: 'any'
+      cardinality: 'collection'
     },
     parameters: [],
     output: {
@@ -208,34 +207,34 @@ export const iifFunction: Function = {
   signature: {
     input: {
       types: { kind: 'any' },
-      cardinality: 'any'
+      cardinality: 'collection'
     },
     parameters: [
       {
         name: 'condition',
         kind: 'expression',
         types: { kind: 'any' },
-        cardinality: 'any',
+        cardinality: 'collection',
         optional: false
       },
       {
         name: 'then',
         kind: 'expression',
         types: { kind: 'any' },
-        cardinality: 'any',
+        cardinality: 'collection',
         optional: false
       },
       {
         name: 'else',
         kind: 'expression',
         types: { kind: 'any' },
-        cardinality: 'any',
+        cardinality: 'collection',
         optional: false
       }
     ],
     output: {
       type: 'any',
-      cardinality: 'any'
+      cardinality: 'collection'
     },
     propagatesEmpty: false,
     deterministic: true
@@ -292,7 +291,7 @@ export const defineVariableFunction: Function = {
   signature: {
     input: {
       types: { kind: 'any' },
-      cardinality: 'any'
+      cardinality: 'collection'
     },
     parameters: [
       {
@@ -306,13 +305,13 @@ export const defineVariableFunction: Function = {
         name: 'value',
         kind: 'expression',
         types: { kind: 'any' },
-        cardinality: 'any',
+        cardinality: 'collection',
         optional: false
       }
     ],
     output: {
       type: 'preserve-input',
-      cardinality: 'preserve-input'
+      cardinality: 'collection'
     },
     propagatesEmpty: false,
     deterministic: true
@@ -351,7 +350,7 @@ export const defineVariableFunction: Function = {
     
     // The name parameter should evaluate to a constant string
     try {
-      const nameResult = nameExpr.fn({ input: [], focus: [], env: {} });
+      const nameResult = nameExpr?.fn({ input: [], focus: [], env: {} }) || [];
       if (nameResult.length === 1 && typeof nameResult[0] === 'string') {
         varName = nameResult[0];
       }
@@ -406,7 +405,7 @@ export const traceFunction: Function = {
   signature: {
     input: {
       types: { kind: 'any' },
-      cardinality: 'any'
+      cardinality: 'collection'
     },
     parameters: [
       {
@@ -420,13 +419,13 @@ export const traceFunction: Function = {
         name: 'selector',
         kind: 'expression',
         types: { kind: 'any' },
-        cardinality: 'any',
+        cardinality: 'collection',
         optional: true
       }
     ],
     output: {
       type: 'preserve-input',
-      cardinality: 'preserve-input'
+      cardinality: 'collection'
     },
     propagatesEmpty: false,
     deterministic: false
@@ -461,27 +460,27 @@ export const checkFunction: Function = {
   signature: {
     input: {
       types: { kind: 'any' },
-      cardinality: 'any'
+      cardinality: 'collection'
     },
     parameters: [
       {
         name: 'error',
         kind: 'expression',
         types: { kind: 'any' },
-        cardinality: 'any',
+        cardinality: 'collection',
         optional: false
       },
       {
         name: 'condition',
         kind: 'expression',
         types: { kind: 'any' },
-        cardinality: 'any',
+        cardinality: 'collection',
         optional: false
       }
     ],
     output: {
       type: 'preserve-input',
-      cardinality: 'preserve-input'
+      cardinality: 'collection'
     },
     propagatesEmpty: false,
     deterministic: true
