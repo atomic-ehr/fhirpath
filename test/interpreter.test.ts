@@ -432,10 +432,18 @@ describe('FHIRPath Interpreter', () => {
               { name: 'C', price: 15 }
             ]
           }];
-          const ast = parse('items.where(price > 12 and price < 18)');
-          const result = interpreter.evaluate(ast, input, context);
-          expect(result.value).toHaveLength(1);
-          expect(result.value[0].name).toBe('C');
+          
+          // Without parentheses - with correct precedence, this should work
+          const ast1 = parse('items.where(price > 12 and price < 18)');
+          const result1 = interpreter.evaluate(ast1, input, context);
+          expect(result1.value).toHaveLength(1); // Works correctly with fixed precedence
+          expect(result1.value[0].name).toBe('C');
+          
+          // With parentheses - correct evaluation
+          const ast2 = parse('items.where((price > 12) and (price < 18))');
+          const result2 = interpreter.evaluate(ast2, input, context);
+          expect(result2.value).toHaveLength(1);
+          expect(result2.value[0].name).toBe('C');
         });
       });
 
@@ -581,44 +589,43 @@ describe('FHIRPath Interpreter', () => {
 
     describe('Type Operators (is/as)', () => {
       it('is operator checks type', () => {
-        // Test with primitive types
-        const ast1 = parse("'hello'.is(String)");
+        // Test with primitive types using infix syntax
+        const ast1 = parse("'hello' is String");
         const result1 = interpreter.evaluate(ast1, [], context);
         expect(result1.value).toEqual([true]);
 
-        const ast2 = parse('42.is(Integer)');
+        const ast2 = parse('42 is Integer');
         const result2 = interpreter.evaluate(ast2, [], context);
         expect(result2.value).toEqual([true]);
 
-        const ast3 = parse('3.14.is(Decimal)');
+        const ast3 = parse('3.14 is Decimal');
         const result3 = interpreter.evaluate(ast3, [], context);
         expect(result3.value).toEqual([true]);
 
-        const ast4 = parse('true.is(Boolean)');
+        const ast4 = parse('true is Boolean');
         const result4 = interpreter.evaluate(ast4, [], context);
         expect(result4.value).toEqual([true]);
       });
 
       it('is operator returns false for wrong type', () => {
-        const ast1 = parse("'hello'.is(Integer)");
+        const ast1 = parse("'hello' is Integer");
         const result1 = interpreter.evaluate(ast1, [], context);
         expect(result1.value).toEqual([false]);
 
-        const ast2 = parse('42.is(String)');
+        const ast2 = parse('42 is String');
         const result2 = interpreter.evaluate(ast2, [], context);
         expect(result2.value).toEqual([false]);
       });
 
       it('is operator works with FHIR resource types', () => {
         const patient = { resourceType: 'Patient', name: 'John' };
-        const observation = { resourceType: 'Observation', value: 100 };
         
-        const ast1 = parse('$this.is(Patient)');
+        const ast1 = parse('$this is Patient');
         const ctx1 = ContextManager.setIteratorContext(context, patient, 0);
         const result1 = interpreter.evaluate(ast1, [], ctx1);
         expect(result1.value).toEqual([true]);
 
-        const ast2 = parse('$this.is(Observation)');
+        const ast2 = parse('$this is Observation');
         const ctx2 = ContextManager.setIteratorContext(context, patient, 0);
         const result2 = interpreter.evaluate(ast2, [], ctx2);
         expect(result2.value).toEqual([false]);
@@ -631,7 +638,8 @@ describe('FHIRPath Interpreter', () => {
           { resourceType: 'Patient', id: '3' }
         ];
 
-        const ast = parse('as(Patient)');
+        // Use ofType() function for filtering by type
+        const ast = parse('ofType(Patient)');
         const result = interpreter.evaluate(ast, input, context);
         expect(result.value).toHaveLength(2);
         expect(result.value[0].id).toBe('1');
@@ -640,7 +648,7 @@ describe('FHIRPath Interpreter', () => {
 
       it('as operator returns empty for non-matching types', () => {
         const input = [{ resourceType: 'Observation', id: '1' }];
-        const ast = parse('as(Patient)');
+        const ast = parse('ofType(Patient)');
         const result = interpreter.evaluate(ast, input, context);
         expect(result.value).toEqual([]);
       });

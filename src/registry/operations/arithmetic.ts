@@ -37,7 +37,29 @@ export const plusOperator: Operator = {
     propagatesEmpty: true
   },
   
-  analyze: defaultOperatorAnalyze,
+  analyze: function(analyzer, input, args) {
+    // First run default validation
+    const result = defaultOperatorAnalyze.call(this, analyzer, input, args);
+    
+    // Additional validation: both operands should be same "category" (numeric vs string)
+    const leftType = args[0].type;
+    const rightType = args[1].type;
+    
+    const leftTypeName = typeof leftType === 'string' ? leftType : (leftType as any).type || (leftType as any).name || 'unknown';
+    const rightTypeName = typeof rightType === 'string' ? rightType : (rightType as any).type || (rightType as any).name || 'unknown';
+    
+    const isLeftString = leftTypeName === 'String' || leftTypeName === 'string';
+    const isRightString = rightTypeName === 'String' || rightTypeName === 'string';
+    const isLeftNumeric = ['Integer', 'Decimal', 'integer', 'decimal'].includes(leftTypeName);
+    const isRightNumeric = ['Integer', 'Decimal', 'integer', 'decimal'].includes(rightTypeName);
+    
+    // If one is string and other is numeric, that's an error
+    if ((isLeftString && isRightNumeric) || (isLeftNumeric && isRightString)) {
+      analyzer.error(`Operator '+' cannot be applied to types ${leftTypeName} and ${rightTypeName}`);
+    }
+    
+    return result;
+  },
   
   evaluate: (interpreter, context, input, left, right) => {
     if (left.length === 0 || right.length === 0) return { value: [], context };

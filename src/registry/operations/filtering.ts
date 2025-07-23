@@ -123,7 +123,19 @@ export const selectFunction: Function = {
     deterministic: true
   },
   
-  analyze: defaultFunctionAnalyze,
+  analyze: function(analyzer, input, args) {
+    // First run default validation
+    defaultFunctionAnalyze.call(this, analyzer, input, args);
+    
+    // For select(), the output type is determined by the expression result
+    const expressionInfo = args[0];
+    if (!expressionInfo) {
+      return { type: analyzer.resolveType('Any'), isSingleton: false };
+    }
+    
+    // select() always returns a collection
+    return { type: expressionInfo.type, isSingleton: false };
+  },
   
   evaluate: (interpreter, context, input, expression) => {
     const results: any[] = [];
@@ -192,9 +204,9 @@ export const ofTypeFunction: Function = {
     parameters: [
       {
         name: 'type',
-        kind: 'value',
-        types: { kind: 'primitive', types: ['String'] },
-        cardinality: 'singleton',
+        kind: 'expression',
+        types: { kind: 'any' },
+        cardinality: 'any',
         optional: false
       }
     ],
@@ -208,8 +220,18 @@ export const ofTypeFunction: Function = {
   
   analyze: defaultFunctionAnalyze,
   
-  evaluate: (interpreter, context, input, typeName) => {
+  evaluate: (interpreter, context, input, typeNode) => {
     const results: any[] = [];
+    
+    // Extract type name from AST node
+    let typeName: string;
+    if (typeNode && typeNode.type === 11) { // TypeReference (correct enum value)
+      typeName = typeNode.typeName;
+    } else if (typeNode && typeNode.type === 1) { // TypeOrIdentifier
+      typeName = typeNode.name;
+    } else {
+      throw new Error('ofType() requires a type reference');
+    }
     
     for (const item of input) {
       if (isOfType(item, typeName)) {

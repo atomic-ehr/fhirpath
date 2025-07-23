@@ -46,7 +46,9 @@
           { "name": "C", "price": 15 }
         ]
       }],
-      "expected": [],
+      "expected": [
+        { "name": "C", "price": 15 }
+      ],
       "tags": ["function", "where", "filter", "complex", "precedence"]
     },
     {

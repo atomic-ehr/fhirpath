@@ -140,7 +140,7 @@ describe('TypeAnalyzer', () => {
       // Now we get 2 errors: singleton requirement and type requirement
       expect(result.diagnostics).toHaveLength(2);
       expect(result.diagnostics.some(d => d.message.includes('singleton input'))).toBe(true);
-      expect(result.diagnostics.some(d => d.message.includes('requires string input'))).toBe(true);
+      expect(result.diagnostics.some(d => d.message.includes('expects input of type String'))).toBe(true);
     });
   });
   
@@ -311,13 +311,13 @@ describe('TypeAnalyzer', () => {
 
       const result2 = analyze('Patient.name.given.length()');
       expect(result2.diagnostics[0]).toMatchObject({
-        message: "Function length requires singleton input",
+        message: "Function 'length' requires singleton input but got collection",
         severity: 'error',
       });
 
       const result3 = analyze('Patient.birthDate.length()');
       expect(result3.diagnostics[0]).toMatchObject({
-        message: "Function length requires string input, but got Date"
+        message: "Function 'length' expects input of type String but got date"
       });
 
       const result4 = analyze('Patient.name.given.first() + Patient.name.family.first()');

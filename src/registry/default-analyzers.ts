@@ -107,8 +107,11 @@ export function defaultOperatorAnalyze(
     
     // Check type constraint
     if (param.types && !matchesConstraint(arg.type, param.types)) {
+      const argTypeName = typeof arg.type === 'string' 
+        ? arg.type 
+        : (arg.type as any).type || (arg.type as any).name || 'unknown';
       analyzer.error(
-        `Operator '${this.name}' parameter '${param.name}' expects ${formatConstraint(param.types)} but got ${arg.type}`
+        `Operator '${this.name}' parameter '${param.name}' expects ${formatConstraint(param.types)} but got ${argTypeName}`
       );
     }
     
@@ -157,8 +160,11 @@ export function defaultFunctionAnalyze(
   // Check input constraints if specified
   if (signature.input) {
     if (signature.input.types && !matchesConstraint(input.type, signature.input.types)) {
+      const inputTypeName = typeof input.type === 'string' 
+        ? input.type 
+        : (input.type as any).type || (input.type as any).name || 'unknown';
       analyzer.error(
-        `Function '${this.name}' expects input of type ${formatConstraint(signature.input.types)} but got ${input.type}`
+        `Function '${this.name}' expects input of type ${formatConstraint(signature.input.types)} but got ${inputTypeName}`
       );
     }
     
@@ -196,8 +202,11 @@ export function defaultFunctionAnalyze(
     
     // Check type constraint
     if (param.types && !matchesConstraint(arg.type, param.types)) {
+      const argTypeName = typeof arg.type === 'string' 
+        ? arg.type 
+        : (arg.type as any).type || (arg.type as any).name || 'unknown';
       analyzer.error(
-        `Function '${this.name}' parameter '${param.name}' expects ${formatConstraint(param.types)} but got ${arg.type}`
+        `Function '${this.name}' parameter '${param.name}' expects ${formatConstraint(param.types)} but got ${argTypeName}`
       );
     }
     

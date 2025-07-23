@@ -43,8 +43,10 @@ export const existsFunction: Function = {
     }
     
     // With criteria: check if any element matches
-    for (const item of input) {
-      const result = interpreter.evaluate(criteria, [item], context);
+    for (let i = 0; i < input.length; i++) {
+      const item = input[i];
+      const iterContext = ContextManager.setIteratorContext(context, item, i);
+      const result = interpreter.evaluate(criteria, [item], iterContext);
       if (result.value.length > 0 && toSingleton(result.value)) {
         return { value: [true], context: result.context };
       }
@@ -72,8 +74,17 @@ export const existsFunction: Function = {
     return {
       fn: (ctx) => {
         const inputVal = input.fn(ctx);
-        for (const item of inputVal) {
-          const newCtx = { ...ctx, input: [item] };
+        for (let i = 0; i < inputVal.length; i++) {
+          const item = inputVal[i];
+          const newCtx = { 
+            ...ctx, 
+            input: [item],
+            env: {
+              ...ctx.env,
+              $this: [item],
+              $index: i
+            }
+          };
           const result = criteria.fn(newCtx);
           if (result.length > 0 && toSingleton(result)) {
             return [true];

@@ -398,7 +398,15 @@ export class Compiler implements ICompiler {
       source: node.targetType
     };
     
-    return operation.compile(this, expression, [typeExpr]);
+    try {
+      return operation.compile(this, expression, [typeExpr]);
+    } catch (error: any) {
+      // If the error doesn't have position, add it from the node
+      if (error instanceof EvaluationError && !error.position) {
+        error.position = node.position;
+      }
+      throw error;
+    }
   }
 
   /**
@@ -419,7 +427,15 @@ export class Compiler implements ICompiler {
       source: node.targetType
     };
     
-    return operation.compile(this, expression, [typeExpr]);
+    try {
+      return operation.compile(this, expression, [typeExpr]);
+    } catch (error: any) {
+      // If the error doesn't have position, add it from the node
+      if (error instanceof EvaluationError && !error.position) {
+        error.position = node.position;
+      }
+      throw error;
+    }
   }
 
   /**

@@ -558,7 +558,42 @@ export class FHIRPathParser {
     if (token.type === TokenType.DOT) return 1;
     
     // Use registry for all other operators
-    return Registry.getPrecedence(token.type);
+    const registryPrecedence = Registry.getPrecedence(token.type);
+    
+    // Registry uses standard convention (higher number = higher precedence)
+    // Parser uses inverted convention (lower number = higher precedence)
+    // So we need to invert the value
+    if (registryPrecedence === 0) return 0; // No precedence
+    
+    // The Registry precedence values seem to be inverted from FHIRPath spec
+    // We need to map them correctly:
+    // Registry -> Parser (lower is higher precedence)
+    // 1 (implies) -> 13
+    // 2 (or) -> 12  
+    // 3 (and) -> 11
+    // 5 (additive) -> 5
+    // 6 (multiplicative, type) -> 4
+    // 8 (relational) -> 8
+    // 9 (equality) -> 9
+    // 10 (membership, unary) -> 10 or 3
+    // 13 (union) -> 7
+    
+    // For now, use the simple inversion but adjust for proper ordering
+    // Multiplicative (6) should have higher precedence than comparison (8-9)
+    // So we need a different mapping
+    const precedenceMap: Record<number, number> = {
+      1: 13,  // implies - lowest
+      2: 12,  // or, xor
+      3: 11,  // and
+      5: 5,   // additive (+, -, &)
+      6: 4,   // multiplicative (*, /, div, mod) and type (is, as)
+      8: 8,   // relational (<, >, <=, >=)
+      9: 9,   // equality (=, !=, ~, !~)
+      10: 10, // membership (in, contains) - but unary should be 3
+      13: 7   // union (|)
+    };
+    
+    return precedenceMap[registryPrecedence] ?? (15 - registryPrecedence);
   }
   
   // Helper to infer literal type from value

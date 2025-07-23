@@ -34,8 +34,7 @@ export const inOperator: Operator = {
   },
   analyze: defaultOperatorAnalyze,
   evaluate: (interpreter, context, input, element, collection) => {
-    if (element.length === 0) return { value: [false], context };
-    if (collection.length === 0) return { value: [false], context };
+    if (element.length === 0 || collection.length === 0) return { value: [], context };
     return { value: [isIn(element[0], collection)], context };
   },
   compile: (compiler, input, args) => {
@@ -44,8 +43,7 @@ export const inOperator: Operator = {
       fn: (ctx) => {
         const left = leftExpr.fn(ctx);
         const right = rightExpr.fn(ctx);
-        if (left.length === 0) return [false];
-        if (right.length === 0) return [false];
+        if (left.length === 0 || right.length === 0) return [];
         return [isIn(left[0], right)];
       },
       type: compiler.resolveType('Boolean'),
@@ -70,8 +68,7 @@ export const containsOperator: Operator = {
   },
   analyze: defaultOperatorAnalyze,
   evaluate: (interpreter, context, input, collection, element) => {
-    if (collection.length === 0) return { value: [false], context };
-    if (element.length === 0) return { value: [false], context };
+    if (collection.length === 0 || element.length === 0) return { value: [], context };
     return { value: [isIn(element[0], collection)], context };
   },
   compile: (compiler, input, args) => {
@@ -80,9 +77,8 @@ export const containsOperator: Operator = {
       fn: (ctx) => {
         const left = leftExpr.fn(ctx);
         const right = rightExpr.fn(ctx);
-        if (left.length === 0) return [false];
-        if (right.length === 0) return [false];
-        return [isIn(left[0], right)];
+        if (left.length === 0 || right.length === 0) return [];
+        return [isIn(right[0], left)];
       },
       type: compiler.resolveType('Boolean'),
       isSingleton: true

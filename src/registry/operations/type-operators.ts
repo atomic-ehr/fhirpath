@@ -38,7 +38,9 @@ export const isOperator: Operator = {
     // Type checking is handled by the interpreter
     throw new Error('is operator requires special handling');
   },
-  compile: (compiler, input, args) => {
+  compile: (compiler, input, args, node?) => {
+    // For operators, we need position info from the original node
+    // Since it's not passed, we can't provide position here
     throw new EvaluationError('is operator requires special compilation');
   }
 };
@@ -75,7 +77,9 @@ export const asOperator: Operator = {
     throw new Error('as operator requires special handling');
   },
   compile: (compiler, input, args) => {
-    throw new EvaluationError('as operator requires special compilation');
+    // The position should be available from the input expression
+    const position = (input as any).position || (args[0] as any).position;
+    throw new EvaluationError('as operator requires special compilation', position);
   }
 };
 

@@ -31,7 +31,11 @@ export class Registry {
           this.tokenToOperation.set(op.syntax.token, op);
         }
         
-        this.precedenceTable.set(op.syntax.token, op.syntax.precedence);
+        // Only set precedence for infix operators in the precedence table
+        // Prefix and postfix operators have their own precedence but don't affect the infix precedence table
+        if (op.syntax.form === 'infix') {
+          this.precedenceTable.set(op.syntax.token, op.syntax.precedence);
+        }
         // Register keyword operators (and, or, not, etc.)
         if (/^[a-z]+$/.test(op.name)) {
           this.keywords.add(op.name);

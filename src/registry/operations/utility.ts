@@ -295,9 +295,21 @@ export const defineVariableFunction: Function = {
   
   analyze: defaultFunctionAnalyze,
   
-  evaluate: (interpreter, context, input, name, valueExpr) => {
+  evaluate: (interpreter, context, input, nameValue, valueExpr) => {
+    // Extract the string value from the name parameter
+    let varName: string;
+    
+    // nameValue comes as evaluated value (array) when param.kind !== 'expression'
+    if (Array.isArray(nameValue) && nameValue.length === 1 && typeof nameValue[0] === 'string') {
+      varName = nameValue[0];
+    } else if (typeof nameValue === 'string') {
+      varName = nameValue;
+    } else {
+      throw new Error('defineVariable() requires a string literal as the first parameter');
+    }
+    
     const result = interpreter.evaluate(valueExpr, input, context);
-    const newContext = ContextManager.setVariable(result.context, name, result.value);
+    const newContext = ContextManager.setVariable(result.context, varName, result.value);
     return { value: input, context: newContext };
   },
   

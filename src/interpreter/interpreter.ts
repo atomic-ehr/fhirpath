@@ -316,14 +316,20 @@ export class Interpreter implements IInterpreter {
     // Evaluate the expression to get values to test
     const exprResult = this.evaluate(node.expression, input, context);
     
-    // For each value, check if it matches the type
-    const results: boolean[] = [];
-    for (const value of exprResult.value) {
-      results.push(TypeSystem.isType(value, node.targetType));
+    // Empty collection: is returns empty
+    if (exprResult.value.length === 0) {
+      return { value: [], context: exprResult.context };
     }
     
-    // Return collection of booleans
-    return { value: results, context: exprResult.context };
+    // Check if ALL values match the type
+    for (const value of exprResult.value) {
+      if (!TypeSystem.isType(value, node.targetType)) {
+        return { value: [false], context: exprResult.context };
+      }
+    }
+    
+    // All values match the type
+    return { value: [true], context: exprResult.context };
   }
 
   private evaluateTypeCast(node: TypeCastNode, input: any[], context: Context): EvaluationResult {
