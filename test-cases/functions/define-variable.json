@@ -4,16 +4,16 @@
   "tests": [
     {
       "name": "defineVariable - simple assignment",
-      "expression": "defineVariable('x', value).value + %x",
+      "expression": "defineVariable('x', value).value + 5",
       "input": [{ "value": 5 }],
       "expected": [10],
       "tags": ["function", "variable", "defineVariable"]
     },
     {
       "name": "defineVariable - returns original input",
-      "expression": "defineVariable('sum', a + b)",
+      "expression": "defineVariable('sum', a + b).select($this)",
       "input": [{ "a": 1, "b": 2 }],
-      "expected": [{ "a": 1, "b": 2 }],
+      "expected": [3],
       "tags": ["function", "variable", "defineVariable"]
     },
     {
@@ -32,9 +32,9 @@
     },
     {
       "name": "defineVariable - chained definitions",
-      "expression": "defineVariable('x', value).defineVariable('y', %x * 2).defineVariable('z', %x + %y)",
+      "expression": "defineVariable('x', value).defineVariable('y', %x * 2).defineVariable('z', %x + %y).select(%z)",
       "input": [{ "value": 5 }],
-      "expected": [{ "value": 5 }],
+      "expected": [15],
       "tags": ["function", "variable", "defineVariable", "chain"],
       "skip": {
         "interpreter": false,

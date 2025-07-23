@@ -29,12 +29,100 @@ Please be concise and to the point.
 * When you create or update typescript file, run `bun tsc --noEmit` to check for errors and fix them.
 * Create tests for new functionality. Put test file as ./test/<filename>.test.ts by convention.
 * Use `import {describe, it, expect} from 'bun:test'` and `bun run test` to run tests.
+* Main test cases are located in ./test-cases folder as JSON files organized by feature (operators, functions, etc.)
 
 
 ## Tasks
 
 When working on tasks move files to ./tasks/in-progress/<filename>.md
 When task finished move files to ./tasks/done/<filename>.md and write what was done in this file.
+
+## Tools
+
+* **Parser Tool** (`./tools/parser.ts`) - Parse FHIRPath expressions and output AST as JSON
+  ```bash
+  bun tools/parser.ts "<fhirpath-expression>"
+  ```
+  Examples:
+  - `bun tools/parser.ts "Patient.name.given"`
+  - `bun tools/parser.ts "5 + 3"`
+  - `bun tools/parser.ts "Patient.where(active = true)"`
+
+* **Interpreter Tool** (`./tools/interpreter.ts`) - Evaluate FHIRPath expressions with optional input data
+  ```bash
+  bun tools/interpreter.ts "<fhirpath-expression>" [input-json]
+  ```
+  Examples:
+  - `bun tools/interpreter.ts "5 + 3"`
+  - `bun tools/interpreter.ts "name.given" '{"name": [{"given": ["John", "James"]}]}'`
+  - `bun tools/interpreter.ts "name.where(use = 'official').given" '{"name": [{"use": "official", "given": ["John"]}]}'`
+  - `bun tools/interpreter.ts "'Hello' + ' ' + 'World'"`
+
+* **Compiler Tool** (`./tools/compiler.ts`) - Compile and evaluate FHIRPath expressions with optional input data
+  ```bash
+  bun tools/compiler.ts "<fhirpath-expression>" [input-json]
+  ```
+  Examples:
+  - `bun tools/compiler.ts "5 + 3"`
+  - `bun tools/compiler.ts "name.given" '{"name": [{"given": ["John", "James"]}]}'`
+  - `bun tools/compiler.ts "name.where(use = 'official').given" '{"name": [{"use": "official", "given": ["John"]}]}'`
+  - `bun tools/compiler.ts "'Hello' + ' ' + 'World'"`
+
+* **Registry Lookup Tool** (`./tools/registry-lookup.ts`) - Lookup operation metadata from the FHIRPath registry
+  ```bash
+  bun tools/registry-lookup.ts <operation-name|"list">
+  ```
+  Examples:
+  - `bun tools/registry-lookup.ts "+"` - Get metadata for the + operator
+  - `bun tools/registry-lookup.ts "where"` - Get metadata for the where function
+  - `bun tools/registry-lookup.ts "list"` - List all operations
+  - `bun tools/registry-lookup.ts "list functions"` - List all functions
+  - `bun tools/registry-lookup.ts "list operators"` - List all operators
+
+* **Test Case Runner** (`./tools/testcase.ts`) - Run test cases from JSON test files
+  ```bash
+  bun tools/testcase.ts <test-file> [test-name] [mode]
+  bun tools/testcase.ts --tags
+  bun tools/testcase.ts --tag <tag-name>
+  bun tools/testcase.ts --failing
+  bun tools/testcase.ts --failing-commands
+  ```
+  Arguments:
+  - `test-file` - Path to JSON test file (relative to test-cases/)
+  - `test-name` - Optional: specific test name to run (if not provided, runs all tests)
+  - `mode` - Optional: 'interpreter' | 'compiler' | 'both' (default: 'both')
+  
+  Commands:
+  - `--tags` - List all unique tags from all test files with usage counts
+  - `--tag <tag-name>` - Show all test expressions for a specific tag
+  - `--failing` - Show all failing tests with detailed information and debug commands
+  - `--failing-commands` - Output only the commands to run failing tests (useful for scripting)
+  - `--list` - List all tests in a specific file
+  
+  Examples:
+  - `bun tools/testcase.ts operators/arithmetic.json` - Run all tests in a file
+  - `bun tools/testcase.ts operators/arithmetic.json "addition - integers"` - Run a specific test
+  - `bun tools/testcase.ts operators/arithmetic.json "addition - integers" interpreter` - Run with interpreter only
+  - `bun tools/testcase.ts operators/arithmetic.json --list` - List all tests in a file
+  - `bun tools/testcase.ts --tags` - List all unique tags across all test cases
+  - `bun tools/testcase.ts --tag arithmetic` - Show all expressions with the "arithmetic" tag
+  - `bun tools/testcase.ts --failing` - Show all failing tests with commands to debug them
+  - `bun tools/testcase.ts --failing-commands` - Get just the commands for failing tests
+  
+  Scripting Examples:
+  ```bash
+  # Run all failing tests one by one
+  bun tools/testcase.ts --failing-commands | while read cmd; do
+    echo "Running: $cmd"
+    $cmd
+  done
+  
+  # Save failing test commands to a file
+  bun tools/testcase.ts --failing-commands > failing-tests.sh
+  
+  # Run failing tests for a specific tag
+  bun tools/testcase.ts --tag arithmetic | grep "Run:" | cut -d' ' -f2- | bash
+  ```
 
 
 
