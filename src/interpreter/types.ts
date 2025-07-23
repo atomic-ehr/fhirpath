@@ -12,10 +12,13 @@ export interface EvaluationResult {
 /**
  * Context carries variables and environment data parallel to the data stream.
  * It flows through expressions and can be modified by certain operations.
+ * 
+ * Uses JavaScript prototype chain for efficient inheritance.
  */
 export interface Context {
   // User-defined variables (%varName)
-  variables: Map<string, any[]>;
+  // Using Record instead of Map for prototype chain compatibility
+  variables: Record<string, any[]>;
   
   // Special environment variables
   env: {

@@ -187,9 +187,11 @@ describe("Unified FHIRPath Tests", () => {
       const runtimeEnv: Record<string, any> = { ...context.env };
 
       // Copy variables from Context.variables to env
-      context.variables.forEach((value, key) => {
-        runtimeEnv[key] = value;
-      });
+      for (const key in context.variables) {
+        if (Object.prototype.hasOwnProperty.call(context.variables, key)) {
+          runtimeEnv[key] = context.variables[key]!;
+        }
+      }
       
       // Copy special context variables
       if (context.$context !== undefined) {

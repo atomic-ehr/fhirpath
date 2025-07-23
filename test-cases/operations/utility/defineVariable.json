@@ -60,6 +60,14 @@
       "input": [ { "property": { "value": 1 } } ],
       "expected": [ 1 ],
       "tags": [ "defineVariable", "select", "context-propagation" ]
+    },
+    {
+      "name": "defineVariable - should propagte the input",
+      "expression": "property.defineVariable('x', 1).a",
+      "description": "defineVariable should propagate the input into output",
+      "input": [ { "property": { "a": 1 } } ],
+      "expected": [ 1 ],
+      "tags": [ "defineVariable", "select", "context-propagation" ]
     }
   ]
 }

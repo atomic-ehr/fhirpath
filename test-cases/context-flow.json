@@ -1,0 +1,13 @@
+{
+    "name": "Context Flow",
+    "description": "Tests for the context flow",
+    "tests": [
+        {
+            "name": "context flows through . operator",
+            "expression": "defineVariable('x', 5).select(%x)",
+            "input": [{}],
+            "expected": [5],
+            "tags": [ "defineVariable", "select" ]
+        }
+    ]
+}
