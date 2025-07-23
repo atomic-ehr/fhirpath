@@ -56,9 +56,9 @@ interface TestResult {
   matched: boolean;
 }
 
-// Load all test data from the test-data directory
+// Load all test data from the test-cases directory
 function loadTestData(): TestSuite[] {
-  const testDataDir = join(__dirname, "test-data");
+  const testDataDir = join(__dirname, "../test-cases");
   const testSuites: TestSuite[] = [];
 
   // Recursively find all .json files
@@ -111,7 +111,9 @@ describe("Unified FHIRPath Tests", () => {
   });
 
   function createContext(test: UnifiedTest): Context {
-    let context = ContextManager.create(test.context?.rootContext);
+    // Use rootContext if provided, otherwise use the test input as context
+    const initialContext = test.context?.rootContext ?? test.input;
+    let context = ContextManager.create(initialContext);
 
     if (test.context) {
       // Add variables
@@ -177,14 +179,22 @@ describe("Unified FHIRPath Tests", () => {
       context.variables.forEach((value, key) => {
         runtimeEnv[key] = value;
       });
+      
+      // Copy special context variables
+      if (context.$context !== undefined) {
+        runtimeEnv.$context = context.$context;
+      }
+      if (context.$resource !== undefined) {
+        runtimeEnv.$resource = context.$resource;
+      }
+      if (context.$rootResource !== undefined) {
+        runtimeEnv.$rootResource = context.$rootResource;
+      }
 
       const result = compiled.fn({
         input: test.input,
         focus: test.input,
-        env: {
-          ...runtimeEnv,
-          $this: test.input
-        },
+        env: runtimeEnv
       });
 
       const endTime = performance.now();

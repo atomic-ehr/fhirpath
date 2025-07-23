@@ -37,7 +37,25 @@ export class Compiler implements ICompiler {
    * Main entry point - compiles an AST into an executable function
    */
   compile(node: ASTNode, input?: CompiledExpression): CompiledExpression {
-    return this.compileNode(node);
+    const compiled = this.compileNode(node);
+    
+    // Wrap the compiled function to ensure $this is set
+    return {
+      ...compiled,
+      fn: (ctx: RuntimeContext) => {
+        // Ensure $this is set if not already present
+        if (!ctx.env?.$this) {
+          ctx = {
+            ...ctx,
+            env: {
+              ...ctx.env,
+              $this: ctx.input
+            }
+          };
+        }
+        return compiled.fn(ctx);
+      }
+    };
   }
   
   /**
@@ -200,7 +218,18 @@ export class Compiler implements ICompiler {
         } else {
           // User-defined variables (remove % prefix if present)
           const varName = name.startsWith('%') ? name.substring(1) : name;
-          return ctx.env[varName] || [];
+          
+          // Special root variables
+          switch (varName) {
+            case 'context':
+              return ctx.env.$context || ctx.input || [];
+            case 'resource':
+              return ctx.env.$resource || ctx.input || [];
+            case 'rootResource':
+              return ctx.env.$rootResource || ctx.input || [];
+            default:
+              return ctx.env[varName] || [];
+          }
         }
       },
       type: this.resolveType('Any'),
@@ -228,13 +257,20 @@ export class Compiler implements ICompiler {
       
       return {
         fn: (ctx: RuntimeContext) => {
-          // Execute left side with current context
-          const leftResult = left.fn(ctx);
-          // Execute right side with left's result as input
+          // Create a mutable context that can be modified by operations
+          const mutableCtx = {
+            ...ctx,
+            env: { ...ctx.env }  // Create a new env object that can be modified
+          };
+          
+          // Execute left side with mutable context
+          const leftResult = left.fn(mutableCtx);
+          
+          // Execute right side with left's result as input, using the potentially modified context
           const rightCtx: RuntimeContext = { 
-            ...ctx, 
+            ...mutableCtx,  // Use the potentially modified context
             input: leftResult,
-            focus: leftResult 
+            focus: leftResult
           };
           return right.fn(rightCtx);
         },
@@ -344,12 +380,8 @@ export class Compiler implements ICompiler {
     return {
       fn: (ctx: RuntimeContext) => {
         const exprResult = expression.fn(ctx);
-        const indexCtx: RuntimeContext = { 
-          ...ctx, 
-          input: exprResult,
-          focus: exprResult 
-        };
-        const indexResult = index.fn(indexCtx);
+        // Evaluate index in the original context
+        const indexResult = index.fn(ctx);
         
         if (indexResult.length === 0) {
           return [];

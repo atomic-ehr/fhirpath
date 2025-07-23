@@ -58,6 +58,17 @@ export class Interpreter implements IInterpreter {
    */
   evaluate(node: ASTNode, input: any[], context: Context): EvaluationResult {
     try {
+      // Ensure $this is set in the context if not already present
+      if (!context.env.$this) {
+        context = {
+          ...context,
+          env: {
+            ...context.env,
+            $this: input
+          }
+        };
+      }
+      
       const evaluator = this.nodeEvaluators[node.type];
       
       if (!evaluator) {
@@ -275,8 +286,8 @@ export class Interpreter implements IInterpreter {
     // Evaluate the expression being indexed
     const exprResult = this.evaluate(node.expression, input, context);
     
-    // Evaluate the index expression
-    const indexResult = this.evaluate(node.index, exprResult.value, exprResult.context);
+    // Evaluate the index expression in the original context
+    const indexResult = this.evaluate(node.index, input, context);
     
     // Index must be a single integer
     if (indexResult.value.length === 0) {

@@ -286,7 +286,7 @@ export const singleFunction: Function = {
   evaluate: (interpreter, context, input) => {
     if (input.length === 0) return { value: [], context };
     if (input.length !== 1) {
-      throw new Error('single() requires exactly one element');
+      throw new Error('single() requires collection to have exactly one item');
     }
     return { value: input, context };
   },
@@ -296,7 +296,7 @@ export const singleFunction: Function = {
       const inputVal = input.fn(ctx);
       if (inputVal.length === 0) return [];
       if (inputVal.length !== 1) {
-        throw new Error('single() requires exactly one element');
+        throw new Error('single() requires collection to have exactly one item');
       }
       return inputVal;
     },

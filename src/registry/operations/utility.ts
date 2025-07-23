@@ -351,7 +351,7 @@ export const defineVariableFunction: Function = {
     
     // The name parameter should evaluate to a constant string
     try {
-      const nameResult = nameExpr.fn({ input: [], env: {} });
+      const nameResult = nameExpr.fn({ input: [], focus: [], env: {} });
       if (nameResult.length === 1 && typeof nameResult[0] === 'string') {
         varName = nameResult[0];
       }
@@ -364,24 +364,28 @@ export const defineVariableFunction: Function = {
       throw new Error('defineVariable() requires a string literal as the first parameter');
     }
     
+    // Return a compiled expression that modifies the context
     return {
       fn: (ctx) => {
+        // Evaluate the input expression
         const inputVal = input.fn(ctx);
-        const valueCtx = { ...ctx, input: inputVal, focus: inputVal };
-        const value = valueExpr.fn(valueCtx);
         
-        // Add the variable to the environment
-        const newCtx = {
-          ...ctx,
-          env: {
-            ...ctx.env,
-            [varName]: value
-          }
+        // Create context for evaluating the value expression
+        const valueCtx = { 
+          ...ctx, 
+          input: inputVal, 
+          focus: inputVal 
         };
         
-        // Return the original input with the new context
-        // But since we're in a compiled context, we just return the input
-        // The variable will be available in the environment for subsequent operations
+        // Evaluate the value expression
+        const value = valueExpr.fn(valueCtx);
+        
+        // IMPORTANT: We need to modify the context object that was passed in
+        // so that subsequent operations can see the variable
+        // This is done by modifying the env object in place
+        ctx.env[varName] = value;
+        
+        // Return the original input (not the value)
         return inputVal;
       },
       type: input.type,
