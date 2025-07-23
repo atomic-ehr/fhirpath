@@ -36,6 +36,14 @@
       "input": [ { "value": 5 } ],
       "expected": [ 15 ],
       "tags": [ "defineVariable", "select", "*" ]
+    },
+    {
+      "name": "defineVariable - property access with $this",
+      "expression": "property.defineVariable('x', $this).select(%x)",
+      "description": "defineVariable should set $this to input",
+      "input": [ { "property": 1 } ],
+      "expected": [ 1 ],
+      "tags": [ "defineVariable", "select", "$this" ]
     }
   ]
 }

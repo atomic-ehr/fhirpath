@@ -332,7 +332,11 @@ export const defineVariableFunction: Function = {
       throw new Error('defineVariable() requires a string literal as the first parameter');
     }
     
-    const result = interpreter.evaluate(valueExpr, input, context);
+    // Create a new context where $this refers to the input
+    const valueContext = ContextManager.copy(context);
+    valueContext.env = { ...valueContext.env, $this: input };
+    
+    const result = interpreter.evaluate(valueExpr, input, valueContext);
     const newContext = ContextManager.setVariable(result.context, varName, result.value);
     return { value: input, context: newContext };
   },
@@ -370,10 +374,12 @@ export const defineVariableFunction: Function = {
         const inputVal = input.fn(ctx);
         
         // Create context for evaluating the value expression
+        // Set $this to the input value
         const valueCtx = { 
           ...ctx, 
           input: inputVal, 
-          focus: inputVal 
+          focus: inputVal,
+          env: { ...ctx.env, $this: inputVal }
         };
         
         // Evaluate the value expression
