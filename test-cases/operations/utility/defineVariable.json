@@ -25,7 +25,7 @@
     },
     {
       "name": "defineVariable - with expression inside",
-      "expression": "defineVariable('sum', a + b).select($this)",
+      "expression": "defineVariable('sum', a + b).select(%sum)",
       "input": [ { "a": 1, "b": 2 } ],
       "expected": [ 3 ],
       "tags": [ "defineVariable", "select", "+" ]
