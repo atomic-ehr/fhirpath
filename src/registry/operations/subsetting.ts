@@ -30,7 +30,17 @@ export const tailFunction: Function = {
     return { value: input.slice(1), context };
   },
   
-  compile: defaultFunctionCompile
+  compile: (compiler, input, args) => {
+    return {
+      fn: (ctx) => {
+        const inputVal = input.fn(ctx);
+        return inputVal.slice(1);
+      },
+      type: input.type,
+      isSingleton: false,
+      source: `${input.source || ''}.tail()`
+    };
+  }
 };
 
 export const skipFunction: Function = {
@@ -69,7 +79,33 @@ export const skipFunction: Function = {
     return { value: input.slice(count), context };
   },
   
-  compile: defaultFunctionCompile
+  compile: (compiler, input, args) => {
+    const countExpr = args[0];
+    if (!countExpr) {
+      throw new Error('skip() requires a count parameter');
+    }
+    
+    return {
+      fn: (ctx) => {
+        const inputVal = input.fn(ctx);
+        const countResult = countExpr.fn(ctx);
+        
+        if (countResult.length === 0) {
+          return inputVal;
+        }
+        
+        const count = countResult[0];
+        if (typeof count !== 'number' || !Number.isInteger(count)) {
+          throw new Error('skip() count must be an integer');
+        }
+        
+        return inputVal.slice(count);
+      },
+      type: input.type,
+      isSingleton: false,
+      source: `${input.source || ''}.skip(${countExpr.source || ''})`
+    };
+  }
 };
 
 export const takeFunction: Function = {
@@ -108,5 +144,31 @@ export const takeFunction: Function = {
     return { value: input.slice(0, count), context };
   },
   
-  compile: defaultFunctionCompile
+  compile: (compiler, input, args) => {
+    const countExpr = args[0];
+    if (!countExpr) {
+      throw new Error('take() requires a count parameter');
+    }
+    
+    return {
+      fn: (ctx) => {
+        const inputVal = input.fn(ctx);
+        const countResult = countExpr.fn(ctx);
+        
+        if (countResult.length === 0) {
+          return [];
+        }
+        
+        const count = countResult[0];
+        if (typeof count !== 'number' || !Number.isInteger(count)) {
+          throw new Error('take() count must be an integer');
+        }
+        
+        return inputVal.slice(0, count);
+      },
+      type: input.type,
+      isSingleton: false,
+      source: `${input.source || ''}.take(${countExpr.source || ''})`
+    };
+  }
 };

@@ -61,7 +61,43 @@ export const unionFunction: Function = {
     return { value: result, context: otherResult.context };
   },
   
-  compile: defaultFunctionCompile
+  compile: (compiler, input, args) => {
+    const otherExpr = args[0];
+    if (!otherExpr) {
+      throw new Error('union() requires an argument');
+    }
+    
+    return {
+      fn: (ctx) => {
+        const inputVal = input.fn(ctx);
+        const otherVal = otherExpr.fn(ctx);
+        
+        const seen = new Set();
+        const result: any[] = [];
+        
+        for (const item of inputVal) {
+          const key = JSON.stringify(item);
+          if (!seen.has(key)) {
+            seen.add(key);
+            result.push(item);
+          }
+        }
+        
+        for (const item of otherVal) {
+          const key = JSON.stringify(item);
+          if (!seen.has(key)) {
+            seen.add(key);
+            result.push(item);
+          }
+        }
+        
+        return result;
+      },
+      type: input.type,
+      isSingleton: false,
+      source: `${input.source || ''}.union(${otherExpr.source || ''})`
+    };
+  }
 };
 
 export const combineFunction: Function = {
@@ -103,7 +139,23 @@ export const combineFunction: Function = {
     return { value: [...input, ...other], context: otherResult.context };
   },
   
-  compile: defaultFunctionCompile
+  compile: (compiler, input, args) => {
+    const otherExpr = args[0];
+    if (!otherExpr) {
+      throw new Error('combine() requires an argument');
+    }
+    
+    return {
+      fn: (ctx) => {
+        const inputVal = input.fn(ctx);
+        const otherVal = otherExpr.fn(ctx);
+        return [...inputVal, ...otherVal];
+      },
+      type: input.type,
+      isSingleton: false,
+      source: `${input.source || ''}.combine(${otherExpr.source || ''})`
+    };
+  }
 };
 
 export const intersectFunction: Function = {
@@ -157,7 +209,36 @@ export const intersectFunction: Function = {
     return { value: result, context: otherResult.context };
   },
   
-  compile: defaultFunctionCompile
+  compile: (compiler, input, args) => {
+    const otherExpr = args[0];
+    if (!otherExpr) {
+      throw new Error('intersect() requires an argument');
+    }
+    
+    return {
+      fn: (ctx) => {
+        const inputVal = input.fn(ctx);
+        const otherVal = otherExpr.fn(ctx);
+        
+        const otherSet = new Set(otherVal.map((item: any) => JSON.stringify(item)));
+        const result: any[] = [];
+        const seen = new Set();
+        
+        for (const item of inputVal) {
+          const key = JSON.stringify(item);
+          if (otherSet.has(key) && !seen.has(key)) {
+            seen.add(key);
+            result.push(item);
+          }
+        }
+        
+        return result;
+      },
+      type: input.type,
+      isSingleton: false,
+      source: `${input.source || ''}.intersect(${otherExpr.source || ''})`
+    };
+  }
 };
 
 export const excludeFunction: Function = {
@@ -211,7 +292,36 @@ export const excludeFunction: Function = {
     return { value: result, context: otherResult.context };
   },
   
-  compile: defaultFunctionCompile
+  compile: (compiler, input, args) => {
+    const otherExpr = args[0];
+    if (!otherExpr) {
+      throw new Error('exclude() requires an argument');
+    }
+    
+    return {
+      fn: (ctx) => {
+        const inputVal = input.fn(ctx);
+        const otherVal = otherExpr.fn(ctx);
+        
+        const excludeSet = new Set(otherVal.map((item: any) => JSON.stringify(item)));
+        const result: any[] = [];
+        const seen = new Set();
+        
+        for (const item of inputVal) {
+          const key = JSON.stringify(item);
+          if (!excludeSet.has(key) && !seen.has(key)) {
+            seen.add(key);
+            result.push(item);
+          }
+        }
+        
+        return result;
+      },
+      type: input.type,
+      isSingleton: false,
+      source: `${input.source || ''}.exclude(${otherExpr.source || ''})`
+    };
+  }
 };
 
 // Union operator (|) - combines collections removing duplicates

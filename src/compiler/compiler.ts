@@ -159,6 +159,21 @@ export class Compiler implements ICompiler {
    * Compiles a TypeOrIdentifier node - for now, treat as identifier
    */
   private compileTypeOrIdentifier(node: TypeOrIdentifierNode): CompiledExpression {
+    // TypeOrIdentifier can be either a type name or a property identifier
+    // If it starts with uppercase, it's likely a type name
+    if (node.name && /^[A-Z]/.test(node.name)) {
+      // Return a compiled expression that returns the type name as a string
+      // This is used by the 'is' and 'as' operators
+      const typeName = node.name;
+      return {
+        fn: (ctx: RuntimeContext) => [typeName],
+        type: this.resolveType('String'),
+        isSingleton: true,
+        source: typeName
+      };
+    }
+    
+    // Otherwise, treat as regular identifier
     return this.compileIdentifier(node as any);
   }
 
@@ -399,7 +414,7 @@ export class Compiler implements ICompiler {
     };
     
     try {
-      return operation.compile(this, expression, [typeExpr]);
+      return operation.compile(this, expression, [expression, typeExpr]);
     } catch (error: any) {
       // If the error doesn't have position, add it from the node
       if (error instanceof EvaluationError && !error.position) {
@@ -442,7 +457,15 @@ export class Compiler implements ICompiler {
    * Compiles type reference - should not be evaluated directly
    */
   private compileTypeReference(node: TypeReferenceNode): CompiledExpression {
-    throw new EvaluationError(`Type reference cannot be evaluated: ${node.typeName}`, node.position);
+    // Type references are used in ofType() and similar functions
+    // They should compile to return the type name as a string
+    const typeName = node.typeName;
+    return {
+      fn: (ctx: RuntimeContext) => [typeName],
+      type: this.resolveType('String'),
+      isSingleton: true,
+      source: typeName
+    };
   }
 }
 

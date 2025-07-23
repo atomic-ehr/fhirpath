@@ -253,7 +253,32 @@ export const iifFunction: Function = {
     }
   },
   
-  compile: defaultFunctionCompile
+  compile: (compiler, input, args) => {
+    const [condExpr, thenExpr, elseExpr] = args;
+    
+    if (!condExpr || !thenExpr || !elseExpr) {
+      throw new Error('iif() requires condition, then, and else expressions');
+    }
+    
+    return {
+      fn: (ctx) => {
+        const inputVal = input.fn(ctx);
+        const condCtx = { ...ctx, input: inputVal, focus: inputVal };
+        const condResult = condExpr.fn(condCtx);
+        
+        if (isTruthy(condResult)) {
+          const thenCtx = { ...ctx, input: inputVal, focus: inputVal };
+          return thenExpr.fn(thenCtx);
+        } else {
+          const elseCtx = { ...ctx, input: inputVal, focus: inputVal };
+          return elseExpr.fn(elseCtx);
+        }
+      },
+      type: compiler.resolveType('Any'),
+      isSingleton: false,
+      source: `${input.source || ''}.iif(${condExpr.source || ''}, ${thenExpr.source || ''}, ${elseExpr.source || ''})`
+    };
+  }
 };
 
 export const defineVariableFunction: Function = {
@@ -313,7 +338,57 @@ export const defineVariableFunction: Function = {
     return { value: input, context: newContext };
   },
   
-  compile: defaultFunctionCompile
+  compile: (compiler, input, args) => {
+    const [nameExpr, valueExpr] = args;
+    
+    if (!valueExpr) {
+      throw new Error('defineVariable() requires name and value parameters');
+    }
+    
+    // For defineVariable, the name should be a literal string
+    // Try to extract it at compile time
+    let varName: string | undefined;
+    
+    // The name parameter should evaluate to a constant string
+    try {
+      const nameResult = nameExpr.fn({ input: [], env: {} });
+      if (nameResult.length === 1 && typeof nameResult[0] === 'string') {
+        varName = nameResult[0];
+      }
+    } catch (e) {
+      // If we can't evaluate it at compile time, it might be invalid
+      throw new Error('defineVariable() requires a string literal as the first parameter');
+    }
+    
+    if (!varName) {
+      throw new Error('defineVariable() requires a string literal as the first parameter');
+    }
+    
+    return {
+      fn: (ctx) => {
+        const inputVal = input.fn(ctx);
+        const valueCtx = { ...ctx, input: inputVal, focus: inputVal };
+        const value = valueExpr.fn(valueCtx);
+        
+        // Add the variable to the environment
+        const newCtx = {
+          ...ctx,
+          env: {
+            ...ctx.env,
+            [varName]: value
+          }
+        };
+        
+        // Return the original input with the new context
+        // But since we're in a compiled context, we just return the input
+        // The variable will be available in the environment for subsequent operations
+        return inputVal;
+      },
+      type: input.type,
+      isSingleton: input.isSingleton,
+      source: `${input.source || ''}.defineVariable('${varName}', ${valueExpr.source || ''})`
+    };
+  }
 };
 
 export const traceFunction: Function = {

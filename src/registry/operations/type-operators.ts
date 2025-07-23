@@ -34,14 +34,140 @@ export const isOperator: Operator = {
       isSingleton: input.isSingleton
     };
   },
-  evaluate: (interpreter, context, input, value, typeName) => {
-    // Type checking is handled by the interpreter
-    throw new Error('is operator requires special handling');
+  evaluate: (interpreter, context, input, leftValue, rightNode) => {
+    // For 'is' operator, the right side should be a type name
+    // It might come as a TypeOrIdentifierNode or as an array with the type name
+    let typeName: string;
+    
+    if (typeof rightNode === 'string') {
+      typeName = rightNode;
+    } else if (Array.isArray(rightNode) && rightNode.length === 1) {
+      typeName = rightNode[0];
+    } else if (rightNode && typeof rightNode === 'object' && 'name' in rightNode) {
+      // TypeOrIdentifier node
+      typeName = rightNode.name;
+    } else {
+      throw new Error('is operator requires a type name');
+    }
+    
+    // Import TypeSystem locally to avoid circular dependency
+    const { TypeSystem } = require('../utils/type-system');
+    
+    if (leftValue.length === 0) {
+      return { value: [], context };
+    }
+    
+    // Check if all values in the collection match the type
+    for (const item of leftValue) {
+      if (!TypeSystem.isType(item, typeName)) {
+        return { value: [false], context };
+      }
+    }
+    
+    return { value: [true], context };
   },
-  compile: (compiler, input, args, node?) => {
-    // For operators, we need position info from the original node
-    // Since it's not passed, we can't provide position here
-    throw new EvaluationError('is operator requires special compilation');
+  compile: (compiler, input, args) => {
+    // For operators, input is the left expression and args contains [left, right]
+    const leftExpr = input;
+    const rightExpr = args?.[1];
+    
+    if (!leftExpr) {
+      throw new Error('is operator requires left operand');
+    }
+    
+    if (!rightExpr) {
+      throw new Error('is operator requires right operand (type name)');
+    }
+    
+    // Import TypeSystem locally to avoid circular dependency
+    const { TypeSystem } = require('../utils/type-system');
+    
+    // The right side of 'is' should be a type identifier
+    // Since type identifiers don't evaluate to values, we need to handle this specially
+    
+    // Try to determine the type name at compile time
+    let staticTypeName: string | undefined;
+    
+    // Check various possible structures for the type name
+    // Check if it has source that looks like a type name
+    if ((rightExpr as any).source && /^[A-Z][a-zA-Z]*$/.test((rightExpr as any).source)) {
+      staticTypeName = (rightExpr as any).source;
+    }
+    // If it evaluates to a constant type name
+    else {
+      // Try to execute it with empty context to see if it returns a type name
+      try {
+        const result = rightExpr.fn({ input: [], env: {} });
+        if (result.length === 1 && typeof result[0] === 'string' && /^[A-Z]/.test(result[0])) {
+          staticTypeName = result[0];
+        }
+      } catch (e) {
+        // Ignore errors, fall through to runtime handling
+      }
+    }
+    
+    if (staticTypeName) {
+      // We know the type name at compile time
+      return {
+        fn: (ctx) => {
+          const left = leftExpr.fn(ctx);
+          
+          if (left.length === 0) return [];
+          
+          // Check if all values in the collection match the type
+          for (const item of left) {
+            if (!TypeSystem.isType(item, staticTypeName)) {
+              return [false];
+            }
+          }
+          
+          return [true];
+        },
+        type: compiler.resolveType('Boolean'),
+        isSingleton: true
+      };
+    }
+    
+    // Fallback: evaluate type name at runtime
+    return {
+      fn: (ctx) => {
+        const left = leftExpr.fn(ctx);
+        
+        if (left.length === 0) return [];
+        
+        // Try to evaluate the right expression to get the type name
+        let typeName: string;
+        try {
+          const rightResult = rightExpr.fn(ctx);
+          if (rightResult.length === 1 && typeof rightResult[0] === 'string') {
+            typeName = rightResult[0];
+          } else {
+            throw new Error('Type name must be a string');
+          }
+        } catch (e) {
+          // If evaluation fails, it might be because TypeOrIdentifier 
+          // is trying to access a non-existent property
+          // In that case, assume the identifier name is the type name
+          const source = (rightExpr as any).source;
+          if (source && /^[A-Z]/.test(source)) {
+            typeName = source;
+          } else {
+            throw new Error(`Cannot determine type name: ${e.message}`);
+          }
+        }
+        
+        // Check if all values in the collection match the type
+        for (const item of left) {
+          if (!TypeSystem.isType(item, typeName)) {
+            return [false];
+          }
+        }
+        
+        return [true];
+      },
+      type: compiler.resolveType('Boolean'), 
+      isSingleton: true
+    };
   }
 };
 
@@ -72,14 +198,105 @@ export const asOperator: Operator = {
       isSingleton: input.isSingleton
     };
   },
-  evaluate: (interpreter, context, input, value, typeName) => {
-    // Type casting is handled by the interpreter
-    throw new Error('as operator requires special handling');
+  evaluate: (interpreter, context, input, leftValue, rightNode) => {
+    // For 'as' operator, the right side should be a type name
+    let typeName: string;
+    
+    if (typeof rightNode === 'string') {
+      typeName = rightNode;
+    } else if (Array.isArray(rightNode) && rightNode.length === 1) {
+      typeName = rightNode[0];
+    } else if (rightNode && typeof rightNode === 'object' && 'name' in rightNode) {
+      // TypeOrIdentifier node
+      typeName = rightNode.name;
+    } else {
+      throw new Error('as operator requires a type name');
+    }
+    
+    // Import TypeSystem locally to avoid circular dependency
+    const { TypeSystem } = require('../utils/type-system');
+    
+    // Filter values that match the type
+    const results: any[] = [];
+    for (const item of leftValue) {
+      if (TypeSystem.isType(item, typeName)) {
+        results.push(item);
+      }
+    }
+    
+    return { value: results, context };
   },
   compile: (compiler, input, args) => {
-    // The position should be available from the input expression
-    const position = (input as any).position || (args[0] as any).position;
-    throw new EvaluationError('as operator requires special compilation', position);
+    // For operators, input is the left expression and args contains [left, right]
+    const leftExpr = input;
+    const rightExpr = args?.[1];
+    
+    if (!leftExpr || !rightExpr) {
+      throw new Error('as operator requires two arguments');
+    }
+    
+    // Similar to 'is', extract type name
+    let typeName: string | undefined;
+    
+    if ((rightExpr as any).typeName) {
+      typeName = (rightExpr as any).typeName;
+    } else if ((rightExpr as any).source && (rightExpr as any).source.match(/^[A-Z]\w*$/)) {
+      typeName = (rightExpr as any).source;
+    }
+    
+    if (typeName) {
+      // Import TypeSystem locally to avoid circular dependency
+      const { TypeSystem } = require('../utils/type-system');
+      
+      return {
+        fn: (ctx) => {
+          const left = leftExpr.fn(ctx);
+          
+          // Filter values that match the type
+          const results: any[] = [];
+          for (const item of left) {
+            if (TypeSystem.isType(item, typeName)) {
+              results.push(item);
+            }
+          }
+          
+          return results;
+        },
+        type: compiler.resolveType(typeName),
+        isSingleton: false
+      };
+    }
+    
+    // Fallback: dynamic type checking
+    return {
+      fn: (ctx) => {
+        const left = leftExpr.fn(ctx);
+        const right = rightExpr.fn(ctx);
+        
+        // Extract type name from right result
+        let typeNameValue: string;
+        if (right.length === 1 && typeof right[0] === 'string') {
+          typeNameValue = right[0];
+        } else {
+          throw new Error('as operator requires a type name');
+        }
+        
+        // Import TypeSystem locally to avoid circular dependency
+        const { TypeSystem } = require('../utils/type-system');
+        
+        // Filter values that match the type
+        const results: any[] = [];
+        for (const item of left) {
+          if (TypeSystem.isType(item, typeNameValue)) {
+            results.push(item);
+          }
+        }
+        
+        return results;
+      },
+      type: leftExpr.type,
+      isSingleton: false
+    };
   }
 };
 

@@ -242,7 +242,53 @@ export const ofTypeFunction: Function = {
     return { value: results, context };
   },
   
-  compile: defaultFunctionCompile
+  compile: (compiler, input, args) => {
+    // The TypeSystem module with isOfType helper
+    const { TypeSystem } = require('../utils/type-system');
+    
+    // The argument should be a TypeReference node compiled to return the type name
+    const typeArg = args[0];
+    if (!typeArg) {
+      throw new Error('ofType() requires a type reference');
+    }
+    
+    return {
+      fn: (ctx) => {
+        const inputValue = input.fn(ctx);
+        const results: any[] = [];
+        
+        // Get the type name
+        let typeName: string;
+        try {
+          const typeResult = typeArg.fn(ctx);
+          if (typeResult.length === 1 && typeof typeResult[0] === 'string') {
+            typeName = typeResult[0];
+          } else {
+            throw new Error('Type reference must evaluate to a string');
+          }
+        } catch (e: any) {
+          // If it's a type reference that cannot be evaluated, extract from source
+          if (typeArg.source && /^[A-Z]/.test(typeArg.source)) {
+            typeName = typeArg.source;
+          } else {
+            throw new Error(`Cannot determine type name: ${e.message}`);
+          }
+        }
+        
+        // Filter by type
+        for (const item of inputValue) {
+          if (TypeSystem.isType(item, typeName)) {
+            results.push(item);
+          }
+        }
+        
+        return results;
+      },
+      type: input.type,
+      isSingleton: false,
+      source: `${input.source || ''}.ofType(${typeArg.source || ''})`
+    };
+  }
 };
 
 export const repeatFunction: Function = {

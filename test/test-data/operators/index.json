@@ -5,35 +5,35 @@
     {
       "name": "index - first element",
       "expression": "$this[0]",
-      "input": [[10, 20, 30]],
+      "input": [10, 20, 30],
       "expected": [10],
       "tags": ["operator", "index", "array"]
     },
     {
       "name": "index - second element",
       "expression": "$this[1]",
-      "input": [[10, 20, 30]],
+      "input": [10, 20, 30],
       "expected": [20],
       "tags": ["operator", "index", "array"]
     },
     {
       "name": "index - third element",
       "expression": "$this[2]",
-      "input": [[10, 20, 30]],
+      "input": [10, 20, 30],
       "expected": [30],
       "tags": ["operator", "index", "array"]
     },
     {
       "name": "index - out of bounds positive",
       "expression": "$this[3]",
-      "input": [[10, 20, 30]],
+      "input": [10, 20, 30],
       "expected": [],
       "tags": ["operator", "index", "array", "out-of-bounds"]
     },
     {
       "name": "index - out of bounds negative",
       "expression": "$this[-1]",
-      "input": [[10, 20, 30]],
+      "input": [10, 20, 30],
       "expected": [],
       "tags": ["operator", "index", "array", "out-of-bounds"]
     },

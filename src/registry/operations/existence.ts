@@ -361,7 +361,55 @@ export const allFunction: Function = {
   },
   
   compile: (compiler, input, args) => {
-    throw new Error('Compiler not implemented');
+    if (args.length === 0 || !args[0]) {
+      // No criteria - check if all items are true
+      return {
+        fn: (ctx) => {
+          const inputVal = input.fn(ctx);
+          if (inputVal.length === 0) {
+            return [true];
+          }
+          return [inputVal.every(item => item === true)];
+        },
+        type: compiler.resolveType('Boolean'),
+        isSingleton: true,
+        source: `${input.source || ''}.all()`
+      };
+    }
+    
+    // With criteria
+    const criteria = args[0];
+    return {
+      fn: (ctx) => {
+        const inputVal = input.fn(ctx);
+        if (inputVal.length === 0) {
+          return [true];
+        }
+        
+        for (let i = 0; i < inputVal.length; i++) {
+          const item = inputVal[i];
+          const newCtx = { 
+            ...ctx, 
+            focus: [item],
+            env: {
+              ...ctx.env,
+              $this: [item],
+              $index: i
+            }
+          };
+          const result = criteria.fn(newCtx);
+          
+          if (!isTruthy(result)) {
+            return [false];
+          }
+        }
+        
+        return [true];
+      },
+      type: compiler.resolveType('Boolean'),
+      isSingleton: true,
+      source: `${input.source || ''}.all(${criteria.source || ''})`
+    };
   }
 };
 
@@ -394,7 +442,15 @@ export const allTrueFunction: Function = {
   },
   
   compile: (compiler, input, args) => {
-    throw new Error('Compiler not implemented');
+    return {
+      fn: (ctx) => {
+        const inputVal = input.fn(ctx);
+        return [inputVal.every(item => item === true)];
+      },
+      type: compiler.resolveType('Boolean'),
+      isSingleton: true,
+      source: `${input.source || ''}.allTrue()`
+    };
   }
 };
 
@@ -427,7 +483,15 @@ export const anyTrueFunction: Function = {
   },
   
   compile: (compiler, input, args) => {
-    throw new Error('Compiler not implemented');
+    return {
+      fn: (ctx) => {
+        const inputVal = input.fn(ctx);
+        return [inputVal.some(item => item === true)];
+      },
+      type: compiler.resolveType('Boolean'),
+      isSingleton: true,
+      source: `${input.source || ''}.anyTrue()`
+    };
   }
 };
 
@@ -460,7 +524,15 @@ export const allFalseFunction: Function = {
   },
   
   compile: (compiler, input, args) => {
-    throw new Error('Compiler not implemented');
+    return {
+      fn: (ctx) => {
+        const inputVal = input.fn(ctx);
+        return [inputVal.every(item => item === false)];
+      },
+      type: compiler.resolveType('Boolean'),
+      isSingleton: true,
+      source: `${input.source || ''}.allFalse()`
+    };
   }
 };
 
@@ -493,7 +565,15 @@ export const anyFalseFunction: Function = {
   },
   
   compile: (compiler, input, args) => {
-    throw new Error('Compiler not implemented');
+    return {
+      fn: (ctx) => {
+        const inputVal = input.fn(ctx);
+        return [inputVal.some(item => item === false)];
+      },
+      type: compiler.resolveType('Boolean'),
+      isSingleton: true,
+      source: `${input.source || ''}.anyFalse()`
+    };
   }
 };
 
@@ -537,7 +617,26 @@ export const distinctFunction: Function = {
   },
   
   compile: (compiler, input, args) => {
-    throw new Error('Compiler not implemented');
+    return {
+      fn: (ctx) => {
+        const inputVal = input.fn(ctx);
+        const seen = new Set();
+        const result: any[] = [];
+        
+        for (const item of inputVal) {
+          const key = JSON.stringify(item);
+          if (!seen.has(key)) {
+            seen.add(key);
+            result.push(item);
+          }
+        }
+        
+        return result;
+      },
+      type: input.type,
+      isSingleton: false,
+      source: `${input.source || ''}.distinct()`
+    };
   }
 };
 
@@ -580,7 +679,25 @@ export const isDistinctFunction: Function = {
   },
   
   compile: (compiler, input, args) => {
-    throw new Error('Compiler not implemented');
+    return {
+      fn: (ctx) => {
+        const inputVal = input.fn(ctx);
+        const seen = new Set();
+        
+        for (const item of inputVal) {
+          const key = JSON.stringify(item);
+          if (seen.has(key)) {
+            return [false];
+          }
+          seen.add(key);
+        }
+        
+        return [true];
+      },
+      type: compiler.resolveType('Boolean'),
+      isSingleton: true,
+      source: `${input.source || ''}.isDistinct()`
+    };
   }
 };
 

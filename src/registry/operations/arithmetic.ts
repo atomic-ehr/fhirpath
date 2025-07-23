@@ -466,8 +466,11 @@ export const concatOperator: Operator = {
   evaluate: (interpreter, context, input, left, right) => {
     if (left.length === 0 || right.length === 0) return { value: [], context };
     
-    const l = toSingleton(left);
-    const r = toSingleton(right);
+    // String concatenation requires both operands to be singletons
+    if (left.length > 1 || right.length > 1) return { value: [], context };
+    
+    const l = left[0];
+    const r = right[0];
     
     return { value: [String(l) + String(r)], context };
   },
@@ -478,7 +481,10 @@ export const concatOperator: Operator = {
       const right = args[1].fn(ctx);
       if (left.length === 0 || right.length === 0) return [];
       
-      return [String(toSingleton(left)) + String(toSingleton(right))];
+      // String concatenation requires both operands to be singletons
+      if (left.length > 1 || right.length > 1) return [];
+      
+      return [String(left[0]) + String(right[0])];
     },
     type: compiler.resolveType('String'),
     isSingleton: true,

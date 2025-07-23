@@ -45,7 +45,31 @@ export const toStringFunction: Function = {
     return { value: [String(value)], context };
   },
   
-  compile: defaultFunctionCompile
+  compile: (compiler, input, args) => {
+    return {
+      fn: (ctx) => {
+        const inputValue = input.fn(ctx);
+        
+        if (inputValue.length === 0) {
+          return [];
+        }
+        
+        const value = inputValue[0]; // toSingleton
+        
+        if (value === null || value === undefined) {
+          return [];
+        }
+        
+        if (typeof value === 'boolean') {
+          return [value ? 'true' : 'false'];
+        }
+        
+        return [String(value)];
+      },
+      type: compiler.resolveType('String'),
+      isSingleton: true
+    };
+  }
 };
 
 export const toIntegerFunction: Function = {
@@ -100,7 +124,41 @@ export const toIntegerFunction: Function = {
     return { value: [], context };
   },
   
-  compile: defaultFunctionCompile
+  compile: (compiler, input, args) => {
+    return {
+      fn: (ctx) => {
+        const inputValue = input.fn(ctx);
+        
+        if (inputValue.length === 0) {
+          return [];
+        }
+        
+        const value = inputValue[0]; // toSingleton
+        
+        if (typeof value === 'number') {
+          if (Number.isInteger(value)) {
+            return [value];
+          }
+          return [Math.trunc(value)];
+        }
+        
+        if (typeof value === 'boolean') {
+          return [value ? 1 : 0];
+        }
+        
+        if (typeof value === 'string') {
+          const num = parseInt(value, 10);
+          if (!isNaN(num)) {
+            return [num];
+          }
+        }
+        
+        return [];
+      },
+      type: compiler.resolveType('Integer'),
+      isSingleton: true
+    };
+  }
 };
 
 export const toDecimalFunction: Function = {
@@ -152,7 +210,38 @@ export const toDecimalFunction: Function = {
     return { value: [], context };
   },
   
-  compile: defaultFunctionCompile
+  compile: (compiler, input, args) => {
+    return {
+      fn: (ctx) => {
+        const inputValue = input.fn(ctx);
+        
+        if (inputValue.length === 0) {
+          return [];
+        }
+        
+        const value = inputValue[0]; // toSingleton
+        
+        if (typeof value === 'number') {
+          return [value];
+        }
+        
+        if (typeof value === 'boolean') {
+          return [value ? 1.0 : 0.0];
+        }
+        
+        if (typeof value === 'string') {
+          const num = parseFloat(value);
+          if (!isNaN(num)) {
+            return [num];
+          }
+        }
+        
+        return [];
+      },
+      type: compiler.resolveType('Decimal'),
+      isSingleton: true
+    };
+  }
 };
 
 export const toBooleanFunction: Function = {
@@ -208,7 +297,42 @@ export const toBooleanFunction: Function = {
     return { value: [], context };
   },
   
-  compile: defaultFunctionCompile
+  compile: (compiler, input, args) => {
+    return {
+      fn: (ctx) => {
+        const inputValue = input.fn(ctx);
+        
+        if (inputValue.length === 0) {
+          return [];
+        }
+        
+        const value = inputValue[0]; // toSingleton
+        
+        if (typeof value === 'boolean') {
+          return [value];
+        }
+        
+        if (typeof value === 'string') {
+          const lower = value.toLowerCase();
+          if (lower === 'true' || lower === 't' || lower === 'yes' || lower === 'y' || lower === '1') {
+            return [true];
+          }
+          if (lower === 'false' || lower === 'f' || lower === 'no' || lower === 'n' || lower === '0') {
+            return [false];
+          }
+        }
+        
+        if (typeof value === 'number') {
+          if (value === 1) return [true];
+          if (value === 0) return [false];
+        }
+        
+        return [];
+      },
+      type: compiler.resolveType('Boolean'),
+      isSingleton: true
+    };
+  }
 };
 
 export const toQuantityFunction: Function = {

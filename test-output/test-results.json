@@ -1,10 +1,10 @@
 {
   "summary": {
-    "total": 145,
+    "total": 226,
     "passed": 143,
-    "failed": 0,
-    "skipped": 4,
-    "timestamp": "2025-07-23T12:22:46.916Z"
+    "failed": 81,
+    "skipped": 5,
+    "timestamp": "2025-07-23T12:51:42.990Z"
   },
   "results": [
     {
@@ -28,14 +28,14 @@
         "value": [
           true
         ],
-        "time": 0.9077500000000001
+        "time": 0.8741659999999989
       },
       "compilerResult": {
         "success": true,
         "value": [
           true
         ],
-        "time": 0.22650000000000148
+        "time": 0.20974999999999966
       }
     },
     {
@@ -59,14 +59,14 @@
         "value": [
           false
         ],
-        "time": 0.04579199999999872
+        "time": 0.044375000000002274
       },
       "compilerResult": {
         "success": true,
         "value": [
           false
         ],
-        "time": 0.03554100000000204
+        "time": 0.033667000000001224
       }
     },
     {
@@ -90,14 +90,14 @@
         "value": [
           false
         ],
-        "time": 0.05287500000000023
+        "time": 0.053000000000000824
       },
       "compilerResult": {
         "success": true,
         "value": [
           false
         ],
-        "time": 0.021374999999999034
+        "time": 0.02637499999999804
       }
     },
     {
@@ -121,14 +121,14 @@
         "value": [
           false
         ],
-        "time": 0.02125000000000199
+        "time": 0.021792000000001366
       },
       "compilerResult": {
         "success": true,
         "value": [
           false
         ],
-        "time": 0.017416000000000764
+        "time": 0.01779200000000003
       }
     },
     {
@@ -152,14 +152,14 @@
         "value": [
           true
         ],
-        "time": 0.05054200000000009
+        "time": 0.05795799999999929
       },
       "compilerResult": {
         "success": true,
         "value": [
           true
         ],
-        "time": 0.06766600000000267
+        "time": 0.20120899999999864
       }
     },
     {
@@ -183,14 +183,14 @@
         "value": [
           true
         ],
-        "time": 0.034667000000002446
+        "time": 0.04279199999999861
       },
       "compilerResult": {
         "success": true,
         "value": [
           true
         ],
-        "time": 0.02262500000000145
+        "time": 0.023499999999998522
       }
     },
     {
@@ -214,14 +214,14 @@
         "value": [
           true
         ],
-        "time": 0.01658300000000068
+        "time": 0.023500000000002075
       },
       "compilerResult": {
         "success": true,
         "value": [
           true
         ],
-        "time": 0.015708000000000055
+        "time": 0.018042000000001224
       }
     },
     {
@@ -245,14 +245,14 @@
         "value": [
           false
         ],
-        "time": 0.02295899999999662
+        "time": 0.015708000000000055
       },
       "compilerResult": {
         "success": true,
         "value": [
           false
         ],
-        "time": 0.024167000000002048
+        "time": 0.015499999999999403
       }
     },
     {
@@ -276,14 +276,14 @@
         "value": [
           false
         ],
-        "time": 0.08054200000000122
+        "time": 0.08779200000000031
       },
       "compilerResult": {
         "success": true,
         "value": [
           false
         ],
-        "time": 0.08008400000000293
+        "time": 0.08908299999999869
       }
     },
     {
@@ -307,14 +307,14 @@
         "value": [
           true
         ],
-        "time": 0.032667
+        "time": 0.031708000000001846
       },
       "compilerResult": {
         "success": true,
         "value": [
           true
         ],
-        "time": 0.024084000000001993
+        "time": 0.017458000000001306
       }
     },
     {
@@ -339,14 +339,14 @@
         "value": [
           true
         ],
-        "time": 0.07220799999999983
+        "time": 0.071708000000001
       },
       "compilerResult": {
         "success": true,
         "value": [
           true
         ],
-        "time": 0.05804200000000037
+        "time": 0.07458400000000154
       }
     },
     {
@@ -370,14 +370,14 @@
         "value": [
           false
         ],
-        "time": 0.0491659999999996
+        "time": 0.06616700000000009
       },
       "compilerResult": {
         "success": true,
         "value": [
           false
         ],
-        "time": 0.07304200000000094
+        "time": 0.053582999999999714
       }
     },
     {
@@ -401,14 +401,14 @@
         "value": [
           true
         ],
-        "time": 0.019458000000000197
+        "time": 0.017790999999999002
       },
       "compilerResult": {
         "success": true,
         "value": [
           true
         ],
-        "time": 0.014291000000000054
+        "time": 0.012707999999999942
       }
     },
     {
@@ -432,14 +432,14 @@
         "value": [
           true
         ],
-        "time": 0.011041999999999774
+        "time": 0.01366700000000165
       },
       "compilerResult": {
         "success": true,
         "value": [
           true
         ],
-        "time": 0.04520899999999983
+        "time": 0.01404099999999886
       }
     },
     {
@@ -463,14 +463,14 @@
         "value": [
           false
         ],
-        "time": 0.021332999999998492
+        "time": 0.014541000000001247
       },
       "compilerResult": {
         "success": true,
         "value": [
           false
         ],
-        "time": 0.024208999999999037
+        "time": 0.011874999999999858
       }
     },
     {
@@ -494,14 +494,14 @@
         "value": [
           true
         ],
-        "time": 0.041499999999999204
+        "time": 0.03466699999999889
       },
       "compilerResult": {
         "success": true,
         "value": [
           true
         ],
-        "time": 0.04991600000000318
+        "time": 0.04995800000000017
       }
     },
     {
@@ -525,14 +525,14 @@
         "value": [
           false
         ],
-        "time": 0.014582999999998236
+        "time": 0.016540999999996586
       },
       "compilerResult": {
         "success": true,
         "value": [
           false
         ],
-        "time": 0.020834000000000685
+        "time": 0.030750000000001165
       }
     },
     {
@@ -556,14 +556,14 @@
         "value": [
           true
         ],
-        "time": 0.013166999999999263
+        "time": 0.017082999999999515
       },
       "compilerResult": {
         "success": true,
         "value": [
           true
         ],
-        "time": 0.010707999999997497
+        "time": 0.015084000000001652
       }
     },
     {
@@ -587,14 +587,14 @@
         "value": [
           true
         ],
-        "time": 0.0867500000000021
+        "time": 0.016625000000001222
       },
       "compilerResult": {
         "success": true,
         "value": [
           true
         ],
-        "time": 0.07758400000000165
+        "time": 0.01745899999999878
       }
     },
     {
@@ -618,14 +618,14 @@
         "value": [
           true
         ],
-        "time": 0.17691600000000207
+        "time": 0.12670900000000174
       },
       "compilerResult": {
         "success": true,
         "value": [
           true
         ],
-        "time": 0.19770900000000324
+        "time": 0.09074999999999989
       }
     },
     {
@@ -649,14 +649,51 @@
         "value": [
           true
         ],
-        "time": 0.13816699999999926
+        "time": 0.07337500000000219
       },
       "compilerResult": {
         "success": true,
         "value": [
           true
         ],
-        "time": 0.048542000000001195
+        "time": 0.02750000000000341
+      }
+    },
+    {
+      "test": {
+        "name": "in - substring",
+        "expression": "'a' in 'abc'",
+        "input": [],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "operator",
+          "membership",
+          "in",
+          "string"
+        ],
+        "skip": {
+          "interpreter": false,
+          "compiler": false,
+          "reason": "String 'in' operator now implemented"
+        }
+      },
+      "suite": "Membership Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.009707999999999828
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.020834000000000685
       }
     },
     {
@@ -680,14 +717,14 @@
         "value": [
           false
         ],
-        "time": 0.05016600000000082
+        "time": 0.08962499999999807
       },
       "compilerResult": {
         "success": true,
         "value": [
           false
         ],
-        "time": 0.021750000000000824
+        "time": 0.03262499999999946
       }
     },
     {
@@ -711,14 +748,51 @@
         "value": [
           true
         ],
-        "time": 0.09304200000000051
+        "time": 0.08354199999999778
       },
       "compilerResult": {
         "success": true,
         "value": [
           true
         ],
-        "time": 0.11166700000000063
+        "time": 0.12916600000000145
+      }
+    },
+    {
+      "test": {
+        "name": "contains - string contains substring",
+        "expression": "'abc' contains 'a'",
+        "input": [],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "operator",
+          "membership",
+          "contains",
+          "string"
+        ],
+        "skip": {
+          "interpreter": false,
+          "compiler": false,
+          "reason": "String 'contains' operator now implemented"
+        }
+      },
+      "suite": "Membership Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.0257920000000027
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.01270900000000097
       }
     },
     {
@@ -742,14 +816,14 @@
         "value": [
           false
         ],
-        "time": 0.049541999999998865
+        "time": 0.06416600000000017
       },
       "compilerResult": {
         "success": true,
         "value": [
           false
         ],
-        "time": 0.09479200000000176
+        "time": 0.025583999999998497
       }
     },
     {
@@ -774,14 +848,14 @@
         "value": [
           false
         ],
-        "time": 0.02441599999999866
+        "time": 0.012042000000000996
       },
       "compilerResult": {
         "success": true,
         "value": [
           false
         ],
-        "time": 0.016290999999998945
+        "time": 0.009707999999999828
       }
     },
     {
@@ -806,14 +880,14 @@
         "value": [
           false
         ],
-        "time": 0.008749999999999147
+        "time": 0.007166999999999035
       },
       "compilerResult": {
         "success": true,
         "value": [
           false
         ],
-        "time": 0.008082999999999174
+        "time": 0.007709000000001964
       }
     },
     {
@@ -837,14 +911,14 @@
         "value": [
           true
         ],
-        "time": 0.1126669999999983
+        "time": 0.0866669999999985
       },
       "compilerResult": {
         "success": true,
         "value": [
           true
         ],
-        "time": 0.06862500000000082
+        "time": 0.05762499999999804
       }
     },
     {
@@ -868,14 +942,14 @@
         "value": [
           false
         ],
-        "time": 0.031083000000002414
+        "time": 0.03862499999999969
       },
       "compilerResult": {
         "success": true,
         "value": [
           false
         ],
-        "time": 0.009125000000000938
+        "time": 0.025166999999999717
       }
     },
     {
@@ -900,14 +974,14 @@
         "value": [
           true
         ],
-        "time": 0.009958000000001022
+        "time": 0.007166999999999035
       },
       "compilerResult": {
         "success": true,
         "value": [
           true
         ],
-        "time": 0.01150000000000162
+        "time": 0.011333999999997957
       }
     },
     {
@@ -932,14 +1006,14 @@
         "value": [
           true
         ],
-        "time": 0.01208300000000051
+        "time": 0.011457999999997526
       },
       "compilerResult": {
         "success": true,
         "value": [
           true
         ],
-        "time": 0.017917000000000627
+        "time": 0.009958000000001022
       }
     },
     {
@@ -963,14 +1037,14 @@
         "value": [
           true
         ],
-        "time": 0.09949999999999903
+        "time": 0.05129199999999656
       },
       "compilerResult": {
         "success": true,
         "value": [
           true
         ],
-        "time": 0.08637500000000031
+        "time": 0.05566699999999969
       }
     },
     {
@@ -995,14 +1069,14 @@
         "value": [
           true
         ],
-        "time": 0.05549999999999855
+        "time": 0.018041000000000196
       },
       "compilerResult": {
         "success": true,
         "value": [
           true
         ],
-        "time": 0.012540999999998803
+        "time": 0.009374999999998579
       }
     },
     {
@@ -1026,14 +1100,14 @@
         "value": [
           true
         ],
-        "time": 0.05904099999999701
+        "time": 0.059457999999999345
       },
       "compilerResult": {
         "success": true,
         "value": [
           true
         ],
-        "time": 0.04583300000000179
+        "time": 0.047125000000001194
       }
     },
     {
@@ -1058,14 +1132,14 @@
         "value": [
           true
         ],
-        "time": 0.012332999999998151
+        "time": 0.01158399999999915
       },
       "compilerResult": {
         "success": true,
         "value": [
           true
         ],
-        "time": 0.015084000000001652
+        "time": 0.016708000000001277
       }
     },
     {
@@ -1089,14 +1163,14 @@
         "value": [
           true
         ],
-        "time": 0.03979200000000205
+        "time": 0.044458999999999804
       },
       "compilerResult": {
         "success": true,
         "value": [
           true
         ],
-        "time": 0.04458299999999937
+        "time": 0.048583999999998184
       }
     },
     {
@@ -1121,14 +1195,14 @@
         "value": [
           true
         ],
-        "time": 0.00766699999999787
+        "time": 0.009082999999996844
       },
       "compilerResult": {
         "success": true,
         "value": [
           true
         ],
-        "time": 0.012041999999997444
+        "time": 0.007875000000002075
       }
     },
     {
@@ -1156,7 +1230,7 @@
         "value": [
           true
         ],
-        "time": 0.07091600000000042
+        "time": 0.03900000000000148
       }
     },
     {
@@ -1184,7 +1258,7 @@
         "value": [
           true
         ],
-        "time": 0.051249999999999574
+        "time": 0.06987499999999969
       }
     },
     {
@@ -1205,12 +1279,12 @@
       "interpreterResult": {
         "success": true,
         "value": [],
-        "time": 0.01604199999999878
+        "time": 0.051082999999998435
       },
       "compilerResult": {
         "success": true,
         "value": [],
-        "time": 0.011250000000000426
+        "time": 0.01720900000000114
       }
     },
     {
@@ -1231,12 +1305,12 @@
       "interpreterResult": {
         "success": true,
         "value": [],
-        "time": 0.01899999999999835
+        "time": 0.023333000000000936
       },
       "compilerResult": {
         "success": true,
         "value": [],
-        "time": 0.01662499999999767
+        "time": 0.01987500000000253
       }
     },
     {
@@ -1261,14 +1335,14 @@
         "value": [
           true
         ],
-        "time": 0.047917000000001764
+        "time": 0.05883299999999991
       },
       "compilerResult": {
         "success": true,
         "value": [
           true
         ],
-        "time": 0.02333399999999841
+        "time": 0.027707999999996957
       }
     },
     {
@@ -1293,14 +1367,14 @@
         "value": [
           false
         ],
-        "time": 0.022999999999999687
+        "time": 0.024125000000001506
       },
       "compilerResult": {
         "success": true,
         "value": [
           false
         ],
-        "time": 0.02654099999999815
+        "time": 0.028083999999999776
       }
     },
     {
@@ -1325,14 +1399,14 @@
         "value": [
           true
         ],
-        "time": 0.03558299999999903
+        "time": 0.046875
       },
       "compilerResult": {
         "success": true,
         "value": [
           true
         ],
-        "time": 0.030750000000001165
+        "time": 0.04224999999999923
       }
     },
     {
@@ -1365,14 +1439,14 @@
         "value": [
           true
         ],
-        "time": 0.1279590000000006
+        "time": 0.12312499999999815
       },
       "compilerResult": {
         "success": true,
         "value": [
           true
         ],
-        "time": 0.09816700000000012
+        "time": 0.09937499999999844
       }
     },
     {
@@ -1393,12 +1467,12 @@
       "interpreterResult": {
         "success": true,
         "value": [],
-        "time": 0.05679200000000151
+        "time": 0.01854200000000006
       },
       "compilerResult": {
         "success": true,
         "value": [],
-        "time": 0.08962500000000162
+        "time": 0.01795900000000117
       }
     },
     {
@@ -1423,14 +1497,14 @@
         "value": [
           true
         ],
-        "time": 0.008207999999999771
+        "time": 0.00737500000000324
       },
       "compilerResult": {
         "success": true,
         "value": [
           true
         ],
-        "time": 0.007500000000000284
+        "time": 0.014167000000000485
       }
     },
     {
@@ -1451,12 +1525,12 @@
       "interpreterResult": {
         "success": true,
         "value": [],
-        "time": 0.011207999999999885
+        "time": 0.00975000000000037
       },
       "compilerResult": {
         "success": true,
         "value": [],
-        "time": 0.01054200000000094
+        "time": 0.010916999999999177
       }
     },
     {
@@ -1481,14 +1555,14 @@
         "value": [
           false
         ],
-        "time": 0.012916999999998069
+        "time": 0.06245800000000301
       },
       "compilerResult": {
         "success": true,
         "value": [
           false
         ],
-        "time": 0.00795800000000213
+        "time": 0.006792000000000797
       }
     },
     {
@@ -1509,12 +1583,12 @@
       "interpreterResult": {
         "success": true,
         "value": [],
-        "time": 0.007167000000002588
+        "time": 0.007124999999998494
       },
       "compilerResult": {
         "success": true,
         "value": [],
-        "time": 0.022916000000002157
+        "time": 0.014707999999998833
       }
     },
     {
@@ -1539,14 +1613,14 @@
         "value": [
           false
         ],
-        "time": 0.053625000000000256
+        "time": 0.06416600000000017
       },
       "compilerResult": {
         "success": true,
         "value": [
           false
         ],
-        "time": 0.018457999999998975
+        "time": 0.027457999999999316
       }
     },
     {
@@ -1567,12 +1641,12 @@
       "interpreterResult": {
         "success": true,
         "value": [],
-        "time": 0.01070800000000105
+        "time": 0.012167000000001593
       },
       "compilerResult": {
         "success": true,
         "value": [],
-        "time": 0.010875000000002188
+        "time": 0.011750000000002814
       }
     },
     {
@@ -1597,14 +1671,14 @@
         "value": [
           true
         ],
-        "time": 0.019999999999999574
+        "time": 0.045666999999998126
       },
       "compilerResult": {
         "success": true,
         "value": [
           true
         ],
-        "time": 0.008917000000000286
+        "time": 0.00862499999999855
       }
     },
     {
@@ -1625,12 +1699,12 @@
       "interpreterResult": {
         "success": true,
         "value": [],
-        "time": 0.007374999999999687
+        "time": 0.008749999999999147
       },
       "compilerResult": {
         "success": true,
         "value": [],
-        "time": 0.0070000000000014495
+        "time": 0.009792000000000911
       }
     },
     {
@@ -1655,14 +1729,14 @@
         "value": [
           true
         ],
-        "time": 0.009415999999998093
+        "time": 0.007332999999999146
       },
       "compilerResult": {
         "success": true,
         "value": [
           true
         ],
-        "time": 0.010709000000002078
+        "time": 0.009249999999997982
       }
     },
     {
@@ -1683,12 +1757,12 @@
       "interpreterResult": {
         "success": true,
         "value": [],
-        "time": 0.007083000000001505
+        "time": 0.0070000000000014495
       },
       "compilerResult": {
         "success": true,
         "value": [],
-        "time": 0.012416000000001759
+        "time": 0.007874999999998522
       }
     },
     {
@@ -1709,12 +1783,12 @@
       "interpreterResult": {
         "success": true,
         "value": [],
-        "time": 0.01054200000000094
+        "time": 0.0072499999999990905
       },
       "compilerResult": {
         "success": true,
         "value": [],
-        "time": 0.008084000000000202
+        "time": 0.007833999999999008
       }
     },
     {
@@ -1738,14 +1812,14 @@
         "value": [
           "Hello World"
         ],
-        "time": 0.06974999999999909
+        "time": 0.057332999999999856
       },
       "compilerResult": {
         "success": true,
         "value": [
           "Hello World"
         ],
-        "time": 0.056291000000001645
+        "time": 0.059833000000001135
       }
     },
     {
@@ -1769,14 +1843,14 @@
         "value": [
           "FHIRPath"
         ],
-        "time": 0.017832999999999544
+        "time": 0.012249999999998096
       },
       "compilerResult": {
         "success": true,
         "value": [
           "FHIRPath"
         ],
-        "time": 0.0070000000000014495
+        "time": 0.006416000000001532
       }
     },
     {
@@ -1810,14 +1884,14 @@
         "value": [
           "John Doe"
         ],
-        "time": 0.18079200000000029
+        "time": 0.1685409999999976
       },
       "compilerResult": {
         "success": true,
         "value": [
           "John Doe"
         ],
-        "time": 0.1237909999999971
+        "time": 0.11529200000000017
       }
     },
     {
@@ -1842,12 +1916,12 @@
       "interpreterResult": {
         "success": true,
         "value": [],
-        "time": 0.02191699999999841
+        "time": 0.02166599999999974
       },
       "compilerResult": {
         "success": true,
         "value": [],
-        "time": 0.017417000000001792
+        "time": 0.01425000000000054
       }
     },
     {
@@ -1868,12 +1942,476 @@
       "interpreterResult": {
         "success": true,
         "value": [],
-        "time": 0.009833000000000425
+        "time": 0.008083000000002727
       },
       "compilerResult": {
         "success": true,
         "value": [],
-        "time": 0.006582999999999117
+        "time": 0.006707999999999714
+      }
+    },
+    {
+      "test": {
+        "name": "concatenation with multiple items",
+        "expression": "names & ' and '",
+        "input": [
+          {
+            "names": [
+              "Alice",
+              "Bob"
+            ]
+          }
+        ],
+        "expected": [],
+        "tags": [
+          "operator",
+          "string",
+          "concatenation",
+          "collection"
+        ],
+        "skip": {
+          "interpreter": true,
+          "reason": "String concatenation with multiple items needs clarification"
+        }
+      },
+      "suite": "String Operators",
+      "matched": false,
+      "compilerResult": {
+        "success": false,
+        "error": "Expected single value but got 2 items",
+        "time": 0.052417000000001934
+      }
+    },
+    {
+      "test": {
+        "name": "is - string type",
+        "expression": "'hello' is String",
+        "input": [],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "operator",
+          "type",
+          "is"
+        ]
+      },
+      "suite": "Type Checking",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.09662499999999952
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "is operator requires special compilation",
+        "time": 0.0796670000000006
+      }
+    },
+    {
+      "test": {
+        "name": "is - integer type",
+        "expression": "42 is Integer",
+        "input": [],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "operator",
+          "type",
+          "is"
+        ]
+      },
+      "suite": "Type Checking",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.012166000000000565
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "is operator requires special compilation",
+        "time": 0.012374999999998693
+      }
+    },
+    {
+      "test": {
+        "name": "is - decimal type",
+        "expression": "3.14 is Decimal",
+        "input": [],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "operator",
+          "type",
+          "is"
+        ]
+      },
+      "suite": "Type Checking",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.017291999999997643
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "is operator requires special compilation",
+        "time": 0.014082999999999402
+      }
+    },
+    {
+      "test": {
+        "name": "is - boolean type",
+        "expression": "true is Boolean",
+        "input": [],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "operator",
+          "type",
+          "is"
+        ]
+      },
+      "suite": "Type Checking",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.008541999999998495
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "is operator requires special compilation",
+        "time": 0.008874999999999744
+      }
+    },
+    {
+      "test": {
+        "name": "is - wrong type string",
+        "expression": "'hello' is Integer",
+        "input": [],
+        "expected": [
+          false
+        ],
+        "tags": [
+          "operator",
+          "type",
+          "is"
+        ]
+      },
+      "suite": "Type Checking",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.011916999999996847
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "is operator requires special compilation",
+        "time": 0.008333000000000368
+      }
+    },
+    {
+      "test": {
+        "name": "is - wrong type number",
+        "expression": "42 is String",
+        "input": [],
+        "expected": [
+          false
+        ],
+        "tags": [
+          "operator",
+          "type",
+          "is"
+        ]
+      },
+      "suite": "Type Checking",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.010249999999999204
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "is operator requires special compilation",
+        "time": 0.005875000000003183
+      }
+    },
+    {
+      "test": {
+        "name": "is - FHIR resource type true",
+        "expression": "$this is Patient",
+        "input": [],
+        "context": {
+          "variables": {
+            "$this": [
+              {
+                "resourceType": "Patient",
+                "name": "John"
+              }
+            ]
+          }
+        },
+        "expected": [
+          true
+        ],
+        "tags": [
+          "operator",
+          "type",
+          "is",
+          "fhir"
+        ]
+      },
+      "suite": "Type Checking",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [],
+        "time": 0.08633299999999977
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "is operator requires special compilation",
+        "time": 0.026666999999999774
+      }
+    },
+    {
+      "test": {
+        "name": "is - FHIR resource type false",
+        "expression": "$this is Observation",
+        "input": [],
+        "context": {
+          "variables": {
+            "$this": [
+              {
+                "resourceType": "Patient",
+                "name": "John"
+              }
+            ]
+          }
+        },
+        "expected": [
+          false
+        ],
+        "tags": [
+          "operator",
+          "type",
+          "is",
+          "fhir"
+        ]
+      },
+      "suite": "Type Checking",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [],
+        "time": 0.007666000000000395
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "is operator requires special compilation",
+        "time": 0.006959000000001936
+      }
+    },
+    {
+      "test": {
+        "name": "ofType - filter by FHIR type",
+        "expression": "ofType(Patient)",
+        "input": [
+          {
+            "resourceType": "Patient",
+            "id": "1"
+          },
+          {
+            "resourceType": "Observation",
+            "id": "2"
+          },
+          {
+            "resourceType": "Patient",
+            "id": "3"
+          }
+        ],
+        "expected": [
+          {
+            "resourceType": "Patient",
+            "id": "1"
+          },
+          {
+            "resourceType": "Patient",
+            "id": "3"
+          }
+        ],
+        "tags": [
+          "function",
+          "type",
+          "ofType",
+          "filter"
+        ]
+      },
+      "suite": "Type Checking",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          {
+            "resourceType": "Patient",
+            "id": "1"
+          },
+          {
+            "resourceType": "Patient",
+            "id": "3"
+          }
+        ],
+        "time": 0.06916599999999917
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Type reference cannot be evaluated: Patient",
+        "time": 0.027916999999998637
+      }
+    },
+    {
+      "test": {
+        "name": "ofType - no matches",
+        "expression": "ofType(Patient)",
+        "input": [
+          {
+            "resourceType": "Observation",
+            "id": "1"
+          }
+        ],
+        "expected": [],
+        "tags": [
+          "function",
+          "type",
+          "ofType",
+          "filter",
+          "empty"
+        ]
+      },
+      "suite": "Type Checking",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [],
+        "time": 0.00804199999999966
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Type reference cannot be evaluated: Patient",
+        "time": 0.007708999999998412
+      }
+    },
+    {
+      "test": {
+        "name": "index - first element",
+        "expression": "$this[0]",
+        "input": [
+          10,
+          20,
+          30
+        ],
+        "expected": [
+          10
+        ],
+        "tags": [
+          "operator",
+          "index",
+          "array"
+        ]
+      },
+      "suite": "Index Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [],
+        "time": 0.11695899999999781
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [],
+        "time": 0.08249999999999957
+      }
+    },
+    {
+      "test": {
+        "name": "index - second element",
+        "expression": "$this[1]",
+        "input": [
+          10,
+          20,
+          30
+        ],
+        "expected": [
+          20
+        ],
+        "tags": [
+          "operator",
+          "index",
+          "array"
+        ]
+      },
+      "suite": "Index Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [],
+        "time": 0.04379199999999983
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [],
+        "time": 0.059290999999998206
+      }
+    },
+    {
+      "test": {
+        "name": "index - third element",
+        "expression": "$this[2]",
+        "input": [
+          10,
+          20,
+          30
+        ],
+        "expected": [
+          30
+        ],
+        "tags": [
+          "operator",
+          "index",
+          "array"
+        ]
+      },
+      "suite": "Index Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [],
+        "time": 0.01216699999999804
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [],
+        "time": 0.007125000000002046
       }
     },
     {
@@ -1881,11 +2419,9 @@
         "name": "index - out of bounds positive",
         "expression": "$this[3]",
         "input": [
-          [
-            10,
-            20,
-            30
-          ]
+          10,
+          20,
+          30
         ],
         "expected": [],
         "tags": [
@@ -1900,12 +2436,12 @@
       "interpreterResult": {
         "success": true,
         "value": [],
-        "time": 0.007625000000000881
+        "time": 0.017666999999999433
       },
       "compilerResult": {
         "success": true,
         "value": [],
-        "time": 0.006916000000000366
+        "time": 0.05029199999999889
       }
     },
     {
@@ -1913,11 +2449,9 @@
         "name": "index - out of bounds negative",
         "expression": "$this[-1]",
         "input": [
-          [
-            10,
-            20,
-            30
-          ]
+          10,
+          20,
+          30
         ],
         "expected": [],
         "tags": [
@@ -1932,12 +2466,49 @@
       "interpreterResult": {
         "success": true,
         "value": [],
-        "time": 0.09804100000000204
+        "time": 0.10841599999999829
       },
       "compilerResult": {
         "success": true,
         "value": [],
-        "time": 0.07895800000000008
+        "time": 0.0572499999999998
+      }
+    },
+    {
+      "test": {
+        "name": "index - complex expression",
+        "expression": "items[index]",
+        "input": [
+          {
+            "items": [
+              "a",
+              "b",
+              "c"
+            ],
+            "index": 1
+          }
+        ],
+        "expected": [
+          "b"
+        ],
+        "tags": [
+          "operator",
+          "index",
+          "array",
+          "navigation"
+        ]
+      },
+      "suite": "Index Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [],
+        "time": 0.02045800000000142
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [],
+        "time": 0.008124999999999716
       }
     },
     {
@@ -1969,14 +2540,14 @@
         "value": [
           "John"
         ],
-        "time": 0.019207999999999004
+        "time": 0.011916000000002924
       },
       "compilerResult": {
         "success": true,
         "value": [
           "John"
         ],
-        "time": 0.010042000000002105
+        "time": 0.01012500000000216
       }
     },
     {
@@ -2008,14 +2579,14 @@
         "value": [
           "Bob"
         ],
-        "time": 0.015665999999999514
+        "time": 0.008457999999997412
       },
       "compilerResult": {
         "success": true,
         "value": [
           "Bob"
         ],
-        "time": 0.007874999999998522
+        "time": 0.012208000000001107
       }
     },
     {
@@ -2044,12 +2615,12 @@
       "interpreterResult": {
         "success": true,
         "value": [],
-        "time": 0.010666999999997984
+        "time": 0.012166000000000565
       },
       "compilerResult": {
         "success": true,
         "value": [],
-        "time": 0.008082999999999174
+        "time": 0.008374999999997357
       }
     },
     {
@@ -2073,14 +2644,14 @@
         "value": [
           5
         ],
-        "time": 0.03729200000000077
+        "time": 0.039166999999999064
       },
       "compilerResult": {
         "success": true,
         "value": [
           5
         ],
-        "time": 0.11533300000000324
+        "time": 0.06345800000000068
       }
     },
     {
@@ -2105,14 +2676,14 @@
         "value": [
           6
         ],
-        "time": 0.02616700000000094
+        "time": 0.01620799999999889
       },
       "compilerResult": {
         "success": true,
         "value": [
           6
         ],
-        "time": 0.012000000000000455
+        "time": 0.009208000000000993
       }
     },
     {
@@ -2136,14 +2707,14 @@
         "value": [
           2
         ],
-        "time": 0.025874999999999204
+        "time": 0.021041999999997785
       },
       "compilerResult": {
         "success": true,
         "value": [
           2
         ],
-        "time": 0.036417000000000144
+        "time": 0.03216600000000014
       }
     },
     {
@@ -2168,14 +2739,14 @@
         "value": [
           1
         ],
-        "time": 0.005834000000000117
+        "time": 0.005624999999998437
       },
       "compilerResult": {
         "success": true,
         "value": [
           1
         ],
-        "time": 0.005624999999994884
+        "time": 0.005207999999999657
       }
     },
     {
@@ -2199,14 +2770,14 @@
         "value": [
           12
         ],
-        "time": 0.01883399999999824
+        "time": 0.018416000000001986
       },
       "compilerResult": {
         "success": true,
         "value": [
           12
         ],
-        "time": 0.032125000000000625
+        "time": 0.030999999999998806
       }
     },
     {
@@ -2231,14 +2802,14 @@
         "value": [
           5
         ],
-        "time": 0.005124999999999602
+        "time": 0.005209000000000685
       },
       "compilerResult": {
         "success": true,
         "value": [
           5
         ],
-        "time": 0.00795800000000213
+        "time": 0.007124999999998494
       }
     },
     {
@@ -2262,14 +2833,14 @@
         "value": [
           5
         ],
-        "time": 0.034834000000003584
+        "time": 0.04533400000000043
       },
       "compilerResult": {
         "success": true,
         "value": [
           5
         ],
-        "time": 0.03583300000000378
+        "time": 0.04216599999999815
       }
     },
     {
@@ -2294,14 +2865,14 @@
         "value": [
           3
         ],
-        "time": 0.005667000000002531
+        "time": 0.010625000000000995
       },
       "compilerResult": {
         "success": true,
         "value": [
           3
         ],
-        "time": 0.0105829999999969
+        "time": 0.009790999999999883
       }
     },
     {
@@ -2325,14 +2896,14 @@
         "value": [
           2
         ],
-        "time": 0.038207999999997355
+        "time": 0.02633300000000105
       },
       "compilerResult": {
         "success": true,
         "value": [
           2
         ],
-        "time": 0.0350830000000002
+        "time": 0.05054100000000261
       }
     },
     {
@@ -2356,14 +2927,14 @@
         "value": [
           3
         ],
-        "time": 0.007624999999997328
+        "time": 0.033250000000002444
       },
       "compilerResult": {
         "success": true,
         "value": [
           3
         ],
-        "time": 0.012499999999995737
+        "time": 0.015333999999999293
       }
     },
     {
@@ -2387,14 +2958,14 @@
         "value": [
           1
         ],
-        "time": 0.018749999999997158
+        "time": 0.0643749999999983
       },
       "compilerResult": {
         "success": true,
         "value": [
           1
         ],
-        "time": 0.06929200000000435
+        "time": 0.061166000000000054
       }
     },
     {
@@ -2418,14 +2989,14 @@
         "value": [
           1
         ],
-        "time": 0.020708999999996536
+        "time": 0.008707999999998606
       },
       "compilerResult": {
         "success": true,
         "value": [
           1
         ],
-        "time": 0.019750000000001933
+        "time": 0.005334000000001282
       }
     },
     {
@@ -2453,14 +3024,14 @@
         "value": [
           8
         ],
-        "time": 0.022416999999997245
+        "time": 0.016166999999999376
       },
       "compilerResult": {
         "success": true,
         "value": [
           8
         ],
-        "time": 0.013083000000001732
+        "time": 0.009582999999999231
       }
     },
     {
@@ -2485,14 +3056,14 @@
         "value": [
           42
         ],
-        "time": 0.038458999999996024
+        "time": 0.016707999999997725
       },
       "compilerResult": {
         "success": true,
         "value": [
           42
         ],
-        "time": 0.03683299999999434
+        "time": 0.029834000000001026
       }
     },
     {
@@ -2517,14 +3088,14 @@
         "value": [
           -5
         ],
-        "time": 0.009875000000000966
+        "time": 0.00837500000000091
       },
       "compilerResult": {
         "success": true,
         "value": [
           -5
         ],
-        "time": 0.010292000000006851
+        "time": 0.012250000000001648
       }
     },
     {
@@ -2549,14 +3120,14 @@
         "value": [
           -42
         ],
-        "time": 0.006499999999995509
+        "time": 0.005416999999997785
       },
       "compilerResult": {
         "success": true,
         "value": [
           -42
         ],
-        "time": 0.0037909999999996558
+        "time": 0.0035829999999990036
       }
     },
     {
@@ -2581,14 +3152,14 @@
         "value": [
           5
         ],
-        "time": 0.006042000000000769
+        "time": 0.014417000000001678
       },
       "compilerResult": {
         "success": true,
         "value": [
           5
         ],
-        "time": 0.005209000000000685
+        "time": 0.005457999999997298
       }
     },
     {
@@ -2618,7 +3189,7 @@
           3,
           4
         ],
-        "time": 0.07675000000000409
+        "time": 0.06562499999999716
       },
       "compilerResult": {
         "success": true,
@@ -2628,7 +3199,7 @@
           3,
           4
         ],
-        "time": 0.07795799999999531
+        "time": 0.08762499999999918
       }
     },
     {
@@ -2659,7 +3230,7 @@
           "c",
           "d"
         ],
-        "time": 0.013916999999999291
+        "time": 0.013417000000000456
       },
       "compilerResult": {
         "success": true,
@@ -2669,7 +3240,7 @@
           "c",
           "d"
         ],
-        "time": 0.0332079999999948
+        "time": 0.029042000000000456
       }
     },
     {
@@ -2698,7 +3269,7 @@
           2,
           3
         ],
-        "time": 0.013624999999997556
+        "time": 0.013500000000000512
       },
       "compilerResult": {
         "success": true,
@@ -2707,7 +3278,7 @@
           2,
           3
         ],
-        "time": 0.021500000000003183
+        "time": 0.02187499999999787
       }
     },
     {
@@ -2741,7 +3312,7 @@
           2,
           3
         ],
-        "time": 0.046875
+        "time": 0.018750000000004263
       },
       "compilerResult": {
         "success": true,
@@ -2750,7 +3321,7 @@
           2,
           3
         ],
-        "time": 0.026042000000003895
+        "time": 0.0098339999999979
       }
     },
     {
@@ -2789,7 +3360,7 @@
           "John",
           "Bob"
         ],
-        "time": 0.15866699999999412
+        "time": 0.12762500000000188
       },
       "compilerResult": {
         "success": true,
@@ -2797,7 +3368,7 @@
           "John",
           "Bob"
         ],
-        "time": 0.12729200000000418
+        "time": 0.11608300000000327
       }
     },
     {
@@ -2840,7 +3411,7 @@
           "John",
           "Bob"
         ],
-        "time": 0.022165999999998576
+        "time": 0.02087500000000375
       },
       "compilerResult": {
         "success": true,
@@ -2848,7 +3419,7 @@
           "John",
           "Bob"
         ],
-        "time": 0.016625000000004775
+        "time": 0.0159580000000048
       }
     },
     {
@@ -2877,14 +3448,14 @@
         "value": [
           true
         ],
-        "time": 0.02070799999999906
+        "time": 0.0245829999999998
       },
       "compilerResult": {
         "success": true,
         "value": [
           true
         ],
-        "time": 0.018333000000005484
+        "time": 0.021791000000000338
       }
     },
     {
@@ -2927,14 +3498,14 @@
         "value": [
           "John"
         ],
-        "time": 0.026667000000003327
+        "time": 0.026457999999998094
       },
       "compilerResult": {
         "success": true,
         "value": [
           "John"
         ],
-        "time": 0.045833999999999264
+        "time": 0.03966599999999687
       }
     },
     {
@@ -2961,14 +3532,14 @@
         "value": [
           "John"
         ],
-        "time": 0.007500000000000284
+        "time": 0.0056659999999979505
       },
       "compilerResult": {
         "success": true,
         "value": [
           "John"
         ],
-        "time": 0.005541000000000906
+        "time": 0.0030830000000037217
       }
     },
     {
@@ -2992,12 +3563,12 @@
       "interpreterResult": {
         "success": true,
         "value": [],
-        "time": 0.003875000000000739
+        "time": 0.0036249999999995453
       },
       "compilerResult": {
         "success": true,
         "value": [],
-        "time": 0.004582999999996673
+        "time": 0.00274999999999892
       }
     },
     {
@@ -3033,7 +3604,7 @@
           "John",
           "Jane"
         ],
-        "time": 0.007291999999999632
+        "time": 0.004750000000001364
       },
       "compilerResult": {
         "success": true,
@@ -3041,7 +3612,7 @@
           "John",
           "Jane"
         ],
-        "time": 0.015457999999995309
+        "time": 0.0036250000000066507
       }
     },
     {
@@ -3108,7 +3679,7 @@
             "family": "Smith"
           }
         ],
-        "time": 0.005583999999998923
+        "time": 0.0035420000000030427
       },
       "compilerResult": {
         "success": true,
@@ -3127,7 +3698,7 @@
             "family": "Smith"
           }
         ],
-        "time": 0.004291000000002043
+        "time": 0.003375000000005457
       }
     },
     {
@@ -3157,14 +3728,14 @@
         "value": [
           "John"
         ],
-        "time": 0.012291999999995085
+        "time": 0.009917000000001508
       },
       "compilerResult": {
         "success": true,
         "value": [
           "John"
         ],
-        "time": 0.010874999999998636
+        "time": 0.009666000000002839
       }
     },
     {
@@ -3203,7 +3774,7 @@
           "John",
           "J"
         ],
-        "time": 0.009875000000000966
+        "time": 0.01983300000000554
       },
       "compilerResult": {
         "success": true,
@@ -3211,7 +3782,7 @@
           "John",
           "J"
         ],
-        "time": 0.012666000000002953
+        "time": 0.0105829999999969
       }
     },
     {
@@ -3236,12 +3807,12 @@
       "interpreterResult": {
         "success": true,
         "value": [],
-        "time": 0.007583999999994262
+        "time": 0.008791000000002214
       },
       "compilerResult": {
         "success": true,
         "value": [],
-        "time": 0.011333000000000482
+        "time": 0.03249999999999886
       }
     },
     {
@@ -3274,14 +3845,14 @@
         "value": [
           42
         ],
-        "time": 0.00999999999999801
+        "time": 0.009166999999997927
       },
       "compilerResult": {
         "success": true,
         "value": [
           42
         ],
-        "time": 0.012249999999994543
+        "time": 0.018916999999994744
       }
     },
     {
@@ -3364,14 +3935,14 @@
         "value": [
           5
         ],
-        "time": 0.041667000000003895
+        "time": 0.019167000000003043
       },
       "compilerResult": {
         "success": true,
         "value": [
           5
         ],
-        "time": 0.027958000000005256
+        "time": 0.01666699999999821
       }
     },
     {
@@ -3407,7 +3978,7 @@
           2,
           3
         ],
-        "time": 0.05129099999999909
+        "time": 0.04416700000000162
       },
       "compilerResult": {
         "success": true,
@@ -3416,7 +3987,7 @@
           2,
           3
         ],
-        "time": 0.03666700000000134
+        "time": 0.02504199999999912
       }
     },
     {
@@ -3436,12 +4007,12 @@
       "interpreterResult": {
         "success": true,
         "value": [],
-        "time": 0.006333000000005029
+        "time": 0.008833000000002755
       },
       "compilerResult": {
         "success": true,
         "value": [],
-        "time": 0.003540999999998462
+        "time": 0.0035829999999990036
       }
     },
     {
@@ -3478,7 +4049,7 @@
           1,
           2
         ],
-        "time": 0.02674999999999983
+        "time": 0.0159580000000048
       },
       "compilerResult": {
         "success": true,
@@ -3486,7 +4057,7 @@
           1,
           2
         ],
-        "time": 0.02329199999999787
+        "time": 0.021832999999993774
       }
     },
     {
@@ -3532,7 +4103,7 @@
           1,
           2
         ],
-        "time": 0.11424999999999841
+        "time": 0.017958999999997616
       },
       "compilerResult": {
         "success": true,
@@ -3540,7 +4111,39 @@
           1,
           2
         ],
-        "time": 0.03533300000000139
+        "time": 0.019332999999996048
+      }
+    },
+    {
+      "test": {
+        "name": "%context variable",
+        "expression": "%context",
+        "input": [
+          {
+            "id": "123"
+          }
+        ],
+        "expected": [
+          {
+            "id": "123"
+          }
+        ],
+        "tags": [
+          "variable",
+          "%context"
+        ]
+      },
+      "suite": "Variables",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [],
+        "time": 0.004750000000001364
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [],
+        "time": 0.0026249999999947704
       }
     },
     {
@@ -3564,14 +4167,14 @@
         "value": [
           true
         ],
-        "time": 0.07020899999999841
+        "time": 0.06158299999999883
       },
       "compilerResult": {
         "success": true,
         "value": [
           true
         ],
-        "time": 0.06041599999999647
+        "time": 0.050041000000000224
       }
     },
     {
@@ -3595,14 +4198,14 @@
         "value": [
           true
         ],
-        "time": 0.04316599999999937
+        "time": 0.020000000000003126
       },
       "compilerResult": {
         "success": true,
         "value": [
           true
         ],
-        "time": 0.022792000000002588
+        "time": 0.012708999999993864
       }
     },
     {
@@ -3630,14 +4233,14 @@
         "value": [
           false
         ],
-        "time": 0.008333999999997843
+        "time": 0.008499999999997954
       },
       "compilerResult": {
         "success": true,
         "value": [
           false
         ],
-        "time": 0.006749999999996703
+        "time": 0.008499999999997954
       }
     },
     {
@@ -3665,14 +4268,14 @@
         "value": [
           true
         ],
-        "time": 0.06604199999999594
+        "time": 0.07050000000000267
       },
       "compilerResult": {
         "success": true,
         "value": [
           true
         ],
-        "time": 0.04999999999999716
+        "time": 0.0519170000000031
       }
     },
     {
@@ -3696,14 +4299,14 @@
         "value": [
           false
         ],
-        "time": 0.008583999999999037
+        "time": 0.009042000000000883
       },
       "compilerResult": {
         "success": true,
         "value": [
           false
         ],
-        "time": 0.007082999999994399
+        "time": 0.01270900000000097
       }
     },
     {
@@ -3738,14 +4341,14 @@
         "value": [
           true
         ],
-        "time": 0.02816699999999628
+        "time": 0.021166000000000906
       },
       "compilerResult": {
         "success": true,
         "value": [
           true
         ],
-        "time": 0.048791999999998836
+        "time": 0.04220799999999514
       }
     },
     {
@@ -3780,14 +4383,14 @@
         "value": [
           false
         ],
-        "time": 0.020415999999997325
+        "time": 0.017916999999997074
       },
       "compilerResult": {
         "success": true,
         "value": [
           false
         ],
-        "time": 0.021499999999996078
+        "time": 0.019584000000001822
       }
     },
     {
@@ -3819,14 +4422,14 @@
         "value": [
           3
         ],
-        "time": 0.016458000000000084
+        "time": 0.02733299999999872
       },
       "compilerResult": {
         "success": true,
         "value": [
           3
         ],
-        "time": 0.03220800000000423
+        "time": 0.03337499999999949
       }
     },
     {
@@ -3850,14 +4453,1258 @@
         "value": [
           0
         ],
-        "time": 0.01316699999999571
+        "time": 0.014415999999997098
       },
       "compilerResult": {
         "success": true,
         "value": [
           0
         ],
-        "time": 0.014749999999999375
+        "time": 0.008791999999999689
+      }
+    },
+    {
+      "test": {
+        "name": "all - criteria true",
+        "expression": "values.all($this mod 2 = 0)",
+        "input": [
+          {
+            "values": [
+              2,
+              4,
+              6,
+              8
+            ]
+          }
+        ],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "function",
+          "aggregate",
+          "all"
+        ]
+      },
+      "suite": "Functions - Existence and Aggregates",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.04854199999999764
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Compiler not implemented",
+        "time": 0.023958000000000368
+      }
+    },
+    {
+      "test": {
+        "name": "all - criteria false",
+        "expression": "values.all($this > 5)",
+        "input": [
+          {
+            "values": [
+              2,
+              4,
+              6,
+              8
+            ]
+          }
+        ],
+        "expected": [
+          false
+        ],
+        "tags": [
+          "function",
+          "aggregate",
+          "all"
+        ]
+      },
+      "suite": "Functions - Existence and Aggregates",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.014875000000003524
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Compiler not implemented",
+        "time": 0.018625000000000114
+      }
+    },
+    {
+      "test": {
+        "name": "allTrue - all true",
+        "expression": "values.allTrue()",
+        "input": [
+          {
+            "values": [
+              true,
+              true,
+              true
+            ]
+          }
+        ],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "function",
+          "aggregate",
+          "boolean",
+          "allTrue"
+        ]
+      },
+      "suite": "Functions - Existence and Aggregates",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.06524999999999892
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Compiler not implemented",
+        "time": 0.029666000000005965
+      }
+    },
+    {
+      "test": {
+        "name": "allTrue - contains false",
+        "expression": "values.allTrue()",
+        "input": [
+          {
+            "values": [
+              true,
+              false,
+              true
+            ]
+          }
+        ],
+        "expected": [
+          false
+        ],
+        "tags": [
+          "function",
+          "aggregate",
+          "boolean",
+          "allTrue"
+        ]
+      },
+      "suite": "Functions - Existence and Aggregates",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.01274999999999693
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Compiler not implemented",
+        "time": 0.006500000000002615
+      }
+    },
+    {
+      "test": {
+        "name": "anyTrue - contains true",
+        "expression": "values.anyTrue()",
+        "input": [
+          {
+            "values": [
+              false,
+              true,
+              false
+            ]
+          }
+        ],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "function",
+          "aggregate",
+          "boolean",
+          "anyTrue"
+        ]
+      },
+      "suite": "Functions - Existence and Aggregates",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.05391699999999844
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Compiler not implemented",
+        "time": 0.01504200000000111
+      }
+    },
+    {
+      "test": {
+        "name": "anyTrue - all false",
+        "expression": "values.anyTrue()",
+        "input": [
+          {
+            "values": [
+              false,
+              false,
+              false
+            ]
+          }
+        ],
+        "expected": [
+          false
+        ],
+        "tags": [
+          "function",
+          "aggregate",
+          "boolean",
+          "anyTrue"
+        ]
+      },
+      "suite": "Functions - Existence and Aggregates",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.010207999999998663
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Compiler not implemented",
+        "time": 0.005957999999999686
+      }
+    },
+    {
+      "test": {
+        "name": "anyFalse - contains false",
+        "expression": "values.anyFalse()",
+        "input": [
+          {
+            "values": [
+              true,
+              false,
+              true
+            ]
+          }
+        ],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "function",
+          "aggregate",
+          "boolean",
+          "anyFalse"
+        ]
+      },
+      "suite": "Functions - Existence and Aggregates",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.02949999999999875
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Compiler not implemented",
+        "time": 0.014833000000002983
+      }
+    },
+    {
+      "test": {
+        "name": "anyFalse - all true",
+        "expression": "values.anyFalse()",
+        "input": [
+          {
+            "values": [
+              true,
+              true,
+              true
+            ]
+          }
+        ],
+        "expected": [
+          false
+        ],
+        "tags": [
+          "function",
+          "aggregate",
+          "boolean",
+          "anyFalse"
+        ]
+      },
+      "suite": "Functions - Existence and Aggregates",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.009292000000002076
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Compiler not implemented",
+        "time": 0.006709000000000742
+      }
+    },
+    {
+      "test": {
+        "name": "allFalse - all false",
+        "expression": "values.allFalse()",
+        "input": [
+          {
+            "values": [
+              false,
+              false,
+              false
+            ]
+          }
+        ],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "function",
+          "aggregate",
+          "boolean",
+          "allFalse"
+        ]
+      },
+      "suite": "Functions - Existence and Aggregates",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.09262499999999818
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Compiler not implemented",
+        "time": 0.027999999999998693
+      }
+    },
+    {
+      "test": {
+        "name": "allFalse - contains true",
+        "expression": "values.allFalse()",
+        "input": [
+          {
+            "values": [
+              false,
+              true,
+              false
+            ]
+          }
+        ],
+        "expected": [
+          false
+        ],
+        "tags": [
+          "function",
+          "aggregate",
+          "boolean",
+          "allFalse"
+        ]
+      },
+      "suite": "Functions - Existence and Aggregates",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.027333999999996195
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Compiler not implemented",
+        "time": 0.010374999999996248
+      }
+    },
+    {
+      "test": {
+        "name": "distinct - removes duplicates",
+        "expression": "values.distinct()",
+        "input": [
+          {
+            "values": [
+              1,
+              2,
+              2,
+              3,
+              3,
+              3,
+              4
+            ]
+          }
+        ],
+        "expected": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "tags": [
+          "function",
+          "aggregate",
+          "distinct"
+        ]
+      },
+      "suite": "Functions - Existence and Aggregates",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "time": 0.09095899999999801
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Compiler not implemented",
+        "time": 0.024292000000002645
+      }
+    },
+    {
+      "test": {
+        "name": "isDistinct - no duplicates",
+        "expression": "values.isDistinct()",
+        "input": [
+          {
+            "values": [
+              1,
+              2,
+              3,
+              4
+            ]
+          }
+        ],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "function",
+          "aggregate",
+          "isDistinct"
+        ]
+      },
+      "suite": "Functions - Existence and Aggregates",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.07508400000000393
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Compiler not implemented",
+        "time": 0.05195799999999906
+      }
+    },
+    {
+      "test": {
+        "name": "isDistinct - has duplicates",
+        "expression": "values.isDistinct()",
+        "input": [
+          {
+            "values": [
+              1,
+              2,
+              2,
+              3
+            ]
+          }
+        ],
+        "expected": [
+          false
+        ],
+        "tags": [
+          "function",
+          "aggregate",
+          "isDistinct"
+        ]
+      },
+      "suite": "Functions - Existence and Aggregates",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.030208999999999264
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Compiler not implemented",
+        "time": 0.03608300000000497
+      }
+    },
+    {
+      "test": {
+        "name": "intersect - common items",
+        "expression": "{1, 2, 3, 4}.intersect({3, 4, 5, 6})",
+        "input": [],
+        "expected": [
+          3,
+          4
+        ],
+        "tags": [
+          "function",
+          "set",
+          "intersect"
+        ]
+      },
+      "suite": "Functions - Set Operations",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          3,
+          4
+        ],
+        "time": 0.1059580000000011
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.05983299999999758
+      }
+    },
+    {
+      "test": {
+        "name": "intersect - no common items",
+        "expression": "{1, 2, 3}.intersect({4, 5, 6})",
+        "input": [],
+        "expected": [],
+        "tags": [
+          "function",
+          "set",
+          "intersect"
+        ]
+      },
+      "suite": "Functions - Set Operations",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [],
+        "time": 0.022500000000000853
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.014541999999998723
+      }
+    },
+    {
+      "test": {
+        "name": "intersect - with empty",
+        "expression": "{1, 2, 3}.intersect({})",
+        "input": [],
+        "expected": [],
+        "tags": [
+          "function",
+          "set",
+          "intersect",
+          "empty"
+        ]
+      },
+      "suite": "Functions - Set Operations",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [],
+        "time": 0.012375000000005798
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.01345799999999997
+      }
+    },
+    {
+      "test": {
+        "name": "exclude - remove items",
+        "expression": "{1, 2, 3, 4}.exclude({3, 4})",
+        "input": [],
+        "expected": [
+          1,
+          2
+        ],
+        "tags": [
+          "function",
+          "set",
+          "exclude"
+        ]
+      },
+      "suite": "Functions - Set Operations",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          1,
+          2
+        ],
+        "time": 0.057458000000004006
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.02737499999999926
+      }
+    },
+    {
+      "test": {
+        "name": "exclude - remove non-existing",
+        "expression": "{1, 2, 3}.exclude({4, 5})",
+        "input": [],
+        "expected": [
+          1,
+          2,
+          3
+        ],
+        "tags": [
+          "function",
+          "set",
+          "exclude"
+        ]
+      },
+      "suite": "Functions - Set Operations",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          1,
+          2,
+          3
+        ],
+        "time": 0.023707999999999174
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.01841699999999946
+      }
+    },
+    {
+      "test": {
+        "name": "exclude - with empty",
+        "expression": "{1, 2, 3}.exclude({})",
+        "input": [],
+        "expected": [
+          1,
+          2,
+          3
+        ],
+        "tags": [
+          "function",
+          "set",
+          "exclude",
+          "empty"
+        ]
+      },
+      "suite": "Functions - Set Operations",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          1,
+          2,
+          3
+        ],
+        "time": 0.011375000000001023
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.033833000000001334
+      }
+    },
+    {
+      "test": {
+        "name": "union - removes duplicates",
+        "expression": "{1, 2, 3}.union({3, 4, 5})",
+        "input": [],
+        "expected": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "tags": [
+          "function",
+          "set",
+          "union"
+        ]
+      },
+      "suite": "Functions - Set Operations",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "time": 0.08529099999999801
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.019415999999999656
+      }
+    },
+    {
+      "test": {
+        "name": "union - no duplicates",
+        "expression": "{1, 2, 3}.union({4, 5, 6})",
+        "input": [],
+        "expected": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "tags": [
+          "function",
+          "set",
+          "union"
+        ]
+      },
+      "suite": "Functions - Set Operations",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "time": 0.020583000000002016
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.017583999999999378
+      }
+    },
+    {
+      "test": {
+        "name": "combine - keeps duplicates",
+        "expression": "{1, 2, 3}.combine({3, 4, 5})",
+        "input": [],
+        "expected": [
+          1,
+          2,
+          3,
+          3,
+          4,
+          5
+        ],
+        "tags": [
+          "function",
+          "set",
+          "combine"
+        ]
+      },
+      "suite": "Functions - Set Operations",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          1,
+          2,
+          3,
+          3,
+          4,
+          5
+        ],
+        "time": 0.07883299999999593
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.034124999999995964
+      }
+    },
+    {
+      "test": {
+        "name": "combine - multiple duplicates",
+        "expression": "{1, 2, 2}.combine({2, 3, 3})",
+        "input": [],
+        "expected": [
+          1,
+          2,
+          2,
+          2,
+          3,
+          3
+        ],
+        "tags": [
+          "function",
+          "set",
+          "combine"
+        ]
+      },
+      "suite": "Functions - Set Operations",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          1,
+          2,
+          2,
+          2,
+          3,
+          3
+        ],
+        "time": 0.04095899999999375
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.024959000000002618
+      }
+    },
+    {
+      "test": {
+        "name": "iif - true condition",
+        "expression": "iif(active, 'Active', 'Inactive')",
+        "input": [
+          {
+            "active": true
+          }
+        ],
+        "expected": [
+          "Active"
+        ],
+        "tags": [
+          "function",
+          "conditional",
+          "iif"
+        ]
+      },
+      "suite": "Functions - Conditionals",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          "Active"
+        ],
+        "time": 0.04220899999999972
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.013540999999996473
+      }
+    },
+    {
+      "test": {
+        "name": "iif - false condition",
+        "expression": "iif(active, 'Active', 'Inactive')",
+        "input": [
+          {
+            "active": false
+          }
+        ],
+        "expected": [
+          "Inactive"
+        ],
+        "tags": [
+          "function",
+          "conditional",
+          "iif"
+        ]
+      },
+      "suite": "Functions - Conditionals",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          "Inactive"
+        ],
+        "time": 0.014084000000003982
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.013125000000002274
+      }
+    },
+    {
+      "test": {
+        "name": "iif - empty as false",
+        "expression": "iif(active, 'Active', 'Inactive')",
+        "input": [
+          {}
+        ],
+        "expected": [
+          "Inactive"
+        ],
+        "tags": [
+          "function",
+          "conditional",
+          "iif",
+          "empty"
+        ]
+      },
+      "suite": "Functions - Conditionals",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          "Inactive"
+        ],
+        "time": 0.00837500000000091
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.0085420000000056
+      }
+    },
+    {
+      "test": {
+        "name": "iif - lazy evaluation true",
+        "expression": "iif(value != 0, 10 / value, 0)",
+        "input": [
+          {
+            "value": 5
+          }
+        ],
+        "expected": [
+          2
+        ],
+        "tags": [
+          "function",
+          "conditional",
+          "iif",
+          "lazy"
+        ]
+      },
+      "suite": "Functions - Conditionals",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          2
+        ],
+        "time": 0.026249999999997442
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.016958999999999946
+      }
+    },
+    {
+      "test": {
+        "name": "iif - lazy evaluation false",
+        "expression": "iif(value != 0, 10 / value, 0)",
+        "input": [
+          {
+            "value": 0
+          }
+        ],
+        "expected": [
+          0
+        ],
+        "tags": [
+          "function",
+          "conditional",
+          "iif",
+          "lazy"
+        ]
+      },
+      "suite": "Functions - Conditionals",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          0
+        ],
+        "time": 0.014958000000000027
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.02187500000000142
+      }
+    },
+    {
+      "test": {
+        "name": "iif - with navigation",
+        "expression": "iif(x > 0, x + 1, x - 1)",
+        "input": [
+          {
+            "x": 5
+          }
+        ],
+        "expected": [
+          6
+        ],
+        "tags": [
+          "function",
+          "conditional",
+          "iif",
+          "navigation"
+        ]
+      },
+      "suite": "Functions - Conditionals",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          6
+        ],
+        "time": 0.017958999999997616
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.014167000000000485
+      }
+    },
+    {
+      "test": {
+        "name": "iif - negative value",
+        "expression": "iif(x > 0, x + 1, x - 1)",
+        "input": [
+          {
+            "x": -5
+          }
+        ],
+        "expected": [
+          -6
+        ],
+        "tags": [
+          "function",
+          "conditional",
+          "iif",
+          "navigation"
+        ]
+      },
+      "suite": "Functions - Conditionals",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          -6
+        ],
+        "time": 0.013792000000002247
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.014000000000002899
+      }
+    },
+    {
+      "test": {
+        "name": "defineVariable - simple assignment",
+        "expression": "defineVariable('x', value).value + %x",
+        "input": [
+          {
+            "value": 5
+          }
+        ],
+        "expected": [
+          10
+        ],
+        "tags": [
+          "function",
+          "variable",
+          "defineVariable"
+        ]
+      },
+      "suite": "Functions - defineVariable",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          10
+        ],
+        "time": 0.06645800000000435
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.03479199999999594
+      }
+    },
+    {
+      "test": {
+        "name": "defineVariable - returns original input",
+        "expression": "defineVariable('sum', a + b)",
+        "input": [
+          {
+            "a": 1,
+            "b": 2
+          }
+        ],
+        "expected": [
+          {
+            "a": 1,
+            "b": 2
+          }
+        ],
+        "tags": [
+          "function",
+          "variable",
+          "defineVariable"
+        ]
+      },
+      "suite": "Functions - defineVariable",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          {
+            "a": 1,
+            "b": 2
+          }
+        ],
+        "time": 0.015416000000001873
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.007999999999995566
+      }
+    },
+    {
+      "test": {
+        "name": "defineVariable - complex filter",
+        "expression": "defineVariable('officialName', name.where(use = 'official').first()).name.where(given != %officialName.given)",
+        "input": [
+          {
+            "name": [
+              {
+                "use": "official",
+                "given": [
+                  "John"
+                ]
+              },
+              {
+                "use": "nickname",
+                "given": [
+                  "Johnny"
+                ]
+              }
+            ]
+          }
+        ],
+        "expected": [
+          {
+            "use": "nickname",
+            "given": [
+              "Johnny"
+            ]
+          }
+        ],
+        "tags": [
+          "function",
+          "variable",
+          "defineVariable",
+          "complex"
+        ]
+      },
+      "suite": "Functions - defineVariable",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          {
+            "use": "nickname",
+            "given": [
+              "Johnny"
+            ]
+          }
+        ],
+        "time": 0.0557500000000033
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.030208999999999264
+      }
+    },
+    {
+      "test": {
+        "name": "defineVariable - chained definitions",
+        "expression": "defineVariable('x', value).defineVariable('y', %x * 2).defineVariable('z', %x + %y)",
+        "input": [
+          {
+            "value": 5
+          }
+        ],
+        "expected": [
+          {
+            "value": 5
+          }
+        ],
+        "tags": [
+          "function",
+          "variable",
+          "defineVariable",
+          "chain"
+        ],
+        "skip": {
+          "interpreter": false,
+          "compiler": false,
+          "reason": "Complex variable chaining may need special handling"
+        }
+      },
+      "suite": "Functions - defineVariable",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          {
+            "value": 5
+          }
+        ],
+        "time": 0.028708999999999207
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.021000000000000796
       }
     },
     {
@@ -3891,7 +5738,7 @@
           4,
           5
         ],
-        "time": 0.034583000000004915
+        "time": 0.016666000000000736
       },
       "compilerResult": {
         "success": true,
@@ -3900,7 +5747,7 @@
           4,
           5
         ],
-        "time": 0.03975000000000506
+        "time": 0.018458000000002528
       }
     },
     {
@@ -3944,7 +5791,7 @@
             "age": 35
           }
         ],
-        "time": 0.046833999999996934
+        "time": 0.010666999999997984
       },
       "compilerResult": {
         "success": true,
@@ -3954,7 +5801,7 @@
             "age": 35
           }
         ],
-        "time": 0.027457999999995764
+        "time": 0.01099999999999568
       }
     },
     {
@@ -3974,12 +5821,12 @@
       "interpreterResult": {
         "success": true,
         "value": [],
-        "time": 0.014791999999999916
+        "time": 0.012167000000005146
       },
       "compilerResult": {
         "success": true,
         "value": [],
-        "time": 0.015584000000004039
+        "time": 0.010584000000001481
       }
     },
     {
@@ -4004,12 +5851,12 @@
       "interpreterResult": {
         "success": true,
         "value": [],
-        "time": 0.018250000000001876
+        "time": 0.010957999999995138
       },
       "compilerResult": {
         "success": true,
         "value": [],
-        "time": 0.010249999999999204
+        "time": 0.009749999999996817
       }
     },
     {
@@ -4058,7 +5905,7 @@
             "price": 15
           }
         ],
-        "time": 0.01983399999999591
+        "time": 0.02787500000000165
       },
       "compilerResult": {
         "success": true,
@@ -4068,7 +5915,7 @@
             "price": 15
           }
         ],
-        "time": 0.031667000000005885
+        "time": 0.034041000000001986
       }
     },
     {
@@ -4116,7 +5963,7 @@
             "price": 15
           }
         ],
-        "time": 0.02658399999999972
+        "time": 0.03812500000000085
       },
       "compilerResult": {
         "success": true,
@@ -4126,7 +5973,77 @@
             "price": 15
           }
         ],
-        "time": 0.06483300000000014
+        "time": 0.01958299999999724
+      }
+    },
+    {
+      "test": {
+        "name": "where - with explicit $this",
+        "expression": "$this.where($this > 2)",
+        "input": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "expected": [
+          3,
+          4,
+          5
+        ],
+        "tags": [
+          "function",
+          "where",
+          "filter",
+          "$this"
+        ]
+      },
+      "suite": "Functions - where",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [],
+        "time": 0.014167000000000485
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [],
+        "time": 0.010207999999998663
+      }
+    },
+    {
+      "test": {
+        "name": "where - using $index",
+        "expression": "$this.where($index < 2)",
+        "input": [
+          "a",
+          "b",
+          "c",
+          "d"
+        ],
+        "expected": [
+          "a",
+          "b"
+        ],
+        "tags": [
+          "function",
+          "where",
+          "filter",
+          "$index"
+        ]
+      },
+      "suite": "Functions - where",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [],
+        "time": 0.06425000000000125
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [],
+        "time": 0.022750000000002046
       }
     },
     {
@@ -4152,12 +6069,528 @@
       "interpreterResult": {
         "success": true,
         "value": [],
-        "time": 0.018458000000002528
+        "time": 0.019874999999998977
       },
       "compilerResult": {
         "success": true,
         "value": [],
-        "time": 0.031957999999995934
+        "time": 0.009667000000000314
+      }
+    },
+    {
+      "test": {
+        "name": "toString - number",
+        "expression": "42.toString()",
+        "input": [],
+        "expected": [
+          "42"
+        ],
+        "tags": [
+          "function",
+          "conversion",
+          "toString"
+        ]
+      },
+      "suite": "Functions - Conversion",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          "42"
+        ],
+        "time": 0.03620899999999949
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.008333999999997843
+      }
+    },
+    {
+      "test": {
+        "name": "toString - boolean true",
+        "expression": "true.toString()",
+        "input": [],
+        "expected": [
+          "true"
+        ],
+        "tags": [
+          "function",
+          "conversion",
+          "toString"
+        ]
+      },
+      "suite": "Functions - Conversion",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          "true"
+        ],
+        "time": 0.007874999999998522
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.006915999999996814
+      }
+    },
+    {
+      "test": {
+        "name": "toString - boolean false",
+        "expression": "false.toString()",
+        "input": [],
+        "expected": [
+          "false"
+        ],
+        "tags": [
+          "function",
+          "conversion",
+          "toString"
+        ]
+      },
+      "suite": "Functions - Conversion",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          "false"
+        ],
+        "time": 0.006957999999997355
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.004750000000001364
+      }
+    },
+    {
+      "test": {
+        "name": "toString - string",
+        "expression": "'hello'.toString()",
+        "input": [],
+        "expected": [
+          "hello"
+        ],
+        "tags": [
+          "function",
+          "conversion",
+          "toString"
+        ]
+      },
+      "suite": "Functions - Conversion",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          "hello"
+        ],
+        "time": 0.07816700000000054
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.03720899999999716
+      }
+    },
+    {
+      "test": {
+        "name": "toInteger - string",
+        "expression": "'42'.toInteger()",
+        "input": [],
+        "expected": [
+          42
+        ],
+        "tags": [
+          "function",
+          "conversion",
+          "toInteger"
+        ]
+      },
+      "suite": "Functions - Conversion",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          42
+        ],
+        "time": 0.05070899999999767
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.017125000000000057
+      }
+    },
+    {
+      "test": {
+        "name": "toInteger - decimal",
+        "expression": "3.14.toInteger()",
+        "input": [],
+        "expected": [
+          3
+        ],
+        "tags": [
+          "function",
+          "conversion",
+          "toInteger"
+        ]
+      },
+      "suite": "Functions - Conversion",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          3
+        ],
+        "time": 0.009000000000000341
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.007415999999999201
+      }
+    },
+    {
+      "test": {
+        "name": "toInteger - boolean true",
+        "expression": "true.toInteger()",
+        "input": [],
+        "expected": [
+          1
+        ],
+        "tags": [
+          "function",
+          "conversion",
+          "toInteger"
+        ]
+      },
+      "suite": "Functions - Conversion",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          1
+        ],
+        "time": 0.005624999999994884
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.006875000000000853
+      }
+    },
+    {
+      "test": {
+        "name": "toInteger - boolean false",
+        "expression": "false.toInteger()",
+        "input": [],
+        "expected": [
+          0
+        ],
+        "tags": [
+          "function",
+          "conversion",
+          "toInteger"
+        ]
+      },
+      "suite": "Functions - Conversion",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          0
+        ],
+        "time": 0.005166999999993038
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.006416999999999007
+      }
+    },
+    {
+      "test": {
+        "name": "toInteger - invalid string",
+        "expression": "'hello'.toInteger()",
+        "input": [],
+        "expected": [],
+        "tags": [
+          "function",
+          "conversion",
+          "toInteger",
+          "invalid"
+        ]
+      },
+      "suite": "Functions - Conversion",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [],
+        "time": 0.017417000000001792
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.009875000000000966
+      }
+    },
+    {
+      "test": {
+        "name": "toDecimal - string",
+        "expression": "'3.14'.toDecimal()",
+        "input": [],
+        "expected": [
+          3.14
+        ],
+        "tags": [
+          "function",
+          "conversion",
+          "toDecimal"
+        ]
+      },
+      "suite": "Functions - Conversion",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          3.14
+        ],
+        "time": 0.0708749999999938
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.00824999999999676
+      }
+    },
+    {
+      "test": {
+        "name": "toDecimal - integer",
+        "expression": "42.toDecimal()",
+        "input": [],
+        "expected": [
+          42
+        ],
+        "tags": [
+          "function",
+          "conversion",
+          "toDecimal"
+        ]
+      },
+      "suite": "Functions - Conversion",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          42
+        ],
+        "time": 0.00841599999999687
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.013125000000002274
+      }
+    },
+    {
+      "test": {
+        "name": "toDecimal - boolean true",
+        "expression": "true.toDecimal()",
+        "input": [],
+        "expected": [
+          1
+        ],
+        "tags": [
+          "function",
+          "conversion",
+          "toDecimal"
+        ]
+      },
+      "suite": "Functions - Conversion",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          1
+        ],
+        "time": 0.007207999999998549
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.009208999999998468
+      }
+    },
+    {
+      "test": {
+        "name": "toDecimal - boolean false",
+        "expression": "false.toDecimal()",
+        "input": [],
+        "expected": [
+          0
+        ],
+        "tags": [
+          "function",
+          "conversion",
+          "toDecimal"
+        ]
+      },
+      "suite": "Functions - Conversion",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          0
+        ],
+        "time": 0.008874999999996191
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.01666699999999821
+      }
+    },
+    {
+      "test": {
+        "name": "toBoolean - string true",
+        "expression": "'true'.toBoolean()",
+        "input": [],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "function",
+          "conversion",
+          "toBoolean"
+        ]
+      },
+      "suite": "Functions - Conversion",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.041957999999993945
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.034458000000000766
+      }
+    },
+    {
+      "test": {
+        "name": "toBoolean - string false",
+        "expression": "'false'.toBoolean()",
+        "input": [],
+        "expected": [
+          false
+        ],
+        "tags": [
+          "function",
+          "conversion",
+          "toBoolean"
+        ]
+      },
+      "suite": "Functions - Conversion",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.00954200000000327
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.03187499999999943
+      }
+    },
+    {
+      "test": {
+        "name": "toBoolean - number 1",
+        "expression": "1.toBoolean()",
+        "input": [],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "function",
+          "conversion",
+          "toBoolean"
+        ]
+      },
+      "suite": "Functions - Conversion",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.0062080000000008795
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.004457999999999629
+      }
+    },
+    {
+      "test": {
+        "name": "toBoolean - number 0",
+        "expression": "0.toBoolean()",
+        "input": [],
+        "expected": [
+          false
+        ],
+        "tags": [
+          "function",
+          "conversion",
+          "toBoolean"
+        ]
+      },
+      "suite": "Functions - Conversion",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.007874999999998522
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.011167000000000371
+      }
+    },
+    {
+      "test": {
+        "name": "toBoolean - invalid string",
+        "expression": "'maybe'.toBoolean()",
+        "input": [],
+        "expected": [],
+        "tags": [
+          "function",
+          "conversion",
+          "toBoolean",
+          "invalid"
+        ]
+      },
+      "suite": "Functions - Conversion",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [],
+        "time": 0.00883299999999565
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.008665999999998064
       }
     },
     {
@@ -4189,14 +6622,14 @@
         "value": [
           1
         ],
-        "time": 0.015875000000001194
+        "time": 0.01241700000000634
       },
       "compilerResult": {
         "success": true,
         "value": [
           1
         ],
-        "time": 0.018707999999996616
+        "time": 0.01637500000000358
       }
     },
     {
@@ -4217,12 +6650,12 @@
       "interpreterResult": {
         "success": true,
         "value": [],
-        "time": 0.010958000000002244
+        "time": 0.007667000000004975
       },
       "compilerResult": {
         "success": true,
         "value": [],
-        "time": 0.008000000000002672
+        "time": 0.006709000000000742
       }
     },
     {
@@ -4254,14 +6687,14 @@
         "value": [
           3
         ],
-        "time": 0.057416000000003464
+        "time": 0.03612499999999841
       },
       "compilerResult": {
         "success": true,
         "value": [
           3
         ],
-        "time": 0.055125000000003865
+        "time": 0.0777919999999952
       }
     },
     {
@@ -4282,12 +6715,245 @@
       "interpreterResult": {
         "success": true,
         "value": [],
-        "time": 0.0051660000000026685
+        "time": 0.0105829999999969
       },
       "compilerResult": {
         "success": true,
         "value": [],
-        "time": 0.010084000000006199
+        "time": 0.006333000000005029
+      }
+    },
+    {
+      "test": {
+        "name": "tail - multiple items",
+        "expression": "values.tail()",
+        "input": [
+          {
+            "values": [
+              1,
+              2,
+              3,
+              4
+            ]
+          }
+        ],
+        "expected": [
+          2,
+          3,
+          4
+        ],
+        "tags": [
+          "function",
+          "subsetting",
+          "tail"
+        ]
+      },
+      "suite": "Functions - Subsetting",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          2,
+          3,
+          4
+        ],
+        "time": 0.02016599999999613
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.011541999999998609
+      }
+    },
+    {
+      "test": {
+        "name": "tail - single item",
+        "expression": "values.tail()",
+        "input": [
+          {
+            "values": [
+              1
+            ]
+          }
+        ],
+        "expected": [],
+        "tags": [
+          "function",
+          "subsetting",
+          "tail"
+        ]
+      },
+      "suite": "Functions - Subsetting",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [],
+        "time": 0.0072499999999990905
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.009083000000003949
+      }
+    },
+    {
+      "test": {
+        "name": "skip - 2 items",
+        "expression": "values.skip(2)",
+        "input": [
+          {
+            "values": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          }
+        ],
+        "expected": [
+          3,
+          4,
+          5
+        ],
+        "tags": [
+          "function",
+          "subsetting",
+          "skip"
+        ]
+      },
+      "suite": "Functions - Subsetting",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          3,
+          4,
+          5
+        ],
+        "time": 0.022750000000002046
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.00841599999999687
+      }
+    },
+    {
+      "test": {
+        "name": "skip - more than length",
+        "expression": "values.skip(10)",
+        "input": [
+          {
+            "values": [
+              1,
+              2,
+              3
+            ]
+          }
+        ],
+        "expected": [],
+        "tags": [
+          "function",
+          "subsetting",
+          "skip"
+        ]
+      },
+      "suite": "Functions - Subsetting",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [],
+        "time": 0.009875000000000966
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.00695899999999483
+      }
+    },
+    {
+      "test": {
+        "name": "take - 3 items",
+        "expression": "values.take(3)",
+        "input": [
+          {
+            "values": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          }
+        ],
+        "expected": [
+          1,
+          2,
+          3
+        ],
+        "tags": [
+          "function",
+          "subsetting",
+          "take"
+        ]
+      },
+      "suite": "Functions - Subsetting",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          1,
+          2,
+          3
+        ],
+        "time": 0.016708999999998753
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.010832999999998094
+      }
+    },
+    {
+      "test": {
+        "name": "take - more than length",
+        "expression": "values.take(10)",
+        "input": [
+          {
+            "values": [
+              1,
+              2,
+              3
+            ]
+          }
+        ],
+        "expected": [
+          1,
+          2,
+          3
+        ],
+        "tags": [
+          "function",
+          "subsetting",
+          "take"
+        ]
+      },
+      "suite": "Functions - Subsetting",
+      "matched": false,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          1,
+          2,
+          3
+        ],
+        "time": 0.012667000000000428
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "Function compile not implemented",
+        "time": 0.00854100000000102
       }
     },
     {
@@ -4317,14 +6983,14 @@
         "value": [
           42
         ],
-        "time": 0.025874999999999204
+        "time": 0.02058399999999949
       },
       "compilerResult": {
         "success": true,
         "value": [
           42
         ],
-        "time": 0.03779100000000568
+        "time": 0.02966599999999886
       }
     },
     {
@@ -4345,12 +7011,50 @@
       "interpreterResult": {
         "success": true,
         "value": [],
-        "time": 0.030833999999998696
+        "time": 0.0049999999999954525
       },
       "compilerResult": {
         "success": true,
         "value": [],
-        "time": 0.006624999999999659
+        "time": 0.004792000000001906
+      }
+    },
+    {
+      "test": {
+        "name": "single - multiple items error",
+        "expression": "values.single()",
+        "input": [
+          {
+            "values": [
+              1,
+              2
+            ]
+          }
+        ],
+        "expectedError": "single() requires collection to have exactly one item",
+        "tags": [
+          "function",
+          "subsetting",
+          "single",
+          "error"
+        ],
+        "skip": {
+          "interpreter": false,
+          "compiler": false,
+          "reason": "Test expects error to be thrown"
+        }
+      },
+      "suite": "Functions - Subsetting",
+      "matched": false,
+      "interpreterResult": {
+        "success": false,
+        "error": "single() requires exactly one element",
+        "time": 0.03575000000000017
+      },
+      "compilerResult": {
+        "success": false,
+        "error": "single() requires exactly one element",
+        "time": 0.015875000000001194
       }
     },
     {
@@ -4385,7 +7089,7 @@
           "John",
           "Jane"
         ],
-        "time": 0.01850000000000307
+        "time": 0.03174999999999528
       },
       "compilerResult": {
         "success": true,
@@ -4393,7 +7097,7 @@
           "John",
           "Jane"
         ],
-        "time": 0.020291999999997756
+        "time": 0.04725000000000534
       }
     },
     {
@@ -4426,7 +7130,7 @@
           4,
           6
         ],
-        "time": 0.03900000000000148
+        "time": 0.01779200000000003
       },
       "compilerResult": {
         "success": true,
@@ -4435,7 +7139,7 @@
           4,
           6
         ],
-        "time": 0.04124999999999801
+        "time": 0.03608399999999534
       }
     },
     {
@@ -4476,7 +7180,7 @@
           "J",
           "Jane"
         ],
-        "time": 0.017583000000001903
+        "time": 0.007334000000000174
       },
       "compilerResult": {
         "success": true,
@@ -4485,7 +7189,7 @@
           "J",
           "Jane"
         ],
-        "time": 0.07183299999999804
+        "time": 0.008499999999997954
       }
     },
     {
@@ -4505,12 +7209,12 @@
       "interpreterResult": {
         "success": true,
         "value": [],
-        "time": 0.009750000000003922
+        "time": 0.024667000000000883
       },
       "compilerResult": {
         "success": true,
         "value": [],
-        "time": 0.009584000000003812
+        "time": 0.0206670000000031
       }
     },
     {
@@ -4546,7 +7250,7 @@
           "John Doe",
           "Jane Smith"
         ],
-        "time": 0.016958999999999946
+        "time": 0.027665999999996416
       },
       "compilerResult": {
         "success": true,
@@ -4554,7 +7258,79 @@
           "John Doe",
           "Jane Smith"
         ],
-        "time": 0.01620799999999889
+        "time": 0.027999999999998693
+      }
+    },
+    {
+      "test": {
+        "name": "select - with explicit $this",
+        "expression": "$this.select(name)",
+        "input": [
+          {
+            "name": "John",
+            "age": 30
+          },
+          {
+            "name": "Jane",
+            "age": 25
+          }
+        ],
+        "expected": [
+          "John",
+          "Jane"
+        ],
+        "tags": [
+          "function",
+          "select",
+          "transform",
+          "$this"
+        ]
+      },
+      "suite": "Functions - select",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [],
+        "time": 0.0089579999999998
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [],
+        "time": 0.009208000000000993
+      }
+    },
+    {
+      "test": {
+        "name": "select - using $index",
+        "expression": "$this.select($index)",
+        "input": [
+          "a",
+          "b",
+          "c"
+        ],
+        "expected": [
+          0,
+          1,
+          2
+        ],
+        "tags": [
+          "function",
+          "select",
+          "transform",
+          "$index"
+        ]
+      },
+      "suite": "Functions - select",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [],
+        "time": 0.03174999999999528
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [],
+        "time": 0.018458000000002528
       }
     },
     {
@@ -4578,14 +7354,14 @@
         "value": [
           42
         ],
-        "time": 0.007083000000001505
+        "time": 0.005666000000005056
       },
       "compilerResult": {
         "success": true,
         "value": [
           42
         ],
-        "time": 0.0027079999999983784
+        "time": 0.0030830000000037217
       }
     },
     {
@@ -4609,14 +7385,14 @@
         "value": [
           3.14
         ],
-        "time": 0.0024579999999971847
+        "time": 0.002040999999998405
       },
       "compilerResult": {
         "success": true,
         "value": [
           3.14
         ],
-        "time": 0.0019580000000019027
+        "time": 0.002207999999995991
       }
     },
     {
@@ -4640,14 +7416,14 @@
         "value": [
           -17
         ],
-        "time": 0.005708999999995967
+        "time": 0.005834000000000117
       },
       "compilerResult": {
         "success": true,
         "value": [
           -17
         ],
-        "time": 0.004041999999998325
+        "time": 0.004458999999997104
       }
     },
     {
@@ -4671,14 +7447,14 @@
         "value": [
           "hello"
         ],
-        "time": 0.0030829999999966162
+        "time": 0.002541999999998268
       },
       "compilerResult": {
         "success": true,
         "value": [
           "hello"
         ],
-        "time": 0.0026670000000024174
+        "time": 0.0021249999999994884
       }
     },
     {
@@ -4702,14 +7478,14 @@
         "value": [
           ""
         ],
-        "time": 0.0010420000000053165
+        "time": 0.0009999999999976694
       },
       "compilerResult": {
         "success": true,
         "value": [
           ""
         ],
-        "time": 0.0009999999999976694
+        "time": 0.001125000000001819
       }
     },
     {
@@ -4733,14 +7509,14 @@
         "value": [
           true
         ],
-        "time": 0.00216700000000003
+        "time": 0.002083999999996422
       },
       "compilerResult": {
         "success": true,
         "value": [
           true
         ],
-        "time": 0.0011249999999947136
+        "time": 0.0010839999999987526
       }
     },
     {
@@ -4764,14 +7540,14 @@
         "value": [
           false
         ],
-        "time": 0.0015420000000005984
+        "time": 0.0014170000000035543
       },
       "compilerResult": {
         "success": true,
         "value": [
           false
         ],
-        "time": 0.004083000000001391
+        "time": 0.0050829999999990605
       }
     },
     {
@@ -4791,12 +7567,12 @@
       "interpreterResult": {
         "success": true,
         "value": [],
-        "time": 0.004957999999994911
+        "time": 0.004666999999997756
       },
       "compilerResult": {
         "success": true,
         "value": [],
-        "time": 0.0024170000000012237
+        "time": 0.0024999999999977263
       }
     },
     {
@@ -4816,12 +7592,12 @@
       "interpreterResult": {
         "success": true,
         "value": [],
-        "time": 0.00216700000000003
+        "time": 0.0023749999999935767
       },
       "compilerResult": {
         "success": true,
         "value": [],
-        "time": 0.0051250000000067075
+        "time": 0.0030420000000006553
       }
     },
     {
@@ -4849,7 +7625,7 @@
           2,
           3
         ],
-        "time": 0.00491699999999895
+        "time": 0.009790999999999883
       },
       "compilerResult": {
         "success": true,
@@ -4858,7 +7634,7 @@
           2,
           3
         ],
-        "time": 0.010541999999993834
+        "time": 0.0870829999999998
       }
     },
     {
@@ -4886,7 +7662,7 @@
           "b",
           "c"
         ],
-        "time": 0.00883400000000023
+        "time": 0.005957999999999686
       },
       "compilerResult": {
         "success": true,
@@ -4895,7 +7671,7 @@
           "b",
           "c"
         ],
-        "time": 0.011958999999997388
+        "time": 0.006833000000000311
       }
     },
     {
@@ -4923,7 +7699,7 @@
           false,
           true
         ],
-        "time": 0.006999999999997897
+        "time": 0.004333000000002585
       },
       "compilerResult": {
         "success": true,
@@ -4932,7 +7708,7 @@
           false,
           true
         ],
-        "time": 0.013999999999995794
+        "time": 0.0038330000000001974
       }
     }
   ]
