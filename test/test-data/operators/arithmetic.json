@@ -92,6 +92,34 @@
       "input": [{ "value": 5 }],
       "expected": [8],
       "tags": ["operator", "arithmetic", "navigation"]
+    },
+    {
+      "name": "unary plus - positive",
+      "expression": "+42",
+      "input": [],
+      "expected": [42],
+      "tags": ["operator", "arithmetic", "unary", "plus"]
+    },
+    {
+      "name": "unary plus - negative",
+      "expression": "+(-5)",
+      "input": [],
+      "expected": [-5],
+      "tags": ["operator", "arithmetic", "unary", "plus"]
+    },
+    {
+      "name": "unary minus - positive",
+      "expression": "-42",
+      "input": [],
+      "expected": [-42],
+      "tags": ["operator", "arithmetic", "unary", "minus"]
+    },
+    {
+      "name": "unary minus - double negative",
+      "expression": "-(-5)",
+      "input": [],
+      "expected": [5],
+      "tags": ["operator", "arithmetic", "unary", "minus"]
     }
   ]
 }

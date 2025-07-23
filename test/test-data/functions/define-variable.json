@@ -1,0 +1,46 @@
+{
+  "name": "Functions - defineVariable",
+  "description": "Tests for variable definition function",
+  "tests": [
+    {
+      "name": "defineVariable - simple assignment",
+      "expression": "defineVariable('x', value).value + %x",
+      "input": [{ "value": 5 }],
+      "expected": [10],
+      "tags": ["function", "variable", "defineVariable"]
+    },
+    {
+      "name": "defineVariable - returns original input",
+      "expression": "defineVariable('sum', a + b)",
+      "input": [{ "a": 1, "b": 2 }],
+      "expected": [{ "a": 1, "b": 2 }],
+      "tags": ["function", "variable", "defineVariable"]
+    },
+    {
+      "name": "defineVariable - complex filter",
+      "expression": "defineVariable('officialName', name.where(use = 'official').first()).name.where(given != %officialName.given)",
+      "input": [{
+        "name": [
+          { "use": "official", "given": ["John"] },
+          { "use": "nickname", "given": ["Johnny"] }
+        ]
+      }],
+      "expected": [
+        { "use": "nickname", "given": ["Johnny"] }
+      ],
+      "tags": ["function", "variable", "defineVariable", "complex"]
+    },
+    {
+      "name": "defineVariable - chained definitions",
+      "expression": "defineVariable('x', value).defineVariable('y', %x * 2).defineVariable('z', %x + %y)",
+      "input": [{ "value": 5 }],
+      "expected": [{ "value": 5 }],
+      "tags": ["function", "variable", "defineVariable", "chain"],
+      "skip": {
+        "interpreter": false,
+        "compiler": false,
+        "reason": "Complex variable chaining may need special handling"
+      }
+    }
+  ]
+}

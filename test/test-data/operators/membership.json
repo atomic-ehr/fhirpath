@@ -23,9 +23,9 @@
       "expected": [true],
       "tags": ["operator", "membership", "in", "string"],
       "skip": {
-        "interpreter": true,
-        "compiler": true,
-        "reason": "String 'in' operator not fully implemented"
+        "interpreter": false,
+        "compiler": false,
+        "reason": "String 'in' operator now implemented"
       }
     },
     {
@@ -49,9 +49,9 @@
       "expected": [true],
       "tags": ["operator", "membership", "contains", "string"],
       "skip": {
-        "interpreter": true,
-        "compiler": true,
-        "reason": "String 'contains' operator conflicts with contains() function"
+        "interpreter": false,
+        "compiler": false,
+        "reason": "String 'contains' operator now implemented"
       }
     },
     {
@@ -60,6 +60,20 @@
       "input": [],
       "expected": [false],
       "tags": ["operator", "membership", "contains"]
+    },
+    {
+      "name": "in - substring not found",
+      "expression": "'x' in 'abc'",
+      "input": [],
+      "expected": [false],
+      "tags": ["operator", "membership", "in", "string"]
+    },
+    {
+      "name": "contains - substring not found",
+      "expression": "'abc' contains 'x'",
+      "input": [],
+      "expected": [false],
+      "tags": ["operator", "membership", "contains", "string"]
     }
   ]
 }

@@ -1,0 +1,102 @@
+{
+  "name": "Functions - Subsetting",
+  "description": "Tests for subsetting functions",
+  "tests": [
+    {
+      "name": "first - single item",
+      "expression": "values.first()",
+      "input": [{ "values": [1, 2, 3] }],
+      "expected": [1],
+      "tags": ["function", "subsetting", "first"]
+    },
+    {
+      "name": "first - empty",
+      "expression": "{}.first()",
+      "input": [],
+      "expected": [],
+      "tags": ["function", "subsetting", "first", "empty"]
+    },
+    {
+      "name": "last - multiple items",
+      "expression": "values.last()",
+      "input": [{ "values": [1, 2, 3] }],
+      "expected": [3],
+      "tags": ["function", "subsetting", "last"]
+    },
+    {
+      "name": "last - empty",
+      "expression": "{}.last()",
+      "input": [],
+      "expected": [],
+      "tags": ["function", "subsetting", "last", "empty"]
+    },
+    {
+      "name": "tail - multiple items",
+      "expression": "values.tail()",
+      "input": [{ "values": [1, 2, 3, 4] }],
+      "expected": [2, 3, 4],
+      "tags": ["function", "subsetting", "tail"]
+    },
+    {
+      "name": "tail - single item",
+      "expression": "values.tail()",
+      "input": [{ "values": [1] }],
+      "expected": [],
+      "tags": ["function", "subsetting", "tail"]
+    },
+    {
+      "name": "skip - 2 items",
+      "expression": "values.skip(2)",
+      "input": [{ "values": [1, 2, 3, 4, 5] }],
+      "expected": [3, 4, 5],
+      "tags": ["function", "subsetting", "skip"]
+    },
+    {
+      "name": "skip - more than length",
+      "expression": "values.skip(10)",
+      "input": [{ "values": [1, 2, 3] }],
+      "expected": [],
+      "tags": ["function", "subsetting", "skip"]
+    },
+    {
+      "name": "take - 3 items",
+      "expression": "values.take(3)",
+      "input": [{ "values": [1, 2, 3, 4, 5] }],
+      "expected": [1, 2, 3],
+      "tags": ["function", "subsetting", "take"]
+    },
+    {
+      "name": "take - more than length",
+      "expression": "values.take(10)",
+      "input": [{ "values": [1, 2, 3] }],
+      "expected": [1, 2, 3],
+      "tags": ["function", "subsetting", "take"]
+    },
+    {
+      "name": "single - one item",
+      "expression": "value.single()",
+      "input": [{ "value": [42] }],
+      "expected": [42],
+      "tags": ["function", "subsetting", "single"]
+    },
+    {
+      "name": "single - empty",
+      "expression": "{}.single()",
+      "input": [],
+      "expected": [],
+      "tags": ["function", "subsetting", "single", "empty"]
+    },
+    {
+      "name": "single - multiple items error",
+      "expression": "values.single()",
+      "input": [{ "values": [1, 2] }],
+      "expectedError": "single() requires collection to have exactly one item",
+      "tags": ["function", "subsetting", "single", "error"],
+      "skip": {
+        "interpreter": false,
+        "compiler": false,
+        "reason": "Test expects error to be thrown"
+      }
+    }
+  ]
+}

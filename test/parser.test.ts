@@ -373,7 +373,7 @@ describe('FHIRPath Parser', () => {
       //'name.select( given.first().substring(0, 1) + family)'
       const expr = "defineVariable('sc', code).property.all((code = 'alternateCode') implies defineVariable('ac', value).%resource.repeat(concept).where(code = %ac).exists(property.where(code = 'alternateCode').value = %sc))";
       const ast = parse(expr);
-      console.log(pprint(ast, true));
+      //console.log(pprint(ast, true));
     });
   });
   

@@ -65,6 +65,27 @@
         { "name": "C", "price": 15 }
       ],
       "tags": ["function", "where", "filter", "complex"]
+    },
+    {
+      "name": "where - with explicit $this",
+      "expression": "$this.where($this > 2)",
+      "input": [1, 2, 3, 4, 5],
+      "expected": [3, 4, 5],
+      "tags": ["function", "where", "filter", "$this"]
+    },
+    {
+      "name": "where - using $index",
+      "expression": "$this.where($index < 2)",
+      "input": ["a", "b", "c", "d"],
+      "expected": ["a", "b"],
+      "tags": ["function", "where", "filter", "$index"]
+    },
+    {
+      "name": "where - empty predicate",
+      "expression": "$this.where({})",
+      "input": [1, 2, 3],
+      "expected": [],
+      "tags": ["function", "where", "filter", "empty", "predicate"]
     }
   ]
 }

@@ -1,0 +1,76 @@
+{
+  "name": "Three-Valued Logic",
+  "description": "Tests for FHIRPath three-valued logic with empty collections",
+  "tests": [
+    {
+      "name": "and - true and empty",
+      "expression": "true and {}",
+      "input": [],
+      "expected": [],
+      "tags": ["operator", "logical", "and", "three-valued"]
+    },
+    {
+      "name": "and - false and empty",
+      "expression": "false and {}",
+      "input": [],
+      "expected": [false],
+      "tags": ["operator", "logical", "and", "three-valued"]
+    },
+    {
+      "name": "and - empty and true",
+      "expression": "{} and true",
+      "input": [],
+      "expected": [],
+      "tags": ["operator", "logical", "and", "three-valued"]
+    },
+    {
+      "name": "and - empty and false",
+      "expression": "{} and false",
+      "input": [],
+      "expected": [false],
+      "tags": ["operator", "logical", "and", "three-valued"]
+    },
+    {
+      "name": "and - empty and empty",
+      "expression": "{} and {}",
+      "input": [],
+      "expected": [],
+      "tags": ["operator", "logical", "and", "three-valued"]
+    },
+    {
+      "name": "or - true or empty",
+      "expression": "true or {}",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "logical", "or", "three-valued"]
+    },
+    {
+      "name": "or - false or empty",
+      "expression": "false or {}",
+      "input": [],
+      "expected": [],
+      "tags": ["operator", "logical", "or", "three-valued"]
+    },
+    {
+      "name": "or - empty or true",
+      "expression": "{} or true",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "logical", "or", "three-valued"]
+    },
+    {
+      "name": "or - empty or false",
+      "expression": "{} or false",
+      "input": [],
+      "expected": [],
+      "tags": ["operator", "logical", "or", "three-valued"]
+    },
+    {
+      "name": "or - empty or empty",
+      "expression": "{} or {}",
+      "input": [],
+      "expected": [],
+      "tags": ["operator", "logical", "or", "three-valued"]
+    }
+  ]
+}

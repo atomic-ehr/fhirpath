@@ -1,0 +1,69 @@
+{
+  "name": "Index Operators",
+  "description": "Tests for index access operations",
+  "tests": [
+    {
+      "name": "index - first element",
+      "expression": "$this[0]",
+      "input": [[10, 20, 30]],
+      "expected": [10],
+      "tags": ["operator", "index", "array"]
+    },
+    {
+      "name": "index - second element",
+      "expression": "$this[1]",
+      "input": [[10, 20, 30]],
+      "expected": [20],
+      "tags": ["operator", "index", "array"]
+    },
+    {
+      "name": "index - third element",
+      "expression": "$this[2]",
+      "input": [[10, 20, 30]],
+      "expected": [30],
+      "tags": ["operator", "index", "array"]
+    },
+    {
+      "name": "index - out of bounds positive",
+      "expression": "$this[3]",
+      "input": [[10, 20, 30]],
+      "expected": [],
+      "tags": ["operator", "index", "array", "out-of-bounds"]
+    },
+    {
+      "name": "index - out of bounds negative",
+      "expression": "$this[-1]",
+      "input": [[10, 20, 30]],
+      "expected": [],
+      "tags": ["operator", "index", "array", "out-of-bounds"]
+    },
+    {
+      "name": "index - complex expression",
+      "expression": "items[index]",
+      "input": [{ "items": ["a", "b", "c"], "index": 1 }],
+      "expected": ["b"],
+      "tags": ["operator", "index", "array", "navigation"]
+    },
+    {
+      "name": "index on property navigation",
+      "expression": "names[0]",
+      "input": [{"names": ["John", "Jane", "Bob"]}],
+      "expected": ["John"],
+      "tags": ["operator", "index", "navigation"]
+    },
+    {
+      "name": "index on property navigation - last",
+      "expression": "names[2]",
+      "input": [{"names": ["John", "Jane", "Bob"]}],
+      "expected": ["Bob"],
+      "tags": ["operator", "index", "navigation"]
+    },
+    {
+      "name": "index out of bounds on property",
+      "expression": "names[10]",
+      "input": [{"names": ["John", "Jane", "Bob"]}],
+      "expected": [],
+      "tags": ["operator", "index", "navigation", "out-of-bounds"]
+    }
+  ]
+}

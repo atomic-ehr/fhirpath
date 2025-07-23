@@ -1,0 +1,55 @@
+{
+  "name": "Functions - Conditionals",
+  "description": "Tests for conditional functions",
+  "tests": [
+    {
+      "name": "iif - true condition",
+      "expression": "iif(active, 'Active', 'Inactive')",
+      "input": [{ "active": true }],
+      "expected": ["Active"],
+      "tags": ["function", "conditional", "iif"]
+    },
+    {
+      "name": "iif - false condition",
+      "expression": "iif(active, 'Active', 'Inactive')",
+      "input": [{ "active": false }],
+      "expected": ["Inactive"],
+      "tags": ["function", "conditional", "iif"]
+    },
+    {
+      "name": "iif - empty as false",
+      "expression": "iif(active, 'Active', 'Inactive')",
+      "input": [{}],
+      "expected": ["Inactive"],
+      "tags": ["function", "conditional", "iif", "empty"]
+    },
+    {
+      "name": "iif - lazy evaluation true",
+      "expression": "iif(value != 0, 10 / value, 0)",
+      "input": [{ "value": 5 }],
+      "expected": [2],
+      "tags": ["function", "conditional", "iif", "lazy"]
+    },
+    {
+      "name": "iif - lazy evaluation false",
+      "expression": "iif(value != 0, 10 / value, 0)",
+      "input": [{ "value": 0 }],
+      "expected": [0],
+      "tags": ["function", "conditional", "iif", "lazy"]
+    },
+    {
+      "name": "iif - with navigation",
+      "expression": "iif(x > 0, x + 1, x - 1)",
+      "input": [{ "x": 5 }],
+      "expected": [6],
+      "tags": ["function", "conditional", "iif", "navigation"]
+    },
+    {
+      "name": "iif - negative value",
+      "expression": "iif(x > 0, x + 1, x - 1)",
+      "input": [{ "x": -5 }],
+      "expected": [-6],
+      "tags": ["function", "conditional", "iif", "navigation"]
+    }
+  ]
+}

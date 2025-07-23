@@ -78,6 +78,62 @@
       "input": [],
       "expected": [true],
       "tags": ["operator", "logical", "not", "empty"]
+    },
+    {
+      "name": "xor - true xor true",
+      "expression": "true xor true",
+      "input": [],
+      "expected": [false],
+      "tags": ["operator", "logical", "xor"]
+    },
+    {
+      "name": "xor - true xor false",
+      "expression": "true xor false",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "logical", "xor"]
+    },
+    {
+      "name": "xor - false xor true",
+      "expression": "false xor true",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "logical", "xor"]
+    },
+    {
+      "name": "xor - false xor false",
+      "expression": "false xor false",
+      "input": [],
+      "expected": [false],
+      "tags": ["operator", "logical", "xor"]
+    },
+    {
+      "name": "implies - true implies true",
+      "expression": "true implies true",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "logical", "implies"]
+    },
+    {
+      "name": "implies - true implies false",
+      "expression": "true implies false",
+      "input": [],
+      "expected": [false],
+      "tags": ["operator", "logical", "implies"]
+    },
+    {
+      "name": "implies - false implies true",
+      "expression": "false implies true",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "logical", "implies"]
+    },
+    {
+      "name": "implies - false implies false",
+      "expression": "false implies false",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "logical", "implies"]
     }
   ]
 }

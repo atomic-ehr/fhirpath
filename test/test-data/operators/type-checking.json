@@ -1,0 +1,95 @@
+{
+  "name": "Type Checking",
+  "description": "Tests for type checking operators and functions",
+  "tests": [
+    {
+      "name": "is - string type",
+      "expression": "'hello' is String",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "type", "is"]
+    },
+    {
+      "name": "is - integer type",
+      "expression": "42 is Integer",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "type", "is"]
+    },
+    {
+      "name": "is - decimal type",
+      "expression": "3.14 is Decimal",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "type", "is"]
+    },
+    {
+      "name": "is - boolean type",
+      "expression": "true is Boolean",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "type", "is"]
+    },
+    {
+      "name": "is - wrong type string",
+      "expression": "'hello' is Integer",
+      "input": [],
+      "expected": [false],
+      "tags": ["operator", "type", "is"]
+    },
+    {
+      "name": "is - wrong type number",
+      "expression": "42 is String",
+      "input": [],
+      "expected": [false],
+      "tags": ["operator", "type", "is"]
+    },
+    {
+      "name": "is - FHIR resource type true",
+      "expression": "$this is Patient",
+      "input": [],
+      "context": {
+        "variables": {
+          "$this": [{ "resourceType": "Patient", "name": "John" }]
+        }
+      },
+      "expected": [true],
+      "tags": ["operator", "type", "is", "fhir"]
+    },
+    {
+      "name": "is - FHIR resource type false",
+      "expression": "$this is Observation",
+      "input": [],
+      "context": {
+        "variables": {
+          "$this": [{ "resourceType": "Patient", "name": "John" }]
+        }
+      },
+      "expected": [false],
+      "tags": ["operator", "type", "is", "fhir"]
+    },
+    {
+      "name": "ofType - filter by FHIR type",
+      "expression": "ofType(Patient)",
+      "input": [
+        { "resourceType": "Patient", "id": "1" },
+        { "resourceType": "Observation", "id": "2" },
+        { "resourceType": "Patient", "id": "3" }
+      ],
+      "expected": [
+        { "resourceType": "Patient", "id": "1" },
+        { "resourceType": "Patient", "id": "3" }
+      ],
+      "tags": ["function", "type", "ofType", "filter"]
+    },
+    {
+      "name": "ofType - no matches",
+      "expression": "ofType(Patient)",
+      "input": [
+        { "resourceType": "Observation", "id": "1" }
+      ],
+      "expected": [],
+      "tags": ["function", "type", "ofType", "filter", "empty"]
+    }
+  ]
+}

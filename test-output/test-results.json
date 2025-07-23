@@ -1,0 +1,4939 @@
+{
+  "summary": {
+    "total": 145,
+    "passed": 143,
+    "failed": 0,
+    "skipped": 4,
+    "timestamp": "2025-07-23T12:22:46.916Z"
+  },
+  "results": [
+    {
+      "test": {
+        "name": "and - true and true",
+        "expression": "true and true",
+        "input": [],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "operator",
+          "logical",
+          "and"
+        ]
+      },
+      "suite": "Logical Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.9077500000000001
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.22650000000000148
+      }
+    },
+    {
+      "test": {
+        "name": "and - true and false",
+        "expression": "true and false",
+        "input": [],
+        "expected": [
+          false
+        ],
+        "tags": [
+          "operator",
+          "logical",
+          "and"
+        ]
+      },
+      "suite": "Logical Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.04579199999999872
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.03554100000000204
+      }
+    },
+    {
+      "test": {
+        "name": "and - false and true",
+        "expression": "false and true",
+        "input": [],
+        "expected": [
+          false
+        ],
+        "tags": [
+          "operator",
+          "logical",
+          "and"
+        ]
+      },
+      "suite": "Logical Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.05287500000000023
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.021374999999999034
+      }
+    },
+    {
+      "test": {
+        "name": "and - false and false",
+        "expression": "false and false",
+        "input": [],
+        "expected": [
+          false
+        ],
+        "tags": [
+          "operator",
+          "logical",
+          "and"
+        ]
+      },
+      "suite": "Logical Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.02125000000000199
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.017416000000000764
+      }
+    },
+    {
+      "test": {
+        "name": "or - true or true",
+        "expression": "true or true",
+        "input": [],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "operator",
+          "logical",
+          "or"
+        ]
+      },
+      "suite": "Logical Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.05054200000000009
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.06766600000000267
+      }
+    },
+    {
+      "test": {
+        "name": "or - true or false",
+        "expression": "true or false",
+        "input": [],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "operator",
+          "logical",
+          "or"
+        ]
+      },
+      "suite": "Logical Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.034667000000002446
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.02262500000000145
+      }
+    },
+    {
+      "test": {
+        "name": "or - false or true",
+        "expression": "false or true",
+        "input": [],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "operator",
+          "logical",
+          "or"
+        ]
+      },
+      "suite": "Logical Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.01658300000000068
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.015708000000000055
+      }
+    },
+    {
+      "test": {
+        "name": "or - false or false",
+        "expression": "false or false",
+        "input": [],
+        "expected": [
+          false
+        ],
+        "tags": [
+          "operator",
+          "logical",
+          "or"
+        ]
+      },
+      "suite": "Logical Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.02295899999999662
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.024167000000002048
+      }
+    },
+    {
+      "test": {
+        "name": "not - true",
+        "expression": "not true",
+        "input": [],
+        "expected": [
+          false
+        ],
+        "tags": [
+          "operator",
+          "logical",
+          "not"
+        ]
+      },
+      "suite": "Logical Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.08054200000000122
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.08008400000000293
+      }
+    },
+    {
+      "test": {
+        "name": "not - false",
+        "expression": "not false",
+        "input": [],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "operator",
+          "logical",
+          "not"
+        ]
+      },
+      "suite": "Logical Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.032667
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.024084000000001993
+      }
+    },
+    {
+      "test": {
+        "name": "not - empty",
+        "expression": "not {}",
+        "input": [],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "operator",
+          "logical",
+          "not",
+          "empty"
+        ]
+      },
+      "suite": "Logical Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.07220799999999983
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.05804200000000037
+      }
+    },
+    {
+      "test": {
+        "name": "xor - true xor true",
+        "expression": "true xor true",
+        "input": [],
+        "expected": [
+          false
+        ],
+        "tags": [
+          "operator",
+          "logical",
+          "xor"
+        ]
+      },
+      "suite": "Logical Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.0491659999999996
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.07304200000000094
+      }
+    },
+    {
+      "test": {
+        "name": "xor - true xor false",
+        "expression": "true xor false",
+        "input": [],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "operator",
+          "logical",
+          "xor"
+        ]
+      },
+      "suite": "Logical Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.019458000000000197
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.014291000000000054
+      }
+    },
+    {
+      "test": {
+        "name": "xor - false xor true",
+        "expression": "false xor true",
+        "input": [],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "operator",
+          "logical",
+          "xor"
+        ]
+      },
+      "suite": "Logical Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.011041999999999774
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.04520899999999983
+      }
+    },
+    {
+      "test": {
+        "name": "xor - false xor false",
+        "expression": "false xor false",
+        "input": [],
+        "expected": [
+          false
+        ],
+        "tags": [
+          "operator",
+          "logical",
+          "xor"
+        ]
+      },
+      "suite": "Logical Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.021332999999998492
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.024208999999999037
+      }
+    },
+    {
+      "test": {
+        "name": "implies - true implies true",
+        "expression": "true implies true",
+        "input": [],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "operator",
+          "logical",
+          "implies"
+        ]
+      },
+      "suite": "Logical Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.041499999999999204
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.04991600000000318
+      }
+    },
+    {
+      "test": {
+        "name": "implies - true implies false",
+        "expression": "true implies false",
+        "input": [],
+        "expected": [
+          false
+        ],
+        "tags": [
+          "operator",
+          "logical",
+          "implies"
+        ]
+      },
+      "suite": "Logical Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.014582999999998236
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.020834000000000685
+      }
+    },
+    {
+      "test": {
+        "name": "implies - false implies true",
+        "expression": "false implies true",
+        "input": [],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "operator",
+          "logical",
+          "implies"
+        ]
+      },
+      "suite": "Logical Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.013166999999999263
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.010707999999997497
+      }
+    },
+    {
+      "test": {
+        "name": "implies - false implies false",
+        "expression": "false implies false",
+        "input": [],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "operator",
+          "logical",
+          "implies"
+        ]
+      },
+      "suite": "Logical Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.0867500000000021
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.07758400000000165
+      }
+    },
+    {
+      "test": {
+        "name": "in - string in collection",
+        "expression": "'active' in {'active', 'inactive', 'pending'}",
+        "input": [],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "operator",
+          "membership",
+          "in"
+        ]
+      },
+      "suite": "Membership Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.17691600000000207
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.19770900000000324
+      }
+    },
+    {
+      "test": {
+        "name": "in - number in collection",
+        "expression": "1 in {1, 2, 3}",
+        "input": [],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "operator",
+          "membership",
+          "in"
+        ]
+      },
+      "suite": "Membership Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.13816699999999926
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.048542000000001195
+      }
+    },
+    {
+      "test": {
+        "name": "in - not found",
+        "expression": "4 in {1, 2, 3}",
+        "input": [],
+        "expected": [
+          false
+        ],
+        "tags": [
+          "operator",
+          "membership",
+          "in"
+        ]
+      },
+      "suite": "Membership Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.05016600000000082
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.021750000000000824
+      }
+    },
+    {
+      "test": {
+        "name": "contains - collection contains item",
+        "expression": "{1, 2, 3} contains 1",
+        "input": [],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "operator",
+          "membership",
+          "contains"
+        ]
+      },
+      "suite": "Membership Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.09304200000000051
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.11166700000000063
+      }
+    },
+    {
+      "test": {
+        "name": "contains - not found",
+        "expression": "{1, 2, 3} contains 4",
+        "input": [],
+        "expected": [
+          false
+        ],
+        "tags": [
+          "operator",
+          "membership",
+          "contains"
+        ]
+      },
+      "suite": "Membership Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.049541999999998865
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.09479200000000176
+      }
+    },
+    {
+      "test": {
+        "name": "in - substring not found",
+        "expression": "'x' in 'abc'",
+        "input": [],
+        "expected": [
+          false
+        ],
+        "tags": [
+          "operator",
+          "membership",
+          "in",
+          "string"
+        ]
+      },
+      "suite": "Membership Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.02441599999999866
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.016290999999998945
+      }
+    },
+    {
+      "test": {
+        "name": "contains - substring not found",
+        "expression": "'abc' contains 'x'",
+        "input": [],
+        "expected": [
+          false
+        ],
+        "tags": [
+          "operator",
+          "membership",
+          "contains",
+          "string"
+        ]
+      },
+      "suite": "Membership Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.008749999999999147
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.008082999999999174
+      }
+    },
+    {
+      "test": {
+        "name": "equality - numbers true",
+        "expression": "5 = 5",
+        "input": [],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "operator",
+          "comparison",
+          "equality"
+        ]
+      },
+      "suite": "Comparison Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.1126669999999983
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.06862500000000082
+      }
+    },
+    {
+      "test": {
+        "name": "equality - numbers false",
+        "expression": "1 = 2",
+        "input": [],
+        "expected": [
+          false
+        ],
+        "tags": [
+          "operator",
+          "comparison",
+          "equality"
+        ]
+      },
+      "suite": "Comparison Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.031083000000002414
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.009125000000000938
+      }
+    },
+    {
+      "test": {
+        "name": "equality - strings",
+        "expression": "'hello' = 'hello'",
+        "input": [],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "operator",
+          "comparison",
+          "equality",
+          "string"
+        ]
+      },
+      "suite": "Comparison Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.009958000000001022
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.01150000000000162
+      }
+    },
+    {
+      "test": {
+        "name": "equality - booleans",
+        "expression": "true = true",
+        "input": [],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "operator",
+          "comparison",
+          "equality",
+          "boolean"
+        ]
+      },
+      "suite": "Comparison Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.01208300000000051
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.017917000000000627
+      }
+    },
+    {
+      "test": {
+        "name": "inequality - numbers",
+        "expression": "5 != 3",
+        "input": [],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "operator",
+          "comparison",
+          "inequality"
+        ]
+      },
+      "suite": "Comparison Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.09949999999999903
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.08637500000000031
+      }
+    },
+    {
+      "test": {
+        "name": "inequality - strings",
+        "expression": "'hello' != 'world'",
+        "input": [],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "operator",
+          "comparison",
+          "inequality",
+          "string"
+        ]
+      },
+      "suite": "Comparison Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.05549999999999855
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.012540999999998803
+      }
+    },
+    {
+      "test": {
+        "name": "less than - numbers",
+        "expression": "3 < 5",
+        "input": [],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "operator",
+          "comparison",
+          "less-than"
+        ]
+      },
+      "suite": "Comparison Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.05904099999999701
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.04583300000000179
+      }
+    },
+    {
+      "test": {
+        "name": "less than - strings",
+        "expression": "'a' < 'b'",
+        "input": [],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "operator",
+          "comparison",
+          "less-than",
+          "string"
+        ]
+      },
+      "suite": "Comparison Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.012332999999998151
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.015084000000001652
+      }
+    },
+    {
+      "test": {
+        "name": "greater than - numbers",
+        "expression": "5 > 3",
+        "input": [],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "operator",
+          "comparison",
+          "greater-than"
+        ]
+      },
+      "suite": "Comparison Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.03979200000000205
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.04458299999999937
+      }
+    },
+    {
+      "test": {
+        "name": "greater than - strings",
+        "expression": "'b' > 'a'",
+        "input": [],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "operator",
+          "comparison",
+          "greater-than",
+          "string"
+        ]
+      },
+      "suite": "Comparison Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.00766699999999787
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.012041999999997444
+      }
+    },
+    {
+      "test": {
+        "name": "less than or equal",
+        "expression": "3 <= 5",
+        "input": [],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "operator",
+          "comparison",
+          "less-equal"
+        ],
+        "skip": {
+          "interpreter": true,
+          "reason": "Not implemented in current interpreter tests"
+        }
+      },
+      "suite": "Comparison Operators",
+      "matched": false,
+      "compilerResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.07091600000000042
+      }
+    },
+    {
+      "test": {
+        "name": "greater than or equal",
+        "expression": "5 >= 3",
+        "input": [],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "operator",
+          "comparison",
+          "greater-equal"
+        ],
+        "skip": {
+          "interpreter": true,
+          "reason": "Not implemented in current interpreter tests"
+        }
+      },
+      "suite": "Comparison Operators",
+      "matched": false,
+      "compilerResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.051249999999999574
+      }
+    },
+    {
+      "test": {
+        "name": "equality with empty collection returns empty",
+        "expression": "5 = {}",
+        "input": [],
+        "expected": [],
+        "tags": [
+          "operator",
+          "comparison",
+          "equality",
+          "empty"
+        ]
+      },
+      "suite": "Comparison Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [],
+        "time": 0.01604199999999878
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [],
+        "time": 0.011250000000000426
+      }
+    },
+    {
+      "test": {
+        "name": "inequality with empty collection returns empty",
+        "expression": "{} != {1, 2}",
+        "input": [],
+        "expected": [],
+        "tags": [
+          "operator",
+          "comparison",
+          "inequality",
+          "empty"
+        ]
+      },
+      "suite": "Comparison Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [],
+        "time": 0.01899999999999835
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [],
+        "time": 0.01662499999999767
+      }
+    },
+    {
+      "test": {
+        "name": "collection equality - same order",
+        "expression": "{1, 2, 3} = {1, 2, 3}",
+        "input": [],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "operator",
+          "comparison",
+          "equality",
+          "collection"
+        ]
+      },
+      "suite": "Comparison Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.047917000000001764
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.02333399999999841
+      }
+    },
+    {
+      "test": {
+        "name": "collection equality - different order",
+        "expression": "{1, 2, 3} = {1, 3, 2}",
+        "input": [],
+        "expected": [
+          false
+        ],
+        "tags": [
+          "operator",
+          "comparison",
+          "equality",
+          "collection"
+        ]
+      },
+      "suite": "Comparison Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.022999999999999687
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.02654099999999815
+      }
+    },
+    {
+      "test": {
+        "name": "collection inequality",
+        "expression": "{1, 2} != {1, 2, 3}",
+        "input": [],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "operator",
+          "comparison",
+          "inequality",
+          "collection"
+        ]
+      },
+      "suite": "Comparison Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.03558299999999903
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.030750000000001165
+      }
+    },
+    {
+      "test": {
+        "name": "singleton conversion in equality",
+        "expression": "name.given = 'John'",
+        "input": [
+          {
+            "name": {
+              "given": [
+                "John"
+              ]
+            }
+          }
+        ],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "operator",
+          "comparison",
+          "equality",
+          "singleton"
+        ]
+      },
+      "suite": "Comparison Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.1279590000000006
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.09816700000000012
+      }
+    },
+    {
+      "test": {
+        "name": "comparison with empty left operand",
+        "expression": "{} = {1, 2}",
+        "input": [],
+        "expected": [],
+        "tags": [
+          "operator",
+          "comparison",
+          "equality",
+          "empty"
+        ]
+      },
+      "suite": "Comparison Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [],
+        "time": 0.05679200000000151
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [],
+        "time": 0.08962500000000162
+      }
+    },
+    {
+      "test": {
+        "name": "string comparison - lexicographic",
+        "expression": "'apple' < 'banana'",
+        "input": [],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "operator",
+          "comparison",
+          "less-than",
+          "string"
+        ]
+      },
+      "suite": "Comparison Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.008207999999999771
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.007500000000000284
+      }
+    },
+    {
+      "test": {
+        "name": "and - true and empty",
+        "expression": "true and {}",
+        "input": [],
+        "expected": [],
+        "tags": [
+          "operator",
+          "logical",
+          "and",
+          "three-valued"
+        ]
+      },
+      "suite": "Three-Valued Logic",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [],
+        "time": 0.011207999999999885
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [],
+        "time": 0.01054200000000094
+      }
+    },
+    {
+      "test": {
+        "name": "and - false and empty",
+        "expression": "false and {}",
+        "input": [],
+        "expected": [
+          false
+        ],
+        "tags": [
+          "operator",
+          "logical",
+          "and",
+          "three-valued"
+        ]
+      },
+      "suite": "Three-Valued Logic",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.012916999999998069
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.00795800000000213
+      }
+    },
+    {
+      "test": {
+        "name": "and - empty and true",
+        "expression": "{} and true",
+        "input": [],
+        "expected": [],
+        "tags": [
+          "operator",
+          "logical",
+          "and",
+          "three-valued"
+        ]
+      },
+      "suite": "Three-Valued Logic",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [],
+        "time": 0.007167000000002588
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [],
+        "time": 0.022916000000002157
+      }
+    },
+    {
+      "test": {
+        "name": "and - empty and false",
+        "expression": "{} and false",
+        "input": [],
+        "expected": [
+          false
+        ],
+        "tags": [
+          "operator",
+          "logical",
+          "and",
+          "three-valued"
+        ]
+      },
+      "suite": "Three-Valued Logic",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.053625000000000256
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.018457999999998975
+      }
+    },
+    {
+      "test": {
+        "name": "and - empty and empty",
+        "expression": "{} and {}",
+        "input": [],
+        "expected": [],
+        "tags": [
+          "operator",
+          "logical",
+          "and",
+          "three-valued"
+        ]
+      },
+      "suite": "Three-Valued Logic",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [],
+        "time": 0.01070800000000105
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [],
+        "time": 0.010875000000002188
+      }
+    },
+    {
+      "test": {
+        "name": "or - true or empty",
+        "expression": "true or {}",
+        "input": [],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "operator",
+          "logical",
+          "or",
+          "three-valued"
+        ]
+      },
+      "suite": "Three-Valued Logic",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.019999999999999574
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.008917000000000286
+      }
+    },
+    {
+      "test": {
+        "name": "or - false or empty",
+        "expression": "false or {}",
+        "input": [],
+        "expected": [],
+        "tags": [
+          "operator",
+          "logical",
+          "or",
+          "three-valued"
+        ]
+      },
+      "suite": "Three-Valued Logic",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [],
+        "time": 0.007374999999999687
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [],
+        "time": 0.0070000000000014495
+      }
+    },
+    {
+      "test": {
+        "name": "or - empty or true",
+        "expression": "{} or true",
+        "input": [],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "operator",
+          "logical",
+          "or",
+          "three-valued"
+        ]
+      },
+      "suite": "Three-Valued Logic",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.009415999999998093
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.010709000000002078
+      }
+    },
+    {
+      "test": {
+        "name": "or - empty or false",
+        "expression": "{} or false",
+        "input": [],
+        "expected": [],
+        "tags": [
+          "operator",
+          "logical",
+          "or",
+          "three-valued"
+        ]
+      },
+      "suite": "Three-Valued Logic",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [],
+        "time": 0.007083000000001505
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [],
+        "time": 0.012416000000001759
+      }
+    },
+    {
+      "test": {
+        "name": "or - empty or empty",
+        "expression": "{} or {}",
+        "input": [],
+        "expected": [],
+        "tags": [
+          "operator",
+          "logical",
+          "or",
+          "three-valued"
+        ]
+      },
+      "suite": "Three-Valued Logic",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [],
+        "time": 0.01054200000000094
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [],
+        "time": 0.008084000000000202
+      }
+    },
+    {
+      "test": {
+        "name": "concatenation - simple",
+        "expression": "'Hello' & ' ' & 'World'",
+        "input": [],
+        "expected": [
+          "Hello World"
+        ],
+        "tags": [
+          "operator",
+          "string",
+          "concatenation"
+        ]
+      },
+      "suite": "String Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          "Hello World"
+        ],
+        "time": 0.06974999999999909
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          "Hello World"
+        ],
+        "time": 0.056291000000001645
+      }
+    },
+    {
+      "test": {
+        "name": "concatenation - two strings",
+        "expression": "'FHIR' & 'Path'",
+        "input": [],
+        "expected": [
+          "FHIRPath"
+        ],
+        "tags": [
+          "operator",
+          "string",
+          "concatenation"
+        ]
+      },
+      "suite": "String Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          "FHIRPath"
+        ],
+        "time": 0.017832999999999544
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          "FHIRPath"
+        ],
+        "time": 0.0070000000000014495
+      }
+    },
+    {
+      "test": {
+        "name": "concatenation with navigation",
+        "expression": "name.given.first() & ' ' & name.family",
+        "input": [
+          {
+            "name": {
+              "given": [
+                "John"
+              ],
+              "family": "Doe"
+            }
+          }
+        ],
+        "expected": [
+          "John Doe"
+        ],
+        "tags": [
+          "operator",
+          "string",
+          "concatenation",
+          "navigation"
+        ]
+      },
+      "suite": "String Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          "John Doe"
+        ],
+        "time": 0.18079200000000029
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          "John Doe"
+        ],
+        "time": 0.1237909999999971
+      }
+    },
+    {
+      "test": {
+        "name": "concatenation with empty returns empty",
+        "expression": "name & ' ' & missing",
+        "input": [
+          {
+            "name": "John"
+          }
+        ],
+        "expected": [],
+        "tags": [
+          "operator",
+          "string",
+          "concatenation",
+          "empty"
+        ]
+      },
+      "suite": "String Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [],
+        "time": 0.02191699999999841
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [],
+        "time": 0.017417000000001792
+      }
+    },
+    {
+      "test": {
+        "name": "concatenation with empty left operand",
+        "expression": "{} & 'test'",
+        "input": [],
+        "expected": [],
+        "tags": [
+          "operator",
+          "string",
+          "concatenation",
+          "empty"
+        ]
+      },
+      "suite": "String Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [],
+        "time": 0.009833000000000425
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [],
+        "time": 0.006582999999999117
+      }
+    },
+    {
+      "test": {
+        "name": "index - out of bounds positive",
+        "expression": "$this[3]",
+        "input": [
+          [
+            10,
+            20,
+            30
+          ]
+        ],
+        "expected": [],
+        "tags": [
+          "operator",
+          "index",
+          "array",
+          "out-of-bounds"
+        ]
+      },
+      "suite": "Index Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [],
+        "time": 0.007625000000000881
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [],
+        "time": 0.006916000000000366
+      }
+    },
+    {
+      "test": {
+        "name": "index - out of bounds negative",
+        "expression": "$this[-1]",
+        "input": [
+          [
+            10,
+            20,
+            30
+          ]
+        ],
+        "expected": [],
+        "tags": [
+          "operator",
+          "index",
+          "array",
+          "out-of-bounds"
+        ]
+      },
+      "suite": "Index Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [],
+        "time": 0.09804100000000204
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [],
+        "time": 0.07895800000000008
+      }
+    },
+    {
+      "test": {
+        "name": "index on property navigation",
+        "expression": "names[0]",
+        "input": [
+          {
+            "names": [
+              "John",
+              "Jane",
+              "Bob"
+            ]
+          }
+        ],
+        "expected": [
+          "John"
+        ],
+        "tags": [
+          "operator",
+          "index",
+          "navigation"
+        ]
+      },
+      "suite": "Index Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          "John"
+        ],
+        "time": 0.019207999999999004
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          "John"
+        ],
+        "time": 0.010042000000002105
+      }
+    },
+    {
+      "test": {
+        "name": "index on property navigation - last",
+        "expression": "names[2]",
+        "input": [
+          {
+            "names": [
+              "John",
+              "Jane",
+              "Bob"
+            ]
+          }
+        ],
+        "expected": [
+          "Bob"
+        ],
+        "tags": [
+          "operator",
+          "index",
+          "navigation"
+        ]
+      },
+      "suite": "Index Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          "Bob"
+        ],
+        "time": 0.015665999999999514
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          "Bob"
+        ],
+        "time": 0.007874999999998522
+      }
+    },
+    {
+      "test": {
+        "name": "index out of bounds on property",
+        "expression": "names[10]",
+        "input": [
+          {
+            "names": [
+              "John",
+              "Jane",
+              "Bob"
+            ]
+          }
+        ],
+        "expected": [],
+        "tags": [
+          "operator",
+          "index",
+          "navigation",
+          "out-of-bounds"
+        ]
+      },
+      "suite": "Index Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [],
+        "time": 0.010666999999997984
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [],
+        "time": 0.008082999999999174
+      }
+    },
+    {
+      "test": {
+        "name": "addition - integers",
+        "expression": "2 + 3",
+        "input": [],
+        "expected": [
+          5
+        ],
+        "tags": [
+          "operator",
+          "arithmetic",
+          "addition"
+        ]
+      },
+      "suite": "Arithmetic Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          5
+        ],
+        "time": 0.03729200000000077
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          5
+        ],
+        "time": 0.11533300000000324
+      }
+    },
+    {
+      "test": {
+        "name": "addition - decimals",
+        "expression": "2.5 + 3.5",
+        "input": [],
+        "expected": [
+          6
+        ],
+        "tags": [
+          "operator",
+          "arithmetic",
+          "addition",
+          "decimal"
+        ]
+      },
+      "suite": "Arithmetic Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          6
+        ],
+        "time": 0.02616700000000094
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          6
+        ],
+        "time": 0.012000000000000455
+      }
+    },
+    {
+      "test": {
+        "name": "subtraction - integers",
+        "expression": "5 - 3",
+        "input": [],
+        "expected": [
+          2
+        ],
+        "tags": [
+          "operator",
+          "arithmetic",
+          "subtraction"
+        ]
+      },
+      "suite": "Arithmetic Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          2
+        ],
+        "time": 0.025874999999999204
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          2
+        ],
+        "time": 0.036417000000000144
+      }
+    },
+    {
+      "test": {
+        "name": "subtraction - decimals",
+        "expression": "1.5 - 0.5",
+        "input": [],
+        "expected": [
+          1
+        ],
+        "tags": [
+          "operator",
+          "arithmetic",
+          "subtraction",
+          "decimal"
+        ]
+      },
+      "suite": "Arithmetic Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          1
+        ],
+        "time": 0.005834000000000117
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          1
+        ],
+        "time": 0.005624999999994884
+      }
+    },
+    {
+      "test": {
+        "name": "multiplication",
+        "expression": "4 * 3",
+        "input": [],
+        "expected": [
+          12
+        ],
+        "tags": [
+          "operator",
+          "arithmetic",
+          "multiplication"
+        ]
+      },
+      "suite": "Arithmetic Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          12
+        ],
+        "time": 0.01883399999999824
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          12
+        ],
+        "time": 0.032125000000000625
+      }
+    },
+    {
+      "test": {
+        "name": "multiplication - decimals",
+        "expression": "2.5 * 2",
+        "input": [],
+        "expected": [
+          5
+        ],
+        "tags": [
+          "operator",
+          "arithmetic",
+          "multiplication",
+          "decimal"
+        ]
+      },
+      "suite": "Arithmetic Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          5
+        ],
+        "time": 0.005124999999999602
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          5
+        ],
+        "time": 0.00795800000000213
+      }
+    },
+    {
+      "test": {
+        "name": "division",
+        "expression": "10 / 2",
+        "input": [],
+        "expected": [
+          5
+        ],
+        "tags": [
+          "operator",
+          "arithmetic",
+          "division"
+        ]
+      },
+      "suite": "Arithmetic Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          5
+        ],
+        "time": 0.034834000000003584
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          5
+        ],
+        "time": 0.03583300000000378
+      }
+    },
+    {
+      "test": {
+        "name": "division - decimals",
+        "expression": "7.5 / 2.5",
+        "input": [],
+        "expected": [
+          3
+        ],
+        "tags": [
+          "operator",
+          "arithmetic",
+          "division",
+          "decimal"
+        ]
+      },
+      "suite": "Arithmetic Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          3
+        ],
+        "time": 0.005667000000002531
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          3
+        ],
+        "time": 0.0105829999999969
+      }
+    },
+    {
+      "test": {
+        "name": "integer division",
+        "expression": "7 div 3",
+        "input": [],
+        "expected": [
+          2
+        ],
+        "tags": [
+          "operator",
+          "arithmetic",
+          "div"
+        ]
+      },
+      "suite": "Arithmetic Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          2
+        ],
+        "time": 0.038207999999997355
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          2
+        ],
+        "time": 0.0350830000000002
+      }
+    },
+    {
+      "test": {
+        "name": "integer division - larger",
+        "expression": "10 div 3",
+        "input": [],
+        "expected": [
+          3
+        ],
+        "tags": [
+          "operator",
+          "arithmetic",
+          "div"
+        ]
+      },
+      "suite": "Arithmetic Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          3
+        ],
+        "time": 0.007624999999997328
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          3
+        ],
+        "time": 0.012499999999995737
+      }
+    },
+    {
+      "test": {
+        "name": "modulo",
+        "expression": "7 mod 3",
+        "input": [],
+        "expected": [
+          1
+        ],
+        "tags": [
+          "operator",
+          "arithmetic",
+          "mod"
+        ]
+      },
+      "suite": "Arithmetic Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          1
+        ],
+        "time": 0.018749999999997158
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          1
+        ],
+        "time": 0.06929200000000435
+      }
+    },
+    {
+      "test": {
+        "name": "modulo - larger",
+        "expression": "10 mod 3",
+        "input": [],
+        "expected": [
+          1
+        ],
+        "tags": [
+          "operator",
+          "arithmetic",
+          "mod"
+        ]
+      },
+      "suite": "Arithmetic Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          1
+        ],
+        "time": 0.020708999999996536
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          1
+        ],
+        "time": 0.019750000000001933
+      }
+    },
+    {
+      "test": {
+        "name": "arithmetic with navigation",
+        "expression": "value + 3",
+        "input": [
+          {
+            "value": 5
+          }
+        ],
+        "expected": [
+          8
+        ],
+        "tags": [
+          "operator",
+          "arithmetic",
+          "navigation"
+        ]
+      },
+      "suite": "Arithmetic Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          8
+        ],
+        "time": 0.022416999999997245
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          8
+        ],
+        "time": 0.013083000000001732
+      }
+    },
+    {
+      "test": {
+        "name": "unary plus - positive",
+        "expression": "+42",
+        "input": [],
+        "expected": [
+          42
+        ],
+        "tags": [
+          "operator",
+          "arithmetic",
+          "unary",
+          "plus"
+        ]
+      },
+      "suite": "Arithmetic Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          42
+        ],
+        "time": 0.038458999999996024
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          42
+        ],
+        "time": 0.03683299999999434
+      }
+    },
+    {
+      "test": {
+        "name": "unary plus - negative",
+        "expression": "+(-5)",
+        "input": [],
+        "expected": [
+          -5
+        ],
+        "tags": [
+          "operator",
+          "arithmetic",
+          "unary",
+          "plus"
+        ]
+      },
+      "suite": "Arithmetic Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          -5
+        ],
+        "time": 0.009875000000000966
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          -5
+        ],
+        "time": 0.010292000000006851
+      }
+    },
+    {
+      "test": {
+        "name": "unary minus - positive",
+        "expression": "-42",
+        "input": [],
+        "expected": [
+          -42
+        ],
+        "tags": [
+          "operator",
+          "arithmetic",
+          "unary",
+          "minus"
+        ]
+      },
+      "suite": "Arithmetic Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          -42
+        ],
+        "time": 0.006499999999995509
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          -42
+        ],
+        "time": 0.0037909999999996558
+      }
+    },
+    {
+      "test": {
+        "name": "unary minus - double negative",
+        "expression": "-(-5)",
+        "input": [],
+        "expected": [
+          5
+        ],
+        "tags": [
+          "operator",
+          "arithmetic",
+          "unary",
+          "minus"
+        ]
+      },
+      "suite": "Arithmetic Operators",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          5
+        ],
+        "time": 0.006042000000000769
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          5
+        ],
+        "time": 0.005209000000000685
+      }
+    },
+    {
+      "test": {
+        "name": "union - numbers",
+        "expression": "{1, 2} | {3, 4}",
+        "input": [],
+        "expected": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "tags": [
+          "operator",
+          "union",
+          "collection"
+        ]
+      },
+      "suite": "Union Operator",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "time": 0.07675000000000409
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "time": 0.07795799999999531
+      }
+    },
+    {
+      "test": {
+        "name": "union - strings",
+        "expression": "{'a', 'b'} | {'c', 'd'}",
+        "input": [],
+        "expected": [
+          "a",
+          "b",
+          "c",
+          "d"
+        ],
+        "tags": [
+          "operator",
+          "union",
+          "collection",
+          "string"
+        ]
+      },
+      "suite": "Union Operator",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          "a",
+          "b",
+          "c",
+          "d"
+        ],
+        "time": 0.013916999999999291
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          "a",
+          "b",
+          "c",
+          "d"
+        ],
+        "time": 0.0332079999999948
+      }
+    },
+    {
+      "test": {
+        "name": "union - multiple",
+        "expression": "{1} | {2} | {3}",
+        "input": [],
+        "expected": [
+          1,
+          2,
+          3
+        ],
+        "tags": [
+          "operator",
+          "union",
+          "collection",
+          "multiple"
+        ]
+      },
+      "suite": "Union Operator",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          1,
+          2,
+          3
+        ],
+        "time": 0.013624999999997556
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          1,
+          2,
+          3
+        ],
+        "time": 0.021500000000003183
+      }
+    },
+    {
+      "test": {
+        "name": "union with navigation",
+        "expression": "a | b | c",
+        "input": [
+          {
+            "a": 1,
+            "b": 2,
+            "c": 3
+          }
+        ],
+        "expected": [
+          1,
+          2,
+          3
+        ],
+        "tags": [
+          "operator",
+          "union",
+          "navigation"
+        ]
+      },
+      "suite": "Union Operator",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          1,
+          2,
+          3
+        ],
+        "time": 0.046875
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          1,
+          2,
+          3
+        ],
+        "time": 0.026042000000003895
+      }
+    },
+    {
+      "test": {
+        "name": "chained functions",
+        "expression": "where(age > 25).select(name)",
+        "input": [
+          {
+            "name": "John",
+            "age": 30
+          },
+          {
+            "name": "Jane",
+            "age": 25
+          },
+          {
+            "name": "Bob",
+            "age": 35
+          }
+        ],
+        "expected": [
+          "John",
+          "Bob"
+        ],
+        "tags": [
+          "complex",
+          "chain",
+          "function"
+        ]
+      },
+      "suite": "Complex Expressions",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          "John",
+          "Bob"
+        ],
+        "time": 0.15866699999999412
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          "John",
+          "Bob"
+        ],
+        "time": 0.12729200000000418
+      }
+    },
+    {
+      "test": {
+        "name": "navigation with filter",
+        "expression": "patients.where(active).name",
+        "input": [
+          {
+            "patients": [
+              {
+                "name": "John",
+                "active": true
+              },
+              {
+                "name": "Jane",
+                "active": false
+              },
+              {
+                "name": "Bob",
+                "active": true
+              }
+            ]
+          }
+        ],
+        "expected": [
+          "John",
+          "Bob"
+        ],
+        "tags": [
+          "complex",
+          "navigation",
+          "filter"
+        ]
+      },
+      "suite": "Complex Expressions",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          "John",
+          "Bob"
+        ],
+        "time": 0.022165999999998576
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          "John",
+          "Bob"
+        ],
+        "time": 0.016625000000004775
+      }
+    },
+    {
+      "test": {
+        "name": "arithmetic in comparison",
+        "expression": "(a + b) * 2 > 10",
+        "input": [
+          {
+            "a": 5,
+            "b": 3
+          }
+        ],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "complex",
+          "arithmetic",
+          "comparison"
+        ]
+      },
+      "suite": "Complex Expressions",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.02070799999999906
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.018333000000005484
+      }
+    },
+    {
+      "test": {
+        "name": "nested navigation",
+        "expression": "name.where(use = 'official').given",
+        "input": [
+          {
+            "name": [
+              {
+                "use": "official",
+                "given": [
+                  "John"
+                ],
+                "family": "Doe"
+              },
+              {
+                "use": "nickname",
+                "given": [
+                  "Johnny"
+                ],
+                "family": "D"
+              }
+            ]
+          }
+        ],
+        "expected": [
+          "John"
+        ],
+        "tags": [
+          "complex",
+          "navigation",
+          "filter"
+        ]
+      },
+      "suite": "Complex Expressions",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          "John"
+        ],
+        "time": 0.026667000000003327
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          "John"
+        ],
+        "time": 0.045833999999999264
+      }
+    },
+    {
+      "test": {
+        "name": "simple property access",
+        "expression": "name",
+        "input": [
+          {
+            "name": "John"
+          }
+        ],
+        "expected": [
+          "John"
+        ],
+        "tags": [
+          "navigation",
+          "property"
+        ]
+      },
+      "suite": "Property Navigation",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          "John"
+        ],
+        "time": 0.007500000000000284
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          "John"
+        ],
+        "time": 0.005541000000000906
+      }
+    },
+    {
+      "test": {
+        "name": "missing property returns empty",
+        "expression": "name",
+        "input": [
+          {
+            "age": 30
+          }
+        ],
+        "expected": [],
+        "tags": [
+          "navigation",
+          "property",
+          "empty"
+        ]
+      },
+      "suite": "Property Navigation",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [],
+        "time": 0.003875000000000739
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [],
+        "time": 0.004582999999996673
+      }
+    },
+    {
+      "test": {
+        "name": "navigate multiple items",
+        "expression": "name",
+        "input": [
+          {
+            "name": "John"
+          },
+          {
+            "name": "Jane"
+          },
+          {
+            "age": 30
+          }
+        ],
+        "expected": [
+          "John",
+          "Jane"
+        ],
+        "tags": [
+          "navigation",
+          "property",
+          "multiple"
+        ]
+      },
+      "suite": "Property Navigation",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          "John",
+          "Jane"
+        ],
+        "time": 0.007291999999999632
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          "John",
+          "Jane"
+        ],
+        "time": 0.015457999999995309
+      }
+    },
+    {
+      "test": {
+        "name": "flatten array properties",
+        "expression": "name",
+        "input": [
+          {
+            "name": [
+              {
+                "given": [
+                  "John",
+                  "J"
+                ],
+                "family": "Doe"
+              },
+              {
+                "given": [
+                  "Jane"
+                ],
+                "family": "Smith"
+              }
+            ]
+          }
+        ],
+        "expected": [
+          {
+            "given": [
+              "John",
+              "J"
+            ],
+            "family": "Doe"
+          },
+          {
+            "given": [
+              "Jane"
+            ],
+            "family": "Smith"
+          }
+        ],
+        "tags": [
+          "navigation",
+          "property",
+          "array",
+          "flatten"
+        ]
+      },
+      "suite": "Property Navigation",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          {
+            "given": [
+              "John",
+              "J"
+            ],
+            "family": "Doe"
+          },
+          {
+            "given": [
+              "Jane"
+            ],
+            "family": "Smith"
+          }
+        ],
+        "time": 0.005583999999998923
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          {
+            "given": [
+              "John",
+              "J"
+            ],
+            "family": "Doe"
+          },
+          {
+            "given": [
+              "Jane"
+            ],
+            "family": "Smith"
+          }
+        ],
+        "time": 0.004291000000002043
+      }
+    },
+    {
+      "test": {
+        "name": "dot navigation - simple",
+        "expression": "patient.name",
+        "input": [
+          {
+            "patient": {
+              "name": "John"
+            }
+          }
+        ],
+        "expected": [
+          "John"
+        ],
+        "tags": [
+          "navigation",
+          "dot",
+          "chain"
+        ]
+      },
+      "suite": "Property Navigation",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          "John"
+        ],
+        "time": 0.012291999999995085
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          "John"
+        ],
+        "time": 0.010874999999998636
+      }
+    },
+    {
+      "test": {
+        "name": "dot navigation - deep",
+        "expression": "patient.name.given",
+        "input": [
+          {
+            "patient": {
+              "name": {
+                "given": [
+                  "John",
+                  "J"
+                ],
+                "family": "Doe"
+              }
+            }
+          }
+        ],
+        "expected": [
+          "John",
+          "J"
+        ],
+        "tags": [
+          "navigation",
+          "dot",
+          "chain",
+          "deep"
+        ]
+      },
+      "suite": "Property Navigation",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          "John",
+          "J"
+        ],
+        "time": 0.009875000000000966
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          "John",
+          "J"
+        ],
+        "time": 0.012666000000002953
+      }
+    },
+    {
+      "test": {
+        "name": "dot navigation - empty intermediate",
+        "expression": "patient.name.given",
+        "input": [
+          {
+            "patient": {}
+          }
+        ],
+        "expected": [],
+        "tags": [
+          "navigation",
+          "dot",
+          "chain",
+          "empty"
+        ]
+      },
+      "suite": "Property Navigation",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [],
+        "time": 0.007583999999994262
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [],
+        "time": 0.011333000000000482
+      }
+    },
+    {
+      "test": {
+        "name": "dot navigation - multiple levels",
+        "expression": "a.b.c",
+        "input": [
+          {
+            "a": {
+              "b": {
+                "c": 42
+              }
+            }
+          }
+        ],
+        "expected": [
+          42
+        ],
+        "tags": [
+          "navigation",
+          "dot",
+          "chain",
+          "deep"
+        ]
+      },
+      "suite": "Property Navigation",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          42
+        ],
+        "time": 0.00999999999999801
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          42
+        ],
+        "time": 0.012249999999994543
+      }
+    },
+    {
+      "test": {
+        "name": "$this with simple value",
+        "expression": "$this",
+        "input": [],
+        "context": {
+          "rootContext": [
+            42
+          ]
+        },
+        "expected": [
+          42
+        ],
+        "tags": [
+          "variable",
+          "$this"
+        ],
+        "skip": {
+          "interpreter": true,
+          "compiler": true,
+          "reason": "$this requires special context setup"
+        }
+      },
+      "suite": "Variables",
+      "matched": false
+    },
+    {
+      "test": {
+        "name": "$this with object",
+        "expression": "$this.name",
+        "input": [],
+        "context": {
+          "rootContext": [
+            {
+              "name": "John"
+            }
+          ]
+        },
+        "expected": [
+          "John"
+        ],
+        "tags": [
+          "variable",
+          "$this",
+          "navigation"
+        ],
+        "skip": {
+          "interpreter": true,
+          "compiler": true,
+          "reason": "$this requires special context setup"
+        }
+      },
+      "suite": "Variables",
+      "matched": false
+    },
+    {
+      "test": {
+        "name": "$index in context",
+        "expression": "$index",
+        "input": [],
+        "context": {
+          "env": {
+            "$index": 5
+          }
+        },
+        "expected": [
+          5
+        ],
+        "tags": [
+          "variable",
+          "$index"
+        ]
+      },
+      "suite": "Variables",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          5
+        ],
+        "time": 0.041667000000003895
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          5
+        ],
+        "time": 0.027958000000005256
+      }
+    },
+    {
+      "test": {
+        "name": "user-defined variable",
+        "expression": "%myVar",
+        "input": [],
+        "context": {
+          "variables": {
+            "myVar": [
+              1,
+              2,
+              3
+            ]
+          }
+        },
+        "expected": [
+          1,
+          2,
+          3
+        ],
+        "tags": [
+          "variable",
+          "user-defined"
+        ]
+      },
+      "suite": "Variables",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          1,
+          2,
+          3
+        ],
+        "time": 0.05129099999999909
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          1,
+          2,
+          3
+        ],
+        "time": 0.03666700000000134
+      }
+    },
+    {
+      "test": {
+        "name": "undefined variable returns empty",
+        "expression": "%undefinedVar",
+        "input": [],
+        "expected": [],
+        "tags": [
+          "variable",
+          "undefined",
+          "empty"
+        ]
+      },
+      "suite": "Variables",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [],
+        "time": 0.006333000000005029
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [],
+        "time": 0.003540999999998462
+      }
+    },
+    {
+      "test": {
+        "name": "$this in select expression",
+        "expression": "name.select($this)",
+        "input": [
+          {
+            "name": [
+              1
+            ]
+          },
+          {
+            "name": [
+              2
+            ]
+          }
+        ],
+        "expected": [
+          1,
+          2
+        ],
+        "tags": [
+          "variable",
+          "$this",
+          "select"
+        ]
+      },
+      "suite": "Variables",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          1,
+          2
+        ],
+        "time": 0.02674999999999983
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          1,
+          2
+        ],
+        "time": 0.02329199999999787
+      }
+    },
+    {
+      "test": {
+        "name": "$this in nested navigation",
+        "expression": "name.given.select($this)",
+        "input": [
+          {
+            "name": [
+              {
+                "given": [
+                  1
+                ]
+              }
+            ]
+          },
+          {
+            "name": [
+              {
+                "given": [
+                  2
+                ]
+              }
+            ]
+          }
+        ],
+        "expected": [
+          1,
+          2
+        ],
+        "tags": [
+          "variable",
+          "$this",
+          "navigation",
+          "select"
+        ]
+      },
+      "suite": "Variables",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          1,
+          2
+        ],
+        "time": 0.11424999999999841
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          1,
+          2
+        ],
+        "time": 0.03533300000000139
+      }
+    },
+    {
+      "test": {
+        "name": "empty - empty collection",
+        "expression": "{}.empty()",
+        "input": [],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "function",
+          "existence",
+          "empty"
+        ]
+      },
+      "suite": "Functions - Existence and Aggregates",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.07020899999999841
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.06041599999999647
+      }
+    },
+    {
+      "test": {
+        "name": "empty - missing property",
+        "expression": "missing.empty()",
+        "input": [],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "function",
+          "existence",
+          "empty"
+        ]
+      },
+      "suite": "Functions - Existence and Aggregates",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.04316599999999937
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.022792000000002588
+      }
+    },
+    {
+      "test": {
+        "name": "empty - non-empty",
+        "expression": "name.empty()",
+        "input": [
+          {
+            "name": "John"
+          }
+        ],
+        "expected": [
+          false
+        ],
+        "tags": [
+          "function",
+          "existence",
+          "empty"
+        ]
+      },
+      "suite": "Functions - Existence and Aggregates",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.008333999999997843
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.006749999999996703
+      }
+    },
+    {
+      "test": {
+        "name": "exists - non-empty",
+        "expression": "name.exists()",
+        "input": [
+          {
+            "name": "John"
+          }
+        ],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "function",
+          "existence",
+          "exists"
+        ]
+      },
+      "suite": "Functions - Existence and Aggregates",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.06604199999999594
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.04999999999999716
+      }
+    },
+    {
+      "test": {
+        "name": "exists - empty",
+        "expression": "missing.exists()",
+        "input": [],
+        "expected": [
+          false
+        ],
+        "tags": [
+          "function",
+          "existence",
+          "exists"
+        ]
+      },
+      "suite": "Functions - Existence and Aggregates",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.008583999999999037
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.007082999999994399
+      }
+    },
+    {
+      "test": {
+        "name": "exists - with criteria true",
+        "expression": "values.exists($this > 3)",
+        "input": [
+          {
+            "values": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          }
+        ],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "function",
+          "existence",
+          "exists",
+          "criteria"
+        ]
+      },
+      "suite": "Functions - Existence and Aggregates",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.02816699999999628
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.048791999999998836
+      }
+    },
+    {
+      "test": {
+        "name": "exists - with criteria false",
+        "expression": "values.exists($this > 10)",
+        "input": [
+          {
+            "values": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          }
+        ],
+        "expected": [
+          false
+        ],
+        "tags": [
+          "function",
+          "existence",
+          "exists",
+          "criteria"
+        ]
+      },
+      "suite": "Functions - Existence and Aggregates",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.020415999999997325
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.021499999999996078
+      }
+    },
+    {
+      "test": {
+        "name": "count - items",
+        "expression": "values.count()",
+        "input": [
+          {
+            "values": [
+              1,
+              2,
+              3
+            ]
+          }
+        ],
+        "expected": [
+          3
+        ],
+        "tags": [
+          "function",
+          "aggregate",
+          "count"
+        ]
+      },
+      "suite": "Functions - Existence and Aggregates",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          3
+        ],
+        "time": 0.016458000000000084
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          3
+        ],
+        "time": 0.03220800000000423
+      }
+    },
+    {
+      "test": {
+        "name": "count - empty",
+        "expression": "{}.count()",
+        "input": [],
+        "expected": [
+          0
+        ],
+        "tags": [
+          "function",
+          "aggregate",
+          "count"
+        ]
+      },
+      "suite": "Functions - Existence and Aggregates",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          0
+        ],
+        "time": 0.01316699999999571
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          0
+        ],
+        "time": 0.014749999999999375
+      }
+    },
+    {
+      "test": {
+        "name": "where - simple filter",
+        "expression": "where($this > 2)",
+        "input": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "expected": [
+          3,
+          4,
+          5
+        ],
+        "tags": [
+          "function",
+          "where",
+          "filter"
+        ]
+      },
+      "suite": "Functions - where",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          3,
+          4,
+          5
+        ],
+        "time": 0.034583000000004915
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          3,
+          4,
+          5
+        ],
+        "time": 0.03975000000000506
+      }
+    },
+    {
+      "test": {
+        "name": "where - filter by property",
+        "expression": "where(age > 30)",
+        "input": [
+          {
+            "name": "John",
+            "age": 30
+          },
+          {
+            "name": "Jane",
+            "age": 25
+          },
+          {
+            "name": "Bob",
+            "age": 35
+          }
+        ],
+        "expected": [
+          {
+            "name": "Bob",
+            "age": 35
+          }
+        ],
+        "tags": [
+          "function",
+          "where",
+          "filter",
+          "property"
+        ]
+      },
+      "suite": "Functions - where",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          {
+            "name": "Bob",
+            "age": 35
+          }
+        ],
+        "time": 0.046833999999996934
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          {
+            "name": "Bob",
+            "age": 35
+          }
+        ],
+        "time": 0.027457999999995764
+      }
+    },
+    {
+      "test": {
+        "name": "where - empty input",
+        "expression": "{}.where($this > 0)",
+        "input": [],
+        "expected": [],
+        "tags": [
+          "function",
+          "where",
+          "empty"
+        ]
+      },
+      "suite": "Functions - where",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [],
+        "time": 0.014791999999999916
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [],
+        "time": 0.015584000000004039
+      }
+    },
+    {
+      "test": {
+        "name": "where - no matches",
+        "expression": "where($this > 10)",
+        "input": [
+          1,
+          2,
+          3
+        ],
+        "expected": [],
+        "tags": [
+          "function",
+          "where",
+          "filter",
+          "empty"
+        ]
+      },
+      "suite": "Functions - where",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [],
+        "time": 0.018250000000001876
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [],
+        "time": 0.010249999999999204
+      }
+    },
+    {
+      "test": {
+        "name": "where - complex predicate without parentheses",
+        "expression": "items.where(price > 12 and price < 18)",
+        "input": [
+          {
+            "items": [
+              {
+                "name": "A",
+                "price": 10
+              },
+              {
+                "name": "B",
+                "price": 20
+              },
+              {
+                "name": "C",
+                "price": 15
+              }
+            ]
+          }
+        ],
+        "expected": [
+          {
+            "name": "C",
+            "price": 15
+          }
+        ],
+        "tags": [
+          "function",
+          "where",
+          "filter",
+          "complex",
+          "precedence"
+        ]
+      },
+      "suite": "Functions - where",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          {
+            "name": "C",
+            "price": 15
+          }
+        ],
+        "time": 0.01983399999999591
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          {
+            "name": "C",
+            "price": 15
+          }
+        ],
+        "time": 0.031667000000005885
+      }
+    },
+    {
+      "test": {
+        "name": "where - complex predicate with parentheses",
+        "expression": "items.where((price > 12) and (price < 18))",
+        "input": [
+          {
+            "items": [
+              {
+                "name": "A",
+                "price": 10
+              },
+              {
+                "name": "B",
+                "price": 20
+              },
+              {
+                "name": "C",
+                "price": 15
+              }
+            ]
+          }
+        ],
+        "expected": [
+          {
+            "name": "C",
+            "price": 15
+          }
+        ],
+        "tags": [
+          "function",
+          "where",
+          "filter",
+          "complex"
+        ]
+      },
+      "suite": "Functions - where",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          {
+            "name": "C",
+            "price": 15
+          }
+        ],
+        "time": 0.02658399999999972
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          {
+            "name": "C",
+            "price": 15
+          }
+        ],
+        "time": 0.06483300000000014
+      }
+    },
+    {
+      "test": {
+        "name": "where - empty predicate",
+        "expression": "$this.where({})",
+        "input": [
+          1,
+          2,
+          3
+        ],
+        "expected": [],
+        "tags": [
+          "function",
+          "where",
+          "filter",
+          "empty",
+          "predicate"
+        ]
+      },
+      "suite": "Functions - where",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [],
+        "time": 0.018458000000002528
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [],
+        "time": 0.031957999999995934
+      }
+    },
+    {
+      "test": {
+        "name": "first - single item",
+        "expression": "values.first()",
+        "input": [
+          {
+            "values": [
+              1,
+              2,
+              3
+            ]
+          }
+        ],
+        "expected": [
+          1
+        ],
+        "tags": [
+          "function",
+          "subsetting",
+          "first"
+        ]
+      },
+      "suite": "Functions - Subsetting",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          1
+        ],
+        "time": 0.015875000000001194
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          1
+        ],
+        "time": 0.018707999999996616
+      }
+    },
+    {
+      "test": {
+        "name": "first - empty",
+        "expression": "{}.first()",
+        "input": [],
+        "expected": [],
+        "tags": [
+          "function",
+          "subsetting",
+          "first",
+          "empty"
+        ]
+      },
+      "suite": "Functions - Subsetting",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [],
+        "time": 0.010958000000002244
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [],
+        "time": 0.008000000000002672
+      }
+    },
+    {
+      "test": {
+        "name": "last - multiple items",
+        "expression": "values.last()",
+        "input": [
+          {
+            "values": [
+              1,
+              2,
+              3
+            ]
+          }
+        ],
+        "expected": [
+          3
+        ],
+        "tags": [
+          "function",
+          "subsetting",
+          "last"
+        ]
+      },
+      "suite": "Functions - Subsetting",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          3
+        ],
+        "time": 0.057416000000003464
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          3
+        ],
+        "time": 0.055125000000003865
+      }
+    },
+    {
+      "test": {
+        "name": "last - empty",
+        "expression": "{}.last()",
+        "input": [],
+        "expected": [],
+        "tags": [
+          "function",
+          "subsetting",
+          "last",
+          "empty"
+        ]
+      },
+      "suite": "Functions - Subsetting",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [],
+        "time": 0.0051660000000026685
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [],
+        "time": 0.010084000000006199
+      }
+    },
+    {
+      "test": {
+        "name": "single - one item",
+        "expression": "value.single()",
+        "input": [
+          {
+            "value": [
+              42
+            ]
+          }
+        ],
+        "expected": [
+          42
+        ],
+        "tags": [
+          "function",
+          "subsetting",
+          "single"
+        ]
+      },
+      "suite": "Functions - Subsetting",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          42
+        ],
+        "time": 0.025874999999999204
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          42
+        ],
+        "time": 0.03779100000000568
+      }
+    },
+    {
+      "test": {
+        "name": "single - empty",
+        "expression": "{}.single()",
+        "input": [],
+        "expected": [],
+        "tags": [
+          "function",
+          "subsetting",
+          "single",
+          "empty"
+        ]
+      },
+      "suite": "Functions - Subsetting",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [],
+        "time": 0.030833999999998696
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [],
+        "time": 0.006624999999999659
+      }
+    },
+    {
+      "test": {
+        "name": "select - property extraction",
+        "expression": "select(name)",
+        "input": [
+          {
+            "name": "John",
+            "age": 30
+          },
+          {
+            "name": "Jane",
+            "age": 25
+          }
+        ],
+        "expected": [
+          "John",
+          "Jane"
+        ],
+        "tags": [
+          "function",
+          "select",
+          "transform"
+        ]
+      },
+      "suite": "Functions - select",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          "John",
+          "Jane"
+        ],
+        "time": 0.01850000000000307
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          "John",
+          "Jane"
+        ],
+        "time": 0.020291999999997756
+      }
+    },
+    {
+      "test": {
+        "name": "select - expression",
+        "expression": "select($this * 2)",
+        "input": [
+          1,
+          2,
+          3
+        ],
+        "expected": [
+          2,
+          4,
+          6
+        ],
+        "tags": [
+          "function",
+          "select",
+          "transform",
+          "expression"
+        ]
+      },
+      "suite": "Functions - select",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          2,
+          4,
+          6
+        ],
+        "time": 0.03900000000000148
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          2,
+          4,
+          6
+        ],
+        "time": 0.04124999999999801
+      }
+    },
+    {
+      "test": {
+        "name": "select - flattening",
+        "expression": "select(names)",
+        "input": [
+          {
+            "names": [
+              "John",
+              "J"
+            ]
+          },
+          {
+            "names": [
+              "Jane"
+            ]
+          }
+        ],
+        "expected": [
+          "John",
+          "J",
+          "Jane"
+        ],
+        "tags": [
+          "function",
+          "select",
+          "transform",
+          "flatten"
+        ]
+      },
+      "suite": "Functions - select",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          "John",
+          "J",
+          "Jane"
+        ],
+        "time": 0.017583000000001903
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          "John",
+          "J",
+          "Jane"
+        ],
+        "time": 0.07183299999999804
+      }
+    },
+    {
+      "test": {
+        "name": "select - empty input",
+        "expression": "{}.select(name)",
+        "input": [],
+        "expected": [],
+        "tags": [
+          "function",
+          "select",
+          "empty"
+        ]
+      },
+      "suite": "Functions - select",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [],
+        "time": 0.009750000000003922
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [],
+        "time": 0.009584000000003812
+      }
+    },
+    {
+      "test": {
+        "name": "select - complex expression",
+        "expression": "select(first & ' ' & last)",
+        "input": [
+          {
+            "first": "John",
+            "last": "Doe"
+          },
+          {
+            "first": "Jane",
+            "last": "Smith"
+          }
+        ],
+        "expected": [
+          "John Doe",
+          "Jane Smith"
+        ],
+        "tags": [
+          "function",
+          "select",
+          "transform",
+          "complex"
+        ]
+      },
+      "suite": "Functions - select",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          "John Doe",
+          "Jane Smith"
+        ],
+        "time": 0.016958999999999946
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          "John Doe",
+          "Jane Smith"
+        ],
+        "time": 0.01620799999999889
+      }
+    },
+    {
+      "test": {
+        "name": "number literal - integer",
+        "expression": "42",
+        "input": [],
+        "expected": [
+          42
+        ],
+        "tags": [
+          "basic",
+          "literal",
+          "number"
+        ]
+      },
+      "suite": "Literals",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          42
+        ],
+        "time": 0.007083000000001505
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          42
+        ],
+        "time": 0.0027079999999983784
+      }
+    },
+    {
+      "test": {
+        "name": "number literal - decimal",
+        "expression": "3.14",
+        "input": [],
+        "expected": [
+          3.14
+        ],
+        "tags": [
+          "basic",
+          "literal",
+          "number"
+        ]
+      },
+      "suite": "Literals",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          3.14
+        ],
+        "time": 0.0024579999999971847
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          3.14
+        ],
+        "time": 0.0019580000000019027
+      }
+    },
+    {
+      "test": {
+        "name": "number literal - negative",
+        "expression": "-17",
+        "input": [],
+        "expected": [
+          -17
+        ],
+        "tags": [
+          "basic",
+          "literal",
+          "number"
+        ]
+      },
+      "suite": "Literals",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          -17
+        ],
+        "time": 0.005708999999995967
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          -17
+        ],
+        "time": 0.004041999999998325
+      }
+    },
+    {
+      "test": {
+        "name": "string literal - simple",
+        "expression": "'hello'",
+        "input": [],
+        "expected": [
+          "hello"
+        ],
+        "tags": [
+          "basic",
+          "literal",
+          "string"
+        ]
+      },
+      "suite": "Literals",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          "hello"
+        ],
+        "time": 0.0030829999999966162
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          "hello"
+        ],
+        "time": 0.0026670000000024174
+      }
+    },
+    {
+      "test": {
+        "name": "string literal - empty",
+        "expression": "''",
+        "input": [],
+        "expected": [
+          ""
+        ],
+        "tags": [
+          "basic",
+          "literal",
+          "string"
+        ]
+      },
+      "suite": "Literals",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          ""
+        ],
+        "time": 0.0010420000000053165
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          ""
+        ],
+        "time": 0.0009999999999976694
+      }
+    },
+    {
+      "test": {
+        "name": "boolean literal - true",
+        "expression": "true",
+        "input": [],
+        "expected": [
+          true
+        ],
+        "tags": [
+          "basic",
+          "literal",
+          "boolean"
+        ]
+      },
+      "suite": "Literals",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.00216700000000003
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          true
+        ],
+        "time": 0.0011249999999947136
+      }
+    },
+    {
+      "test": {
+        "name": "boolean literal - false",
+        "expression": "false",
+        "input": [],
+        "expected": [
+          false
+        ],
+        "tags": [
+          "basic",
+          "literal",
+          "boolean"
+        ]
+      },
+      "suite": "Literals",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.0015420000000005984
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          false
+        ],
+        "time": 0.004083000000001391
+      }
+    },
+    {
+      "test": {
+        "name": "null literal as empty collection",
+        "expression": "null",
+        "input": [],
+        "expected": [],
+        "tags": [
+          "basic",
+          "literal",
+          "null"
+        ]
+      },
+      "suite": "Literals",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [],
+        "time": 0.004957999999994911
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [],
+        "time": 0.0024170000000012237
+      }
+    },
+    {
+      "test": {
+        "name": "empty collection literal",
+        "expression": "{}",
+        "input": [],
+        "expected": [],
+        "tags": [
+          "basic",
+          "literal",
+          "collection"
+        ]
+      },
+      "suite": "Literals",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [],
+        "time": 0.00216700000000003
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [],
+        "time": 0.0051250000000067075
+      }
+    },
+    {
+      "test": {
+        "name": "collection literal - numbers",
+        "expression": "{1, 2, 3}",
+        "input": [],
+        "expected": [
+          1,
+          2,
+          3
+        ],
+        "tags": [
+          "basic",
+          "literal",
+          "collection"
+        ]
+      },
+      "suite": "Literals",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          1,
+          2,
+          3
+        ],
+        "time": 0.00491699999999895
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          1,
+          2,
+          3
+        ],
+        "time": 0.010541999999993834
+      }
+    },
+    {
+      "test": {
+        "name": "collection literal - strings",
+        "expression": "{'a', 'b', 'c'}",
+        "input": [],
+        "expected": [
+          "a",
+          "b",
+          "c"
+        ],
+        "tags": [
+          "basic",
+          "literal",
+          "collection"
+        ]
+      },
+      "suite": "Literals",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          "a",
+          "b",
+          "c"
+        ],
+        "time": 0.00883400000000023
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          "a",
+          "b",
+          "c"
+        ],
+        "time": 0.011958999999997388
+      }
+    },
+    {
+      "test": {
+        "name": "collection literal - booleans",
+        "expression": "{true, false, true}",
+        "input": [],
+        "expected": [
+          true,
+          false,
+          true
+        ],
+        "tags": [
+          "basic",
+          "literal",
+          "collection"
+        ]
+      },
+      "suite": "Literals",
+      "matched": true,
+      "interpreterResult": {
+        "success": true,
+        "value": [
+          true,
+          false,
+          true
+        ],
+        "time": 0.006999999999997897
+      },
+      "compilerResult": {
+        "success": true,
+        "value": [
+          true,
+          false,
+          true
+        ],
+        "time": 0.013999999999995794
+      }
+    }
+  ]
+}
