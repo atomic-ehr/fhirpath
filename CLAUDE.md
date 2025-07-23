@@ -89,6 +89,7 @@ When task finished move files to ./tasks/done/<filename>.md and write what was d
   bun tools/testcase.ts --tag <tag-name>
   bun tools/testcase.ts --failing
   bun tools/testcase.ts --failing-commands
+  bun tools/testcase.ts --pending
   ```
   Arguments:
   - `test-file` - Path to JSON test file (relative to test-cases/)
@@ -100,6 +101,7 @@ When task finished move files to ./tasks/done/<filename>.md and write what was d
   - `--tag <tag-name>` - Show all test expressions for a specific tag
   - `--failing` - Show all failing tests with detailed information and debug commands
   - `--failing-commands` - Output only the commands to run failing tests (useful for scripting)
+  - `--pending` - Show all pending tests with reasons and commands to run them
   - `--list` - List all tests in a specific file
   
   Examples:

@@ -16,6 +16,7 @@ Usage:
   bun tools/testcase.ts --tags
   bun tools/testcase.ts --tag <tag-name>
   bun tools/testcase.ts --failing
+  bun tools/testcase.ts --pending
 
 Arguments:
   test-file   Path to JSON test file (relative to test-cases/)
@@ -26,6 +27,7 @@ Commands:
   --tags      List all unique tags from all test files
   --tag       Show all test expressions for a specific tag
   --failing   Show all failing tests with commands to debug them
+  --pending   Show all pending tests
 
 Examples:
   # Run all tests in a file
@@ -48,6 +50,9 @@ Examples:
   
   # Show failing tests
   bun tools/testcase.ts --failing
+  
+  # Show pending tests
+  bun tools/testcase.ts --pending
 `);
   process.exit(0);
 }
@@ -383,6 +388,103 @@ if (args[0] === "--failing" || args[0] === "--failing-commands") {
   }
   
   process.exit(failingTests.length > 0 ? 1 : 0);
+}
+
+// Handle --pending command
+if (args[0] === "--pending") {
+  const testCasesDir = join(__dirname, "../test-cases");
+  const pendingTests: Array<{
+    suite: string;
+    test: string;
+    expression: string;
+    file: string;
+    reason?: string;
+  }> = [];
+  
+  console.log("\n⏳ Finding all pending tests...\n");
+  
+  // Function to recursively find all JSON files
+  function findJsonFiles(dir: string): string[] {
+    const files: string[] = [];
+    const entries = readdirSync(dir);
+    
+    for (const entry of entries) {
+      const fullPath = join(dir, entry);
+      const stat = statSync(fullPath);
+      
+      if (stat.isDirectory()) {
+        files.push(...findJsonFiles(fullPath));
+      } else if (entry.endsWith(".json")) {
+        files.push(fullPath);
+      }
+    }
+    
+    return files;
+  }
+  
+  // Find all test files
+  const jsonFiles = findJsonFiles(testCasesDir);
+  
+  // Search for pending tests
+  jsonFiles.forEach(file => {
+    try {
+      const content = readFileSync(file, "utf-8");
+      const suite = JSON.parse(content);
+      
+      if (suite.tests && Array.isArray(suite.tests)) {
+        suite.tests.forEach((test: any) => {
+          if (test.pending) {
+            const relativePath = file.replace(testCasesDir + "/", "");
+            pendingTests.push({
+              suite: suite.name || basename(file),
+              test: test.name,
+              expression: test.expression,
+              file: relativePath,
+              reason: typeof test.pending === 'string' ? test.pending : undefined
+            });
+          }
+        });
+      }
+    } catch (error) {
+      // Skip files that can't be parsed
+    }
+  });
+  
+  // Display results
+  console.log(`⏳ Pending Tests\n`);
+  
+  if (pendingTests.length === 0) {
+    console.log("✅ No pending tests found!");
+  } else {
+    console.log(`Found ${pendingTests.length} pending tests:\n`);
+    
+    // Group by file
+    const byFile = new Map<string, typeof pendingTests>();
+    pendingTests.forEach(test => {
+      if (!byFile.has(test.file)) {
+        byFile.set(test.file, []);
+      }
+      byFile.get(test.file)!.push(test);
+    });
+    
+    // Display grouped by file
+    Array.from(byFile.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .forEach(([file, tests]) => {
+        console.log(`📄 ${file}:`);
+        tests.forEach((test, index) => {
+          console.log(`   ${index + 1}. ${test.test}`);
+          console.log(`      Expression: ${test.expression}`);
+          if (test.reason) {
+            console.log(`      Reason: ${test.reason}`);
+          }
+          console.log(`      Run: bun tools/testcase.ts ${file} "${test.test}"`);
+        });
+        console.log("");
+      });
+  }
+  
+  process.exit(0);
 }
 
 const testFile = args[0];
