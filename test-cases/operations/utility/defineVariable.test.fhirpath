@@ -1,0 +1,6 @@
+// @name simple Define variable
+// @input [{}]
+// @expected [5]
+// @tags ["defineVariable","select"]
+defineVariable(x, 5).select($this)
+

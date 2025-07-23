@@ -44,6 +44,22 @@
       "input": [ { "property": 1 } ],
       "expected": [ 1 ],
       "tags": [ "defineVariable", "select", "$this" ]
+    },
+    {
+      "name": "defineVariable - nested property access",
+      "expression": "property.defineVariable('x', value).select(%x)",
+      "description": "defineVariable should set $this to input",
+      "input": [ { "property": { "value": 1 } } ],
+      "expected": [ 1 ],
+      "tags": [ "defineVariable", "select", "context-propagation" ]
+    },
+    {
+      "name": "defineVariable - nested property access",
+      "expression": "property.defineVariable('x', $this.value).select(%x)",
+      "description": "defineVariable should set $this to input",
+      "input": [ { "property": { "value": 1 } } ],
+      "expected": [ 1 ],
+      "tags": [ "defineVariable", "select", "context-propagation" ]
     }
   ]
 }
