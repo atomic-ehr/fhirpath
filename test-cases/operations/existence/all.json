@@ -1,0 +1,144 @@
+{
+  "name": "All Function Tests",
+  "description": "Tests for the all() function",
+  "tests": [
+    {
+      "name": "all - criteria true",
+      "expression": "values.all($this mod 2 = 0)",
+      "input": [
+        {
+          "values": [
+            2,
+            4,
+            6,
+            8
+          ]
+        }
+      ],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "aggregate",
+        "all",
+        "function:all"
+      ]
+    },
+    {
+      "name": "all - criteria false",
+      "expression": "values.all($this > 5)",
+      "input": [
+        {
+          "values": [
+            2,
+            4,
+            6,
+            8
+          ]
+        }
+      ],
+      "expected": [
+        false
+      ],
+      "tags": [
+        "function",
+        "aggregate",
+        "all",
+        "function:all"
+      ]
+    },
+    {
+      "name": "allTrue - all true",
+      "expression": "values.allTrue()",
+      "input": [
+        {
+          "values": [
+            true,
+            true,
+            true
+          ]
+        }
+      ],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "aggregate",
+        "boolean",
+        "allTrue",
+        "function:all"
+      ]
+    },
+    {
+      "name": "allTrue - contains false",
+      "expression": "values.allTrue()",
+      "input": [
+        {
+          "values": [
+            true,
+            false,
+            true
+          ]
+        }
+      ],
+      "expected": [
+        false
+      ],
+      "tags": [
+        "function",
+        "aggregate",
+        "boolean",
+        "allTrue",
+        "function:all"
+      ]
+    },
+    {
+      "name": "allFalse - all false",
+      "expression": "values.allFalse()",
+      "input": [
+        {
+          "values": [
+            false,
+            false,
+            false
+          ]
+        }
+      ],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "aggregate",
+        "boolean",
+        "allFalse",
+        "function:all"
+      ]
+    },
+    {
+      "name": "allFalse - contains true",
+      "expression": "values.allFalse()",
+      "input": [
+        {
+          "values": [
+            false,
+            true,
+            false
+          ]
+        }
+      ],
+      "expected": [
+        false
+      ],
+      "tags": [
+        "function",
+        "aggregate",
+        "boolean",
+        "allFalse",
+        "function:all"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "name": "Intersect Function Tests",
+  "description": "Tests for the intersect() function",
+  "tests": [
+    {
+      "name": "intersect - common items",
+      "expression": "{1, 2, 3, 4}.intersect({3, 4, 5, 6})",
+      "input": [],
+      "expected": [
+        3,
+        4
+      ],
+      "tags": [
+        "function",
+        "set",
+        "intersect",
+        "function:intersect"
+      ]
+    },
+    {
+      "name": "intersect - no common items",
+      "expression": "{1, 2, 3}.intersect({4, 5, 6})",
+      "input": [],
+      "expected": [],
+      "tags": [
+        "function",
+        "set",
+        "intersect",
+        "function:intersect"
+      ]
+    },
+    {
+      "name": "intersect - with empty",
+      "expression": "{1, 2, 3}.intersect({})",
+      "input": [],
+      "expected": [],
+      "tags": [
+        "function",
+        "set",
+        "intersect",
+        "empty",
+        "function:intersect"
+      ]
+    }
+  ]
+}

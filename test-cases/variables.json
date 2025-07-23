@@ -1,0 +1,181 @@
+{
+  "name": "Variables",
+  "description": "Tests for variable references",
+  "tests": [
+    {
+      "name": "$this with simple value",
+      "expression": "$this",
+      "input": [],
+      "context": {
+        "rootContext": [
+          42
+        ]
+      },
+      "expected": [
+        42
+      ],
+      "tags": [
+        "variable",
+        "$this"
+      ],
+      "skip": {
+        "interpreter": true,
+        "compiler": true,
+        "reason": "$this requires special context setup"
+      }
+    },
+    {
+      "name": "$this with object",
+      "expression": "$this.name",
+      "input": [],
+      "context": {
+        "rootContext": [
+          {
+            "name": "John"
+          }
+        ]
+      },
+      "expected": [
+        "John"
+      ],
+      "tags": [
+        "variable",
+        "$this",
+        "navigation"
+      ],
+      "skip": {
+        "interpreter": true,
+        "compiler": true,
+        "reason": "$this requires special context setup"
+      }
+    },
+    {
+      "name": "$index in context",
+      "expression": "$index",
+      "input": [],
+      "context": {
+        "env": {
+          "$index": 5
+        }
+      },
+      "expected": [
+        5
+      ],
+      "tags": [
+        "variable",
+        "$index"
+      ]
+    },
+    {
+      "name": "user-defined variable",
+      "expression": "%myVar",
+      "input": [],
+      "context": {
+        "variables": {
+          "myVar": [
+            1,
+            2,
+            3
+          ]
+        }
+      },
+      "expected": [
+        1,
+        2,
+        3
+      ],
+      "tags": [
+        "variable",
+        "user-defined"
+      ]
+    },
+    {
+      "name": "undefined variable returns empty",
+      "expression": "%undefinedVar",
+      "input": [],
+      "expected": [],
+      "tags": [
+        "variable",
+        "undefined",
+        "empty"
+      ]
+    },
+    {
+      "name": "$this in select expression",
+      "expression": "name.select($this)",
+      "input": [
+        {
+          "name": [
+            1
+          ]
+        },
+        {
+          "name": [
+            2
+          ]
+        }
+      ],
+      "expected": [
+        1,
+        2
+      ],
+      "tags": [
+        "variable",
+        "$this",
+        "select"
+      ]
+    },
+    {
+      "name": "$this in nested navigation",
+      "expression": "name.given.select($this)",
+      "input": [
+        {
+          "name": [
+            {
+              "given": [
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "name": [
+            {
+              "given": [
+                2
+              ]
+            }
+          ]
+        }
+      ],
+      "expected": [
+        1,
+        2
+      ],
+      "tags": [
+        "variable",
+        "$this",
+        "navigation",
+        "select"
+      ]
+    },
+    {
+      "name": "%context variable",
+      "expression": "%context",
+      "input": [
+        {
+          "id": "123"
+        }
+      ],
+      "expected": [
+        {
+          "id": "123"
+        }
+      ],
+      "tags": [
+        "variable",
+        "%context"
+      ]
+    }
+  ]
+}

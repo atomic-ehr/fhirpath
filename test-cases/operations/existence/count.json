@@ -1,0 +1,42 @@
+{
+  "name": "Count Function Tests",
+  "description": "Tests for the count() function",
+  "tests": [
+    {
+      "name": "count - items",
+      "expression": "values.count()",
+      "input": [
+        {
+          "values": [
+            1,
+            2,
+            3
+          ]
+        }
+      ],
+      "expected": [
+        3
+      ],
+      "tags": [
+        "function",
+        "aggregate",
+        "count",
+        "function:count"
+      ]
+    },
+    {
+      "name": "count - empty",
+      "expression": "{}.count()",
+      "input": [],
+      "expected": [
+        0
+      ],
+      "tags": [
+        "function",
+        "aggregate",
+        "count",
+        "function:count"
+      ]
+    }
+  ]
+}

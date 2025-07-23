@@ -1,0 +1,75 @@
+{
+  "name": "ToBoolean Function Tests",
+  "description": "Tests for the toBoolean() function",
+  "tests": [
+    {
+      "name": "toBoolean - string true",
+      "expression": "'true'.toBoolean()",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "conversion",
+        "toBoolean",
+        "function:toBoolean"
+      ]
+    },
+    {
+      "name": "toBoolean - string false",
+      "expression": "'false'.toBoolean()",
+      "input": [],
+      "expected": [
+        false
+      ],
+      "tags": [
+        "function",
+        "conversion",
+        "toBoolean",
+        "function:toBoolean"
+      ]
+    },
+    {
+      "name": "toBoolean - number 1",
+      "expression": "1.toBoolean()",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "conversion",
+        "toBoolean",
+        "function:toBoolean"
+      ]
+    },
+    {
+      "name": "toBoolean - number 0",
+      "expression": "0.toBoolean()",
+      "input": [],
+      "expected": [
+        false
+      ],
+      "tags": [
+        "function",
+        "conversion",
+        "toBoolean",
+        "function:toBoolean"
+      ]
+    },
+    {
+      "name": "toBoolean - invalid string",
+      "expression": "'maybe'.toBoolean()",
+      "input": [],
+      "expected": [],
+      "tags": [
+        "function",
+        "conversion",
+        "toBoolean",
+        "invalid",
+        "function:toBoolean"
+      ]
+    }
+  ]
+}

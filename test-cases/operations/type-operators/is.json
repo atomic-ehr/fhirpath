@@ -1,0 +1,122 @@
+{
+  "name": "Is Operator Tests",
+  "description": "Tests for the is (type checking) operator",
+  "tests": [
+    {
+      "name": "is - string type",
+      "expression": "'hello' is String",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "type",
+        "is",
+        "operator:is"
+      ]
+    },
+    {
+      "name": "is - integer type",
+      "expression": "42 is Integer",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "type",
+        "is",
+        "operator:is"
+      ]
+    },
+    {
+      "name": "is - decimal type",
+      "expression": "3.14 is Decimal",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "type",
+        "is",
+        "operator:is"
+      ]
+    },
+    {
+      "name": "is - boolean type",
+      "expression": "true is Boolean",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "type",
+        "is",
+        "operator:is"
+      ]
+    },
+    {
+      "name": "is - wrong type string",
+      "expression": "'hello' is Integer",
+      "input": [],
+      "expected": [
+        false
+      ],
+      "tags": [
+        "operator",
+        "type",
+        "is",
+        "operator:is"
+      ]
+    },
+    {
+      "name": "is - wrong type number",
+      "expression": "42 is String",
+      "input": [],
+      "expected": [
+        false
+      ],
+      "tags": [
+        "operator",
+        "type",
+        "is",
+        "operator:is"
+      ]
+    },
+    {
+      "name": "is - FHIR resource type true",
+      "expression": "$this is Patient",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "type",
+        "is",
+        "fhir",
+        "operator:is"
+      ],
+      "pending": "Need to provide proper FHIR Patient resource as input"
+    },
+    {
+      "name": "is - FHIR resource type false",
+      "expression": "$this is Observation",
+      "input": [],
+      "expected": [
+        false
+      ],
+      "tags": [
+        "operator",
+        "type",
+        "is",
+        "fhir",
+        "operator:is"
+      ],
+      "pending": "Need to provide proper FHIR Patient resource as input"
+    }
+  ]
+}

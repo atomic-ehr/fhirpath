@@ -1,0 +1,52 @@
+{
+  "name": "Skip Function Tests",
+  "description": "Tests for the skip() function",
+  "tests": [
+    {
+      "name": "skip - 2 items",
+      "expression": "values.skip(2)",
+      "input": [
+        {
+          "values": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        }
+      ],
+      "expected": [
+        3,
+        4,
+        5
+      ],
+      "tags": [
+        "function",
+        "subsetting",
+        "skip",
+        "function:skip"
+      ]
+    },
+    {
+      "name": "skip - more than length",
+      "expression": "values.skip(10)",
+      "input": [
+        {
+          "values": [
+            1,
+            2,
+            3
+          ]
+        }
+      ],
+      "expected": [],
+      "tags": [
+        "function",
+        "subsetting",
+        "skip",
+        "function:skip"
+      ]
+    }
+  ]
+}

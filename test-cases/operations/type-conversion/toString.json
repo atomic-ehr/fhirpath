@@ -1,0 +1,62 @@
+{
+  "name": "ToString Function Tests",
+  "description": "Tests for the toString() function",
+  "tests": [
+    {
+      "name": "toString - number",
+      "expression": "42.toString()",
+      "input": [],
+      "expected": [
+        "42"
+      ],
+      "tags": [
+        "function",
+        "conversion",
+        "toString",
+        "function:toString"
+      ]
+    },
+    {
+      "name": "toString - boolean true",
+      "expression": "true.toString()",
+      "input": [],
+      "expected": [
+        "true"
+      ],
+      "tags": [
+        "function",
+        "conversion",
+        "toString",
+        "function:toString"
+      ]
+    },
+    {
+      "name": "toString - boolean false",
+      "expression": "false.toString()",
+      "input": [],
+      "expected": [
+        "false"
+      ],
+      "tags": [
+        "function",
+        "conversion",
+        "toString",
+        "function:toString"
+      ]
+    },
+    {
+      "name": "toString - string",
+      "expression": "'hello'.toString()",
+      "input": [],
+      "expected": [
+        "hello"
+      ],
+      "tags": [
+        "function",
+        "conversion",
+        "toString",
+        "function:toString"
+      ]
+    }
+  ]
+}

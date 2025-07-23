@@ -1,0 +1,75 @@
+{
+  "name": "ToInteger Function Tests",
+  "description": "Tests for the toInteger() function",
+  "tests": [
+    {
+      "name": "toInteger - string",
+      "expression": "'42'.toInteger()",
+      "input": [],
+      "expected": [
+        42
+      ],
+      "tags": [
+        "function",
+        "conversion",
+        "toInteger",
+        "function:toInteger"
+      ]
+    },
+    {
+      "name": "toInteger - decimal",
+      "expression": "3.14.toInteger()",
+      "input": [],
+      "expected": [
+        3
+      ],
+      "tags": [
+        "function",
+        "conversion",
+        "toInteger",
+        "function:toInteger"
+      ]
+    },
+    {
+      "name": "toInteger - boolean true",
+      "expression": "true.toInteger()",
+      "input": [],
+      "expected": [
+        1
+      ],
+      "tags": [
+        "function",
+        "conversion",
+        "toInteger",
+        "function:toInteger"
+      ]
+    },
+    {
+      "name": "toInteger - boolean false",
+      "expression": "false.toInteger()",
+      "input": [],
+      "expected": [
+        0
+      ],
+      "tags": [
+        "function",
+        "conversion",
+        "toInteger",
+        "function:toInteger"
+      ]
+    },
+    {
+      "name": "toInteger - invalid string",
+      "expression": "'hello'.toInteger()",
+      "input": [],
+      "expected": [],
+      "tags": [
+        "function",
+        "conversion",
+        "toInteger",
+        "invalid",
+        "function:toInteger"
+      ]
+    }
+  ]
+}

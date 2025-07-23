@@ -1,0 +1,64 @@
+{
+  "name": "Contains Operator Tests",
+  "description": "Tests for the contains operator",
+  "tests": [
+    {
+      "name": "contains - collection contains item",
+      "expression": "{1, 2, 3} contains 1",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "membership",
+        "contains",
+        "operator:contains"
+      ]
+    },
+    {
+      "name": "contains - string contains substring",
+      "expression": "'abc' contains 'a'",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "membership",
+        "contains",
+        "string",
+        "operator:contains"
+      ]
+    },
+    {
+      "name": "contains - not found",
+      "expression": "{1, 2, 3} contains 4",
+      "input": [],
+      "expected": [
+        false
+      ],
+      "tags": [
+        "operator",
+        "membership",
+        "contains",
+        "operator:contains"
+      ]
+    },
+    {
+      "name": "contains - substring not found",
+      "expression": "'abc' contains 'x'",
+      "input": [],
+      "expected": [
+        false
+      ],
+      "tags": [
+        "operator",
+        "membership",
+        "contains",
+        "string",
+        "operator:contains"
+      ]
+    }
+  ]
+}

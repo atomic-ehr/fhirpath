@@ -1,0 +1,52 @@
+{
+  "name": "IsDistinct Function Tests",
+  "description": "Tests for the isDistinct() function",
+  "tests": [
+    {
+      "name": "isDistinct - no duplicates",
+      "expression": "values.isDistinct()",
+      "input": [
+        {
+          "values": [
+            1,
+            2,
+            3,
+            4
+          ]
+        }
+      ],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "aggregate",
+        "isDistinct",
+        "function:isDistinct"
+      ]
+    },
+    {
+      "name": "isDistinct - has duplicates",
+      "expression": "values.isDistinct()",
+      "input": [
+        {
+          "values": [
+            1,
+            2,
+            2,
+            3
+          ]
+        }
+      ],
+      "expected": [
+        false
+      ],
+      "tags": [
+        "function",
+        "aggregate",
+        "isDistinct",
+        "function:isDistinct"
+      ]
+    }
+  ]
+}

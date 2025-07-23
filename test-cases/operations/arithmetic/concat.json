@@ -1,0 +1,108 @@
+{
+  "name": "Concat Operator Tests",
+  "description": "Tests for the & (string concatenation) operator",
+  "tests": [
+    {
+      "name": "concatenation - simple",
+      "expression": "'Hello' & ' ' & 'World'",
+      "input": [],
+      "expected": [
+        "Hello World"
+      ],
+      "tags": [
+        "operator",
+        "string",
+        "concatenation",
+        "operator:&"
+      ]
+    },
+    {
+      "name": "concatenation - two strings",
+      "expression": "'FHIR' & 'Path'",
+      "input": [],
+      "expected": [
+        "FHIRPath"
+      ],
+      "tags": [
+        "operator",
+        "string",
+        "concatenation",
+        "operator:&"
+      ]
+    },
+    {
+      "name": "concatenation with navigation",
+      "expression": "name.given.first() & ' ' & name.family",
+      "input": [
+        {
+          "name": {
+            "given": [
+              "John"
+            ],
+            "family": "Doe"
+          }
+        }
+      ],
+      "expected": [
+        "John Doe"
+      ],
+      "tags": [
+        "operator",
+        "string",
+        "concatenation",
+        "navigation",
+        "operator:&"
+      ]
+    },
+    {
+      "name": "concatenation with empty returns empty",
+      "expression": "name & ' ' & missing",
+      "input": [
+        {
+          "name": "John"
+        }
+      ],
+      "expected": [],
+      "tags": [
+        "operator",
+        "string",
+        "concatenation",
+        "empty",
+        "operator:&"
+      ]
+    },
+    {
+      "name": "concatenation with empty left operand",
+      "expression": "{} & 'test'",
+      "input": [],
+      "expected": [],
+      "tags": [
+        "operator",
+        "string",
+        "concatenation",
+        "empty",
+        "operator:&"
+      ]
+    },
+    {
+      "name": "concatenation with multiple items",
+      "expression": "names & ' and '",
+      "input": [
+        {
+          "names": [
+            "Alice",
+            "Bob"
+          ]
+        }
+      ],
+      "expected": [],
+      "tags": [
+        "operator",
+        "string",
+        "concatenation",
+        "collection",
+        "operator:&"
+      ]
+    }
+  ]
+}

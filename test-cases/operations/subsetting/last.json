@@ -1,0 +1,41 @@
+{
+  "name": "Last Function Tests",
+  "description": "Tests for the last() function",
+  "tests": [
+    {
+      "name": "last - multiple items",
+      "expression": "values.last()",
+      "input": [
+        {
+          "values": [
+            1,
+            2,
+            3
+          ]
+        }
+      ],
+      "expected": [
+        3
+      ],
+      "tags": [
+        "function",
+        "subsetting",
+        "last",
+        "function:last"
+      ]
+    },
+    {
+      "name": "last - empty",
+      "expression": "{}.last()",
+      "input": [],
+      "expected": [],
+      "tags": [
+        "function",
+        "subsetting",
+        "last",
+        "empty",
+        "function:last"
+      ]
+    }
+  ]
+}

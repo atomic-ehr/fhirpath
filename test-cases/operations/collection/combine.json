@@ -1,0 +1,44 @@
+{
+  "name": "Combine Function Tests",
+  "description": "Tests for the combine() function",
+  "tests": [
+    {
+      "name": "combine - keeps duplicates",
+      "expression": "{1, 2, 3}.combine({3, 4, 5})",
+      "input": [],
+      "expected": [
+        1,
+        2,
+        3,
+        3,
+        4,
+        5
+      ],
+      "tags": [
+        "function",
+        "set",
+        "combine",
+        "function:combine"
+      ]
+    },
+    {
+      "name": "combine - multiple duplicates",
+      "expression": "{1, 2, 2}.combine({2, 3, 3})",
+      "input": [],
+      "expected": [
+        1,
+        2,
+        2,
+        2,
+        3,
+        3
+      ],
+      "tags": [
+        "function",
+        "set",
+        "combine",
+        "function:combine"
+      ]
+    }
+  ]
+}

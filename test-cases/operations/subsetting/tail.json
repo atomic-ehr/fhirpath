@@ -1,0 +1,49 @@
+{
+  "name": "Tail Function Tests",
+  "description": "Tests for the tail() function",
+  "tests": [
+    {
+      "name": "tail - multiple items",
+      "expression": "values.tail()",
+      "input": [
+        {
+          "values": [
+            1,
+            2,
+            3,
+            4
+          ]
+        }
+      ],
+      "expected": [
+        2,
+        3,
+        4
+      ],
+      "tags": [
+        "function",
+        "subsetting",
+        "tail",
+        "function:tail"
+      ]
+    },
+    {
+      "name": "tail - single item",
+      "expression": "values.tail()",
+      "input": [
+        {
+          "values": [
+            1
+          ]
+        }
+      ],
+      "expected": [],
+      "tags": [
+        "function",
+        "subsetting",
+        "tail",
+        "function:tail"
+      ]
+    }
+  ]
+}

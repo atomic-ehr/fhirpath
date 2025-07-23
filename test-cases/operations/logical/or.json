@@ -1,0 +1,317 @@
+{
+  "name": "Or Operator Tests",
+  "description": "Tests for the or (logical or) operator",
+  "tests": [
+    {
+      "name": "and - true and true",
+      "expression": "true and true",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "logical",
+        "and",
+        "operator:or"
+      ]
+    },
+    {
+      "name": "and - true and false",
+      "expression": "true and false",
+      "input": [],
+      "expected": [
+        false
+      ],
+      "tags": [
+        "operator",
+        "logical",
+        "and",
+        "operator:or"
+      ]
+    },
+    {
+      "name": "and - false and true",
+      "expression": "false and true",
+      "input": [],
+      "expected": [
+        false
+      ],
+      "tags": [
+        "operator",
+        "logical",
+        "and",
+        "operator:or"
+      ]
+    },
+    {
+      "name": "and - false and false",
+      "expression": "false and false",
+      "input": [],
+      "expected": [
+        false
+      ],
+      "tags": [
+        "operator",
+        "logical",
+        "and",
+        "operator:or"
+      ]
+    },
+    {
+      "name": "or - true or true",
+      "expression": "true or true",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "logical",
+        "or",
+        "operator:or"
+      ]
+    },
+    {
+      "name": "or - true or false",
+      "expression": "true or false",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "logical",
+        "or",
+        "operator:or"
+      ]
+    },
+    {
+      "name": "or - false or true",
+      "expression": "false or true",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "logical",
+        "or",
+        "operator:or"
+      ]
+    },
+    {
+      "name": "or - false or false",
+      "expression": "false or false",
+      "input": [],
+      "expected": [
+        false
+      ],
+      "tags": [
+        "operator",
+        "logical",
+        "or",
+        "operator:or"
+      ]
+    },
+    {
+      "name": "not - true",
+      "expression": "not true",
+      "input": [],
+      "expected": [
+        false
+      ],
+      "tags": [
+        "operator",
+        "logical",
+        "not",
+        "operator:or"
+      ]
+    },
+    {
+      "name": "not - false",
+      "expression": "not false",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "logical",
+        "not",
+        "operator:or"
+      ]
+    },
+    {
+      "name": "not - empty",
+      "expression": "not {}",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "logical",
+        "not",
+        "empty",
+        "operator:or"
+      ]
+    },
+    {
+      "name": "xor - true xor true",
+      "expression": "true xor true",
+      "input": [],
+      "expected": [
+        false
+      ],
+      "tags": [
+        "operator",
+        "logical",
+        "xor",
+        "operator:or"
+      ]
+    },
+    {
+      "name": "xor - true xor false",
+      "expression": "true xor false",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "logical",
+        "xor",
+        "operator:or"
+      ]
+    },
+    {
+      "name": "xor - false xor true",
+      "expression": "false xor true",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "logical",
+        "xor",
+        "operator:or"
+      ]
+    },
+    {
+      "name": "xor - false xor false",
+      "expression": "false xor false",
+      "input": [],
+      "expected": [
+        false
+      ],
+      "tags": [
+        "operator",
+        "logical",
+        "xor",
+        "operator:or"
+      ]
+    },
+    {
+      "name": "implies - true implies true",
+      "expression": "true implies true",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "logical",
+        "implies",
+        "operator:or"
+      ]
+    },
+    {
+      "name": "implies - true implies false",
+      "expression": "true implies false",
+      "input": [],
+      "expected": [
+        false
+      ],
+      "tags": [
+        "operator",
+        "logical",
+        "implies",
+        "operator:or"
+      ]
+    },
+    {
+      "name": "implies - false implies true",
+      "expression": "false implies true",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "logical",
+        "implies",
+        "operator:or"
+      ]
+    },
+    {
+      "name": "implies - false implies false",
+      "expression": "false implies false",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "logical",
+        "implies",
+        "operator:or"
+      ]
+    },
+    {
+      "name": "or operator with empty and empty returns empty",
+      "expression": "{} or {}",
+      "input": null,
+      "expected": [],
+      "tags": [
+        "operator:or",
+        "three-valued-logic"
+      ]
+    },
+    {
+      "name": "or operator with true and empty returns true",
+      "expression": "true or {}",
+      "input": null,
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator:or",
+        "three-valued-logic"
+      ]
+    },
+    {
+      "name": "or operator with false and empty returns empty",
+      "expression": "false or {}",
+      "input": null,
+      "expected": [],
+      "tags": [
+        "operator:or",
+        "three-valued-logic"
+      ]
+    },
+    {
+      "name": "or operator with empty and true returns true",
+      "expression": "{} or true",
+      "input": null,
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator:or",
+        "three-valued-logic"
+      ]
+    }
+  ]
+}

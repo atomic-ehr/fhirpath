@@ -1,0 +1,117 @@
+{
+  "name": "Union Operator Tests",
+  "description": "Tests for the | (union) operator",
+  "tests": [
+    {
+      "name": "union - removes duplicates",
+      "expression": "{1, 2, 3}.union({3, 4, 5})",
+      "input": [],
+      "expected": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "tags": [
+        "function",
+        "set",
+        "union",
+        "operator:|"
+      ]
+    },
+    {
+      "name": "union - no duplicates",
+      "expression": "{1, 2, 3}.union({4, 5, 6})",
+      "input": [],
+      "expected": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "tags": [
+        "function",
+        "set",
+        "union",
+        "operator:|"
+      ]
+    },
+    {
+      "name": "union - numbers",
+      "expression": "{1, 2} | {3, 4}",
+      "input": [],
+      "expected": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "tags": [
+        "operator",
+        "union",
+        "collection",
+        "operator:|"
+      ]
+    },
+    {
+      "name": "union - strings",
+      "expression": "{'a', 'b'} | {'c', 'd'}",
+      "input": [],
+      "expected": [
+        "a",
+        "b",
+        "c",
+        "d"
+      ],
+      "tags": [
+        "operator",
+        "union",
+        "collection",
+        "string",
+        "operator:|"
+      ]
+    },
+    {
+      "name": "union - multiple",
+      "expression": "{1} | {2} | {3}",
+      "input": [],
+      "expected": [
+        1,
+        2,
+        3
+      ],
+      "tags": [
+        "operator",
+        "union",
+        "collection",
+        "multiple",
+        "operator:|"
+      ]
+    },
+    {
+      "name": "union with navigation",
+      "expression": "a | b | c",
+      "input": [
+        {
+          "a": 1,
+          "b": 2,
+          "c": 3
+        }
+      ],
+      "expected": [
+        1,
+        2,
+        3
+      ],
+      "tags": [
+        "operator",
+        "union",
+        "navigation",
+        "operator:|"
+      ]
+    }
+  ]
+}

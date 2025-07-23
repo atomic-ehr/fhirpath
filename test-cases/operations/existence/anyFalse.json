@@ -1,0 +1,52 @@
+{
+  "name": "AnyFalse Function Tests",
+  "description": "Tests for the anyFalse() function",
+  "tests": [
+    {
+      "name": "anyFalse - contains false",
+      "expression": "values.anyFalse()",
+      "input": [
+        {
+          "values": [
+            true,
+            false,
+            true
+          ]
+        }
+      ],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "aggregate",
+        "boolean",
+        "anyFalse",
+        "function:anyFalse"
+      ]
+    },
+    {
+      "name": "anyFalse - all true",
+      "expression": "values.anyFalse()",
+      "input": [
+        {
+          "values": [
+            true,
+            true,
+            true
+          ]
+        }
+      ],
+      "expected": [
+        false
+      ],
+      "tags": [
+        "function",
+        "aggregate",
+        "boolean",
+        "anyFalse",
+        "function:anyFalse"
+      ]
+    }
+  ]
+}

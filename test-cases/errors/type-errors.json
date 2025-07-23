@@ -1,0 +1,40 @@
+{
+  "name": "Type Error Tests",
+  "description": "Tests for type checking errors during analysis",
+  "tests": [
+    {
+      "name": "string + number",
+      "expression": "'hello' + 5",
+      "input": null,
+      "expected": [],
+      "tags": [
+        "error",
+        "type-error",
+        "operator:+"
+      ],
+      "error": {
+        "type": "TypeError",
+        "message": "Cannot apply .* to.*String.*Integer",
+        "phase": "analyze"
+      },
+      "pending": "Type error handling needs implementation"
+    },
+    {
+      "name": "invalid function argument type",
+      "expression": "substring('hello', 'not a number')",
+      "input": null,
+      "expected": [],
+      "tags": [
+        "error",
+        "type-error",
+        "function:substring"
+      ],
+      "error": {
+        "type": "TypeError",
+        "message": "Expected.*Integer.*got.*String",
+        "phase": "analyze"
+      },
+      "pending": "Type error handling needs implementation"
+    }
+  ]
+}

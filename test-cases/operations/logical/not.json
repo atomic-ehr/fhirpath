@@ -1,0 +1,49 @@
+{
+  "name": "Not Function Tests",
+  "description": "Tests for the not() function",
+  "tests": [
+    {
+      "name": "not - true",
+      "expression": "not true",
+      "input": [],
+      "expected": [
+        false
+      ],
+      "tags": [
+        "operator",
+        "logical",
+        "not",
+        "function:not"
+      ]
+    },
+    {
+      "name": "not - false",
+      "expression": "not false",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "logical",
+        "not",
+        "function:not"
+      ]
+    },
+    {
+      "name": "not - empty",
+      "expression": "not {}",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "logical",
+        "not",
+        "empty",
+        "function:not"
+      ]
+    }
+  ]
+}

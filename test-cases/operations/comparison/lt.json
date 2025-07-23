@@ -1,0 +1,64 @@
+{
+  "name": "LT Operator Tests",
+  "description": "Tests for the < (less than) operator",
+  "tests": [
+    {
+      "name": "less than - numbers",
+      "expression": "3 < 5",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "comparison",
+        "less-than",
+        "operator:<"
+      ]
+    },
+    {
+      "name": "less than - strings",
+      "expression": "'a' < 'b'",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "comparison",
+        "less-than",
+        "string",
+        "operator:<"
+      ]
+    },
+    {
+      "name": "less than or equal",
+      "expression": "3 <= 5",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "comparison",
+        "less-equal",
+        "operator:<"
+      ]
+    },
+    {
+      "name": "string comparison - lexicographic",
+      "expression": "'apple' < 'banana'",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "comparison",
+        "less-than",
+        "string",
+        "operator:<"
+      ]
+    }
+  ]
+}

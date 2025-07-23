@@ -1,0 +1,63 @@
+{
+  "name": "NEQ Operator Tests",
+  "description": "Tests for the != (inequality) operator",
+  "tests": [
+    {
+      "name": "inequality - numbers",
+      "expression": "5 != 3",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "comparison",
+        "inequality",
+        "operator:!="
+      ]
+    },
+    {
+      "name": "inequality - strings",
+      "expression": "'hello' != 'world'",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "comparison",
+        "inequality",
+        "string",
+        "operator:!="
+      ]
+    },
+    {
+      "name": "inequality with empty collection returns empty",
+      "expression": "{} != {1, 2}",
+      "input": [],
+      "expected": [],
+      "tags": [
+        "operator",
+        "comparison",
+        "inequality",
+        "empty",
+        "operator:!="
+      ]
+    },
+    {
+      "name": "collection inequality",
+      "expression": "{1, 2} != {1, 2, 3}",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "comparison",
+        "inequality",
+        "collection",
+        "operator:!="
+      ]
+    }
+  ]
+}

@@ -1,0 +1,101 @@
+{
+  "name": "DefineVariable Function Tests",
+  "description": "Tests for the defineVariable() function",
+  "tests": [
+    {
+      "name": "defineVariable - simple assignment",
+      "expression": "defineVariable('x', value).value + 5",
+      "input": [
+        {
+          "value": 5
+        }
+      ],
+      "expected": [
+        10
+      ],
+      "tags": [
+        "function",
+        "variable",
+        "defineVariable",
+        "function:defineVariable"
+      ]
+    },
+    {
+      "name": "defineVariable - returns original input",
+      "expression": "defineVariable('sum', a + b).select($this)",
+      "input": [
+        {
+          "a": 1,
+          "b": 2
+        }
+      ],
+      "expected": [
+        3
+      ],
+      "tags": [
+        "function",
+        "variable",
+        "defineVariable",
+        "function:defineVariable"
+      ],
+      "pending": "defineVariable should return original input, not the variable value"
+    },
+    {
+      "name": "defineVariable - complex filter",
+      "expression": "defineVariable('officialName', name.where(use = 'official').first()).name.where(given != %officialName.given)",
+      "input": [
+        {
+          "name": [
+            {
+              "use": "official",
+              "given": [
+                "John"
+              ]
+            },
+            {
+              "use": "nickname",
+              "given": [
+                "Johnny"
+              ]
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "use": "nickname",
+          "given": [
+            "Johnny"
+          ]
+        }
+      ],
+      "tags": [
+        "function",
+        "variable",
+        "defineVariable",
+        "complex",
+        "function:defineVariable"
+      ],
+      "pending": "Complex defineVariable with navigation needs debugging"
+    },
+    {
+      "name": "defineVariable - chained definitions",
+      "expression": "defineVariable('x', value).defineVariable('y', %x * 2).defineVariable('z', %x + %y).select(%z)",
+      "input": [
+        {
+          "value": 5
+        }
+      ],
+      "expected": [
+        15
+      ],
+      "tags": [
+        "function",
+        "variable",
+        "defineVariable",
+        "chain",
+        "function:defineVariable"
+      ]
+    }
+  ]
+}

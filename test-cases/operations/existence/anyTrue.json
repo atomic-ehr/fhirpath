@@ -1,0 +1,52 @@
+{
+  "name": "AnyTrue Function Tests",
+  "description": "Tests for the anyTrue() function",
+  "tests": [
+    {
+      "name": "anyTrue - contains true",
+      "expression": "values.anyTrue()",
+      "input": [
+        {
+          "values": [
+            false,
+            true,
+            false
+          ]
+        }
+      ],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "aggregate",
+        "boolean",
+        "anyTrue",
+        "function:anyTrue"
+      ]
+    },
+    {
+      "name": "anyTrue - all false",
+      "expression": "values.anyTrue()",
+      "input": [
+        {
+          "values": [
+            false,
+            false,
+            false
+          ]
+        }
+      ],
+      "expected": [
+        false
+      ],
+      "tags": [
+        "function",
+        "aggregate",
+        "boolean",
+        "anyTrue",
+        "function:anyTrue"
+      ]
+    }
+  ]
+}

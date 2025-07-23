@@ -1,0 +1,53 @@
+{
+  "name": "Plus Operator Tests",
+  "description": "Tests for the + (addition) operator",
+  "tests": [
+    {
+      "name": "addition - integers",
+      "expression": "2 + 3",
+      "input": [],
+      "expected": [
+        5
+      ],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "addition",
+        "operator:+"
+      ]
+    },
+    {
+      "name": "addition - decimals",
+      "expression": "2.5 + 3.5",
+      "input": [],
+      "expected": [
+        6
+      ],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "addition",
+        "decimal",
+        "operator:+"
+      ]
+    },
+    {
+      "name": "arithmetic with navigation",
+      "expression": "value + 3",
+      "input": [
+        {
+          "value": 5
+        }
+      ],
+      "expected": [
+        8
+      ],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "navigation",
+        "operator:+"
+      ]
+    }
+  ]
+}

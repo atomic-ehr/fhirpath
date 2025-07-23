@@ -1,0 +1,20 @@
+{
+  "name": "LTE Operator Tests",
+  "description": "Tests for the <= (less than or equal) operator",
+  "tests": [
+    {
+      "name": "less than or equal",
+      "expression": "3 <= 5",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "comparison",
+        "less-equal",
+        "operator:<="
+      ]
+    }
+  ]
+}

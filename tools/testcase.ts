@@ -290,8 +290,8 @@ if (args[0] === "--failing" || args[0] === "--failing-commands") {
       const suite = loadTestSuite(file);
       
       suite.tests.forEach((test: any) => {
-        // Skip tests that are marked as skip
-        if (test.skip?.interpreter && test.skip?.compiler) {
+        // Skip tests that are marked as skip or pending
+        if ((test.skip?.interpreter && test.skip?.compiler) || test.pending) {
           return;
         }
         
@@ -307,10 +307,14 @@ if (args[0] === "--failing" || args[0] === "--failing-commands") {
         console.log = originalLog;
         console.error = originalError;
         
-        const interpreterFailed = result.interpreter && (!result.interpreter.success || 
-          JSON.stringify(result.interpreter.value) !== JSON.stringify(test.expected));
-        const compilerFailed = result.compiler && (!result.compiler.success || 
-          JSON.stringify(result.compiler.value) !== JSON.stringify(test.expected));
+        const interpreterFailed = result.interpreter && 
+          !result.interpreter.pending &&
+          (!result.interpreter.success && !result.interpreter.expectedError) || 
+          (result.interpreter.value !== undefined && JSON.stringify(result.interpreter.value) !== JSON.stringify(test.expected));
+        const compilerFailed = result.compiler && 
+          !result.compiler.pending &&
+          (!result.compiler.success && !result.compiler.expectedError) || 
+          (result.compiler.value !== undefined && JSON.stringify(result.compiler.value) !== JSON.stringify(test.expected));
         
         if (interpreterFailed || compilerFailed) {
           const relativePath = file.replace(testCasesDir + "/", "");

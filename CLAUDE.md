@@ -29,7 +29,10 @@ Please be concise and to the point.
 * When you create or update typescript file, run `bun tsc --noEmit` to check for errors and fix them.
 * Create tests for new functionality. Put test file as ./test/<filename>.test.ts by convention.
 * Use `import {describe, it, expect} from 'bun:test'` and `bun run test` to run tests.
-* Main test cases are located in ./test-cases folder as JSON files organized by feature (operators, functions, etc.)
+* Main test cases are located in ./test-cases folder as JSON files organized according to ADR-008:
+  - ./test-cases/operations/ contains subdirectories for each operation category (arithmetic/, logical/, etc.)
+  - Each operation has its own test file (e.g., plus.json, where.json)
+  - Use `bun tools/testcase.ts <path-to-test-file>` to run tests
 
 
 ## Tasks

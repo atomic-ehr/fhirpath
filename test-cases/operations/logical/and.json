@@ -1,0 +1,106 @@
+{
+  "name": "And Operator Tests",
+  "description": "Tests for the and (logical and) operator",
+  "tests": [
+    {
+      "name": "and - true and true",
+      "expression": "true and true",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "logical",
+        "and",
+        "operator:and"
+      ]
+    },
+    {
+      "name": "and - true and false",
+      "expression": "true and false",
+      "input": [],
+      "expected": [
+        false
+      ],
+      "tags": [
+        "operator",
+        "logical",
+        "and",
+        "operator:and"
+      ]
+    },
+    {
+      "name": "and - false and true",
+      "expression": "false and true",
+      "input": [],
+      "expected": [
+        false
+      ],
+      "tags": [
+        "operator",
+        "logical",
+        "and",
+        "operator:and"
+      ]
+    },
+    {
+      "name": "and - false and false",
+      "expression": "false and false",
+      "input": [],
+      "expected": [
+        false
+      ],
+      "tags": [
+        "operator",
+        "logical",
+        "and",
+        "operator:and"
+      ]
+    },
+    {
+      "name": "and operator with true and empty returns empty",
+      "expression": "true and {}",
+      "input": null,
+      "expected": [],
+      "tags": [
+        "operator:and",
+        "three-valued-logic"
+      ]
+    },
+    {
+      "name": "and operator with false and empty returns false",
+      "expression": "false and {}",
+      "input": null,
+      "expected": [
+        false
+      ],
+      "tags": [
+        "operator:and",
+        "three-valued-logic"
+      ]
+    },
+    {
+      "name": "and operator with empty and true returns empty",
+      "expression": "{} and true",
+      "input": null,
+      "expected": [],
+      "tags": [
+        "operator:and",
+        "three-valued-logic"
+      ]
+    },
+    {
+      "name": "and operator with empty and false returns false",
+      "expression": "{} and false",
+      "input": null,
+      "expected": [
+        false
+      ],
+      "tags": [
+        "operator:and",
+        "three-valued-logic"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,88 @@
+{
+  "name": "Exists Function Tests",
+  "description": "Tests for the exists() function",
+  "tests": [
+    {
+      "name": "exists - non-empty",
+      "expression": "name.exists()",
+      "input": [
+        {
+          "name": "John"
+        }
+      ],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "existence",
+        "exists",
+        "function:exists"
+      ]
+    },
+    {
+      "name": "exists - empty",
+      "expression": "missing.exists()",
+      "input": [],
+      "expected": [
+        false
+      ],
+      "tags": [
+        "function",
+        "existence",
+        "exists",
+        "function:exists"
+      ]
+    },
+    {
+      "name": "exists - with criteria true",
+      "expression": "values.exists($this > 3)",
+      "input": [
+        {
+          "values": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        }
+      ],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "existence",
+        "exists",
+        "criteria",
+        "function:exists"
+      ]
+    },
+    {
+      "name": "exists - with criteria false",
+      "expression": "values.exists($this > 10)",
+      "input": [
+        {
+          "values": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        }
+      ],
+      "expected": [
+        false
+      ],
+      "tags": [
+        "function",
+        "existence",
+        "exists",
+        "criteria",
+        "function:exists"
+      ]
+    }
+  ]
+}

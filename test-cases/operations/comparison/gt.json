@@ -1,0 +1,49 @@
+{
+  "name": "GT Operator Tests",
+  "description": "Tests for the > (greater than) operator",
+  "tests": [
+    {
+      "name": "greater than - numbers",
+      "expression": "5 > 3",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "comparison",
+        "greater-than",
+        "operator:>"
+      ]
+    },
+    {
+      "name": "greater than - strings",
+      "expression": "'b' > 'a'",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "comparison",
+        "greater-than",
+        "string",
+        "operator:>"
+      ]
+    },
+    {
+      "name": "greater than or equal",
+      "expression": "5 >= 3",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "comparison",
+        "greater-equal",
+        "operator:>"
+      ]
+    }
+  ]
+}

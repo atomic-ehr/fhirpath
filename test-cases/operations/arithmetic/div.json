@@ -1,0 +1,63 @@
+{
+  "name": "Div Operator Tests",
+  "description": "Tests for the div (integer division) operator",
+  "tests": [
+    {
+      "name": "division",
+      "expression": "10 / 2",
+      "input": [],
+      "expected": [
+        5
+      ],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "division",
+        "operator:div"
+      ]
+    },
+    {
+      "name": "division - decimals",
+      "expression": "7.5 / 2.5",
+      "input": [],
+      "expected": [
+        3
+      ],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "division",
+        "decimal",
+        "operator:div"
+      ]
+    },
+    {
+      "name": "integer division",
+      "expression": "7 div 3",
+      "input": [],
+      "expected": [
+        2
+      ],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "div",
+        "operator:div"
+      ]
+    },
+    {
+      "name": "integer division - larger",
+      "expression": "10 div 3",
+      "input": [],
+      "expected": [
+        3
+      ],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "div",
+        "operator:div"
+      ]
+    }
+  ]
+}

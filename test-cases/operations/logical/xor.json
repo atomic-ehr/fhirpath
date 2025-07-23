@@ -1,0 +1,62 @@
+{
+  "name": "Xor Operator Tests",
+  "description": "Tests for the xor (exclusive or) operator",
+  "tests": [
+    {
+      "name": "xor - true xor true",
+      "expression": "true xor true",
+      "input": [],
+      "expected": [
+        false
+      ],
+      "tags": [
+        "operator",
+        "logical",
+        "xor",
+        "operator:xor"
+      ]
+    },
+    {
+      "name": "xor - true xor false",
+      "expression": "true xor false",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "logical",
+        "xor",
+        "operator:xor"
+      ]
+    },
+    {
+      "name": "xor - false xor true",
+      "expression": "false xor true",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "logical",
+        "xor",
+        "operator:xor"
+      ]
+    },
+    {
+      "name": "xor - false xor false",
+      "expression": "false xor false",
+      "input": [],
+      "expected": [
+        false
+      ],
+      "tags": [
+        "operator",
+        "logical",
+        "xor",
+        "operator:xor"
+      ]
+    }
+  ]
+}

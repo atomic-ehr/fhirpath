@@ -1,0 +1,35 @@
+{
+  "name": "Multiply Operator Tests",
+  "description": "Tests for the * (multiplication) operator",
+  "tests": [
+    {
+      "name": "multiplication",
+      "expression": "4 * 3",
+      "input": [],
+      "expected": [
+        12
+      ],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "multiplication",
+        "operator:*"
+      ]
+    },
+    {
+      "name": "multiplication - decimals",
+      "expression": "2.5 * 2",
+      "input": [],
+      "expected": [
+        5
+      ],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "multiplication",
+        "decimal",
+        "operator:*"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "name": "Implies Operator Tests",
+  "description": "Tests for the implies (implication) operator",
+  "tests": [
+    {
+      "name": "implies - true implies true",
+      "expression": "true implies true",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "logical",
+        "implies",
+        "operator:implies"
+      ]
+    },
+    {
+      "name": "implies - true implies false",
+      "expression": "true implies false",
+      "input": [],
+      "expected": [
+        false
+      ],
+      "tags": [
+        "operator",
+        "logical",
+        "implies",
+        "operator:implies"
+      ]
+    },
+    {
+      "name": "implies - false implies true",
+      "expression": "false implies true",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "logical",
+        "implies",
+        "operator:implies"
+      ]
+    },
+    {
+      "name": "implies - false implies false",
+      "expression": "false implies false",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "logical",
+        "implies",
+        "operator:implies"
+      ]
+    }
+  ]
+}

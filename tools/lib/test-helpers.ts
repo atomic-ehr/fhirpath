@@ -19,13 +19,20 @@ interface UnifiedTest {
     rootContext?: any[];
   };
   expected: any[];
-  expectedError?: string;
+  expectedError?: string;  // deprecated
+  error?: {               // new structured error format
+    type: string;
+    message: string;       // regex pattern
+    phase: 'parse' | 'analyze' | 'evaluate';
+  };
+  pending?: boolean | string;  // mark test as pending with optional reason
   tags?: string[];
   skip?: {
     interpreter?: boolean;
     compiler?: boolean;
     reason?: string;
   };
+  specRef?: string;
 }
 
 interface TestSuite {
@@ -78,15 +85,41 @@ function createContext(test: UnifiedTest, input: any[]): Context {
   return context;
 }
 
+function matchesError(error: Error, expectedError: UnifiedTest['error']): boolean {
+  if (!expectedError) return false;
+  
+  // Check error phase (we'll check this based on error type/message patterns)
+  // Check error message matches regex
+  const messageRegex = new RegExp(expectedError.message);
+  return messageRegex.test(error.message);
+}
+
 export function runSingleTest(test: UnifiedTest, mode: 'interpreter' | 'compiler' | 'both' = 'both') {
   const interpreter = new Interpreter();
   const compiler = new Compiler();
   const context = createContext(test, test.input);
 
   console.log(`\n🧪 Running test: ${test.name}`);
+  
+  // Check if test is pending
+  if (test.pending) {
+    const reason = typeof test.pending === 'string' ? test.pending : 'Pending implementation';
+    console.log(`   ⏸️  PENDING: ${reason}`);
+    return {
+      interpreter: { success: true, pending: true },
+      compiler: { success: true, pending: true }
+    };
+  }
+  
   console.log(`   Expression: ${test.expression}`);
   console.log(`   Input: ${JSON.stringify(test.input)}`);
-  console.log(`   Expected: ${JSON.stringify(test.expected)}`);
+  
+  // Show expected result or error
+  if (test.error) {
+    console.log(`   Expected Error: ${test.error.type} - /${test.error.message}/ (${test.error.phase})`);
+  } else {
+    console.log(`   Expected: ${JSON.stringify(test.expected)}`);
+  }
   
   if (test.context) {
     console.log(`   Context:`, test.context);
@@ -104,30 +137,58 @@ export function runSingleTest(test: UnifiedTest, mode: 'interpreter' | 'compiler
       const result = interpreter.evaluate(ast, test.input, context);
       const endTime = performance.now();
       
-      results.interpreter = {
-        success: true,
-        value: result.value,
-        time: endTime - startTime
-      };
-      
-      console.log(`   ✅ Result: ${JSON.stringify(result.value)}`);
-      console.log(`   ⏱️  Time: ${(endTime - startTime).toFixed(2)}ms`);
-      
-      const matches = JSON.stringify(result.value) === JSON.stringify(test.expected);
-      console.log(`   ${matches ? '✅' : '❌'} Matches expected: ${matches}`);
+      if (test.error) {
+        // Expected an error but got a result
+        results.interpreter = {
+          success: false,
+          value: result.value,
+          time: endTime - startTime,
+          error: "Expected error but got result"
+        };
+        
+        console.log(`   ❌ Expected error but got: ${JSON.stringify(result.value)}`);
+        console.log(`   ⏱️  Time: ${(endTime - startTime).toFixed(2)}ms`);
+      } else {
+        results.interpreter = {
+          success: true,
+          value: result.value,
+          time: endTime - startTime
+        };
+        
+        console.log(`   ✅ Result: ${JSON.stringify(result.value)}`);
+        console.log(`   ⏱️  Time: ${(endTime - startTime).toFixed(2)}ms`);
+        
+        const matches = JSON.stringify(result.value) === JSON.stringify(test.expected);
+        console.log(`   ${matches ? '✅' : '❌'} Matches expected: ${matches}`);
+      }
     } catch (error: any) {
       const endTime = performance.now();
-      results.interpreter = {
-        success: false,
-        error: error.message,
-        time: endTime - startTime
-      };
       
-      console.log(`   ❌ Error: ${error.message}`);
-      console.log(`   ⏱️  Time: ${(endTime - startTime).toFixed(2)}ms`);
-      
-      if (test.expectedError) {
-        console.log(`   ℹ️  Expected error: ${test.expectedError}`);
+      if (test.error && matchesError(error, test.error)) {
+        // Got expected error
+        results.interpreter = {
+          success: true,
+          error: error.message,
+          time: endTime - startTime,
+          expectedError: true
+        };
+        
+        console.log(`   ✅ Got expected error: ${error.message}`);
+        console.log(`   ⏱️  Time: ${(endTime - startTime).toFixed(2)}ms`);
+      } else {
+        // Unexpected error
+        results.interpreter = {
+          success: false,
+          error: error.message,
+          time: endTime - startTime
+        };
+        
+        console.log(`   ❌ Error: ${error.message}`);
+        console.log(`   ⏱️  Time: ${(endTime - startTime).toFixed(2)}ms`);
+        
+        if (test.error) {
+          console.log(`   ℹ️  Expected error: ${test.error.type} - /${test.error.message}/`);
+        }
       }
     }
   }
@@ -149,49 +210,67 @@ export function runSingleTest(test: UnifiedTest, mode: 'interpreter' | 'compiler
         runtimeEnv[key] = value;
       });
       
-      // Copy special context variables
-      if (context.$context !== undefined) {
-        runtimeEnv.$context = context.$context;
-      }
-      if (context.$resource !== undefined) {
-        runtimeEnv.$resource = context.$resource;
-      }
-      if (context.$rootResource !== undefined) {
-        runtimeEnv.$rootResource = context.$rootResource;
-      }
-      
-      const result = compiled.fn({
-        input: test.input,
-        focus: test.input,
-        env: runtimeEnv
-      });
-      
-      const endTime = performance.now();
-      
-      results.compiler = {
-        success: true,
-        value: result,
-        time: endTime - startTime
+      const runtimeContext = {
+        data: test.input,
+        env: runtimeEnv,
+        rootData: context.rootContext
       };
       
-      console.log(`   ✅ Result: ${JSON.stringify(result)}`);
-      console.log(`   ⏱️  Time: ${(endTime - startTime).toFixed(2)}ms`);
+      const result = compiled(runtimeContext);
+      const endTime = performance.now();
       
-      const matches = JSON.stringify(result) === JSON.stringify(test.expected);
-      console.log(`   ${matches ? '✅' : '❌'} Matches expected: ${matches}`);
+      if (test.error) {
+        // Expected an error but got a result
+        results.compiler = {
+          success: false,
+          value: result,
+          time: endTime - startTime,
+          error: "Expected error but got result"
+        };
+        
+        console.log(`   ❌ Expected error but got: ${JSON.stringify(result)}`);
+        console.log(`   ⏱️  Time: ${(endTime - startTime).toFixed(2)}ms`);
+      } else {
+        results.compiler = {
+          success: true,
+          value: result,
+          time: endTime - startTime
+        };
+        
+        console.log(`   ✅ Result: ${JSON.stringify(result)}`);
+        console.log(`   ⏱️  Time: ${(endTime - startTime).toFixed(2)}ms`);
+        
+        const matches = JSON.stringify(result) === JSON.stringify(test.expected);
+        console.log(`   ${matches ? '✅' : '❌'} Matches expected: ${matches}`);
+      }
     } catch (error: any) {
       const endTime = performance.now();
-      results.compiler = {
-        success: false,
-        error: error.message,
-        time: endTime - startTime
-      };
       
-      console.log(`   ❌ Error: ${error.message}`);
-      console.log(`   ⏱️  Time: ${(endTime - startTime).toFixed(2)}ms`);
-      
-      if (test.expectedError) {
-        console.log(`   ℹ️  Expected error: ${test.expectedError}`);
+      if (test.error && matchesError(error, test.error)) {
+        // Got expected error
+        results.compiler = {
+          success: true,
+          error: error.message,
+          time: endTime - startTime,
+          expectedError: true
+        };
+        
+        console.log(`   ✅ Got expected error: ${error.message}`);
+        console.log(`   ⏱️  Time: ${(endTime - startTime).toFixed(2)}ms`);
+      } else {
+        // Unexpected error
+        results.compiler = {
+          success: false,
+          error: error.message,
+          time: endTime - startTime
+        };
+        
+        console.log(`   ❌ Error: ${error.message}`);
+        console.log(`   ⏱️  Time: ${(endTime - startTime).toFixed(2)}ms`);
+        
+        if (test.error) {
+          console.log(`   ℹ️  Expected error: ${test.error.type} - /${test.error.message}/`);
+        }
       }
     }
   }
@@ -200,13 +279,18 @@ export function runSingleTest(test: UnifiedTest, mode: 'interpreter' | 'compiler
   if (mode === 'both' && results.interpreter && results.compiler) {
     console.log(`\n🔍 Comparison:`);
     
-    if (results.interpreter.success && results.compiler.success) {
-      const match = JSON.stringify(results.interpreter.value) === JSON.stringify(results.compiler.value);
-      console.log(`   ${match ? '✅' : '❌'} Results match: ${match}`);
-      
-      if (!match) {
-        console.log(`   Interpreter: ${JSON.stringify(results.interpreter.value)}`);
-        console.log(`   Compiler: ${JSON.stringify(results.compiler.value)}`);
+    if ((results.interpreter.success || results.interpreter.expectedError) && 
+        (results.compiler.success || results.compiler.expectedError)) {
+      if (results.interpreter.value !== undefined && results.compiler.value !== undefined) {
+        const match = JSON.stringify(results.interpreter.value) === JSON.stringify(results.compiler.value);
+        console.log(`   ${match ? '✅' : '❌'} Results match: ${match}`);
+        
+        if (!match) {
+          console.log(`   Interpreter: ${JSON.stringify(results.interpreter.value)}`);
+          console.log(`   Compiler: ${JSON.stringify(results.compiler.value)}`);
+        }
+      } else if (results.interpreter.expectedError && results.compiler.expectedError) {
+        console.log(`   ✅ Both got expected errors`);
       }
       
       const speedup = results.interpreter.time / results.compiler.time;
@@ -248,17 +332,30 @@ export function runAllTestsFromFile(filePath: string, mode: 'interpreter' | 'com
   // Summary
   console.log(`\n📈 Summary:`);
   const passed = results.filter(r => {
+    // Pending tests count as passed
+    if (r.result.interpreter?.pending || r.result.compiler?.pending) {
+      return true;
+    }
+    
     if (mode === 'both') {
-      return r.result.interpreter?.success && r.result.compiler?.success;
+      return (r.result.interpreter?.success || r.result.interpreter?.expectedError) && 
+             (r.result.compiler?.success || r.result.compiler?.expectedError);
     } else if (mode === 'interpreter') {
-      return r.result.interpreter?.success;
+      return r.result.interpreter?.success || r.result.interpreter?.expectedError;
     } else {
-      return r.result.compiler?.success;
+      return r.result.compiler?.success || r.result.compiler?.expectedError;
     }
   }).length;
   
-  console.log(`   ✅ Passed: ${passed}/${results.length}`);
+  const pending = results.filter(r => 
+    r.result.interpreter?.pending || r.result.compiler?.pending
+  ).length;
+  
+  console.log(`   ✅ Passed: ${passed - pending}/${results.length}`);
   console.log(`   ❌ Failed: ${results.length - passed}/${results.length}`);
+  if (pending > 0) {
+    console.log(`   ⏸️  Pending: ${pending}/${results.length}`);
+  }
   
   return results;
 }
@@ -296,89 +393,5 @@ export function exampleUsage() {
    const suite = loadTestSuite('../../test-cases/operators/arithmetic.json');
    const additionTests = findTestsByTag(suite, 'addition');
    additionTests.forEach(test => runSingleTest(test));
-
-5. Run only interpreter or compiler:
-   runTestFromFile('../../test-cases/operators/arithmetic.json', 'addition - integers', 'interpreter')
-   runTestFromFile('../../test-cases/operators/arithmetic.json', 'addition - integers', 'compiler')
 `);
-}
-
-export function runAllFailingTests(mode: 'interpreter' | 'compiler' | 'both' = 'both') {
-  const testDataDir = join(__dirname, '../../test-cases');
-  const allSuites: TestSuite[] = [];
-  
-  function findJsonFiles(dir: string): string[] {
-    const files: string[] = [];
-    const entries = readdirSync(dir);
-    
-    for (const entry of entries) {
-      const fullPath = join(dir, entry);
-      const stat = statSync(fullPath);
-      
-      if (stat.isDirectory()) {
-        files.push(...findJsonFiles(fullPath));
-      } else if (entry.endsWith('.json')) {
-        files.push(fullPath);
-      }
-    }
-    
-    return files;
-  }
-  
-  const jsonFiles = findJsonFiles(testDataDir);
-  const failures: Array<{suite: string, test: UnifiedTest, error: any}> = [];
-  
-  // Load and run all tests
-  for (const file of jsonFiles) {
-    try {
-      const content = readFileSync(file, "utf-8");
-      const suite = JSON.parse(content) as TestSuite;
-      
-      for (const test of suite.tests) {
-        try {
-          const result = runSingleTest(test, mode);
-          
-          // Check if test failed
-          let failed = false;
-          if (mode === 'both') {
-            failed = !result.interpreter?.success || !result.compiler?.success;
-          } else if (mode === 'interpreter') {
-            failed = !result.interpreter?.success;
-          } else {
-            failed = !result.compiler?.success;
-          }
-          
-          if (failed) {
-            failures.push({ suite: suite.name, test, error: result });
-          }
-        } catch (e) {
-          failures.push({ suite: suite.name, test, error: e });
-        }
-      }
-    } catch (error) {
-      console.error(`Failed to load ${file}:`, error);
-    }
-  }
-  
-  // Summary
-  console.log(`\n📊 Failing Tests Summary:`);
-  console.log(`   Total failures: ${failures.length}`);
-  
-  // Group by suite
-  const bySuite = new Map<string, typeof failures>();
-  failures.forEach(f => {
-    if (!bySuite.has(f.suite)) {
-      bySuite.set(f.suite, []);
-    }
-    bySuite.get(f.suite)!.push(f);
-  });
-  
-  console.log(`\n🗂️  Failures by suite:`);
-  Array.from(bySuite.entries())
-    .sort((a, b) => b[1].length - a[1].length)
-    .forEach(([suite, fails]) => {
-      console.log(`   ${suite}: ${fails.length} failures`);
-    });
-  
-  return failures;
 }

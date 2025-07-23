@@ -1,0 +1,52 @@
+{
+  "name": "Empty Function Tests",
+  "description": "Tests for the empty() function",
+  "tests": [
+    {
+      "name": "empty - empty collection",
+      "expression": "{}.empty()",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "existence",
+        "empty",
+        "function:empty"
+      ]
+    },
+    {
+      "name": "empty - missing property",
+      "expression": "missing.empty()",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "existence",
+        "empty",
+        "function:empty"
+      ]
+    },
+    {
+      "name": "empty - non-empty",
+      "expression": "name.empty()",
+      "input": [
+        {
+          "name": "John"
+        }
+      ],
+      "expected": [
+        false
+      ],
+      "tags": [
+        "function",
+        "existence",
+        "empty",
+        "function:empty"
+      ]
+    }
+  ]
+}

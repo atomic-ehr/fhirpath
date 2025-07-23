@@ -1,0 +1,60 @@
+{
+  "name": "OfType Function Tests",
+  "description": "Tests for the ofType() function",
+  "tests": [
+    {
+      "name": "ofType - filter by FHIR type",
+      "expression": "ofType(Patient)",
+      "input": [
+        {
+          "resourceType": "Patient",
+          "id": "1"
+        },
+        {
+          "resourceType": "Observation",
+          "id": "2"
+        },
+        {
+          "resourceType": "Patient",
+          "id": "3"
+        }
+      ],
+      "expected": [
+        {
+          "resourceType": "Patient",
+          "id": "1"
+        },
+        {
+          "resourceType": "Patient",
+          "id": "3"
+        }
+      ],
+      "tags": [
+        "function",
+        "type",
+        "ofType",
+        "filter",
+        "function:ofType"
+      ]
+    },
+    {
+      "name": "ofType - no matches",
+      "expression": "ofType(Patient)",
+      "input": [
+        {
+          "resourceType": "Observation",
+          "id": "1"
+        }
+      ],
+      "expected": [],
+      "tags": [
+        "function",
+        "type",
+        "ofType",
+        "filter",
+        "empty",
+        "function:ofType"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "name": "Parse Error Tests",
+  "description": "Tests for syntax errors during parsing",
+  "tests": [
+    {
+      "name": "unclosed string literal",
+      "expression": "'hello",
+      "input": null,
+      "expected": [],
+      "tags": [
+        "error",
+        "parse-error"
+      ],
+      "error": {
+        "type": "ParseError",
+        "message": "Unterminated string",
+        "phase": "parse"
+      },
+      "pending": "Error handling tests need implementation"
+    },
+    {
+      "name": "invalid operator",
+      "expression": "5 ** 3",
+      "input": null,
+      "expected": [],
+      "tags": [
+        "error",
+        "parse-error"
+      ],
+      "error": {
+        "type": "ParseError",
+        "message": "Unexpected token",
+        "phase": "parse"
+      },
+      "pending": "Error handling tests need implementation"
+    },
+    {
+      "name": "missing closing parenthesis",
+      "expression": "(5 + 3",
+      "input": null,
+      "expected": [],
+      "tags": [
+        "error",
+        "parse-error"
+      ],
+      "error": {
+        "type": "ParseError",
+        "message": "Expected '\\)'",
+        "phase": "parse"
+      },
+      "pending": "Error handling tests need implementation"
+    }
+  ]
+}

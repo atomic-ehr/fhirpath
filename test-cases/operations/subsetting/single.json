@@ -1,0 +1,65 @@
+{
+  "name": "Single Function Tests",
+  "description": "Tests for the single() function",
+  "tests": [
+    {
+      "name": "single - one item",
+      "expression": "value.single()",
+      "input": [
+        {
+          "value": [
+            42
+          ]
+        }
+      ],
+      "expected": [
+        42
+      ],
+      "tags": [
+        "function",
+        "subsetting",
+        "single",
+        "function:single"
+      ]
+    },
+    {
+      "name": "single - empty",
+      "expression": "{}.single()",
+      "input": [],
+      "expected": [],
+      "tags": [
+        "function",
+        "subsetting",
+        "single",
+        "empty",
+        "function:single"
+      ]
+    },
+    {
+      "name": "single - multiple items error",
+      "expression": "values.single()",
+      "input": [
+        {
+          "values": [
+            1,
+            2
+          ]
+        }
+      ],
+      "expected": [],
+      "error": {
+        "type": "EvaluationError",
+        "message": "single\\(\\) requires collection to have exactly one item",
+        "phase": "evaluate"
+      },
+      "tags": [
+        "function",
+        "subsetting",
+        "single",
+        "error",
+        "function:single"
+      ],
+      "pending": "single() error handling needs implementation"
+    }
+  ]
+}

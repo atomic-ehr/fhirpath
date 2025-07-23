@@ -1,0 +1,35 @@
+{
+  "name": "Minus Operator Tests",
+  "description": "Tests for the - (subtraction) operator",
+  "tests": [
+    {
+      "name": "subtraction - integers",
+      "expression": "5 - 3",
+      "input": [],
+      "expected": [
+        2
+      ],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "subtraction",
+        "operator:-"
+      ]
+    },
+    {
+      "name": "subtraction - decimals",
+      "expression": "1.5 - 0.5",
+      "input": [],
+      "expected": [
+        1
+      ],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "subtraction",
+        "decimal",
+        "operator:-"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "name": "AllTrue Function Tests",
+  "description": "Tests for the allTrue() function",
+  "tests": [
+    {
+      "name": "allTrue - all true",
+      "expression": "values.allTrue()",
+      "input": [
+        {
+          "values": [
+            true,
+            true,
+            true
+          ]
+        }
+      ],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "aggregate",
+        "boolean",
+        "allTrue",
+        "function:allTrue"
+      ]
+    },
+    {
+      "name": "allTrue - contains false",
+      "expression": "values.allTrue()",
+      "input": [
+        {
+          "values": [
+            true,
+            false,
+            true
+          ]
+        }
+      ],
+      "expected": [
+        false
+      ],
+      "tags": [
+        "function",
+        "aggregate",
+        "boolean",
+        "allTrue",
+        "function:allTrue"
+      ]
+    }
+  ]
+}

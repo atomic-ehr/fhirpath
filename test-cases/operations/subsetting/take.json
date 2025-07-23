@@ -1,0 +1,56 @@
+{
+  "name": "Take Function Tests",
+  "description": "Tests for the take() function",
+  "tests": [
+    {
+      "name": "take - 3 items",
+      "expression": "values.take(3)",
+      "input": [
+        {
+          "values": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        }
+      ],
+      "expected": [
+        1,
+        2,
+        3
+      ],
+      "tags": [
+        "function",
+        "subsetting",
+        "take",
+        "function:take"
+      ]
+    },
+    {
+      "name": "take - more than length",
+      "expression": "values.take(10)",
+      "input": [
+        {
+          "values": [
+            1,
+            2,
+            3
+          ]
+        }
+      ],
+      "expected": [
+        1,
+        2,
+        3
+      ],
+      "tags": [
+        "function",
+        "subsetting",
+        "take",
+        "function:take"
+      ]
+    }
+  ]
+}

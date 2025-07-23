@@ -1,0 +1,54 @@
+{
+  "name": "Exclude Function Tests",
+  "description": "Tests for the exclude() function",
+  "tests": [
+    {
+      "name": "exclude - remove items",
+      "expression": "{1, 2, 3, 4}.exclude({3, 4})",
+      "input": [],
+      "expected": [
+        1,
+        2
+      ],
+      "tags": [
+        "function",
+        "set",
+        "exclude",
+        "function:exclude"
+      ]
+    },
+    {
+      "name": "exclude - remove non-existing",
+      "expression": "{1, 2, 3}.exclude({4, 5})",
+      "input": [],
+      "expected": [
+        1,
+        2,
+        3
+      ],
+      "tags": [
+        "function",
+        "set",
+        "exclude",
+        "function:exclude"
+      ]
+    },
+    {
+      "name": "exclude - with empty",
+      "expression": "{1, 2, 3}.exclude({})",
+      "input": [],
+      "expected": [
+        1,
+        2,
+        3
+      ],
+      "tags": [
+        "function",
+        "set",
+        "exclude",
+        "empty",
+        "function:exclude"
+      ]
+    }
+  ]
+}

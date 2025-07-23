@@ -1,0 +1,35 @@
+{
+  "name": "Distinct Function Tests",
+  "description": "Tests for the distinct() function",
+  "tests": [
+    {
+      "name": "distinct - removes duplicates",
+      "expression": "values.distinct()",
+      "input": [
+        {
+          "values": [
+            1,
+            2,
+            2,
+            3,
+            3,
+            3,
+            4
+          ]
+        }
+      ],
+      "expected": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "tags": [
+        "function",
+        "aggregate",
+        "distinct",
+        "function:distinct"
+      ]
+    }
+  ]
+}

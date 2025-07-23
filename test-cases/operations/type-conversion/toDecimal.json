@@ -1,0 +1,62 @@
+{
+  "name": "ToDecimal Function Tests",
+  "description": "Tests for the toDecimal() function",
+  "tests": [
+    {
+      "name": "toDecimal - string",
+      "expression": "'3.14'.toDecimal()",
+      "input": [],
+      "expected": [
+        3.14
+      ],
+      "tags": [
+        "function",
+        "conversion",
+        "toDecimal",
+        "function:toDecimal"
+      ]
+    },
+    {
+      "name": "toDecimal - integer",
+      "expression": "42.toDecimal()",
+      "input": [],
+      "expected": [
+        42
+      ],
+      "tags": [
+        "function",
+        "conversion",
+        "toDecimal",
+        "function:toDecimal"
+      ]
+    },
+    {
+      "name": "toDecimal - boolean true",
+      "expression": "true.toDecimal()",
+      "input": [],
+      "expected": [
+        1
+      ],
+      "tags": [
+        "function",
+        "conversion",
+        "toDecimal",
+        "function:toDecimal"
+      ]
+    },
+    {
+      "name": "toDecimal - boolean false",
+      "expression": "false.toDecimal()",
+      "input": [],
+      "expected": [
+        0
+      ],
+      "tags": [
+        "function",
+        "conversion",
+        "toDecimal",
+        "function:toDecimal"
+      ]
+    }
+  ]
+}

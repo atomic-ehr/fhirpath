@@ -1,0 +1,44 @@
+{
+  "name": "Evaluation Error Tests",
+  "description": "Tests for runtime errors during evaluation",
+  "tests": [
+    {
+      "name": "division by zero",
+      "expression": "5 / 0",
+      "input": null,
+      "expected": [],
+      "tags": [
+        "error",
+        "evaluation-error",
+        "operator:/"
+      ],
+      "error": {
+        "type": "EvaluationError",
+        "message": "Division by zero",
+        "phase": "evaluate"
+      },
+      "pending": "Division by zero error handling needs implementation"
+    },
+    {
+      "name": "single() with multiple items",
+      "expression": "single()",
+      "input": [
+        1,
+        2,
+        3
+      ],
+      "expected": [],
+      "tags": [
+        "error",
+        "evaluation-error",
+        "function:single"
+      ],
+      "error": {
+        "type": "EvaluationError",
+        "message": "single\\(\\) can only be used on collections with 0 or 1 item",
+        "phase": "evaluate"
+      },
+      "pending": "single() error handling needs proper error message"
+    }
+  ]
+}

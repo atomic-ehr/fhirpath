@@ -1,0 +1,41 @@
+{
+  "name": "First Function Tests",
+  "description": "Tests for the first() function",
+  "tests": [
+    {
+      "name": "first - single item",
+      "expression": "values.first()",
+      "input": [
+        {
+          "values": [
+            1,
+            2,
+            3
+          ]
+        }
+      ],
+      "expected": [
+        1
+      ],
+      "tags": [
+        "function",
+        "subsetting",
+        "first",
+        "function:first"
+      ]
+    },
+    {
+      "name": "first - empty",
+      "expression": "{}.first()",
+      "input": [],
+      "expected": [],
+      "tags": [
+        "function",
+        "subsetting",
+        "first",
+        "empty",
+        "function:first"
+      ]
+    }
+  ]
+}

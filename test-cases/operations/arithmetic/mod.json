@@ -1,0 +1,34 @@
+{
+  "name": "Mod Operator Tests",
+  "description": "Tests for the mod (modulo) operator",
+  "tests": [
+    {
+      "name": "modulo",
+      "expression": "7 mod 3",
+      "input": [],
+      "expected": [
+        1
+      ],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "mod",
+        "operator:mod"
+      ]
+    },
+    {
+      "name": "modulo - larger",
+      "expression": "10 mod 3",
+      "input": [],
+      "expected": [
+        1
+      ],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "mod",
+        "operator:mod"
+      ]
+    }
+  ]
+}
