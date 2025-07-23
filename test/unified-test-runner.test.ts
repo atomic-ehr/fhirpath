@@ -21,6 +21,12 @@ interface UnifiedTest {
   };
   expected: any[];
   expectedError?: string;
+  error?: {
+    type: string;
+    message: string;
+    phase: 'parse' | 'analyze' | 'evaluate';
+  };
+  pending?: boolean | string;
   tags?: string[];
   skip?: {
     interpreter?: boolean;
@@ -86,8 +92,13 @@ function loadTestData(): TestSuite[] {
   for (const file of jsonFiles) {
     try {
       const content = readFileSync(file, "utf-8");
-      const suite = JSON.parse(content) as TestSuite;
-      testSuites.push(suite);
+      const data = JSON.parse(content);
+      
+      // Skip files that don't have a tests array (like metadata.json)
+      if (data.tests && Array.isArray(data.tests)) {
+        const suite = data as TestSuite;
+        testSuites.push(suite);
+      }
     } catch (error) {
       console.error(`Failed to load ${file}:`, error);
     }
@@ -227,6 +238,11 @@ describe("Unified FHIRPath Tests", () => {
   testSuites.forEach((suite) => {
     suite.tests.forEach((test) => {
       it(`${suite.name}: ${test.name}`, () => {
+        // Skip pending tests
+        if (test.pending) {
+          return;
+        }
+        
         const context = createContext(test);
         let result: TestResult = {
           test,
