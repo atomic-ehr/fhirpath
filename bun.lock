@@ -7,7 +7,7 @@
         "@rgrove/parse-xml": "^4.2.0",
         "@types/bun": "latest",
         "@types/node": "22.13.14",
-        "tsup": "^8.5.0",
+        "tsup": "8.5.0",
         "typescript": "^5",
       },
       "peerDependencies": {
