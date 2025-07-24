@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 
-import { $, type ShellOutput } from "bun";
+import { $ } from "bun";
 import { readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 
@@ -46,7 +46,10 @@ async function checkIfVersionExists(version: string): Promise<boolean> {
 }
 
 function bumpVersion(currentVersion: string, type: "patch" | "minor" | "major"): string {
-  const [major, minor, patch] = currentVersion.split(".").map(Number);
+  const parts = currentVersion.split(".").map(Number);
+  const major = parts[0] ?? 0;
+  const minor = parts[1] ?? 0;
+  const patch = parts[2] ?? 0;
   
   switch (type) {
     case "major":

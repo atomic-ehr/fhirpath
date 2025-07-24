@@ -10,7 +10,8 @@ on:
 jobs:
   trigger:
     # Only trigger if canary release was successful
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    #if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: false
     runs-on: ubuntu-latest
     
     steps:
