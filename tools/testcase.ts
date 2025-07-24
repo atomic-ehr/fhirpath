@@ -17,6 +17,7 @@ Usage:
   bun tools/testcase.ts --tag <tag-name>
   bun tools/testcase.ts --failing
   bun tools/testcase.ts --pending
+  bun tools/testcase.ts --watch
 
 Arguments:
   test-file   Path to JSON test file (relative to test-cases/)
@@ -28,6 +29,7 @@ Commands:
   --tag       Show all test expressions for a specific tag
   --failing   Show all failing tests with commands to debug them
   --pending   Show all pending tests
+  --watch     Watch for changes in failing tests and re-run them
 
 Examples:
   # Run all tests in a file
@@ -53,6 +55,9 @@ Examples:
   
   # Show pending tests
   bun tools/testcase.ts --pending
+  
+  # Watch failing tests
+  bun tools/testcase.ts --watch
 `);
   process.exit(0);
 }
@@ -487,6 +492,188 @@ if (args[0] === "--pending") {
   process.exit(0);
 }
 
+// Handle --watch command
+if (args[0] === "--watch") {
+  const testCasesDir = join(__dirname, "../test-cases");
+  const { watch } = require("fs");
+  
+  console.log("\n👁️  Watch Mode - Monitoring failing tests...\n");
+  console.log("Press Ctrl+C to exit\n");
+  
+  // Import test helpers at module level
+  const { runSingleTest } = require("./lib/test-helpers");
+  
+  // Function to find all failing tests
+  function findFailingTests(): Array<{
+    suite: string;
+    test: string;
+    expression: string;
+    file: string;
+    fullPath: string;
+    interpreterFailed: boolean;
+    compilerFailed: boolean;
+  }> {
+    const failingTests: Array<{
+      suite: string;
+      test: string;
+      expression: string;
+      file: string;
+      fullPath: string;
+      interpreterFailed: boolean;
+      compilerFailed: boolean;
+    }> = [];
+    
+    // Function to recursively find all JSON files
+    function findJsonFiles(dir: string): string[] {
+      const files: string[] = [];
+      const entries = readdirSync(dir);
+      
+      for (const entry of entries) {
+        const fullPath = join(dir, entry);
+        const stat = statSync(fullPath);
+        
+        if (stat.isDirectory()) {
+          files.push(...findJsonFiles(fullPath));
+        } else if (entry.endsWith(".json")) {
+          files.push(fullPath);
+        }
+      }
+      
+      return files;
+    }
+    
+    // Find all test files
+    const jsonFiles = findJsonFiles(testCasesDir);
+    
+    // Check each test
+    jsonFiles.forEach(file => {
+      try {
+        const suite = loadTestSuite(file);
+        
+        suite.tests.forEach((test: any) => {
+          // Skip tests that are marked as skip or pending
+          if ((test.skip?.interpreter && test.skip?.compiler) || test.pending) {
+            return;
+          }
+          
+          // Run the test silently
+          const originalLog = console.log;
+          const originalError = console.error;
+          console.log = () => {};
+          console.error = () => {};
+          
+          const result = runSingleTest(test, 'both');
+          
+          // Restore console
+          console.log = originalLog;
+          console.error = originalError;
+          
+          const interpreterFailed = result.interpreter && 
+            !result.interpreter.pending &&
+            (!result.interpreter.success && !result.interpreter.expectedError) || 
+            (result.interpreter.value !== undefined && JSON.stringify(result.interpreter.value) !== JSON.stringify(test.expected));
+          const compilerFailed = result.compiler && 
+            !result.compiler.pending &&
+            (!result.compiler.success && !result.compiler.expectedError) || 
+            (result.compiler.value !== undefined && JSON.stringify(result.compiler.value) !== JSON.stringify(test.expected));
+          
+          if (interpreterFailed || compilerFailed) {
+            const relativePath = file.replace(testCasesDir + "/", "");
+            
+            failingTests.push({
+              suite: suite.name || basename(file),
+              test: test.name,
+              expression: test.expression,
+              file: relativePath,
+              fullPath: file,
+              interpreterFailed,
+              compilerFailed
+            });
+          }
+        });
+      } catch (error) {
+        // Skip files that can't be parsed
+      }
+    });
+    
+    return failingTests;
+  }
+  
+  // Run failing tests
+  function runFailingTests() {
+    console.clear();
+    console.log("\n👁️  Watch Mode - Re-running failing tests...\n");
+    
+    const failingTests = findFailingTests();
+    
+    if (failingTests.length === 0) {
+      console.log("✅ All tests are passing!");
+      return;
+    }
+    
+    console.log(`Found ${failingTests.length} failing tests\n`);
+    
+    // Group by file for better output
+    const byFile = new Map<string, typeof failingTests>();
+    failingTests.forEach(test => {
+      if (!byFile.has(test.file)) {
+        byFile.set(test.file, []);
+      }
+      byFile.get(test.file)!.push(test);
+    });
+    
+    // Run tests file by file
+    Array.from(byFile.entries()).forEach(([file, tests]) => {
+      console.log(`\n📄 ${file}:`);
+      
+      tests.forEach(test => {
+        // Run the test with output
+        console.log(`\n🧪 ${test.test}`);
+        try {
+          runTestFromFile(test.fullPath, test.test, "both");
+        } catch (error: any) {
+          console.error(`❌ Error: ${error.message}`);
+        }
+      });
+    });
+    
+    console.log("\n⏳ Watching for changes...");
+  }
+  
+  // Initial run
+  runFailingTests();
+  
+  // Watch for changes
+  const watchers: any[] = [];
+  
+  // Watch test case files
+  watchers.push(watch(testCasesDir, { recursive: true }, (_eventType: string, filename: string) => {
+    if (filename && filename.endsWith('.json')) {
+      console.log(`\n🔄 Detected change in ${filename}`);
+      setTimeout(runFailingTests, 100); // Small delay to ensure file write is complete
+    }
+  }));
+  
+  // Watch source files
+  const srcDir = join(__dirname, "../src");
+  watchers.push(watch(srcDir, { recursive: true }, (_eventType: string, filename: string) => {
+    if (filename && (filename.endsWith('.ts') || filename.endsWith('.js'))) {
+      console.log(`\n🔄 Detected change in ${filename}`);
+      setTimeout(runFailingTests, 100);
+    }
+  }));
+  
+  // Handle cleanup
+  process.on('SIGINT', () => {
+    console.log('\n\n👋 Exiting watch mode...');
+    watchers.forEach(watcher => watcher.close());
+    process.exit(0);
+  });
+  
+  // Keep the process running
+  process.stdin.resume();
+}
+
 const testFile = args[0];
 const testName = args[1];
 const mode = args[2] as "interpreter" | "compiler" | "both" | undefined;
@@ -526,18 +713,20 @@ if (testName === "--list") {
   process.exit(0);
 }
 
-// Run the tests
-try {
-  if (testName && testName !== "--list") {
-    // Run specific test
-    console.log(`\n🎯 Running test from: ${basename(testPath!)}`);
-    runTestFromFile(testPath!, testName, mode || "both");
-  } else {
-    // Run all tests in the file
-    console.log(`\n🎯 Running all tests from: ${basename(testPath)}`);
-    runAllTestsFromFile(testPath!, mode || "both");
+// Run the tests (skip if we've already handled special commands)
+if (args[0] !== "--watch" && args[0] !== "--tags" && args[0] !== "--tag" && args[0] !== "--failing" && args[0] !== "--failing-commands" && args[0] !== "--pending") {
+  try {
+    if (testName && testName !== "--list") {
+      // Run specific test
+      console.log(`\n🎯 Running test from: ${basename(testPath!)}`);
+      runTestFromFile(testPath!, testName, mode || "both");
+    } else {
+      // Run all tests in the file
+      console.log(`\n🎯 Running all tests from: ${basename(testPath)}`);
+      runAllTestsFromFile(testPath!, mode || "both");
+    }
+  } catch (error: any) {
+    console.error(`\n❌ Error: ${error.message}`);
+    process.exit(1);
   }
-} catch (error: any) {
-  console.error(`\n❌ Error: ${error.message}`);
-  process.exit(1);
 }

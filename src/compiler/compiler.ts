@@ -228,7 +228,12 @@ export class Compiler implements ICompiler {
             case 'rootResource':
               return ctx.env.$rootResource || ctx.input || [];
             default:
-              return ctx.env[varName] || [];
+              const value = ctx.env[varName];
+              if (value === undefined) {
+                return [];
+              }
+              // Wrap non-array values in an array to create a singleton collection
+              return Array.isArray(value) ? value : [value];
           }
         }
       },
@@ -257,10 +262,11 @@ export class Compiler implements ICompiler {
       
       return {
         fn: (ctx: RuntimeContext) => {
-          // Create a mutable context that can be modified by operations
+          // DON'T create a new env - use the one from ctx directly
+          // This allows nested DOT operators to share the same env object
           const mutableCtx = {
-            ...ctx,
-            env: { ...ctx.env }  // Create a new env object that can be modified
+            ...ctx
+            // env is shared from ctx
           };
           
           // Execute left side with mutable context
@@ -271,6 +277,7 @@ export class Compiler implements ICompiler {
             ...mutableCtx,  // Use the potentially modified context
             input: leftResult,
             focus: leftResult
+            // env is still shared from the original ctx
           };
           return right.fn(rightCtx);
         },

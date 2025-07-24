@@ -75,10 +75,16 @@ function createContext(test: UnifiedTest, input: any[]): Context {
     }
 
     if (test.context.env) {
-      context = {
-        ...context,
-        env: { ...context.env, ...test.context.env },
-      };
+      // Handle environment variables
+      Object.entries(test.context.env).forEach(([name, value]) => {
+        if (name.startsWith('$')) {
+          // Special environment variables go directly in context.env
+          (context.env as any)[name] = value;
+        } else {
+          // User-defined variables go in context.variables
+          context = ContextManager.setVariable(context, name, Array.isArray(value) ? value : [value]);
+        }
+      });
     }
   }
 

@@ -3,11 +3,33 @@
     "description": "Tests for the context flow",
     "tests": [
         {
-            "name": "context flows through . operator",
+            "name": "test basic envs",
+            "expression": "%x",
+            "context": { "env": {"x": 5} },
+            "input": [{}],
+            "expected": [5],
+            "tags": [ "select" ]
+        },
+        {
+            "name": "defineVariable changes context",
             "expression": "defineVariable('x', 5).select(%x)",
             "input": [{}],
             "expected": [5],
             "tags": [ "defineVariable", "select" ]
+        },
+        {
+            "name": "context flows from left through . operator",
+            "expression": "a.defineVariable('x', 10).b.select(%x)",
+            "input": [{"a": {"b": 10}}],
+            "expected": [10],
+            "tags": [ "defineVariable", "select", "." ]
+        },
+        {
+            "name": "context flows from right through . operator",
+            "expression": "defineVariable('x', 10).a.b.select(%x)",
+            "input": [{"a": {"b": 10}}],
+            "expected": [10],
+            "tags": [ "defineVariable", "select", "." ]
         }
     ]
 }

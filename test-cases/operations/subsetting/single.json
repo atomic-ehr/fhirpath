@@ -58,8 +58,7 @@
         "single",
         "error",
         "function:single"
-      ],
-      "pending": "single() error handling needs implementation"
+      ]
     }
   ]
 }
