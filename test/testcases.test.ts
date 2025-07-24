@@ -136,10 +136,15 @@ describe("Unified FHIRPath Tests", () => {
 
       // Add environment variables
       if (test.context.env) {
-        context = {
-          ...context,
-          env: { ...context.env, ...test.context.env },
-        };
+        Object.entries(test.context.env).forEach(([name, value]) => {
+          if (name.startsWith('$')) {
+            // Special environment variables go directly in context.env
+            (context.env as any)[name] = value;
+          } else {
+            // User-defined variables go in context.variables
+            context = ContextManager.setVariable(context, name, Array.isArray(value) ? value : [value]);
+          }
+        });
       }
     }
 
@@ -280,22 +285,36 @@ describe("Unified FHIRPath Tests", () => {
                 result.compilerResult.value
               );
 
-              // Both should match expected
-              if (JSON.stringify(result.interpreterResult.value) !== JSON.stringify(test.expected)) {
+              // Check if we expected an error but got success
+              if (test.error) {
                 failed = true;
-                failureMessage = `Expected: ${JSON.stringify(test.expected)}, Got: ${JSON.stringify(result.interpreterResult.value)}`;
-              } else if (!result.matched) {
-                failed = true;
-                failureMessage = `Interpreter and Compiler results don't match`;
+                failureMessage = `Expected error matching /${test.error.message}/ but both implementations succeeded`;
+              } else {
+                // Both should match expected
+                if (JSON.stringify(result.interpreterResult.value) !== JSON.stringify(test.expected)) {
+                  failed = true;
+                  failureMessage = `Expected: ${JSON.stringify(test.expected)}, Got: ${JSON.stringify(result.interpreterResult.value)}`;
+                } else if (!result.matched) {
+                  failed = true;
+                  failureMessage = `Interpreter and Compiler results don't match`;
+                }
               }
             } else if (
               !result.interpreterResult.success &&
               !result.compilerResult.success
             ) {
               // Both failed - this is ok if we expected an error
-              if (!test.expectedError) {
+              if (!test.expectedError && !test.error) {
                 failed = true;
                 failureMessage = `Both implementations failed unexpectedly:\nInterpreter: ${result.interpreterResult.error}\nCompiler: ${result.compilerResult.error}`;
+              } else if (test.error) {
+                // Check if error matches expected pattern
+                const interpreterMatches = new RegExp(test.error.message).test(result.interpreterResult.error || '');
+                const compilerMatches = new RegExp(test.error.message).test(result.compilerResult.error || '');
+                if (!interpreterMatches || !compilerMatches) {
+                  failed = true;
+                  failureMessage = `Error messages don't match expected pattern /${test.error.message}/:\nInterpreter: ${result.interpreterResult.error}\nCompiler: ${result.compilerResult.error}`;
+                }
               }
             } else {
               // One succeeded, one failed - this is bad
@@ -313,24 +332,44 @@ describe("Unified FHIRPath Tests", () => {
           } else if (result.interpreterResult) {
             // Only interpreter test
             if (result.interpreterResult.success) {
-              if (JSON.stringify(result.interpreterResult.value) !== JSON.stringify(test.expected)) {
+              if (test.error) {
+                failed = true;
+                failureMessage = `Expected error matching /${test.error.message}/ but interpreter succeeded`;
+              } else if (JSON.stringify(result.interpreterResult.value) !== JSON.stringify(test.expected)) {
                 failed = true;
                 failureMessage = `Expected: ${JSON.stringify(test.expected)}, Got: ${JSON.stringify(result.interpreterResult.value)}`;
               }
-            } else if (!test.expectedError) {
+            } else if (!test.expectedError && !test.error) {
               failed = true;
               failureMessage = `Interpreter failed: ${result.interpreterResult.error}`;
+            } else if (test.error) {
+              // Check if error matches expected pattern
+              const matches = new RegExp(test.error.message).test(result.interpreterResult.error || '');
+              if (!matches) {
+                failed = true;
+                failureMessage = `Interpreter error doesn't match expected pattern /${test.error.message}/: ${result.interpreterResult.error}`;
+              }
             }
           } else if (result.compilerResult) {
             // Only compiler test
             if (result.compilerResult.success) {
-              if (JSON.stringify(result.compilerResult.value) !== JSON.stringify(test.expected)) {
+              if (test.error) {
+                failed = true;
+                failureMessage = `Expected error matching /${test.error.message}/ but compiler succeeded`;
+              } else if (JSON.stringify(result.compilerResult.value) !== JSON.stringify(test.expected)) {
                 failed = true;
                 failureMessage = `Expected: ${JSON.stringify(test.expected)}, Got: ${JSON.stringify(result.compilerResult.value)}`;
               }
-            } else if (!test.expectedError) {
+            } else if (!test.expectedError && !test.error) {
               failed = true;
               failureMessage = `Compiler failed: ${result.compilerResult.error}`;
+            } else if (test.error) {
+              // Check if error matches expected pattern
+              const matches = new RegExp(test.error.message).test(result.compilerResult.error || '');
+              if (!matches) {
+                failed = true;
+                failureMessage = `Compiler error doesn't match expected pattern /${test.error.message}/: ${result.compilerResult.error}`;
+              }
             }
           }
 
