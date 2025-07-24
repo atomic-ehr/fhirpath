@@ -116,6 +116,8 @@ export function runSingleTest(test: UnifiedTest, mode: 'interpreter' | 'compiler
   const interpreter = new Interpreter();
   const compiler = new Compiler();
   const context = createContext(test, test.input);
+  // Convert Context to RuntimeContext for interpreter
+  const runtimeContext = RuntimeContextManager.fromContext(context, test.input);
 
   console.log(`\n🧪 Running test: ${test.name}`);
   
@@ -152,7 +154,7 @@ export function runSingleTest(test: UnifiedTest, mode: 'interpreter' | 'compiler
     
     try {
       const ast = parse(test.expression);
-      const result = interpreter.evaluate(ast, test.input, context);
+      const result = interpreter.evaluate(ast, test.input, runtimeContext);
       const endTime = performance.now();
       
       if (test.error) {

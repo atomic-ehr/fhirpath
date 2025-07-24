@@ -182,6 +182,9 @@ export class Interpreter implements IInterpreter {
         throw new EvaluationError(`Unknown special variable: ${node.name}`, node.position);
       }
       value = handler();
+    } else if (node.name.startsWith('%')) {
+      // Environment variables starting with % - delegate to RuntimeContextManager
+      value = RuntimeContextManager.getVariable(context, node.name) || [];
     } else {
       // User-defined variables - RuntimeContextManager.getVariable handles % prefix
       value = RuntimeContextManager.getVariable(context, node.name) || [];
