@@ -1,8 +1,6 @@
 #!/usr/bin/env bun
 
-import { Registry } from '../src/registry/registry';
-// Import registry to trigger operation registration
-import '../src/registry';
+import { registry } from '../src';
 
 const args = process.argv.slice(2);
 
@@ -17,31 +15,23 @@ if (args.length < 1) {
   process.exit(1);
 }
 
-const query = args.join(' ');
 const [command, subcommand] = args;
+const query = command!;
 
 if (command === 'list') {
-  let operations;
+  let names;
   
   if (subcommand === 'functions') {
-    operations = Registry.getAllFunctions();
+    names = registry.listFunctions();
   } else if (subcommand === 'operators') {
-    operations = Registry.getOperatorsByForm('infix')
-      .concat(Registry.getOperatorsByForm('prefix'))
-      .concat(Registry.getOperatorsByForm('postfix'));
+    names = registry.listOperators();
   } else {
-    operations = Registry.getAllOperations();
+    names = registry.listAllOperations();
   }
-  
-  const names = operations.map(op => ({
-    name: op.name,
-    kind: op.kind,
-    form: op.kind === 'operator' ? op.syntax.form : undefined
-  }));
   
   console.log(JSON.stringify(names, null, 2));
 } else {
-  const operation = Registry.get(query);
+  const operation = registry.getOperationInfo(query);
   
   if (!operation) {
     console.error(`Operation "${query}" not found in registry`);

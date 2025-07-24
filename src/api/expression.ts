@@ -21,9 +21,9 @@ export class FHIRPathExpression implements IFHIRPathExpression {
   
   evaluate(input?: any, context?: EvaluationContext): any[] {
     const interpreter = new Interpreter();
-    const ctx = this.createContext(context);
-    
     const inputArray = input === undefined ? [] : Array.isArray(input) ? input : [input];
+    const ctx = this.createContext(context, inputArray);
+    
     const result = interpreter.evaluate(this.ast, inputArray, ctx);
     
     return result.value;
@@ -35,8 +35,8 @@ export class FHIRPathExpression implements IFHIRPathExpression {
     
     // Create the compiled function
     const fn = (input?: any, context?: EvaluationContext): any[] => {
-      const ctx = this.createContext(context);
       const inputArray = input === undefined ? [] : Array.isArray(input) ? input : [input];
+      const ctx = this.createContext(context, inputArray);
       
       return compiled.fn({
         input: inputArray,
@@ -125,8 +125,8 @@ export class FHIRPathExpression implements IFHIRPathExpression {
     return pprint(this.ast);
   }
   
-  private createContext(evalContext?: EvaluationContext) {
-    let ctx = RuntimeContextManager.create([]);
+  private createContext(evalContext?: EvaluationContext, input: any[] = []) {
+    let ctx = RuntimeContextManager.create(input);
     
     if (evalContext?.variables) {
       for (const [name, value] of Object.entries(evalContext.variables)) {

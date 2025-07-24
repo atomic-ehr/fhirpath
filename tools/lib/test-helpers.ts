@@ -1,13 +1,7 @@
 import { readFileSync, readdirSync, statSync } from "fs";
 import { join } from "path";
-import { Interpreter } from "../../src/interpreter/interpreter";
-import { Compiler } from "../../src/compiler";
-import { RuntimeContextManager } from "../../src/runtime/context";
-import { parse } from "../../src/parser";
-import type { Context } from "../../src/interpreter/types";
-
-// Import the global registry to ensure all operations are registered
-import "../../src/registry";
+import { parse, evaluate, compile } from "../../src";
+import type { EvaluationContext } from "../../src";
 
 interface UnifiedTest {
   name: string;
@@ -62,40 +56,23 @@ export function findTestsByTag(suite: TestSuite, tag: string): UnifiedTest[] {
   return suite.tests.filter(test => test.tags?.includes(tag) ?? false);
 }
 
-function createContext(test: UnifiedTest, input: any[]): Context {
-  // Use rootContext if provided, otherwise use the test input as context
-  const initialContext = test.context?.rootContext ?? input;
-  let context = RuntimeContextManager.toContext(RuntimeContextManager.create(initialContext));
+function createContext(test: UnifiedTest): EvaluationContext {
+  const context: EvaluationContext = {};
 
   if (test.context) {
+    // Set up variables
     if (test.context.variables) {
+      context.variables = {};
       Object.entries(test.context.variables).forEach(([name, value]) => {
-        context = RuntimeContextManager.toContext(
-          RuntimeContextManager.setVariable(
-            RuntimeContextManager.fromContext(context, context.variables?.['context'] || []),
-            name,
-            value
-          )
-        );
+        context.variables![name] = value;
       });
     }
 
+    // Set up environment variables
     if (test.context.env) {
-      // Handle environment variables
+      context.environment = {};
       Object.entries(test.context.env).forEach(([name, value]) => {
-        if (name.startsWith('$')) {
-          // Special environment variables go directly in context.env
-          (context.env as any)[name] = value;
-        } else {
-          // User-defined variables go in context.variables
-          context = RuntimeContextManager.toContext(
-            RuntimeContextManager.setVariable(
-              RuntimeContextManager.fromContext(context, context.variables?.['context'] || []),
-              name,
-              Array.isArray(value) ? value : [value]
-            )
-          );
-        }
+        context.environment![name] = value;
       });
     }
   }
@@ -113,11 +90,7 @@ function matchesError(error: Error, expectedError: UnifiedTest['error']): boolea
 }
 
 export function runSingleTest(test: UnifiedTest, mode: 'interpreter' | 'compiler' | 'both' = 'both') {
-  const interpreter = new Interpreter();
-  const compiler = new Compiler();
-  const context = createContext(test, test.input);
-  // Convert Context to RuntimeContext for interpreter
-  const runtimeContext = RuntimeContextManager.fromContext(context, test.input);
+  const context = createContext(test);
 
   console.log(`\n🧪 Running test: ${test.name}`);
   
@@ -153,32 +126,31 @@ export function runSingleTest(test: UnifiedTest, mode: 'interpreter' | 'compiler
     const startTime = performance.now();
     
     try {
-      const ast = parse(test.expression);
-      const result = interpreter.evaluate(ast, test.input, runtimeContext);
+      const result = evaluate(test.expression, test.input, context);
       const endTime = performance.now();
       
       if (test.error) {
         // Expected an error but got a result
         results.interpreter = {
           success: false,
-          value: result.value,
+          value: result,
           time: endTime - startTime,
           error: "Expected error but got result"
         };
         
-        console.log(`   ❌ Expected error but got: ${JSON.stringify(result.value)}`);
+        console.log(`   ❌ Expected error but got: ${JSON.stringify(result)}`);
         console.log(`   ⏱️  Time: ${(endTime - startTime).toFixed(2)}ms`);
       } else {
         results.interpreter = {
           success: true,
-          value: result.value,
+          value: result,
           time: endTime - startTime
         };
         
-        console.log(`   ✅ Result: ${JSON.stringify(result.value)}`);
+        console.log(`   ✅ Result: ${JSON.stringify(result)}`);
         console.log(`   ⏱️  Time: ${(endTime - startTime).toFixed(2)}ms`);
         
-        const matches = JSON.stringify(result.value) === JSON.stringify(test.expected);
+        const matches = JSON.stringify(result) === JSON.stringify(test.expected);
         console.log(`   ${matches ? '✅' : '❌'} Matches expected: ${matches}`);
       }
     } catch (error: any) {
@@ -219,26 +191,8 @@ export function runSingleTest(test: UnifiedTest, mode: 'interpreter' | 'compiler
     const startTime = performance.now();
     
     try {
-      const ast = parse(test.expression);
-      const compiled = compiler.compile(ast);
-      
-      // Convert Context to RuntimeContext
-      const runtimeEnv: Record<string, any> = { ...context.env };
-      
-      // Copy variables from Context.variables to env
-      for (const key in context.variables) {
-        if (Object.prototype.hasOwnProperty.call(context.variables, key)) {
-          runtimeEnv[key] = context.variables[key]!;
-        }
-      }
-      
-      const runtimeContext = {
-        input: test.input,
-        env: runtimeEnv,
-        focus: test.context?.rootContext || test.input
-      };
-      
-      const result = compiled.fn(runtimeContext);
+      const compiled = compile(test.expression);
+      const result = compiled(test.input, context);
       const endTime = performance.now();
       
       if (test.error) {

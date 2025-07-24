@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 
-import { evaluateFHIRPath } from '../src/interpreter/interpreter';
+import { evaluate } from '../src';
 
 const args = process.argv.slice(2);
 
@@ -25,7 +25,7 @@ if (args[1]) {
 }
 
 try {
-  const result = evaluateFHIRPath(expression, input);
+  const result = evaluate(expression, input);
   console.log(JSON.stringify(result));
 } catch (error) {
   console.error('Evaluation error:', error);

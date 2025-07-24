@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 
-import { evaluateCompiled } from '../src/compiler';
+import { compile } from '../src';
 
 const args = process.argv.slice(2);
 
@@ -25,7 +25,8 @@ if (args[1]) {
 }
 
 try {
-  const result = evaluateCompiled(expression, input);
+  const compiled = compile(expression);
+  const result = compiled(input);
   console.log(JSON.stringify(result, null, 2));
 } catch (error) {
   console.error('Compilation/evaluation error:', error);
