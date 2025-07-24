@@ -100,7 +100,24 @@ export class Interpreter implements IInterpreter {
   }
 
   private evaluateIdentifier(node: IdentifierNode, input: any[], context: Context): EvaluationResult {
-    // Identifier performs property navigation on each item in input
+    // Check if this identifier could be a resource type name
+    // Resource types in FHIR typically start with uppercase
+    if (node.name[0] === node.name[0].toUpperCase()) {
+      // Check if any input items have this as their resourceType
+      const hasMatchingResourceType = input.some(item => 
+        item && typeof item === 'object' && item.resourceType === node.name
+      );
+      
+      if (hasMatchingResourceType) {
+        // This is a type filter - return only items matching this resourceType
+        const filtered = input.filter(item =>
+          item && typeof item === 'object' && item.resourceType === node.name
+        );
+        return { value: filtered, context };
+      }
+    }
+    
+    // Regular property navigation
     const results: any[] = [];
     
     for (const item of input) {
@@ -126,7 +143,25 @@ export class Interpreter implements IInterpreter {
 
   private evaluateTypeOrIdentifier(node: TypeOrIdentifierNode, input: any[], context: Context): EvaluationResult {
     // TypeOrIdentifier can act as either a type reference or property navigation
-    // For now, treat it as an identifier
+    
+    // First, check if this is a known type name (e.g., Patient, Observation)
+    // In FHIR context, type names match resourceType values
+    const possibleTypeName = node.name;
+    
+    // Check if any input items have this as their resourceType
+    const hasMatchingResourceType = input.some(item => 
+      item && typeof item === 'object' && item.resourceType === possibleTypeName
+    );
+    
+    if (hasMatchingResourceType) {
+      // This is a type filter - return only items matching this resourceType
+      const filtered = input.filter(item =>
+        item && typeof item === 'object' && item.resourceType === possibleTypeName
+      );
+      return { value: filtered, context };
+    }
+    
+    // Not a type filter, treat as property navigation
     return this.evaluateIdentifier(node as any, input, context);
   }
 
@@ -188,6 +223,16 @@ export class Interpreter implements IInterpreter {
       throw new EvaluationError(`Binary operator ${node.operator} missing operands`, node.position);
     }
     
+    // Special handling for union operator - both sides should use the same context
+    if (node.operator === TokenType.PIPE) {
+      const leftResult = this.evaluate(node.left, input, context);
+      const rightResult = this.evaluate(node.right, input, context); // Use original context, not leftResult.context
+      
+      // Use operation's evaluate method
+      return operation.evaluate(this, context, input, leftResult.value, rightResult.value);
+    }
+    
+    // Normal operators - context flows from left to right
     const leftResult = this.evaluate(node.left, input, context);
     const rightResult = this.evaluate(node.right, input, leftResult.context);
     
@@ -327,17 +372,27 @@ export class Interpreter implements IInterpreter {
 
   private evaluateUnion(node: UnionNode, input: any[], context: Context): EvaluationResult {
     // Union combines results from all operands
+    // Each operand should be evaluated with the SAME original context
+    // to prevent variable definitions from leaking between branches
     const results: any[] = [];
-    let currentContext = context;
+    const seen = new Set();
 
     for (const operand of node.operands) {
-      const result = this.evaluate(operand, input, currentContext);
-      results.push(...result.value);
-      // Thread context through operands
-      currentContext = result.context;
+      // Always use the original context for each operand
+      const result = this.evaluate(operand, input, context);
+      
+      // Remove duplicates
+      for (const item of result.value) {
+        const key = JSON.stringify(item);
+        if (!seen.has(key)) {
+          seen.add(key);
+          results.push(item);
+        }
+      }
     }
 
-    return { value: results, context: currentContext };
+    // Return the original context, not a modified one
+    return { value: results, context };
   }
 
   private evaluateMembershipTest(node: MembershipTestNode, input: any[], context: Context): EvaluationResult {

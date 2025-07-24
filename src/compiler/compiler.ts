@@ -174,25 +174,52 @@ export class Compiler implements ICompiler {
   }
 
   /**
-   * Compiles a TypeOrIdentifier node - for now, treat as identifier
+   * Compiles a TypeOrIdentifier node - handles both type filtering and property navigation
    */
   private compileTypeOrIdentifier(node: TypeOrIdentifierNode): CompiledExpression {
-    // TypeOrIdentifier can be either a type name or a property identifier
-    // If it starts with uppercase, it's likely a type name
-    if (node.name && /^[A-Z]/.test(node.name)) {
-      // Return a compiled expression that returns the type name as a string
-      // This is used by the 'is' and 'as' operators
-      const typeName = node.name;
-      return {
-        fn: (ctx: RuntimeContext) => [typeName],
-        type: this.resolveType('String'),
-        isSingleton: true,
-        source: typeName
-      };
-    }
+    const name = node.name;
     
-    // Otherwise, treat as regular identifier
-    return this.compileIdentifier(node as any);
+    return {
+      fn: (ctx: RuntimeContext) => {
+        const input = ctx.focus || ctx.input || [];
+        
+        // First, check if this is a type filter (e.g., Patient in Patient.name)
+        // Check if any input items have this as their resourceType
+        const hasMatchingResourceType = input.some((item: any) => 
+          item && typeof item === 'object' && item.resourceType === name
+        );
+        
+        if (hasMatchingResourceType) {
+          // This is a type filter - return only items matching this resourceType
+          return input.filter((item: any) =>
+            item && typeof item === 'object' && item.resourceType === name
+          );
+        }
+        
+        // Not a type filter, treat as property navigation
+        const results: any[] = [];
+        
+        for (const item of input) {
+          if (item == null || typeof item !== 'object') {
+            continue;
+          }
+          
+          const value = item[name];
+          if (value !== undefined) {
+            if (Array.isArray(value)) {
+              results.push(...value);
+            } else {
+              results.push(value);
+            }
+          }
+        }
+        
+        return results;
+      },
+      type: this.resolveType('Any'),
+      isSingleton: false,
+      source: name
+    };
   }
 
   /**
@@ -420,10 +447,22 @@ export class Compiler implements ICompiler {
     return {
       fn: (ctx: RuntimeContext) => {
         const results: any[] = [];
+        const seen = new Set();
         
         for (const operand of compiledOperands) {
-          const operandResult = operand.fn(ctx);
-          results.push(...operandResult);
+          // Create a fresh context copy for each operand
+          // This prevents variable definitions from leaking between branches
+          const operandCtx = { ...ctx, env: { ...ctx.env } };
+          const operandResult = operand.fn(operandCtx);
+          
+          // Remove duplicates
+          for (const item of operandResult) {
+            const key = JSON.stringify(item);
+            if (!seen.has(key)) {
+              seen.add(key);
+              results.push(item);
+            }
+          }
         }
         
         return results;

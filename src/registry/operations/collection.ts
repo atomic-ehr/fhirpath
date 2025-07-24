@@ -375,7 +375,44 @@ export const unionOperator: Operator = {
     return { value: result, context };
   },
   
-  compile: defaultOperatorCompile
+  compile: (compiler, input, left, right) => {
+    return {
+      fn: (ctx) => {
+        // Evaluate both sides with SEPARATE context copies
+        // This prevents variable definitions from leaking between branches
+        const leftCtx = { ...ctx, env: { ...ctx.env } };
+        const rightCtx = { ...ctx, env: { ...ctx.env } };
+        
+        const leftVal = left.fn(leftCtx);
+        const rightVal = right.fn(rightCtx);
+        
+        // Union removes duplicates
+        const seen = new Set();
+        const result: any[] = [];
+        
+        for (const item of leftVal) {
+          const key = JSON.stringify(item);
+          if (!seen.has(key)) {
+            seen.add(key);
+            result.push(item);
+          }
+        }
+        
+        for (const item of rightVal) {
+          const key = JSON.stringify(item);
+          if (!seen.has(key)) {
+            seen.add(key);
+            result.push(item);
+          }
+        }
+        
+        return result;
+      },
+      type: left.type,
+      isSingleton: false,
+      source: `${left.source || ''} | ${right.source || ''}`
+    };
+  }
 };
 
 // Export all collection operations

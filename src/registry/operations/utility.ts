@@ -285,7 +285,7 @@ export const defineVariableFunction: Function = {
   kind: 'function',
   
   syntax: {
-    notation: 'defineVariable(name, value)'
+    notation: 'defineVariable(name [, value])'
   },
   
   signature: {
@@ -306,7 +306,7 @@ export const defineVariableFunction: Function = {
         kind: 'expression',
         types: { kind: 'any' },
         cardinality: 'collection',
-        optional: false
+        optional: true
       }
     ],
     output: {
@@ -332,21 +332,41 @@ export const defineVariableFunction: Function = {
       throw new Error('defineVariable() requires a string literal as the first parameter');
     }
     
-    // Create a new context where $this refers to the input
-    const valueContext = ContextManager.copy(context);
-    valueContext.env = { ...valueContext.env, $this: input };
+    // Check if the variable is a system variable
+    const systemVariables = ['context', 'resource', 'rootResource', 'ucum', 'sct', 'loinc'];
+    if (systemVariables.includes(varName)) {
+      // Return empty result for system variable redefinition
+      return { value: [], context };
+    }
     
-    const result = interpreter.evaluate(valueExpr, input, valueContext);
-    const newContext = ContextManager.setVariable(result.context, varName, result.value);
-    return { value: input, context: newContext };
+    // Check if the variable is already defined at the current scope level
+    // We only check hasOwnProperty to detect redefinition at the same scope
+    if (context.variables && Object.prototype.hasOwnProperty.call(context.variables, varName)) {
+      // Return empty result for variable redefinition in the same scope
+      return { value: [], context };
+    }
+    
+    let value: any[];
+    
+    if (valueExpr) {
+      // Create a new context where $this refers to the input
+      const valueContext = ContextManager.copy(context);
+      valueContext.env = { ...valueContext.env, $this: input };
+      
+      const result = interpreter.evaluate(valueExpr, input, valueContext);
+      value = result.value;
+      const newContext = ContextManager.setVariable(result.context, varName, value);
+      return { value: input, context: newContext };
+    } else {
+      // If no value expression is provided, use the input collection
+      value = input;
+      const newContext = ContextManager.setVariable(context, varName, value);
+      return { value: input, context: newContext };
+    }
   },
   
   compile: (compiler, input, args) => {
     const [nameExpr, valueExpr] = args;
-    
-    if (!valueExpr) {
-      throw new Error('defineVariable() requires name and value parameters');
-    }
     
     // For defineVariable, the name should be a literal string
     // Try to extract it at compile time
@@ -370,20 +390,41 @@ export const defineVariableFunction: Function = {
     // Return a compiled expression that modifies the context
     return {
       fn: (ctx) => {
+        // Check if the variable is a system variable
+        const systemVariables = ['context', 'resource', 'rootResource', 'ucum', 'sct', 'loinc'];
+        if (systemVariables.includes(varName)) {
+          // Return empty result for system variable redefinition
+          return [];
+        }
+        
+        // Check if the variable is already defined
+        // Since we're modifying ctx.env in place, we need to check if it exists
+        if (varName in ctx.env) {
+          // Return empty result for variable redefinition
+          return [];
+        }
+        
         // Evaluate the input expression
         const inputVal = input.fn(ctx);
         
-        // Create context for evaluating the value expression
-        // Set $this to the input value
-        const valueCtx = { 
-          ...ctx, 
-          input: inputVal, 
-          focus: inputVal,
-          env: { ...ctx.env, $this: inputVal }
-        };
+        let value: any[];
         
-        // Evaluate the value expression
-        const value = valueExpr.fn(valueCtx);
+        if (valueExpr) {
+          // Create context for evaluating the value expression
+          // Set $this to the input value
+          const valueCtx = { 
+            ...ctx, 
+            input: inputVal, 
+            focus: inputVal,
+            env: { ...ctx.env, $this: inputVal }
+          };
+          
+          // Evaluate the value expression
+          value = valueExpr.fn(valueCtx);
+        } else {
+          // If no value expression is provided, use the input collection
+          value = inputVal;
+        }
         
         // IMPORTANT: We need to modify the context object that was passed in
         // so that subsequent operations can see the variable
@@ -395,7 +436,9 @@ export const defineVariableFunction: Function = {
       },
       type: input.type,
       isSingleton: input.isSingleton,
-      source: `${input.source || ''}.defineVariable('${varName}', ${valueExpr.source || ''})`
+      source: valueExpr 
+        ? `${input.source || ''}.defineVariable('${varName}', ${valueExpr.source || ''})`
+        : `${input.source || ''}.defineVariable('${varName}')`
     };
   }
 };
