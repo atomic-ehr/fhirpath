@@ -45,14 +45,8 @@ export class Compiler implements ICompiler {
       ...compiled,
       fn: (ctx: RuntimeContext) => {
         // Ensure $this is set if not already present
-        if (!ctx.env?.$this) {
-          ctx = {
-            ...ctx,
-            env: {
-              ...ctx.env,
-              $this: ctx.input
-            }
-          };
+        if (!RuntimeContextManager.getVariable(ctx, '$this')) {
+          ctx = RuntimeContextManager.setSpecialVariable(ctx, 'this', ctx.input);
         }
         return compiled.fn(ctx);
       }
@@ -231,39 +225,18 @@ export class Compiler implements ICompiler {
     
     return {
       fn: (ctx: RuntimeContext) => {
-        if (name.startsWith('$')) {
-          // Special environment variables
-          switch (name) {
-            case '$this':
-              return ctx.env.$this || [];
-            case '$index':
-              return ctx.env.$index !== undefined ? [ctx.env.$index] : [];
-            case '$total':
-              return ctx.env.$total !== undefined ? [ctx.env.$total] : [];
-            default:
-              throw new EvaluationError(`Unknown special variable: ${name}`, node.position);
+        const value = RuntimeContextManager.getVariable(ctx, name);
+        
+        if (value === undefined) {
+          // Special handling for unknown special variables
+          if (name.startsWith('$') && !['$this', '$index', '$total'].includes(name)) {
+            throw new EvaluationError(`Unknown special variable: ${name}`, node.position);
           }
-        } else {
-          // User-defined variables (remove % prefix if present)
-          const varName = name.startsWith('%') ? name.substring(1) : name;
-          
-          // Special root variables
-          switch (varName) {
-            case 'context':
-              return ctx.env.$context || ctx.input || [];
-            case 'resource':
-              return ctx.env.$resource || ctx.input || [];
-            case 'rootResource':
-              return ctx.env.$rootResource || ctx.input || [];
-            default:
-              const value = ctx.env[varName];
-              if (value === undefined) {
-                return [];
-              }
-              // Wrap non-array values in an array to create a singleton collection
-              return Array.isArray(value) ? value : [value];
-          }
+          return [];
         }
+        
+        // Ensure we always return an array
+        return Array.isArray(value) ? value : [value];
       },
       type: this.resolveType('Any'),
       isSingleton: false,
@@ -442,7 +415,7 @@ export class Compiler implements ICompiler {
         for (const operand of compiledOperands) {
           // Create a fresh context copy for each operand
           // This prevents variable definitions from leaking between branches
-          const operandCtx = { ...ctx, env: { ...ctx.env } };
+          const operandCtx = RuntimeContextManager.copy(ctx);
           const operandResult = operand.fn(operandCtx);
           
           // Remove duplicates
@@ -566,13 +539,7 @@ export function evaluateCompiled(
   const inputCollection = CollectionUtils.toCollection(input);
   
   // Create runtime context
-  const runtimeContext: RuntimeContext = context || {
-    input: inputCollection,
-    focus: inputCollection,
-    env: {
-      $this: inputCollection
-    }
-  };
+  const runtimeContext: RuntimeContext = context || RuntimeContextManager.create(inputCollection);
   
   // Execute the compiled function
   return compiled.fn(runtimeContext);

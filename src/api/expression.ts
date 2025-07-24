@@ -38,11 +38,7 @@ export class FHIRPathExpression implements IFHIRPathExpression {
       const inputArray = input === undefined ? [] : Array.isArray(input) ? input : [input];
       const ctx = this.createContext(context, inputArray);
       
-      return compiled.fn({
-        input: inputArray,
-        focus: inputArray,
-        env: ctx.env || {}
-      });
+      return compiled.fn(ctx);
     };
     
     // Add source property
@@ -135,9 +131,17 @@ export class FHIRPathExpression implements IFHIRPathExpression {
     }
     
     if (evalContext?.environment) {
-      // Environment variables would need to be handled through a different mechanism
-      // as the context.env only supports specific FHIRPath environment variables
-      // TODO: Consider how to handle custom environment variables
+      // Environment variables are stored as regular variables with appropriate prefix
+      for (const [name, value] of Object.entries(evalContext.environment)) {
+        if (name.startsWith('$')) {
+          // Special environment variables
+          const varName = name.substring(1); // Remove $ prefix
+          ctx = RuntimeContextManager.setSpecialVariable(ctx, varName, Array.isArray(value) ? value : [value]);
+        } else {
+          // Regular environment variables
+          ctx = RuntimeContextManager.setVariable(ctx, name, Array.isArray(value) ? value : [value]);
+        }
+      }
     }
     
     // Store custom functions in context for interpreter to access

@@ -9,35 +9,35 @@ describe('RuntimeContext with Prototype Inheritance', () => {
     
     expect(ctx.input).toEqual(input);
     expect(ctx.focus).toEqual(input);
-    expect(ctx.env.$context).toEqual(input);
-    expect(ctx.env.$resource).toEqual(input);
-    expect(ctx.env.$rootResource).toEqual(input);
+    expect(ctx.variables['%context']).toEqual(input);
+    expect(ctx.variables['%resource']).toEqual(input);
+    expect(ctx.variables['%rootResource']).toEqual(input);
   });
 
   it('should inherit properties through prototype chain', () => {
     const input = [{ name: 'John' }];
     const parent = RuntimeContextManager.create(input);
-    parent.env.customProp = 'parent value';
+    parent.variables['%customProp'] = 'parent value';
     
     const child = RuntimeContextManager.copy(parent);
     
     // Child inherits parent's properties
     expect(child.input).toEqual(input);
-    expect(child.env.customProp).toBe('parent value');
-    expect(child.env.$context).toEqual(input);
+    expect(child.variables['%customProp']).toBe('parent value');
+    expect(child.variables['%context']).toEqual(input);
   });
 
   it('should shadow parent properties when modified', () => {
     const parent = RuntimeContextManager.create([1, 2, 3]);
-    parent.env.test = 'parent';
+    parent.variables['%test'] = 'parent';
     
     const child = RuntimeContextManager.copy(parent);
-    child.env.test = 'child';
+    child.variables['%test'] = 'child';
     
     // Child has its own value
-    expect(child.env.test).toBe('child');
+    expect(child.variables['%test']).toBe('child');
     // Parent remains unchanged
-    expect(parent.env.test).toBe('parent');
+    expect(parent.variables['%test']).toBe('parent');
   });
 
   it('should handle iterator context correctly', () => {
@@ -46,13 +46,13 @@ describe('RuntimeContext with Prototype Inheritance', () => {
     
     const iterCtx = RuntimeContextManager.withIterator(base, 'b', 1);
     
-    expect(iterCtx.env.$this).toEqual(['b']);
-    expect(iterCtx.env.$index).toBe(1);
+    expect(iterCtx.variables['$this']).toEqual(['b']);
+    expect(iterCtx.variables['$index']).toBe(1);
     expect(iterCtx.input).toEqual(['b']);
     expect(iterCtx.focus).toEqual(['b']);
     
     // Original context unchanged
-    expect(base.env.$this).toBeUndefined();
+    expect(base.variables['$this']).toBeUndefined();
     expect(base.input).toEqual(input);
   });
 
@@ -84,29 +84,6 @@ describe('RuntimeContext with Prototype Inheritance', () => {
     expect(RuntimeContextManager.getVariable(ctx, 'rootResource')).toEqual(input);
   });
 
-  it('should convert between Context and RuntimeContext', () => {
-    const context = {
-      variables: { x: [1], y: [2] },
-      env: { $this: ['item'], $index: 0 },
-      $context: ['ctx'],
-      $resource: ['res'],
-      $rootResource: ['root']
-    };
-    
-    const rtContext = RuntimeContextManager.fromContext(context as any, ['input']);
-    
-    expect(rtContext.variables?.x).toEqual([1]);
-    expect(rtContext.variables?.y).toEqual([2]);
-    expect(rtContext.env.$this).toEqual(['item']);
-    expect(rtContext.env.$index).toBe(0);
-    expect(rtContext.env.$context).toEqual(['ctx']);
-    
-    // Convert back
-    const backToContext = RuntimeContextManager.toContext(rtContext);
-    expect(backToContext.variables?.x).toEqual([1]);
-    expect(backToContext.env.$this).toEqual(['item']);
-    expect((backToContext as any).$context).toEqual(['ctx']);
-  });
 
   it('should demonstrate memory efficiency with deep nesting', () => {
     let ctx = RuntimeContextManager.create([0]);
@@ -122,9 +99,89 @@ describe('RuntimeContext with Prototype Inheritance', () => {
     expect(RuntimeContextManager.getVariable(ctx, 'var999')).toEqual([999]);
     
     // No deep copying occurred - prototype chain handles inheritance
-    expect(ctx.variables).toHaveProperty('var999');
+    expect(ctx.variables).toHaveProperty('%var999');
     // var0 is in prototype chain, not in own properties
-    expect(Object.prototype.hasOwnProperty.call(ctx.variables, 'var999')).toBe(true);
-    expect(Object.prototype.hasOwnProperty.call(ctx.variables, 'var0')).toBe(false);
+    expect(Object.prototype.hasOwnProperty.call(ctx.variables, '%var999')).toBe(true);
+    expect(Object.prototype.hasOwnProperty.call(ctx.variables, '%var0')).toBe(false);
+  });
+
+  describe('Variable Redefinition', () => {
+    it('should not allow redefinition of user-defined variables', () => {
+      const ctx = RuntimeContextManager.create([]);
+      
+      // First definition should succeed
+      const ctx1 = RuntimeContextManager.setVariable(ctx, 'myVar', [1]);
+      expect(RuntimeContextManager.getVariable(ctx1, 'myVar')).toEqual([1]);
+      
+      // Attempting to redefine should return the same context (no change)
+      const ctx2 = RuntimeContextManager.setVariable(ctx1, 'myVar', [2]);
+      expect(ctx2).toBe(ctx1); // Same reference - no new context created
+      expect(RuntimeContextManager.getVariable(ctx2, 'myVar')).toEqual([1]); // Original value preserved
+    });
+
+    it('should allow redefinition when explicitly allowed', () => {
+      const ctx = RuntimeContextManager.create([]);
+      
+      // First definition
+      const ctx1 = RuntimeContextManager.setVariable(ctx, 'myVar', [1]);
+      expect(RuntimeContextManager.getVariable(ctx1, 'myVar')).toEqual([1]);
+      
+      // Redefinition with allowRedefinition=true
+      const ctx2 = RuntimeContextManager.setVariable(ctx1, 'myVar', [2], true);
+      expect(ctx2).not.toBe(ctx1); // New context created
+      expect(RuntimeContextManager.getVariable(ctx2, 'myVar')).toEqual([2]); // New value
+    });
+
+    it('should not allow redefinition of system variables', () => {
+      const ctx = RuntimeContextManager.create([]);
+      
+      // Attempting to define system variables should return same context
+      const ctx1 = RuntimeContextManager.setVariable(ctx, 'context', ['new']);
+      expect(ctx1).toBe(ctx); // Same reference - no change
+      
+      const ctx2 = RuntimeContextManager.setVariable(ctx, 'resource', ['new']);
+      expect(ctx2).toBe(ctx); // Same reference - no change
+      
+      const ctx3 = RuntimeContextManager.setVariable(ctx, 'ucum', ['new']);
+      expect(ctx3).toBe(ctx); // Same reference - no change
+    });
+
+    it('should allow redefinition of special variables ($this, $index, $total)', () => {
+      const ctx = RuntimeContextManager.create([]);
+      
+      // Set $this
+      const ctx1 = RuntimeContextManager.setSpecialVariable(ctx, 'this', ['first']);
+      expect(RuntimeContextManager.getVariable(ctx1, '$this')).toEqual(['first']);
+      
+      // Redefine $this - should succeed
+      const ctx2 = RuntimeContextManager.setSpecialVariable(ctx1, 'this', ['second']);
+      expect(ctx2).not.toBe(ctx1); // New context created
+      expect(RuntimeContextManager.getVariable(ctx2, '$this')).toEqual(['second']);
+      
+      // Set and redefine $index
+      const ctx3 = RuntimeContextManager.setSpecialVariable(ctx, 'index', 1);
+      const ctx4 = RuntimeContextManager.setSpecialVariable(ctx3, 'index', 2);
+      expect(RuntimeContextManager.getVariable(ctx3, '$index')).toBe(1);
+      expect(RuntimeContextManager.getVariable(ctx4, '$index')).toBe(2);
+      
+      // Set and redefine $total
+      const ctx5 = RuntimeContextManager.setSpecialVariable(ctx, 'total', [10]);
+      const ctx6 = RuntimeContextManager.setSpecialVariable(ctx5, 'total', [20]);
+      expect(RuntimeContextManager.getVariable(ctx5, '$total')).toEqual([10]);
+      expect(RuntimeContextManager.getVariable(ctx6, '$total')).toEqual([20]);
+    });
+
+    it('should handle variable names with % prefix correctly', () => {
+      const ctx = RuntimeContextManager.create([]);
+      
+      // Define with and without % prefix should be the same variable
+      const ctx1 = RuntimeContextManager.setVariable(ctx, 'test', [1]);
+      const ctx2 = RuntimeContextManager.setVariable(ctx1, '%test', [2]);
+      
+      // ctx2 should be same as ctx1 because it's trying to redefine
+      expect(ctx2).toBe(ctx1);
+      expect(RuntimeContextManager.getVariable(ctx2, 'test')).toEqual([1]);
+      expect(RuntimeContextManager.getVariable(ctx2, '%test')).toEqual([1]);
+    });
   });
 });

@@ -1,6 +1,6 @@
 import type { ASTNode } from '../parser/ast';
 import type { TypeRef } from '../analyzer/types';
-import type { Context } from '../interpreter/types';
+import type { RuntimeContext } from '../runtime/context';
 
 // Core expression interface
 export interface FHIRPathExpression {
@@ -27,7 +27,7 @@ export interface EvaluationContext {
 
 // Custom function definition
 export type CustomFunction = (
-  context: Context,
+  context: RuntimeContext,
   input: any[],
   ...args: any[]
 ) => any[];

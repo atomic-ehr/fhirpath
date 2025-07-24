@@ -1,22 +1,17 @@
-import type { Context } from '../interpreter/types';
 
 /**
  * Unified runtime context that works with both interpreter and compiler.
  * Uses prototype-based inheritance for efficient context copying.
+ * 
+ * Variable Storage Convention:
+ * - Special variables: $this, $index, $total (prefixed with $)
+ * - Environment variables: %context, %resource, %rootResource (stored with % prefix)
+ * - User-defined variables: stored with % prefix (e.g., %x, %y)
  */
 export interface RuntimeContext {
   input: any[];
   focus: any[];
-  env: {
-    $this?: any[];
-    $index?: number;
-    $total?: any[];
-    $context?: any[];
-    $resource?: any[];
-    $rootResource?: any[];
-    [key: string]: any;
-  };
-  variables?: Record<string, any[]>;
+  variables: Record<string, any>;
 }
 
 /**
@@ -27,25 +22,28 @@ export class RuntimeContextManager {
   /**
    * Create a new runtime context
    */
-  static create(input: any[], initialEnv?: Record<string, any>): RuntimeContext {
+  static create(input: any[], initialVariables?: Record<string, any>): RuntimeContext {
     const context = Object.create(null) as RuntimeContext;
     
     context.input = input;
     context.focus = input;
     
-    // Create env with null prototype to avoid pollution
-    context.env = Object.create(null);
-    if (initialEnv) {
-      Object.assign(context.env, initialEnv);
-    }
-    
-    // Set root context variables
-    context.env.$context = input;
-    context.env.$resource = input;
-    context.env.$rootResource = input;
-    
-    // Create variables object
+    // Create variables object with null prototype to avoid pollution
     context.variables = Object.create(null);
+    
+    // Set root context variables with % prefix
+    context.variables['%context'] = input;
+    context.variables['%resource'] = input;
+    context.variables['%rootResource'] = input;
+    
+    // Add any initial variables (with % prefix for user-defined)
+    if (initialVariables) {
+      for (const [key, value] of Object.entries(initialVariables)) {
+        // Add % prefix if not already present and not a special variable
+        const varKey = key.startsWith('$') || key.startsWith('%') ? key : `%${key}`;
+        context.variables[varKey] = value;
+      }
+    }
     
     return context;
   }
@@ -58,13 +56,8 @@ export class RuntimeContextManager {
     // Create child context with parent as prototype
     const newContext = Object.create(context) as RuntimeContext;
     
-    // Create child env that inherits from parent's env
-    newContext.env = Object.create(context.env);
-    
     // Create child variables that inherit from parent's variables
-    if (context.variables) {
-      newContext.variables = Object.create(context.variables);
-    }
+    newContext.variables = Object.create(context.variables);
     
     // input and focus are inherited through prototype chain
     // Only set them if they need to change
@@ -83,6 +76,23 @@ export class RuntimeContextManager {
   }
 
   /**
+   * Set special variable ($this, $index, $total)
+   */
+  static setSpecialVariable(context: RuntimeContext, name: string, value: any): RuntimeContext {
+    const newContext = this.copy(context);
+    const varKey = `$${name}`;
+    newContext.variables[varKey] = value;
+    
+    // Update input/focus for $this
+    if (name === 'this' && Array.isArray(value) && value.length === 1) {
+      newContext.input = value;
+      newContext.focus = value;
+    }
+    
+    return newContext;
+  }
+
+  /**
    * Set iterator context ($this, $index)
    */
   static withIterator(
@@ -90,90 +100,59 @@ export class RuntimeContextManager {
     item: any, 
     index: number
   ): RuntimeContext {
-    const newContext = this.copy(context);
-    newContext.env.$this = [item];
-    newContext.env.$index = index;
-    newContext.input = [item];
-    newContext.focus = [item];
+    let newContext = this.setSpecialVariable(context, 'this', [item]);
+    newContext = this.setSpecialVariable(newContext, 'index', index);
     return newContext;
   }
 
   /**
-   * Set a variable in the context
+   * Set a user-defined variable in the context
    */
-  static setVariable(context: RuntimeContext, name: string, value: any[]): RuntimeContext {
-    const newContext = this.copy(context);
-    if (!newContext.variables) {
-      newContext.variables = Object.create(null);
+  static setVariable(context: RuntimeContext, name: string, value: any[], allowRedefinition: boolean = false): RuntimeContext {
+    // Check for system variables
+    const systemVariables = ['context', 'resource', 'rootResource', 'ucum', 'sct', 'loinc'];
+    if (systemVariables.includes(name)) {
+      // Silently return original context for system variable redefinition
+      return context;
     }
-    newContext.variables![name] = value;
+    
+    // Add % prefix for user-defined variables
+    const varKey = name.startsWith('%') ? name : `%${name}`;
+    
+    // Check if variable already exists (unless redefinition is allowed)
+    if (!allowRedefinition && context.variables && Object.prototype.hasOwnProperty.call(context.variables, varKey)) {
+      // Silently return original context for variable redefinition
+      return context;
+    }
+    
+    const newContext = this.copy(context);
+    newContext.variables[varKey] = value;
     return newContext;
   }
 
   /**
-   * Get a variable from context (handles special variables too)
+   * Get a variable from context
    */
-  static getVariable(context: RuntimeContext, name: string): any[] | undefined {
-    // Remove % prefix if present
-    const varName = name.startsWith('%') ? name.substring(1) : name;
-    
-    // Check special variables first
-    switch (varName) {
-      case 'context':
-        return context.env.$context || context.input;
-      case 'resource':
-        return context.env.$resource || context.input;
-      case 'rootResource':
-        return context.env.$rootResource || context.input;
-      default:
-        // Check user-defined variables
-        return context.variables?.[varName];
-    }
-  }
-
-  /**
-   * Convert from interpreter Context to RuntimeContext
-   */
-  static fromContext(context: Context, input: any[]): RuntimeContext {
-    const rtContext = this.create(input);
-    
-    // Copy variables
-    if (context.variables) {
-      rtContext.variables = Object.create(context.variables);
+  static getVariable(context: RuntimeContext, name: string): any | undefined {
+    // Handle special cases
+    if (name === '$this' || name === '$index' || name === '$total') {
+      return context.variables[name];
     }
     
-    // Copy environment
-    Object.assign(rtContext.env, context.env);
+    // Handle environment variables (with or without % prefix)
+    if (name === 'context' || name === '%context') {
+      return context.variables['%context'];
+    }
+    if (name === 'resource' || name === '%resource') {
+      return context.variables['%resource'];
+    }
+    if (name === 'rootResource' || name === '%rootResource') {
+      return context.variables['%rootResource'];
+    }
     
-    // Copy root variables
-    if ((context as any).$context) rtContext.env.$context = (context as any).$context;
-    if ((context as any).$resource) rtContext.env.$resource = (context as any).$resource;
-    if ((context as any).$rootResource) rtContext.env.$rootResource = (context as any).$rootResource;
-    
-    return rtContext;
+    // Handle user-defined variables (add % prefix if not present)
+    const varKey = name.startsWith('%') ? name : `%${name}`;
+    return context.variables[varKey];
   }
 
-  /**
-   * Convert from RuntimeContext to interpreter Context
-   */
-  static toContext(rtContext: RuntimeContext): Context {
-    const context = Object.create(null) as Context;
-    
-    // Copy variables
-    context.variables = rtContext.variables || Object.create(null);
-    
-    // Extract env variables
-    context.env = {
-      $this: rtContext.env.$this,
-      $index: rtContext.env.$index,
-      $total: rtContext.env.$total
-    };
-    
-    // Extract root variables
-    (context as any).$context = rtContext.env.$context;
-    (context as any).$resource = rtContext.env.$resource;
-    (context as any).$rootResource = rtContext.env.$rootResource;
-    
-    return context;
-  }
 }

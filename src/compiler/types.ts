@@ -1,11 +1,12 @@
-import type { Context, EvaluationResult } from '../interpreter/types';
+import type { EvaluationResult } from '../interpreter/types';
+import type { RuntimeContext } from '../runtime/context';
 import type { ASTNode } from '../parser/ast';
 
 /**
  * A compiled FHIRPath node - a JavaScript function that implements
  * the stream-processing model: (input, context) → (output, new context)
  */
-export type CompiledNode = (input: any[], context: Context) => EvaluationResult;
+export type CompiledNode = (input: any[], context: RuntimeContext) => EvaluationResult;
 
 /**
  * A function that compiles a specific AST node type into a JavaScript closure

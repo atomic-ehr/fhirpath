@@ -11,8 +11,6 @@ export interface EvaluationResult {
   context: RuntimeContext;
 }
 
-// Re-export RuntimeContext as Context for backward compatibility
-export type { RuntimeContext as Context } from '../runtime/context';
 
 /**
  * Error thrown during evaluation with position information

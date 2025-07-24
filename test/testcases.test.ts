@@ -138,8 +138,9 @@ describe("Unified FHIRPath Tests", () => {
       if (test.context.env) {
         Object.entries(test.context.env).forEach(([name, value]) => {
           if (name.startsWith('$')) {
-            // Special environment variables go directly in context.env
-            (context.env as any)[name] = value;
+            // Special environment variables
+            const varName = name.substring(1); // Remove $ prefix
+            context = RuntimeContextManager.setSpecialVariable(context, varName, value);
           } else {
             // User-defined variables go in context.variables
             context = RuntimeContextManager.setVariable(context, name, Array.isArray(value) ? value : [value]);
@@ -188,32 +189,8 @@ describe("Unified FHIRPath Tests", () => {
       const ast = parse(test.expression);
       const compiled = compiler.compile(ast);
 
-      // Convert Context to RuntimeContext
-      const runtimeEnv: Record<string, any> = { ...context.env };
-
-      // Copy variables from Context.variables to env
-      for (const key in context.variables) {
-        if (Object.prototype.hasOwnProperty.call(context.variables, key)) {
-          runtimeEnv[key] = context.variables[key]!;
-        }
-      }
-      
-      // Copy special context variables
-      if (context.$context !== undefined) {
-        runtimeEnv.$context = context.$context;
-      }
-      if (context.$resource !== undefined) {
-        runtimeEnv.$resource = context.$resource;
-      }
-      if (context.$rootResource !== undefined) {
-        runtimeEnv.$rootResource = context.$rootResource;
-      }
-
-      const result = compiled.fn({
-        input: test.input,
-        focus: test.input,
-        env: runtimeEnv
-      });
+      // Use the same context for compiler
+      const result = compiled.fn(context);
 
       const endTime = performance.now();
 

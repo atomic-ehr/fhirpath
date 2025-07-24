@@ -16,7 +16,8 @@ import type {
 } from '../parser/ast';
 import { NodeType } from '../parser/ast';
 import { TokenType } from '../lexer/token';
-import type { Context as RuntimeContext, EvaluationResult } from './types';
+import type { EvaluationResult } from './types';
+import type { RuntimeContext } from '../runtime/context';
 import { EvaluationError, CollectionUtils } from './types';
 import { RuntimeContextManager } from '../runtime/context';
 import { TypeSystem } from '../registry/utils/type-system';
@@ -59,14 +60,8 @@ export class Interpreter implements IInterpreter {
   evaluate(node: ASTNode, input: any[], context: RuntimeContext): EvaluationResult {
     try {
       // Ensure $this is set in the context if not already present
-      if (!context.env.$this) {
-        context = {
-          ...context,
-          env: {
-            ...context.env,
-            $this: input
-          }
-        };
+      if (!RuntimeContextManager.getVariable(context, '$this')) {
+        context = RuntimeContextManager.setSpecialVariable(context, 'this', input);
       }
 
       const evaluator = this.nodeEvaluators[node.type];
@@ -167,30 +162,19 @@ export class Interpreter implements IInterpreter {
 
   private evaluateVariable(node: VariableNode, input: any[], context: RuntimeContext): EvaluationResult {
     // Variables ignore input and return value from context
-    let value: any[] = [];
-
-    if (node.name.startsWith('$')) {
-      // Special environment variables - use object lookup
-      const envVarHandlers: Record<string, () => any[]> = {
-        '$this': () => context.env.$this || [],
-        '$index': () => context.env.$index !== undefined ? [context.env.$index] : [],
-        '$total': () => context.env.$total || [],
-      };
-
-      const handler = envVarHandlers[node.name];
-      if (!handler) {
+    const value = RuntimeContextManager.getVariable(context, node.name);
+    
+    if (value === undefined) {
+      // Special handling for unknown special variables
+      if (node.name.startsWith('$') && !['$this', '$index', '$total'].includes(node.name)) {
         throw new EvaluationError(`Unknown special variable: ${node.name}`, node.position);
       }
-      value = handler();
-    } else if (node.name.startsWith('%')) {
-      // Environment variables starting with % - delegate to RuntimeContextManager
-      value = RuntimeContextManager.getVariable(context, node.name) || [];
-    } else {
-      // User-defined variables - RuntimeContextManager.getVariable handles % prefix
-      value = RuntimeContextManager.getVariable(context, node.name) || [];
+      return { value: [], context };
     }
-
-    return { value, context };
+    
+    // Ensure we always return an array
+    const arrayValue = Array.isArray(value) ? value : [value];
+    return { value: arrayValue, context };
   }
 
   private evaluateBinary(node: BinaryNode, input: any[], context: RuntimeContext): EvaluationResult {
@@ -463,18 +447,12 @@ export function evaluateFHIRPath(
   // Convert input to collection
   const inputCollection = CollectionUtils.toCollection(input);
 
-  // Create context if not provided and set initial $this
+  // Create context if not provided
   let evalContext = context || RuntimeContextManager.create(inputCollection);
   
   // Set initial $this to the input collection if not already set
-  if (!evalContext.env.$this) {
-    evalContext = {
-      ...evalContext,
-      env: {
-        ...evalContext.env,
-        $this: inputCollection
-      }
-    };
+  if (!RuntimeContextManager.getVariable(evalContext, '$this')) {
+    evalContext = RuntimeContextManager.setSpecialVariable(evalContext, 'this', inputCollection);
   }
 
   // Create interpreter and evaluate

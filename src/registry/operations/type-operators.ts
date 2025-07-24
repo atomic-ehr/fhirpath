@@ -2,8 +2,9 @@ import { TokenType } from '../../lexer/token';
 import type { Operator } from '../types';
 import type { Analyzer, TypeInfo } from '../types';
 import { EvaluationError } from '../../interpreter/types';
-import type { Context, EvaluationResult } from '../../interpreter/types';
+import type { EvaluationResult } from '../../interpreter/types';
 import type { CompiledExpression } from '../../compiler/types';
+import { RuntimeContextManager } from '../../runtime/context';
 
 // Type operators (is, as) need special handling in the parser
 // They are included here for precedence lookup and keyword registration
@@ -97,7 +98,7 @@ export const isOperator: Operator = {
     else {
       // Try to execute it with empty context to see if it returns a type name
       try {
-        const result = rightExpr.fn({ input: [], focus: [], env: {} });
+        const result = rightExpr.fn(RuntimeContextManager.create([]));
         if (result.length === 1 && typeof result[0] === 'string' && /^[A-Z]/.test(result[0])) {
           staticTypeName = result[0];
         }

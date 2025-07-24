@@ -52,8 +52,8 @@ export const aggregateFunction: Function = {
     
     for (let i = 0; i < input.length; i++) {
       const item = input[i];
-      const iterContext = RuntimeContextManager.withIterator(context, item, i);
-      iterContext.env.$total = total;
+      let iterContext = RuntimeContextManager.withIterator(context, item, i);
+      iterContext = RuntimeContextManager.setSpecialVariable(iterContext, 'total', total);
       
       const result = interpreter.evaluate(aggregatorExpr, [item], iterContext);
       total = result.value;
@@ -325,37 +325,29 @@ export const defineVariableFunction: Function = {
       throw new Error('defineVariable() requires a string literal as the first parameter');
     }
     
-    // Check if the variable is a system variable
-    const systemVariables = ['context', 'resource', 'rootResource', 'ucum', 'sct', 'loinc'];
-    if (systemVariables.includes(varName)) {
-      // Return empty result for system variable redefinition
-      return { value: [], context };
-    }
-    
-    // Check if the variable is already defined at the current scope level
-    // We only check hasOwnProperty to detect redefinition at the same scope
-    if (context.variables && Object.prototype.hasOwnProperty.call(context.variables, varName)) {
-      // Return empty result for variable redefinition in the same scope
-      return { value: [], context };
-    }
-    
     let value: any[];
     
     if (valueExpr) {
       // Create a new context where $this refers to the input
-      const valueContext = RuntimeContextManager.copy(context);
-      valueContext.env = { ...valueContext.env, $this: input };
+      let valueContext = RuntimeContextManager.copy(context);
+      valueContext = RuntimeContextManager.setSpecialVariable(valueContext, 'this', input);
       
       const result = interpreter.evaluate(valueExpr, input, valueContext);
       value = result.value;
-      const newContext = RuntimeContextManager.setVariable(result.context, varName, value);
-      return { value: input, context: newContext };
     } else {
       // If no value expression is provided, use the input collection
       value = input;
-      const newContext = RuntimeContextManager.setVariable(context, varName, value);
-      return { value: input, context: newContext };
     }
+    
+    // Try to set the variable - setVariable will handle redefinition check
+    const newContext = RuntimeContextManager.setVariable(context, varName, value);
+    
+    // If context didn't change, it means redefinition was attempted
+    if (newContext === context) {
+      return { value: [], context };
+    }
+    
+    return { value: input, context: newContext };
   },
   
   compile: (compiler, input, args) => {
@@ -367,7 +359,7 @@ export const defineVariableFunction: Function = {
     
     // The name parameter should evaluate to a constant string
     try {
-      const nameResult = nameExpr?.fn({ input: [], focus: [], env: {} }) || [];
+      const nameResult = nameExpr?.fn(RuntimeContextManager.create([])) || [];
       if (nameResult.length === 1 && typeof nameResult[0] === 'string') {
         varName = nameResult[0];
       }
@@ -383,17 +375,10 @@ export const defineVariableFunction: Function = {
     // Return a compiled expression that modifies the context
     return {
       fn: (ctx) => {
-        // Check if the variable is a system variable
-        const systemVariables = ['context', 'resource', 'rootResource', 'ucum', 'sct', 'loinc'];
-        if (systemVariables.includes(varName)) {
-          // Return empty result for system variable redefinition
-          return [];
-        }
-        
-        // Check if the variable is already defined
-        // Since we're modifying ctx.env in place, we need to check if it exists
-        if (varName in ctx.env) {
-          // Return empty result for variable redefinition
+        // Check if variable is already defined before evaluating expressions
+        const existingValue = RuntimeContextManager.getVariable(ctx, varName);
+        if (existingValue !== undefined) {
+          // Variable already exists, return empty
           return [];
         }
         
@@ -405,8 +390,8 @@ export const defineVariableFunction: Function = {
         if (valueExpr) {
           // Create context for evaluating the value expression
           // Set $this to the input value
-          const valueCtx = RuntimeContextManager.withInput(ctx, inputVal);
-          valueCtx.env.$this = inputVal;
+          let valueCtx = RuntimeContextManager.withInput(ctx, inputVal);
+          valueCtx = RuntimeContextManager.setSpecialVariable(valueCtx, 'this', inputVal);
           
           // Evaluate the value expression
           value = valueExpr.fn(valueCtx);
@@ -415,10 +400,12 @@ export const defineVariableFunction: Function = {
           value = inputVal;
         }
         
-        // IMPORTANT: We need to modify the context object that was passed in
-        // so that subsequent operations can see the variable
-        // This is done by modifying the env object in place
-        ctx.env[varName] = value;
+        // Set the variable - we already checked it doesn't exist
+        const newCtx = RuntimeContextManager.setVariable(ctx, varName, value, true); // allow setting since we checked
+        
+        // IMPORTANT: For the compiler version, we need to propagate the variable
+        // to the parent context by copying the variables object
+        Object.assign(ctx.variables, newCtx.variables);
         
         // Return the original input (not the value)
         return inputVal;
