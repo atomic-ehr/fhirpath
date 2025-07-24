@@ -12,7 +12,7 @@
       "import": "./dist/index.js"
     }
   },
-  "files": [ "dist", "src" ],
+  "files": ["dist", "src"],
   "scripts": {
     "build": "bun build src/index.ts --outdir=dist --target=node && bunx tsc --emitDeclarationOnly --declaration --outDir dist",
     "test": "bun test",
@@ -23,7 +23,7 @@
     "type": "git",
     "url": "git+https://github.com/atomic-ehr/fhirpath.git"
   },
-  "keywords": [ "fhir", "fhirpath", "healthcare", "typescript" ],
+  "keywords": ["fhir", "fhirpath", "healthcare", "typescript"],
   "author": "Atomic EHR Team",
   "license": "MIT",
   "bugs": {
@@ -31,6 +31,7 @@
   },
   "homepage": "https://github.com/atomic-ehr/fhirpath#readme",
   "devDependencies": {
+    "@rgrove/parse-xml": "^4.2.0",
     "@types/bun": "latest",
     "typescript": "^5"
   },

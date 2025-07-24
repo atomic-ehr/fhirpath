@@ -4,7 +4,9 @@
     "": {
       "name": "@atomic-ehr/fhirpath",
       "devDependencies": {
+        "@rgrove/parse-xml": "^4.2.0",
         "@types/bun": "latest",
+        "typescript": "^5",
       },
       "peerDependencies": {
         "typescript": "^5",
@@ -12,6 +14,8 @@
     },
   },
   "packages": {
+    "@rgrove/parse-xml": ["@rgrove/parse-xml@4.2.0", "", {}, "sha512-UuBOt7BOsKVOkFXRe4Ypd/lADuNIfqJXv8GvHqtXaTYXPPKkj2nS2zPllVsrtRjcomDhIJVBnZwfmlI222WH8g=="],
+
     "@types/bun": ["@types/bun@1.2.18", "", { "dependencies": { "bun-types": "1.2.18" } }, "sha512-Xf6RaWVheyemaThV0kUfaAUvCNokFr+bH8Jxp+tTZfx7dAPA8z9ePnP9S9+Vspzuxxx9JRAXhnyccRj3GyCMdQ=="],
 
     "@types/node": ["@types/node@24.0.14", "", { "dependencies": { "undici-types": "~7.8.0" } }, "sha512-4zXMWD91vBLGRtHK3YbIoFMia+1nqEz72coM42C5ETjnNCa/heoj7NT1G67iAfOqMmcfhuCZ4uNpyz8EjlAejw=="],

@@ -15,6 +15,7 @@ Please be concise and to the point.
    When working on tasks move files to ./tasks/in-progress/<filename>.md
    When task finished move files to ./tasks/done/<filename>.md and write what was done in this file.
 * ./test is a folder for tests - tests should be named as ./test/<filename>.test.ts by convention.
+* ./tmp use this folder for temporary scripts and files during debugging and development.
 
 ## Architecture Decisions
 

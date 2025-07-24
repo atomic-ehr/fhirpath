@@ -184,6 +184,93 @@
         "chain",
         "deep"
       ]
+    },
+    {
+      "name": "resource type navigation - Patient.name",
+      "expression": "Patient.name",
+      "input": [
+        {
+          "resourceType": "Patient",
+          "id": "example",
+          "name": [
+            {
+              "use": "official",
+              "family": "Chalmers",
+              "given": ["Peter", "James"]
+            },
+            {
+              "use": "usual",
+              "given": ["Jim"]
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "use": "official",
+          "family": "Chalmers",
+          "given": ["Peter", "James"]
+        },
+        {
+          "use": "usual",
+          "given": ["Jim"]
+        }
+      ],
+      "tags": [
+        "navigation",
+        "resource-type",
+        "fhir"
+      ]
+    },
+    {
+      "name": "resource type navigation - deep path",
+      "expression": "Patient.name.given",
+      "input": [
+        {
+          "resourceType": "Patient",
+          "id": "example",
+          "name": [
+            {
+              "use": "official",
+              "family": "Chalmers",
+              "given": ["Peter", "James"]
+            },
+            {
+              "use": "usual",
+              "given": ["Jim"]
+            }
+          ]
+        }
+      ],
+      "expected": [
+        "Peter",
+        "James",
+        "Jim"
+      ],
+      "tags": [
+        "navigation",
+        "resource-type",
+        "fhir",
+        "deep"
+      ]
+    },
+    {
+      "name": "resource type navigation - wrong type",
+      "expression": "Patient.name",
+      "input": [
+        {
+          "resourceType": "Observation",
+          "id": "example",
+          "name": "This should not be returned"
+        }
+      ],
+      "expected": [],
+      "tags": [
+        "navigation",
+        "resource-type",
+        "fhir",
+        "type-check"
+      ]
     }
   ]
 }
