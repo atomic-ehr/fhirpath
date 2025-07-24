@@ -40,8 +40,7 @@ export class FHIRPathExpression implements IFHIRPathExpression {
       
       return compiled.fn({
         input: inputArray,
-        env: ctx.env || {},
-        focus: inputArray.length > 0 ? inputArray[0] : undefined
+        env: ctx.env || {}
       });
     };
     
