@@ -2,7 +2,7 @@
 import './registry';
 
 // Core API functions
-import { parse, evaluate, compile, analyze, registry } from './api/index';
+import { parse, evaluate, compile, analyze, registry } from './api';
 
 // Default export with common operations
 export default {
@@ -29,24 +29,48 @@ export type {
   CompileOptions,
   AnalyzeOptions,
   AnalysisResult,
-  
+
   // Error types
   AnalysisError,
   AnalysisWarning,
   Location,
-  
+
   // Extension types
   ModelProvider,
   PropertyDefinition,
   CustomFunction,
   CustomFunctionMap,
-  
+
   // Registry types
   RegistryAPI,
   OperationMetadata,
   OperationInfo,
-  
+
   // Builder types
   FHIRPathBuilder,
   FHIRPathAPI
 } from './api/types';
+
+// Export AST types for LSP server
+export type {
+  ASTNode,
+  Position,
+  IdentifierNode,
+  BinaryNode,
+  UnaryNode,
+  UnionNode,
+  FunctionNode,
+  LiteralNode,
+  VariableNode,
+  CollectionNode,
+  MembershipTestNode,
+  TypeCastNode,
+  TypeReferenceNode,
+  IndexNode
+} from './parser/ast';
+
+export { NodeType } from './parser/ast';
+
+// Export lexer types for LSP server
+export { TokenType } from './lexer/token';
+export type { Token } from './lexer/token';
