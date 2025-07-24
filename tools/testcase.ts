@@ -67,35 +67,35 @@ if (args[0] === "--tags") {
   const testCasesDir = join(__dirname, "../test-cases");
   const allTags = new Set<string>();
   const tagCounts = new Map<string, number>();
-  
+
   // Function to recursively find all JSON files
   function findJsonFiles(dir: string): string[] {
     const files: string[] = [];
     const entries = readdirSync(dir);
-    
+
     for (const entry of entries) {
       const fullPath = join(dir, entry);
       const stat = statSync(fullPath);
-      
+
       if (stat.isDirectory()) {
         files.push(...findJsonFiles(fullPath));
       } else if (entry.endsWith(".json")) {
         files.push(fullPath);
       }
     }
-    
+
     return files;
   }
-  
+
   // Find all test files
   const jsonFiles = findJsonFiles(testCasesDir);
-  
+
   // Extract tags from each file
   jsonFiles.forEach(file => {
     try {
       const content = readFileSync(file, "utf-8");
       const suite = JSON.parse(content);
-      
+
       if (suite.tests && Array.isArray(suite.tests)) {
         suite.tests.forEach((test: any) => {
           if (test.tags && Array.isArray(test.tags)) {
@@ -110,17 +110,17 @@ if (args[0] === "--tags") {
       // Skip files that can't be parsed
     }
   });
-  
+
   // Sort tags alphabetically
   const sortedTags = Array.from(allTags).sort();
-  
+
   console.log(`\n🏷️  Unique Tags in Test Cases\n`);
   console.log(`Total unique tags: ${sortedTags.length}\n`);
-  
+
   // Group tags by category (if they have prefixes)
   const categorizedTags = new Map<string, string[]>();
   const uncategorized: string[] = [];
-  
+
   sortedTags.forEach(tag => {
     if (tag.includes("-")) {
       const category = tag.split("-")[0]!;
@@ -132,7 +132,7 @@ if (args[0] === "--tags") {
       uncategorized.push(tag);
     }
   });
-  
+
   // Display categorized tags
   if (uncategorized.length > 0) {
     console.log("General tags:");
@@ -141,7 +141,7 @@ if (args[0] === "--tags") {
     });
     console.log("");
   }
-  
+
   // Display tags by category
   Array.from(categorizedTags.entries())
     .sort((a, b) => a[0].localeCompare(b[0]))
@@ -152,7 +152,7 @@ if (args[0] === "--tags") {
       });
       console.log("");
     });
-  
+
   process.exit(0);
 }
 
@@ -163,7 +163,7 @@ if (args[0] === "--tag") {
     console.log("Example: bun tools/testcase.ts --tag arithmetic");
     process.exit(1);
   }
-  
+
   const searchTag = args[1];
   const testCasesDir = join(__dirname, "../test-cases");
   const matchingTests: Array<{
@@ -172,35 +172,35 @@ if (args[0] === "--tag") {
     expression: string;
     file: string;
   }> = [];
-  
+
   // Function to recursively find all JSON files
   function findJsonFiles(dir: string): string[] {
     const files: string[] = [];
     const entries = readdirSync(dir);
-    
+
     for (const entry of entries) {
       const fullPath = join(dir, entry);
       const stat = statSync(fullPath);
-      
+
       if (stat.isDirectory()) {
         files.push(...findJsonFiles(fullPath));
       } else if (entry.endsWith(".json")) {
         files.push(fullPath);
       }
     }
-    
+
     return files;
   }
-  
+
   // Find all test files
   const jsonFiles = findJsonFiles(testCasesDir);
-  
+
   // Search for tests with the specified tag
   jsonFiles.forEach(file => {
     try {
       const content = readFileSync(file, "utf-8");
       const suite = JSON.parse(content);
-      
+
       if (suite.tests && Array.isArray(suite.tests)) {
         suite.tests.forEach((test: any) => {
           if (test.tags && Array.isArray(test.tags) && test.tags.includes(searchTag)) {
@@ -218,15 +218,15 @@ if (args[0] === "--tag") {
       // Skip files that can't be parsed
     }
   });
-  
+
   // Display results
   console.log(`\n🏷️  Tests with tag: "${searchTag}"\n`);
-  
+
   if (matchingTests.length === 0) {
     console.log(`No tests found with tag "${searchTag}"`);
   } else {
     console.log(`Found ${matchingTests.length} tests:\n`);
-    
+
     // Group by file
     const byFile = new Map<string, typeof matchingTests>();
     matchingTests.forEach(test => {
@@ -235,7 +235,7 @@ if (args[0] === "--tag") {
       }
       byFile.get(test.file)!.push(test);
     });
-    
+
     // Display grouped by file
     Array.from(byFile.entries())
       .sort((a, b) => a[0].localeCompare(b[0]))
@@ -247,7 +247,7 @@ if (args[0] === "--tag") {
         console.log("");
       });
   }
-  
+
   process.exit(0);
 }
 
@@ -264,71 +264,71 @@ if (args[0] === "--failing" || args[0] === "--failing-commands") {
     interpreterFailed: boolean;
     compilerFailed: boolean;
   }> = [];
-  
+
   if (!commandsOnly) {
     console.log("\n🔍 Checking all tests for failures...\n");
   }
-  
+
   // Import test helpers
   const { loadTestSuite, runSingleTest } = require("./lib/test-helpers");
-  
+
   // Function to recursively find all JSON files
   function findJsonFiles(dir: string): string[] {
     const files: string[] = [];
     const entries = readdirSync(dir);
-    
+
     for (const entry of entries) {
       const fullPath = join(dir, entry);
       const stat = statSync(fullPath);
-      
+
       if (stat.isDirectory()) {
         files.push(...findJsonFiles(fullPath));
       } else if (entry.endsWith(".json")) {
         files.push(fullPath);
       }
     }
-    
+
     return files;
   }
-  
+
   // Find all test files
   const jsonFiles = findJsonFiles(testCasesDir);
-  
+
   // Check each test
   jsonFiles.forEach(file => {
     try {
       const suite = loadTestSuite(file);
-      
+
       suite.tests.forEach((test: any) => {
         // Skip tests that are marked as skip or pending
         if ((test.skip?.interpreter && test.skip?.compiler) || test.pending) {
           return;
         }
-        
+
         // Run the test silently by temporarily redirecting console
         const originalLog = console.log;
         const originalError = console.error;
         console.log = () => {};
         console.error = () => {};
-        
+
         const result = runSingleTest(test, 'both');
-        
+
         // Restore console
         console.log = originalLog;
         console.error = originalError;
-        
-        const interpreterFailed = result.interpreter && 
+
+        const interpreterFailed = result.interpreter &&
           !result.interpreter.pending &&
-          (!result.interpreter.success && !result.interpreter.expectedError) || 
+          (!result.interpreter.success && !result.interpreter.expectedError) ||
           (result.interpreter.value !== undefined && JSON.stringify(result.interpreter.value) !== JSON.stringify(test.expected));
-        const compilerFailed = result.compiler && 
+        const compilerFailed = result.compiler &&
           !result.compiler.pending &&
-          (!result.compiler.success && !result.compiler.expectedError) || 
+          (!result.compiler.success && !result.compiler.expectedError) ||
           (result.compiler.value !== undefined && JSON.stringify(result.compiler.value) !== JSON.stringify(test.expected));
-        
+
         if (interpreterFailed || compilerFailed) {
           const relativePath = file.replace(testCasesDir + "/", "");
-          
+
           let error = "";
           if (result.interpreter && !result.interpreter.success) {
             error = `Interpreter: ${result.interpreter.error}`;
@@ -337,7 +337,7 @@ if (args[0] === "--failing" || args[0] === "--failing-commands") {
           } else if (interpreterFailed && compilerFailed) {
             error = "Results don't match expected";
           }
-          
+
           failingTests.push({
             suite: suite.name || basename(file),
             test: test.name,
@@ -353,7 +353,7 @@ if (args[0] === "--failing" || args[0] === "--failing-commands") {
       // Skip files that can't be parsed
     }
   });
-  
+
   // Display results
   if (commandsOnly) {
     // Just output the commands for easy scripting
@@ -366,19 +366,19 @@ if (args[0] === "--failing" || args[0] === "--failing-commands") {
     }
   } else {
     console.log(`\n❌ Failing Tests\n`);
-    
+
     if (failingTests.length === 0) {
       console.log("✅ All tests are passing!");
     } else {
       console.log(`Found ${failingTests.length} failing tests:\n`);
-      
+
       // Display all tests with their debug commands
       failingTests.forEach((test, index) => {
-        const failureInfo = [];
+        const failureInfo: string[] = [];
         if (test.interpreterFailed) failureInfo.push("I");
         if (test.compilerFailed) failureInfo.push("C");
         const failureMarker = `[${failureInfo.join("/")}]`;
-        
+
         console.log(`${index + 1}. ${test.test} ${failureMarker}`);
         console.log(`   Expression: ${test.expression}`);
         if (test.error) {
@@ -387,11 +387,11 @@ if (args[0] === "--failing" || args[0] === "--failing-commands") {
         console.log(`   Run: bun tools/testcase.ts ${test.file} "${test.test}"`);
         console.log("");
       });
-      
+
       console.log("💡 Legend: [I] = Interpreter failed, [C] = Compiler failed, [I/C] = Both failed");
     }
   }
-  
+
   process.exit(failingTests.length > 0 ? 1 : 0);
 }
 
@@ -405,37 +405,37 @@ if (args[0] === "--pending") {
     file: string;
     reason?: string;
   }> = [];
-  
+
   console.log("\n⏳ Finding all pending tests...\n");
-  
+
   // Function to recursively find all JSON files
   function findJsonFiles(dir: string): string[] {
     const files: string[] = [];
     const entries = readdirSync(dir);
-    
+
     for (const entry of entries) {
       const fullPath = join(dir, entry);
       const stat = statSync(fullPath);
-      
+
       if (stat.isDirectory()) {
         files.push(...findJsonFiles(fullPath));
       } else if (entry.endsWith(".json")) {
         files.push(fullPath);
       }
     }
-    
+
     return files;
   }
-  
+
   // Find all test files
   const jsonFiles = findJsonFiles(testCasesDir);
-  
+
   // Search for pending tests
   jsonFiles.forEach(file => {
     try {
       const content = readFileSync(file, "utf-8");
       const suite = JSON.parse(content);
-      
+
       if (suite.tests && Array.isArray(suite.tests)) {
         suite.tests.forEach((test: any) => {
           if (test.pending) {
@@ -454,15 +454,15 @@ if (args[0] === "--pending") {
       // Skip files that can't be parsed
     }
   });
-  
+
   // Display results
   console.log(`⏳ Pending Tests\n`);
-  
+
   if (pendingTests.length === 0) {
     console.log("✅ No pending tests found!");
   } else {
     console.log(`Found ${pendingTests.length} pending tests:\n`);
-    
+
     // Group by file
     const byFile = new Map<string, typeof pendingTests>();
     pendingTests.forEach(test => {
@@ -471,7 +471,7 @@ if (args[0] === "--pending") {
       }
       byFile.get(test.file)!.push(test);
     });
-    
+
     // Display grouped by file
     Array.from(byFile.entries())
       .sort((a, b) => a[0].localeCompare(b[0]))
@@ -488,7 +488,7 @@ if (args[0] === "--pending") {
         console.log("");
       });
   }
-  
+
   process.exit(0);
 }
 
@@ -496,13 +496,13 @@ if (args[0] === "--pending") {
 if (args[0] === "--watch") {
   const testCasesDir = join(__dirname, "../test-cases");
   const { watch } = require("fs");
-  
+
   console.log("\n👁️  Watch Mode - Monitoring failing tests...\n");
   console.log("Press Ctrl+C to exit\n");
-  
+
   // Import test helpers at module level
   const { runSingleTest } = require("./lib/test-helpers");
-  
+
   // Function to find all failing tests
   function findFailingTests(): Array<{
     suite: string;
@@ -522,64 +522,64 @@ if (args[0] === "--watch") {
       interpreterFailed: boolean;
       compilerFailed: boolean;
     }> = [];
-    
+
     // Function to recursively find all JSON files
     function findJsonFiles(dir: string): string[] {
       const files: string[] = [];
       const entries = readdirSync(dir);
-      
+
       for (const entry of entries) {
         const fullPath = join(dir, entry);
         const stat = statSync(fullPath);
-        
+
         if (stat.isDirectory()) {
           files.push(...findJsonFiles(fullPath));
         } else if (entry.endsWith(".json")) {
           files.push(fullPath);
         }
       }
-      
+
       return files;
     }
-    
+
     // Find all test files
     const jsonFiles = findJsonFiles(testCasesDir);
-    
+
     // Check each test
     jsonFiles.forEach(file => {
       try {
         const suite = loadTestSuite(file);
-        
+
         suite.tests.forEach((test: any) => {
           // Skip tests that are marked as skip or pending
           if ((test.skip?.interpreter && test.skip?.compiler) || test.pending) {
             return;
           }
-          
+
           // Run the test silently
           const originalLog = console.log;
           const originalError = console.error;
           console.log = () => {};
           console.error = () => {};
-          
+
           const result = runSingleTest(test, 'both');
-          
+
           // Restore console
           console.log = originalLog;
           console.error = originalError;
-          
-          const interpreterFailed = result.interpreter && 
+
+          const interpreterFailed = result.interpreter &&
             !result.interpreter.pending &&
-            (!result.interpreter.success && !result.interpreter.expectedError) || 
+            (!result.interpreter.success && !result.interpreter.expectedError) ||
             (result.interpreter.value !== undefined && JSON.stringify(result.interpreter.value) !== JSON.stringify(test.expected));
-          const compilerFailed = result.compiler && 
+          const compilerFailed = result.compiler &&
             !result.compiler.pending &&
-            (!result.compiler.success && !result.compiler.expectedError) || 
+            (!result.compiler.success && !result.compiler.expectedError) ||
             (result.compiler.value !== undefined && JSON.stringify(result.compiler.value) !== JSON.stringify(test.expected));
-          
+
           if (interpreterFailed || compilerFailed) {
             const relativePath = file.replace(testCasesDir + "/", "");
-            
+
             failingTests.push({
               suite: suite.name || basename(file),
               test: test.name,
@@ -595,24 +595,24 @@ if (args[0] === "--watch") {
         // Skip files that can't be parsed
       }
     });
-    
+
     return failingTests;
   }
-  
+
   // Run failing tests
   function runFailingTests() {
     console.clear();
     console.log("\n👁️  Watch Mode - Re-running failing tests...\n");
-    
+
     const failingTests = findFailingTests();
-    
+
     if (failingTests.length === 0) {
       console.log("✅ All tests are passing!");
       return;
     }
-    
+
     console.log(`Found ${failingTests.length} failing tests\n`);
-    
+
     // Group by file for better output
     const byFile = new Map<string, typeof failingTests>();
     failingTests.forEach(test => {
@@ -621,11 +621,11 @@ if (args[0] === "--watch") {
       }
       byFile.get(test.file)!.push(test);
     });
-    
+
     // Run tests file by file
     Array.from(byFile.entries()).forEach(([file, tests]) => {
       console.log(`\n📄 ${file}:`);
-      
+
       tests.forEach(test => {
         // Run the test with output
         console.log(`\n🧪 ${test.test}`);
@@ -636,16 +636,16 @@ if (args[0] === "--watch") {
         }
       });
     });
-    
+
     console.log("\n⏳ Watching for changes...");
   }
-  
+
   // Initial run
   runFailingTests();
-  
+
   // Watch for changes
   const watchers: any[] = [];
-  
+
   // Watch test case files
   watchers.push(watch(testCasesDir, { recursive: true }, (_eventType: string, filename: string) => {
     if (filename && filename.endsWith('.json')) {
@@ -653,7 +653,7 @@ if (args[0] === "--watch") {
       setTimeout(runFailingTests, 100); // Small delay to ensure file write is complete
     }
   }));
-  
+
   // Watch source files
   const srcDir = join(__dirname, "../src");
   watchers.push(watch(srcDir, { recursive: true }, (_eventType: string, filename: string) => {
@@ -662,14 +662,14 @@ if (args[0] === "--watch") {
       setTimeout(runFailingTests, 100);
     }
   }));
-  
+
   // Handle cleanup
   process.on('SIGINT', () => {
     console.log('\n\n👋 Exiting watch mode...');
     watchers.forEach(watcher => watcher.close());
     process.exit(0);
   });
-  
+
   // Keep the process running
   process.stdin.resume();
 }
@@ -685,8 +685,8 @@ if (!testFile) {
 }
 
 // Build the full path
-const testPath = testFile.startsWith("/") || testFile.startsWith("../") 
-  ? testFile 
+const testPath = testFile.startsWith("/") || testFile.startsWith("../")
+  ? testFile
   : join(__dirname, "../test-cases", testFile);
 
 // Check if listing tests
@@ -699,7 +699,7 @@ if (testName === "--list") {
     }
     console.log(`\n📊 Total tests: ${suite.tests.length}`);
     console.log("\n🧪 Tests:");
-    
+
     suite.tests.forEach((test, index) => {
       const status = test.skip ? " (skipped)" : "";
       const tags = test.tags ? ` [${test.tags.join(", ")}]` : "";

@@ -1,7 +1,7 @@
-import type { 
-  ASTNode, 
-  LiteralNode, 
-  IdentifierNode, 
+import type {
+  ASTNode,
+  LiteralNode,
+  IdentifierNode,
   VariableNode,
   BinaryNode,
   UnaryNode,
@@ -32,7 +32,7 @@ type NodeEvaluator = (node: any, input: any[], context: Context) => EvaluationRe
 /**
  * FHIRPath Interpreter - evaluates AST nodes following the stream-processing model.
  * Every node is a processing unit: (input, context) → (output, new context)
- * 
+ *
  * This refactored version uses object lookup instead of switch statements.
  */
 export class Interpreter implements IInterpreter {
@@ -68,16 +68,16 @@ export class Interpreter implements IInterpreter {
           }
         };
       }
-      
+
       const evaluator = this.nodeEvaluators[node.type];
-      
+
       if (!evaluator) {
         throw new EvaluationError(
           `Unknown node type: ${node.type}`,
           node.position
         );
       }
-      
+
       return evaluator(node, input, context);
     } catch (error) {
       // Add position information if not already present
@@ -93,7 +93,7 @@ export class Interpreter implements IInterpreter {
     if (node.operation && node.operation.kind === 'literal') {
       return node.operation.evaluate(this, context, input);
     }
-    
+
     // Fallback for legacy literals
     const value = node.value === null ? [] : [node.value];
     return { value, context };
@@ -102,12 +102,12 @@ export class Interpreter implements IInterpreter {
   private evaluateIdentifier(node: IdentifierNode, input: any[], context: Context): EvaluationResult {
     // Check if this identifier could be a resource type name
     // Resource types in FHIR typically start with uppercase
-    if (node.name[0] === node.name[0].toUpperCase()) {
+    if (node.name[0] === node?.name?.[0]?.toUpperCase()) {
       // Check if any input items have this as their resourceType
-      const hasMatchingResourceType = input.some(item => 
+      const hasMatchingResourceType = input.some(item =>
         item && typeof item === 'object' && item.resourceType === node.name
       );
-      
+
       if (hasMatchingResourceType) {
         // This is a type filter - return only items matching this resourceType
         const filtered = input.filter(item =>
@@ -116,16 +116,16 @@ export class Interpreter implements IInterpreter {
         return { value: filtered, context };
       }
     }
-    
+
     // Regular property navigation
     const results: any[] = [];
-    
+
     for (const item of input) {
       if (item == null || typeof item !== 'object') {
         // Primitives don't have properties - skip
         continue;
       }
-      
+
       const value = item[node.name];
       if (value !== undefined) {
         // Add to results - flatten if array
@@ -137,22 +137,22 @@ export class Interpreter implements IInterpreter {
       }
       // Missing properties return empty (not added to results)
     }
-    
+
     return { value: results, context };
   }
 
   private evaluateTypeOrIdentifier(node: TypeOrIdentifierNode, input: any[], context: Context): EvaluationResult {
     // TypeOrIdentifier can act as either a type reference or property navigation
-    
+
     // First, check if this is a known type name (e.g., Patient, Observation)
     // In FHIR context, type names match resourceType values
     const possibleTypeName = node.name;
-    
+
     // Check if any input items have this as their resourceType
-    const hasMatchingResourceType = input.some(item => 
+    const hasMatchingResourceType = input.some(item =>
       item && typeof item === 'object' && item.resourceType === possibleTypeName
     );
-    
+
     if (hasMatchingResourceType) {
       // This is a type filter - return only items matching this resourceType
       const filtered = input.filter(item =>
@@ -160,7 +160,7 @@ export class Interpreter implements IInterpreter {
       );
       return { value: filtered, context };
     }
-    
+
     // Not a type filter, treat as property navigation
     return this.evaluateIdentifier(node as any, input, context);
   }
@@ -168,7 +168,7 @@ export class Interpreter implements IInterpreter {
   private evaluateVariable(node: VariableNode, input: any[], context: Context): EvaluationResult {
     // Variables ignore input and return value from context
     let value: any[] = [];
-    
+
     if (node.name.startsWith('$')) {
       // Special environment variables - use object lookup
       const envVarHandlers: Record<string, () => any[]> = {
@@ -176,7 +176,7 @@ export class Interpreter implements IInterpreter {
         '$index': () => context.env.$index !== undefined ? [context.env.$index] : [],
         '$total': () => context.env.$total || [],
       };
-      
+
       const handler = envVarHandlers[node.name];
       if (!handler) {
         throw new EvaluationError(`Unknown special variable: ${node.name}`, node.position);
@@ -187,7 +187,7 @@ export class Interpreter implements IInterpreter {
       const varName = node.name.startsWith('%') ? node.name.substring(1) : node.name;
       value = ContextManager.getVariable(context, varName) || [];
     }
-    
+
     return { value, context };
   }
 
@@ -196,13 +196,13 @@ export class Interpreter implements IInterpreter {
     if (node.operator === TokenType.DOT) {
       // Phase 1: Evaluate left with original input/context
       const leftResult = this.evaluate(node.left, input, context);
-      
+
       // Phase 2: Evaluate right with left's output as input
       const rightResult = this.evaluate(node.right, leftResult.value, leftResult.context);
-      
+
       return rightResult;
     }
-    
+
     // Handle case where parser incorrectly creates BinaryNode for unary minus
     if (!node.left && !node.right && (node as any).operand) {
       // This is actually a unary operation
@@ -218,24 +218,24 @@ export class Interpreter implements IInterpreter {
     if (!operation || operation.kind !== 'operator') {
       throw new EvaluationError(`Unknown operator: ${node.operator}`, node.position);
     }
-    
+
     if (!node.left || !node.right) {
       throw new EvaluationError(`Binary operator ${node.operator} missing operands`, node.position);
     }
-    
+
     // Special handling for union operator - both sides should use the same context
     if (node.operator === TokenType.PIPE) {
       const leftResult = this.evaluate(node.left, input, context);
       const rightResult = this.evaluate(node.right, input, context); // Use original context, not leftResult.context
-      
+
       // Use operation's evaluate method
       return operation.evaluate(this, context, input, leftResult.value, rightResult.value);
     }
-    
+
     // Normal operators - context flows from left to right
     const leftResult = this.evaluate(node.left, input, context);
     const rightResult = this.evaluate(node.right, input, leftResult.context);
-    
+
     // Use operation's evaluate method
     return operation.evaluate(this, rightResult.context, input, leftResult.value, rightResult.value);
   }
@@ -247,10 +247,10 @@ export class Interpreter implements IInterpreter {
     if (!operation || operation.kind !== 'operator') {
       throw new EvaluationError(`Unknown unary operator: ${node.operator}`, node.position);
     }
-    
+
     // Evaluate operand
     const operandResult = this.evaluate(node.operand, input, context);
-    
+
     // Use operation's evaluate method
     return operation.evaluate(this, operandResult.context, input, operandResult.value);
   }
@@ -259,18 +259,18 @@ export class Interpreter implements IInterpreter {
     // Extract function name and handle method call syntax
     let funcName: string;
     let functionInput = input;
-    
+
     if (node.name.type === NodeType.Identifier) {
       funcName = (node.name as IdentifierNode).name;
     } else if (node.name.type === NodeType.Binary && (node.name as BinaryNode).operator === TokenType.DOT) {
       // Method call syntax: expression.function(args)
       const binaryNode = node.name as BinaryNode;
-      
+
       // Evaluate the left side to get the input
       const leftResult = this.evaluate(binaryNode.left, input, context);
       functionInput = leftResult.value;
       context = leftResult.context;
-      
+
       // Get the function name from the right side
       if (binaryNode.right.type === NodeType.Identifier) {
         funcName = (binaryNode.right as IdentifierNode).name;
@@ -280,11 +280,11 @@ export class Interpreter implements IInterpreter {
     } else {
       throw new EvaluationError('Complex function names not yet supported', node.position);
     }
-    
+
     // Check for custom functions first
     if (context.customFunctions && funcName in context.customFunctions) {
       const customFunc = context.customFunctions[funcName];
-      
+
       // Evaluate all arguments
       const evaluatedArgs: any[] = [];
       for (const arg of node.arguments) {
@@ -292,29 +292,29 @@ export class Interpreter implements IInterpreter {
         evaluatedArgs.push(argResult.value);
         context = argResult.context;
       }
-      
+
       // Call custom function
       const result = customFunc!(context, functionInput, ...evaluatedArgs);
       return { value: result, context };
     }
-    
+
     // Get function from registry
     const operation = Registry.get(funcName);
     if (!operation || operation.kind !== 'function') {
       throw new EvaluationError(`Unknown function: ${funcName}`, node.position);
     }
-    
+
     // Check propagateEmptyInput flag
     if (operation.signature.propagatesEmpty && functionInput.length === 0) {
       return { value: [], context };
     }
-    
+
     // Evaluate arguments based on parameter definitions
     const evaluatedArgs: any[] = [];
     for (let i = 0; i < node.arguments.length; i++) {
       const arg = node.arguments[i];
       const param = operation.signature.parameters[i];
-      
+
       if (param && param.kind === 'expression') {
         // Pass expression as-is, will be evaluated by the function
         evaluatedArgs.push(arg);
@@ -325,7 +325,7 @@ export class Interpreter implements IInterpreter {
         context = argResult.context;
       }
     }
-    
+
     // Use operation's evaluate method
     return operation.evaluate(this, context, functionInput, ...evaluatedArgs);
   }
@@ -347,26 +347,26 @@ export class Interpreter implements IInterpreter {
   private evaluateIndex(node: IndexNode, input: any[], context: Context): EvaluationResult {
     // Evaluate the expression being indexed
     const exprResult = this.evaluate(node.expression, input, context);
-    
+
     // Evaluate the index expression in the original context
     const indexResult = this.evaluate(node.index, input, context);
-    
+
     // Index must be a single integer
     if (indexResult.value.length === 0) {
       return { value: [], context: indexResult.context };
     }
-    
+
     const index = CollectionUtils.toSingleton(indexResult.value);
     if (typeof index !== 'number' || !Number.isInteger(index)) {
       throw new EvaluationError('Index must be an integer', node.position);
     }
-    
+
     // FHIRPath uses 0-based indexing
     if (index < 0 || index >= exprResult.value.length) {
       // Out of bounds returns empty
       return { value: [], context: indexResult.context };
     }
-    
+
     return { value: [exprResult.value[index]], context: indexResult.context };
   }
 
@@ -380,7 +380,7 @@ export class Interpreter implements IInterpreter {
     for (const operand of node.operands) {
       // Always use the original context for each operand
       const result = this.evaluate(operand, input, context);
-      
+
       // Remove duplicates
       for (const item of result.value) {
         const key = JSON.stringify(item);
@@ -398,19 +398,19 @@ export class Interpreter implements IInterpreter {
   private evaluateMembershipTest(node: MembershipTestNode, input: any[], context: Context): EvaluationResult {
     // Evaluate the expression to get values to test
     const exprResult = this.evaluate(node.expression, input, context);
-    
+
     // Empty collection: is returns empty
     if (exprResult.value.length === 0) {
       return { value: [], context: exprResult.context };
     }
-    
+
     // Check if ALL values match the type
     for (const value of exprResult.value) {
       if (!TypeSystem.isType(value, node.targetType)) {
         return { value: [false], context: exprResult.context };
       }
     }
-    
+
     // All values match the type
     return { value: [true], context: exprResult.context };
   }
@@ -418,7 +418,7 @@ export class Interpreter implements IInterpreter {
   private evaluateTypeCast(node: TypeCastNode, input: any[], context: Context): EvaluationResult {
     // Evaluate the expression to get values to cast
     const exprResult = this.evaluate(node.expression, input, context);
-    
+
     // For each value, attempt to cast to the target type
     const results: any[] = [];
     for (const value of exprResult.value) {
@@ -435,7 +435,7 @@ export class Interpreter implements IInterpreter {
         // Failed casts are filtered out (not added to results)
       }
     }
-    
+
     // Return filtered collection
     return { value: results, context: exprResult.context };
   }
@@ -450,12 +450,12 @@ export class Interpreter implements IInterpreter {
  * Helper function to evaluate a FHIRPath expression
  */
 export function evaluateFHIRPath(
-  expression: string | ASTNode, 
-  input: any, 
+  expression: string | ASTNode,
+  input: any,
   context?: Context
 ): any[] {
   // Parse if string
-  const ast = typeof expression === 'string' 
+  const ast = typeof expression === 'string'
     ? require('../parser').parse(expression)
     : expression;
 
@@ -464,7 +464,7 @@ export function evaluateFHIRPath(
 
   // Create context if not provided and set initial $this
   let evalContext = context || ContextManager.create(inputCollection);
-  
+
   // Set initial $this to the input collection if not already set
   if (!evalContext.env.$this) {
     evalContext = {

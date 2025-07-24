@@ -14,7 +14,7 @@
   },
   "files": ["dist", "src"],
   "scripts": {
-    "build": "bun build src/index.ts --outdir=dist --target=node && bunx tsc --emitDeclarationOnly --declaration --outDir dist",
+    "build": "tsup",
     "test": "bun test",
     "typecheck": "bunx tsc --noEmit",
     "prepublishOnly": "bun run build"
@@ -33,6 +33,8 @@
   "devDependencies": {
     "@rgrove/parse-xml": "^4.2.0",
     "@types/bun": "latest",
+    "@types/node": "22.13.14",
+    "tsup": "8.5.0",
     "typescript": "^5"
   },
   "peerDependencies": {

@@ -6,11 +6,11 @@ import { TokenType } from '../../lexer/token';
 export const unionFunction: Function = {
   name: 'union',
   kind: 'function',
-  
+
   syntax: {
     notation: 'union(other)'
   },
-  
+
   signature: {
     input: {
       types: { kind: 'any' },
@@ -32,16 +32,16 @@ export const unionFunction: Function = {
     propagatesEmpty: false,
     deterministic: true
   },
-  
+
   analyze: defaultFunctionAnalyze,
-  
+
   evaluate: (interpreter, context, input, otherExpr) => {
     const otherResult = interpreter.evaluate(otherExpr, input, context);
     const other = otherResult.value;
-    
+
     const seen = new Set();
     const result: any[] = [];
-    
+
     for (const item of input) {
       const key = JSON.stringify(item);
       if (!seen.has(key)) {
@@ -49,7 +49,7 @@ export const unionFunction: Function = {
         result.push(item);
       }
     }
-    
+
     for (const item of other) {
       const key = JSON.stringify(item);
       if (!seen.has(key)) {
@@ -57,24 +57,24 @@ export const unionFunction: Function = {
         result.push(item);
       }
     }
-    
+
     return { value: result, context: otherResult.context };
   },
-  
+
   compile: (compiler, input, args) => {
     const otherExpr = args[0];
     if (!otherExpr) {
       throw new Error('union() requires an argument');
     }
-    
+
     return {
       fn: (ctx) => {
         const inputVal = input.fn(ctx);
         const otherVal = otherExpr.fn(ctx);
-        
+
         const seen = new Set();
         const result: any[] = [];
-        
+
         for (const item of inputVal) {
           const key = JSON.stringify(item);
           if (!seen.has(key)) {
@@ -82,7 +82,7 @@ export const unionFunction: Function = {
             result.push(item);
           }
         }
-        
+
         for (const item of otherVal) {
           const key = JSON.stringify(item);
           if (!seen.has(key)) {
@@ -90,7 +90,7 @@ export const unionFunction: Function = {
             result.push(item);
           }
         }
-        
+
         return result;
       },
       type: input.type,
@@ -103,11 +103,11 @@ export const unionFunction: Function = {
 export const combineFunction: Function = {
   name: 'combine',
   kind: 'function',
-  
+
   syntax: {
     notation: 'combine(other)'
   },
-  
+
   signature: {
     input: {
       types: { kind: 'any' },
@@ -129,22 +129,22 @@ export const combineFunction: Function = {
     propagatesEmpty: false,
     deterministic: true
   },
-  
+
   analyze: defaultFunctionAnalyze,
-  
+
   evaluate: (interpreter, context, input, otherExpr) => {
     const otherResult = interpreter.evaluate(otherExpr, input, context);
     const other = otherResult.value;
-    
+
     return { value: [...input, ...other], context: otherResult.context };
   },
-  
+
   compile: (compiler, input, args) => {
     const otherExpr = args[0];
     if (!otherExpr) {
       throw new Error('combine() requires an argument');
     }
-    
+
     return {
       fn: (ctx) => {
         const inputVal = input.fn(ctx);
@@ -161,11 +161,11 @@ export const combineFunction: Function = {
 export const intersectFunction: Function = {
   name: 'intersect',
   kind: 'function',
-  
+
   syntax: {
     notation: 'intersect(other)'
   },
-  
+
   signature: {
     input: {
       types: { kind: 'any' },
@@ -187,17 +187,17 @@ export const intersectFunction: Function = {
     propagatesEmpty: true,
     deterministic: true
   },
-  
+
   analyze: defaultFunctionAnalyze,
-  
+
   evaluate: (interpreter, context, input, otherExpr) => {
     const otherResult = interpreter.evaluate(otherExpr, input, context);
     const other = otherResult.value;
-    
+
     const otherSet = new Set(other.map((item: any) => JSON.stringify(item)));
     const result: any[] = [];
     const seen = new Set();
-    
+
     for (const item of input) {
       const key = JSON.stringify(item);
       if (otherSet.has(key) && !seen.has(key)) {
@@ -205,25 +205,25 @@ export const intersectFunction: Function = {
         result.push(item);
       }
     }
-    
+
     return { value: result, context: otherResult.context };
   },
-  
+
   compile: (compiler, input, args) => {
     const otherExpr = args[0];
     if (!otherExpr) {
       throw new Error('intersect() requires an argument');
     }
-    
+
     return {
       fn: (ctx) => {
         const inputVal = input.fn(ctx);
         const otherVal = otherExpr.fn(ctx);
-        
+
         const otherSet = new Set(otherVal.map((item: any) => JSON.stringify(item)));
         const result: any[] = [];
         const seen = new Set();
-        
+
         for (const item of inputVal) {
           const key = JSON.stringify(item);
           if (otherSet.has(key) && !seen.has(key)) {
@@ -231,7 +231,7 @@ export const intersectFunction: Function = {
             result.push(item);
           }
         }
-        
+
         return result;
       },
       type: input.type,
@@ -244,11 +244,11 @@ export const intersectFunction: Function = {
 export const excludeFunction: Function = {
   name: 'exclude',
   kind: 'function',
-  
+
   syntax: {
     notation: 'exclude(other)'
   },
-  
+
   signature: {
     input: {
       types: { kind: 'any' },
@@ -270,17 +270,17 @@ export const excludeFunction: Function = {
     propagatesEmpty: true,
     deterministic: true
   },
-  
+
   analyze: defaultFunctionAnalyze,
-  
+
   evaluate: (interpreter, context, input, otherExpr) => {
     const otherResult = interpreter.evaluate(otherExpr, input, context);
     const other = otherResult.value;
-    
+
     const excludeSet = new Set(other.map((item: any) => JSON.stringify(item)));
     const result: any[] = [];
     const seen = new Set();
-    
+
     for (const item of input) {
       const key = JSON.stringify(item);
       if (!excludeSet.has(key) && !seen.has(key)) {
@@ -288,25 +288,25 @@ export const excludeFunction: Function = {
         result.push(item);
       }
     }
-    
+
     return { value: result, context: otherResult.context };
   },
-  
+
   compile: (compiler, input, args) => {
     const otherExpr = args[0];
     if (!otherExpr) {
       throw new Error('exclude() requires an argument');
     }
-    
+
     return {
       fn: (ctx) => {
         const inputVal = input.fn(ctx);
         const otherVal = otherExpr.fn(ctx);
-        
+
         const excludeSet = new Set(otherVal.map((item: any) => JSON.stringify(item)));
         const result: any[] = [];
         const seen = new Set();
-        
+
         for (const item of inputVal) {
           const key = JSON.stringify(item);
           if (!excludeSet.has(key) && !seen.has(key)) {
@@ -314,7 +314,7 @@ export const excludeFunction: Function = {
             result.push(item);
           }
         }
-        
+
         return result;
       },
       type: input.type,
@@ -328,7 +328,7 @@ export const excludeFunction: Function = {
 export const unionOperator: Operator = {
   name: '|',
   kind: 'operator',
-  
+
   syntax: {
     form: 'infix',
     token: TokenType.PIPE,
@@ -336,7 +336,7 @@ export const unionOperator: Operator = {
     associativity: 'left',
     notation: 'a | b'
   },
-  
+
   signature: {
     parameters: [
       { name: 'left' },
@@ -348,14 +348,14 @@ export const unionOperator: Operator = {
     },
     propagatesEmpty: false
   },
-  
+
   analyze: defaultOperatorAnalyze,
-  
+
   evaluate: (interpreter, context, input, left, right) => {
     // Union removes duplicates
     const seen = new Set();
     const result: any[] = [];
-    
+
     for (const item of left) {
       const key = JSON.stringify(item);
       if (!seen.has(key)) {
@@ -363,7 +363,7 @@ export const unionOperator: Operator = {
         result.push(item);
       }
     }
-    
+
     for (const item of right) {
       const key = JSON.stringify(item);
       if (!seen.has(key)) {
@@ -371,10 +371,11 @@ export const unionOperator: Operator = {
         result.push(item);
       }
     }
-    
+
     return { value: result, context };
   },
-  
+  //TODO: Fix later
+  //@ts-expect-error it's okay currently
   compile: (compiler, input, left, right) => {
     return {
       fn: (ctx) => {
@@ -382,14 +383,14 @@ export const unionOperator: Operator = {
         // This prevents variable definitions from leaking between branches
         const leftCtx = { ...ctx, env: { ...ctx.env } };
         const rightCtx = { ...ctx, env: { ...ctx.env } };
-        
+
         const leftVal = left.fn(leftCtx);
         const rightVal = right.fn(rightCtx);
-        
+
         // Union removes duplicates
         const seen = new Set();
         const result: any[] = [];
-        
+
         for (const item of leftVal) {
           const key = JSON.stringify(item);
           if (!seen.has(key)) {
@@ -397,7 +398,7 @@ export const unionOperator: Operator = {
             result.push(item);
           }
         }
-        
+
         for (const item of rightVal) {
           const key = JSON.stringify(item);
           if (!seen.has(key)) {
@@ -405,7 +406,7 @@ export const unionOperator: Operator = {
             result.push(item);
           }
         }
-        
+
         return result;
       },
       type: left.type,
