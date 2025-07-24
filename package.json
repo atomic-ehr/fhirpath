@@ -1,6 +1,6 @@
 {
   "name": "@atomic-ehr/fhirpath",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "description": "A TypeScript implementation of FHIRPath",
   "type": "module",
   "main": "./dist/index.js",
@@ -12,10 +12,7 @@
       "import": "./dist/index.js"
     }
   },
-  "files": [
-    "dist",
-    "src"
-  ],
+  "files": [ "dist", "src" ],
   "scripts": {
     "build": "bun build src/index.ts --outdir=dist --target=node && bunx tsc --emitDeclarationOnly --declaration --outDir dist",
     "test": "bun test",
@@ -24,20 +21,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/atomic-ehr/atomic-fhirpath.git"
+    "url": "git+https://github.com/atomic-ehr/fhirpath.git"
   },
-  "keywords": [
-    "fhir",
-    "fhirpath",
-    "healthcare",
-    "typescript"
-  ],
+  "keywords": [ "fhir", "fhirpath", "healthcare", "typescript" ],
   "author": "Atomic EHR Team",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/atomic-ehr/atomic-fhirpath/issues"
+    "url": "https://github.com/atomic-ehr/fhirpath/issues"
   },
-  "homepage": "https://github.com/atomic-ehr/atomic-fhirpath#readme",
+  "homepage": "https://github.com/atomic-ehr/fhirpath#readme",
   "devDependencies": {
     "@types/bun": "latest",
     "typescript": "^5"
