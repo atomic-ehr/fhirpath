@@ -97,7 +97,7 @@ export const isOperator: Operator = {
     else {
       // Try to execute it with empty context to see if it returns a type name
       try {
-        const result = rightExpr.fn({ input: [], env: {} });
+        const result = rightExpr.fn({ input: [], focus: [], env: {} });
         if (result.length === 1 && typeof result[0] === 'string' && /^[A-Z]/.test(result[0])) {
           staticTypeName = result[0];
         }

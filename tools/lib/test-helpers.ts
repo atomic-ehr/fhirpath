@@ -2,7 +2,7 @@ import { readFileSync, readdirSync, statSync } from "fs";
 import { join } from "path";
 import { Interpreter } from "../../src/interpreter/interpreter";
 import { Compiler } from "../../src/compiler";
-import { ContextManager } from "../../src/interpreter/context";
+import { RuntimeContextManager } from "../../src/runtime/context";
 import { parse } from "../../src/parser";
 import type { Context } from "../../src/interpreter/types";
 
@@ -65,12 +65,18 @@ export function findTestsByTag(suite: TestSuite, tag: string): UnifiedTest[] {
 function createContext(test: UnifiedTest, input: any[]): Context {
   // Use rootContext if provided, otherwise use the test input as context
   const initialContext = test.context?.rootContext ?? input;
-  let context = ContextManager.create(initialContext);
+  let context = RuntimeContextManager.toContext(RuntimeContextManager.create(initialContext));
 
   if (test.context) {
     if (test.context.variables) {
       Object.entries(test.context.variables).forEach(([name, value]) => {
-        context = ContextManager.setVariable(context, name, value);
+        context = RuntimeContextManager.toContext(
+          RuntimeContextManager.setVariable(
+            RuntimeContextManager.fromContext(context, context.variables?.['context'] || []),
+            name,
+            value
+          )
+        );
       });
     }
 
@@ -82,7 +88,13 @@ function createContext(test: UnifiedTest, input: any[]): Context {
           (context.env as any)[name] = value;
         } else {
           // User-defined variables go in context.variables
-          context = ContextManager.setVariable(context, name, Array.isArray(value) ? value : [value]);
+          context = RuntimeContextManager.toContext(
+            RuntimeContextManager.setVariable(
+              RuntimeContextManager.fromContext(context, context.variables?.['context'] || []),
+              name,
+              Array.isArray(value) ? value : [value]
+            )
+          );
         }
       });
     }
@@ -221,7 +233,7 @@ export function runSingleTest(test: UnifiedTest, mode: 'interpreter' | 'compiler
       const runtimeContext = {
         input: test.input,
         env: runtimeEnv,
-        focus: test.context?.rootContext
+        focus: test.context?.rootContext || test.input
       };
       
       const result = compiled.fn(runtimeContext);

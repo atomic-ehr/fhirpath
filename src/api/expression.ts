@@ -10,7 +10,7 @@ import type {
 import { Interpreter } from '../interpreter/interpreter';
 import { Compiler } from '../compiler/compiler';
 import { analyzeFHIRPath } from '../analyzer/analyzer';
-import { ContextManager } from '../interpreter/context';
+import { RuntimeContextManager } from '../runtime/context';
 import { pprint } from '../parser/pprint';
 
 export class FHIRPathExpression implements IFHIRPathExpression {
@@ -40,6 +40,7 @@ export class FHIRPathExpression implements IFHIRPathExpression {
       
       return compiled.fn({
         input: inputArray,
+        focus: inputArray,
         env: ctx.env || {}
       });
     };
@@ -125,11 +126,11 @@ export class FHIRPathExpression implements IFHIRPathExpression {
   }
   
   private createContext(evalContext?: EvaluationContext) {
-    let ctx = ContextManager.create();
+    let ctx = RuntimeContextManager.create([]);
     
     if (evalContext?.variables) {
       for (const [name, value] of Object.entries(evalContext.variables)) {
-        ctx = ContextManager.setVariable(ctx, name, Array.isArray(value) ? value : [value]);
+        ctx = RuntimeContextManager.setVariable(ctx, name, Array.isArray(value) ? value : [value]);
       }
     }
     
@@ -141,7 +142,9 @@ export class FHIRPathExpression implements IFHIRPathExpression {
     
     // Store custom functions in context for interpreter to access
     if (evalContext?.customFunctions) {
-      ctx.customFunctions = evalContext.customFunctions;
+      // TODO: Custom functions need to be implemented through the registry
+      // For now, we'll store them in env
+      (ctx as any).customFunctions = evalContext.customFunctions;
     }
     
     return ctx;

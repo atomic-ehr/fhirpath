@@ -3,9 +3,9 @@ import { readFileSync, readdirSync, statSync } from "fs";
 import { join } from "path";
 import { Interpreter } from "../src/interpreter/interpreter";
 import { Compiler } from "../src/compiler";
-import { ContextManager } from "../src/interpreter/context";
+import { RuntimeContextManager } from "../src/runtime/context";
 import { parse } from "../src/parser";
-import type { Context } from "../src/interpreter/types";
+import type { RuntimeContext } from "../src/runtime/context";
 
 // Import the global registry to ensure all operations are registered
 import "../src/registry";
@@ -121,16 +121,16 @@ describe("Unified FHIRPath Tests", () => {
     compiler = new Compiler();
   });
 
-  function createContext(test: UnifiedTest): Context {
+  function createContext(test: UnifiedTest): RuntimeContext {
     // Use rootContext if provided, otherwise use the test input as context
     const initialContext = test.context?.rootContext ?? test.input;
-    let context = ContextManager.create(initialContext);
+    let context = RuntimeContextManager.create(initialContext);
 
     if (test.context) {
       // Add variables
       if (test.context.variables) {
         Object.entries(test.context.variables).forEach(([name, value]) => {
-          context = ContextManager.setVariable(context, name, value);
+          context = RuntimeContextManager.setVariable(context, name, value);
         });
       }
 
@@ -142,7 +142,7 @@ describe("Unified FHIRPath Tests", () => {
             (context.env as any)[name] = value;
           } else {
             // User-defined variables go in context.variables
-            context = ContextManager.setVariable(context, name, Array.isArray(value) ? value : [value]);
+            context = RuntimeContextManager.setVariable(context, name, Array.isArray(value) ? value : [value]);
           }
         });
       }
@@ -153,7 +153,7 @@ describe("Unified FHIRPath Tests", () => {
 
   function runInterpreterTest(
     test: UnifiedTest,
-    context: Context
+    context: RuntimeContext
   ): TestResult["interpreterResult"] {
     const startTime = performance.now();
 
@@ -180,7 +180,7 @@ describe("Unified FHIRPath Tests", () => {
 
   function runCompilerTest(
     test: UnifiedTest,
-    context: Context
+    context: any
   ): TestResult["compilerResult"] {
     const startTime = performance.now();
 

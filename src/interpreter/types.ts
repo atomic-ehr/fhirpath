@@ -4,37 +4,15 @@
  * The result of evaluating any FHIRPath expression.
  * Every expression returns a collection and potentially modified context.
  */
+import type { RuntimeContext } from '../runtime/context';
+
 export interface EvaluationResult {
   value: any[];  // Always a collection (even single values are collections of one)
-  context: Context;
+  context: RuntimeContext;
 }
 
-/**
- * Context carries variables and environment data parallel to the data stream.
- * It flows through expressions and can be modified by certain operations.
- * 
- * Uses JavaScript prototype chain for efficient inheritance.
- */
-export interface Context {
-  // User-defined variables (%varName)
-  // Using Record instead of Map for prototype chain compatibility
-  variables: Record<string, any[]>;
-  
-  // Special environment variables
-  env: {
-    $this?: any[];    // Current item in iterator functions
-    $index?: number;  // Current index in iterator functions
-    $total?: any[];   // Accumulator in aggregate function
-  };
-  
-  // Root context variables
-  $context?: any[];      // Original input to the expression
-  $resource?: any[];     // Current resource being processed
-  $rootResource?: any[]; // Top-level resource
-  
-  // Custom functions (if any)
-  customFunctions?: Record<string, (context: Context, input: any[], ...args: any[]) => any[]>;
-}
+// Re-export RuntimeContext as Context for backward compatibility
+export type { RuntimeContext as Context } from '../runtime/context';
 
 /**
  * Error thrown during evaluation with position information

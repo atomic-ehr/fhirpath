@@ -1,7 +1,7 @@
 import type { Function } from '../types';
 import { defaultFunctionAnalyze } from '../default-analyzers';
 import { defaultFunctionCompile } from '../default-compilers';
-import { ContextManager } from '../../interpreter/context';
+import { RuntimeContextManager } from '../../runtime/context';
 import { isTruthy } from '../utils';
 
 export const whereFunction: Function = {
@@ -44,7 +44,7 @@ export const whereFunction: Function = {
 
     for (let i = 0; i < input.length; i++) {
       const item = input[i];
-      const iterContext = ContextManager.setIteratorContext(context, item, i);
+      const iterContext = RuntimeContextManager.withIterator(context, item, i);
       const result = interpreter.evaluate(criteria, [item], iterContext);
       
       if (isTruthy(result.value)) {
@@ -68,15 +68,7 @@ export const whereFunction: Function = {
         
         for (let i = 0; i < inputValue.length; i++) {
           const item = inputValue[i];
-          const iterCtx = {
-            ...ctx,
-            focus: [item],
-            env: {
-              ...ctx.env,
-              $index: i,
-              $this: [item]
-            }
-          };
+          const iterCtx = RuntimeContextManager.withIterator(ctx, item, i);
           const predicateResult = criteria.fn(iterCtx);
           
           if (isTruthy(predicateResult)) {
@@ -145,7 +137,7 @@ export const selectFunction: Function = {
 
     for (let i = 0; i < input.length; i++) {
       const item = input[i];
-      const iterContext = ContextManager.setIteratorContext(context, item, i);
+      const iterContext = RuntimeContextManager.withIterator(context, item, i);
       const result = interpreter.evaluate(expression, [item], iterContext);
       results.push(...result.value);
     }
@@ -166,15 +158,7 @@ export const selectFunction: Function = {
         
         for (let i = 0; i < inputValue.length; i++) {
           const item = inputValue[i];
-          const iterCtx = {
-            ...ctx,
-            focus: [item],
-            env: {
-              ...ctx.env,
-              $index: i,
-              $this: [item]
-            }
-          };
+          const iterCtx = RuntimeContextManager.withIterator(ctx, item, i);
           const exprResult = expression.fn(iterCtx);
           results.push(...exprResult);
         }
@@ -336,7 +320,7 @@ export const repeatFunction: Function = {
         
         if (!seen.has(itemKey)) {
           seen.add(itemKey);
-          const iterContext = ContextManager.setIteratorContext(context, item, i);
+          const iterContext = RuntimeContextManager.withIterator(context, item, i);
           const result = interpreter.evaluate(expression, [item], iterContext);
           nextResults.push(...result.value);
         }

@@ -1,6 +1,7 @@
 import type { TokenType } from '../lexer/token';
 import type { TypeRef, ModelProvider } from '../analyzer/types';
-import type { Context, EvaluationResult } from '../interpreter/types';
+import type { EvaluationResult } from '../interpreter/types';
+import type { RuntimeContext } from '../runtime/context';
 
 // Type information returned by analyze
 export interface TypeInfo {
@@ -14,7 +15,7 @@ export interface BaseOperation {
   
   // Common lifecycle methods
   analyze: (analyzer: Analyzer, input: TypeInfo, args: TypeInfo[]) => TypeInfo;
-  evaluate: (interpreter: Interpreter, context: Context, input: any[], ...args: any[]) => EvaluationResult;
+  evaluate: (interpreter: Interpreter, context: RuntimeContext, input: any[], ...args: any[]) => EvaluationResult;
   compile: (compiler: Compiler, input: CompiledExpression, args: CompiledExpression[]) => CompiledExpression;
 }
 
@@ -136,11 +137,6 @@ export interface CompiledExpression {
   source?: string;
 }
 
-export interface RuntimeContext {
-  input: any[];
-  env: Record<string, any>;
-  focus?: any;
-}
 
 // Interfaces for components that use the registry
 export interface Analyzer {
@@ -150,7 +146,7 @@ export interface Analyzer {
 }
 
 export interface Interpreter {
-  evaluate(node: any, input: any[], context: Context): EvaluationResult;
+  evaluate(node: any, input: any[], context: RuntimeContext): EvaluationResult;
 }
 
 export interface Compiler {
@@ -160,3 +156,6 @@ export interface Compiler {
 
 // Re-export TypeRef from analyzer
 export type { TypeRef } from '../analyzer/types';
+
+// Re-export RuntimeContext for use in other modules
+export type { RuntimeContext } from '../runtime/context';

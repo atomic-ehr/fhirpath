@@ -17,11 +17,12 @@ import type {
 import { NodeType } from '../parser/ast';
 import { TokenType } from '../lexer/token';
 import type { CompiledNode } from './types';
-import type { Context, EvaluationResult } from '../interpreter/types';
+import type { EvaluationResult } from '../interpreter/types';
 import { EvaluationError, CollectionUtils } from '../interpreter/types';
-import { ContextManager } from '../interpreter/context';
+import { RuntimeContextManager } from '../runtime/context';
 import { isTruthy, toSingleton } from '../registry/utils';
-import type { Compiler as ICompiler, CompiledExpression, TypeRef, RuntimeContext } from '../registry/types';
+import type { Compiler as ICompiler, CompiledExpression, TypeRef } from '../registry/types';
+import type { RuntimeContext } from '../runtime/context';
 // Import the global registry to ensure all operations are registered
 import '../registry';
 import { Registry } from '../registry';
@@ -289,23 +290,12 @@ export class Compiler implements ICompiler {
       
       return {
         fn: (ctx: RuntimeContext) => {
-          // DON'T create a new env - use the one from ctx directly
-          // This allows nested DOT operators to share the same env object
-          const mutableCtx = {
-            ...ctx
-            // env is shared from ctx
-          };
+          // Execute left side with the original context
+          const leftResult = left.fn(ctx);
           
-          // Execute left side with mutable context
-          const leftResult = left.fn(mutableCtx);
-          
-          // Execute right side with left's result as input, using the potentially modified context
-          const rightCtx: RuntimeContext = { 
-            ...mutableCtx,  // Use the potentially modified context
-            input: leftResult,
-            focus: leftResult
-            // env is still shared from the original ctx
-          };
+          // Execute right side with left's result as input
+          // Use withInput to maintain prototype chain
+          const rightCtx = RuntimeContextManager.withInput(ctx, leftResult);
           return right.fn(rightCtx);
         },
         type: right.type,

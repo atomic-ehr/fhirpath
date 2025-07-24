@@ -2,6 +2,7 @@ import type { Function, Operator } from '../types';
 import { defaultFunctionAnalyze, defaultOperatorAnalyze } from '../default-analyzers';
 import { defaultFunctionCompile, defaultOperatorCompile } from '../default-compilers';
 import { TokenType } from '../../lexer/token';
+import { RuntimeContextManager } from '../../runtime/context';
 
 export const unionFunction: Function = {
   name: 'union',
@@ -374,16 +375,18 @@ export const unionOperator: Operator = {
 
     return { value: result, context };
   },
-  //TODO: Fix later
-  //@ts-expect-error it's okay currently
-  compile: (compiler, input, left, right) => {
+  
+  compile: (compiler, input, args) => {
+    const [left, right] = args;
+    if (!left || !right) {
+      throw new Error('Union operator requires two operands');
+    }
     return {
       fn: (ctx) => {
         // Evaluate both sides with SEPARATE context copies
         // This prevents variable definitions from leaking between branches
-        const leftCtx = { ...ctx, env: { ...ctx.env } };
-        const rightCtx = { ...ctx, env: { ...ctx.env } };
-
+        const leftCtx = RuntimeContextManager.copy(ctx);
+        const rightCtx = RuntimeContextManager.copy(ctx);
         const leftVal = left.fn(leftCtx);
         const rightVal = right.fn(rightCtx);
 

@@ -2,6 +2,7 @@
   "name": "defineVariable",
   "description": "defineVariable tests",
   "source": "fhirpath-lab",
+  "imported": true,
   "tests": [
     {
       "name": "defineVariable1",

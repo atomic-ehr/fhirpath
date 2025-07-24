@@ -1,7 +1,7 @@
 import type { Function } from '../types';
 import { defaultFunctionAnalyze } from '../default-analyzers';
 import { isTruthy, toSingleton } from '../utils';
-import { ContextManager } from '../../interpreter/context';
+import { RuntimeContextManager } from '../../runtime/context';
 
 export const existsFunction: Function = {
   name: 'exists',
@@ -45,7 +45,7 @@ export const existsFunction: Function = {
     // With criteria: check if any element matches
     for (let i = 0; i < input.length; i++) {
       const item = input[i];
-      const iterContext = ContextManager.setIteratorContext(context, item, i);
+      const iterContext = RuntimeContextManager.withIterator(context, item, i);
       const result = interpreter.evaluate(criteria, [item], iterContext);
       if (result.value.length > 0 && toSingleton(result.value)) {
         return { value: [true], context: result.context };
@@ -76,15 +76,7 @@ export const existsFunction: Function = {
         const inputVal = input.fn(ctx);
         for (let i = 0; i < inputVal.length; i++) {
           const item = inputVal[i];
-          const newCtx = { 
-            ...ctx, 
-            input: [item],
-            env: {
-              ...ctx.env,
-              $this: [item],
-              $index: i
-            }
-          };
+          const newCtx = RuntimeContextManager.withIterator(ctx, item, i);
           const result = criteria?.fn(newCtx) || [];
           if (result.length > 0 && toSingleton(result)) {
             return [true];
@@ -349,7 +341,7 @@ export const allFunction: Function = {
     
     for (let i = 0; i < input.length; i++) {
       const item = input[i];
-      const iterContext = ContextManager.setIteratorContext(context, item, i);
+      const iterContext = RuntimeContextManager.withIterator(context, item, i);
       const result = interpreter.evaluate(criteria, [item], iterContext);
       
       if (!isTruthy(result.value)) {
@@ -388,15 +380,7 @@ export const allFunction: Function = {
         
         for (let i = 0; i < inputVal.length; i++) {
           const item = inputVal[i];
-          const newCtx = { 
-            ...ctx, 
-            focus: [item],
-            env: {
-              ...ctx.env,
-              $this: [item],
-              $index: i
-            }
-          };
+          const newCtx = RuntimeContextManager.withIterator(ctx, item, i);
           const result = criteria?.fn(newCtx) || [];
           
           if (!isTruthy(result)) {

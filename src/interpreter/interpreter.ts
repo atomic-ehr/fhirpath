@@ -16,9 +16,9 @@ import type {
 } from '../parser/ast';
 import { NodeType } from '../parser/ast';
 import { TokenType } from '../lexer/token';
-import type { Context, EvaluationResult } from './types';
+import type { Context as RuntimeContext, EvaluationResult } from './types';
 import { EvaluationError, CollectionUtils } from './types';
-import { ContextManager } from './context';
+import { RuntimeContextManager } from '../runtime/context';
 import { TypeSystem } from '../registry/utils/type-system';
 import { Registry } from '../registry';
 import type { Interpreter as IInterpreter } from '../registry/types';
@@ -27,7 +27,7 @@ import type { Interpreter as IInterpreter } from '../registry/types';
 import '../registry';
 
 // Type for node evaluator functions
-type NodeEvaluator = (node: any, input: any[], context: Context) => EvaluationResult;
+type NodeEvaluator = (node: any, input: any[], context: RuntimeContext) => EvaluationResult;
 
 /**
  * FHIRPath Interpreter - evaluates AST nodes following the stream-processing model.
@@ -56,7 +56,7 @@ export class Interpreter implements IInterpreter {
   /**
    * Main evaluation method - uses object lookup instead of switch
    */
-  evaluate(node: ASTNode, input: any[], context: Context): EvaluationResult {
+  evaluate(node: ASTNode, input: any[], context: RuntimeContext): EvaluationResult {
     try {
       // Ensure $this is set in the context if not already present
       if (!context.env.$this) {
@@ -88,7 +88,7 @@ export class Interpreter implements IInterpreter {
     }
   }
 
-  private evaluateLiteral(node: LiteralNode, input: any[], context: Context): EvaluationResult {
+  private evaluateLiteral(node: LiteralNode, input: any[], context: RuntimeContext): EvaluationResult {
     // If literal has operation reference from parser
     if (node.operation && node.operation.kind === 'literal') {
       return node.operation.evaluate(this, context, input);
@@ -99,7 +99,7 @@ export class Interpreter implements IInterpreter {
     return { value, context };
   }
 
-  private evaluateIdentifier(node: IdentifierNode, input: any[], context: Context): EvaluationResult {
+  private evaluateIdentifier(node: IdentifierNode, input: any[], context: RuntimeContext): EvaluationResult {
     // Check if this identifier could be a resource type name
     // Resource types in FHIR typically start with uppercase
     if (node.name[0] === node?.name?.[0]?.toUpperCase()) {
@@ -141,7 +141,7 @@ export class Interpreter implements IInterpreter {
     return { value: results, context };
   }
 
-  private evaluateTypeOrIdentifier(node: TypeOrIdentifierNode, input: any[], context: Context): EvaluationResult {
+  private evaluateTypeOrIdentifier(node: TypeOrIdentifierNode, input: any[], context: RuntimeContext): EvaluationResult {
     // TypeOrIdentifier can act as either a type reference or property navigation
 
     // First, check if this is a known type name (e.g., Patient, Observation)
@@ -165,7 +165,7 @@ export class Interpreter implements IInterpreter {
     return this.evaluateIdentifier(node as any, input, context);
   }
 
-  private evaluateVariable(node: VariableNode, input: any[], context: Context): EvaluationResult {
+  private evaluateVariable(node: VariableNode, input: any[], context: RuntimeContext): EvaluationResult {
     // Variables ignore input and return value from context
     let value: any[] = [];
 
@@ -183,15 +183,14 @@ export class Interpreter implements IInterpreter {
       }
       value = handler();
     } else {
-      // User-defined variables (remove % prefix if present)
-      const varName = node.name.startsWith('%') ? node.name.substring(1) : node.name;
-      value = ContextManager.getVariable(context, varName) || [];
+      // User-defined variables - RuntimeContextManager.getVariable handles % prefix
+      value = RuntimeContextManager.getVariable(context, node.name) || [];
     }
 
     return { value, context };
   }
 
-  private evaluateBinary(node: BinaryNode, input: any[], context: Context): EvaluationResult {
+  private evaluateBinary(node: BinaryNode, input: any[], context: RuntimeContext): EvaluationResult {
     // Special handling for dot operator - it's a pipeline
     if (node.operator === TokenType.DOT) {
       // Phase 1: Evaluate left with original input/context
@@ -240,7 +239,7 @@ export class Interpreter implements IInterpreter {
     return operation.evaluate(this, rightResult.context, input, leftResult.value, rightResult.value);
   }
 
-  private evaluateUnary(node: UnaryNode, input: any[], context: Context): EvaluationResult {
+  private evaluateUnary(node: UnaryNode, input: any[], context: RuntimeContext): EvaluationResult {
     // Get operation from registry (unary operators are prefix)
     // Don't use node.operation as parser might have assigned wrong operation
     const operation = Registry.getByToken(node.operator, 'prefix');
@@ -255,7 +254,7 @@ export class Interpreter implements IInterpreter {
     return operation.evaluate(this, operandResult.context, input, operandResult.value);
   }
 
-  private evaluateFunction(node: FunctionNode, input: any[], context: Context): EvaluationResult {
+  private evaluateFunction(node: FunctionNode, input: any[], context: RuntimeContext): EvaluationResult {
     // Extract function name and handle method call syntax
     let funcName: string;
     let functionInput = input;
@@ -282,9 +281,8 @@ export class Interpreter implements IInterpreter {
     }
 
     // Check for custom functions first
-    if (context.customFunctions && funcName in context.customFunctions) {
-      const customFunc = context.customFunctions[funcName];
-
+    if ((context as any).customFunctions && funcName in (context as any).customFunctions) {
+      const customFunc = (context as any).customFunctions[funcName];
       // Evaluate all arguments
       const evaluatedArgs: any[] = [];
       for (const arg of node.arguments) {
@@ -330,7 +328,7 @@ export class Interpreter implements IInterpreter {
     return operation.evaluate(this, context, functionInput, ...evaluatedArgs);
   }
 
-  private evaluateCollection(node: CollectionNode, input: any[], context: Context): EvaluationResult {
+  private evaluateCollection(node: CollectionNode, input: any[], context: RuntimeContext): EvaluationResult {
     // Evaluate each element and combine results
     const results: any[] = [];
     let currentContext = context;
@@ -344,7 +342,7 @@ export class Interpreter implements IInterpreter {
     return { value: results, context: currentContext };
   }
 
-  private evaluateIndex(node: IndexNode, input: any[], context: Context): EvaluationResult {
+  private evaluateIndex(node: IndexNode, input: any[], context: RuntimeContext): EvaluationResult {
     // Evaluate the expression being indexed
     const exprResult = this.evaluate(node.expression, input, context);
 
@@ -370,7 +368,7 @@ export class Interpreter implements IInterpreter {
     return { value: [exprResult.value[index]], context: indexResult.context };
   }
 
-  private evaluateUnion(node: UnionNode, input: any[], context: Context): EvaluationResult {
+  private evaluateUnion(node: UnionNode, input: any[], context: RuntimeContext): EvaluationResult {
     // Union combines results from all operands
     // Each operand should be evaluated with the SAME original context
     // to prevent variable definitions from leaking between branches
@@ -395,7 +393,7 @@ export class Interpreter implements IInterpreter {
     return { value: results, context };
   }
 
-  private evaluateMembershipTest(node: MembershipTestNode, input: any[], context: Context): EvaluationResult {
+  private evaluateMembershipTest(node: MembershipTestNode, input: any[], context: RuntimeContext): EvaluationResult {
     // Evaluate the expression to get values to test
     const exprResult = this.evaluate(node.expression, input, context);
 
@@ -415,7 +413,7 @@ export class Interpreter implements IInterpreter {
     return { value: [true], context: exprResult.context };
   }
 
-  private evaluateTypeCast(node: TypeCastNode, input: any[], context: Context): EvaluationResult {
+  private evaluateTypeCast(node: TypeCastNode, input: any[], context: RuntimeContext): EvaluationResult {
     // Evaluate the expression to get values to cast
     const exprResult = this.evaluate(node.expression, input, context);
 
@@ -440,7 +438,7 @@ export class Interpreter implements IInterpreter {
     return { value: results, context: exprResult.context };
   }
 
-  private evaluateTypeReference(node: TypeReferenceNode, input: any[], context: Context): EvaluationResult {
+  private evaluateTypeReference(node: TypeReferenceNode, input: any[], context: RuntimeContext): EvaluationResult {
     // Type references don't evaluate to values directly
     throw new EvaluationError(`Type reference cannot be evaluated: ${node.typeName}`, node.position);
   }
@@ -450,9 +448,9 @@ export class Interpreter implements IInterpreter {
  * Helper function to evaluate a FHIRPath expression
  */
 export function evaluateFHIRPath(
-  expression: string | ASTNode,
-  input: any,
-  context?: Context
+  expression: string | ASTNode, 
+  input: any, 
+  context?: RuntimeContext
 ): any[] {
   // Parse if string
   const ast = typeof expression === 'string'
@@ -463,8 +461,8 @@ export function evaluateFHIRPath(
   const inputCollection = CollectionUtils.toCollection(input);
 
   // Create context if not provided and set initial $this
-  let evalContext = context || ContextManager.create(inputCollection);
-
+  let evalContext = context || RuntimeContextManager.create(inputCollection);
+  
   // Set initial $this to the input collection if not already set
   if (!evalContext.env.$this) {
     evalContext = {

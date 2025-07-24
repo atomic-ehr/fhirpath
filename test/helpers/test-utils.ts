@@ -1,6 +1,6 @@
 import { expect } from 'bun:test';
 import { Interpreter } from '../../src/interpreter/interpreter';
-import { ContextManager } from '../../src/interpreter/context';
+import { RuntimeContextManager } from '../../src/runtime/context';
 import { parse } from '../../src/parser';
 import type { Context } from '../../src/interpreter/types';
 
@@ -9,7 +9,8 @@ export function createTestInterpreter() {
 }
 
 export function createTestContext(rootContext?: any[]): Context {
-  return ContextManager.create(rootContext);
+  const input = rootContext || [];
+  return RuntimeContextManager.toContext(RuntimeContextManager.create(input));
 }
 
 export function evaluateExpression(expression: string, input: any[], context?: Context) {
@@ -29,11 +30,13 @@ export function expectEvaluationError(expression: string, input: any[], errorMes
 }
 
 export function createContextWithVariable(varName: string, value: any[]): Context {
-  const context = createTestContext();
-  return ContextManager.setVariable(context, varName, value);
+  const rtContext = RuntimeContextManager.create([]);
+  const newRtContext = RuntimeContextManager.setVariable(rtContext, varName, value);
+  return RuntimeContextManager.toContext(newRtContext);
 }
 
 export function createContextWithIterator(value: any, index: number): Context {
-  const context = createTestContext();
-  return ContextManager.setIteratorContext(context, value, index);
+  const rtContext = RuntimeContextManager.create([]);
+  const newRtContext = RuntimeContextManager.withIterator(rtContext, value, index);
+  return RuntimeContextManager.toContext(newRtContext);
 }

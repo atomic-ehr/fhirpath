@@ -1,7 +1,7 @@
 import type { Function } from '../types';
 import { defaultFunctionAnalyze } from '../default-analyzers';
 import { defaultFunctionCompile } from '../default-compilers';
-import { ContextManager } from '../../interpreter/context';
+import { RuntimeContextManager } from '../../runtime/context';
 import { isTruthy } from '../utils';
 
 export const aggregateFunction: Function = {
@@ -52,15 +52,8 @@ export const aggregateFunction: Function = {
     
     for (let i = 0; i < input.length; i++) {
       const item = input[i];
-      const iterContext = {
-        ...ContextManager.setIteratorContext(context, item, i),
-        env: {
-          ...context.env,
-          $this: [item],
-          $index: i,
-          $total: total
-        }
-      };
+      const iterContext = RuntimeContextManager.withIterator(context, item, i);
+      iterContext.env.$total = total;
       
       const result = interpreter.evaluate(aggregatorExpr, [item], iterContext);
       total = result.value;
@@ -262,14 +255,14 @@ export const iifFunction: Function = {
     return {
       fn: (ctx) => {
         const inputVal = input.fn(ctx);
-        const condCtx = { ...ctx, input: inputVal, focus: inputVal };
+        const condCtx = RuntimeContextManager.withInput(ctx, inputVal);
         const condResult = condExpr.fn(condCtx);
         
         if (isTruthy(condResult)) {
-          const thenCtx = { ...ctx, input: inputVal, focus: inputVal };
+          const thenCtx = RuntimeContextManager.withInput(ctx, inputVal);
           return thenExpr.fn(thenCtx);
         } else {
-          const elseCtx = { ...ctx, input: inputVal, focus: inputVal };
+          const elseCtx = RuntimeContextManager.withInput(ctx, inputVal);
           return elseExpr.fn(elseCtx);
         }
       },
@@ -350,17 +343,17 @@ export const defineVariableFunction: Function = {
     
     if (valueExpr) {
       // Create a new context where $this refers to the input
-      const valueContext = ContextManager.copy(context);
+      const valueContext = RuntimeContextManager.copy(context);
       valueContext.env = { ...valueContext.env, $this: input };
       
       const result = interpreter.evaluate(valueExpr, input, valueContext);
       value = result.value;
-      const newContext = ContextManager.setVariable(result.context, varName, value);
+      const newContext = RuntimeContextManager.setVariable(result.context, varName, value);
       return { value: input, context: newContext };
     } else {
       // If no value expression is provided, use the input collection
       value = input;
-      const newContext = ContextManager.setVariable(context, varName, value);
+      const newContext = RuntimeContextManager.setVariable(context, varName, value);
       return { value: input, context: newContext };
     }
   },
@@ -412,12 +405,8 @@ export const defineVariableFunction: Function = {
         if (valueExpr) {
           // Create context for evaluating the value expression
           // Set $this to the input value
-          const valueCtx = { 
-            ...ctx, 
-            input: inputVal, 
-            focus: inputVal,
-            env: { ...ctx.env, $this: inputVal }
-          };
+          const valueCtx = RuntimeContextManager.withInput(ctx, inputVal);
+          valueCtx.env.$this = inputVal;
           
           // Evaluate the value expression
           value = valueExpr.fn(valueCtx);
