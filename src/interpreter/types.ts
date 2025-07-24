@@ -31,6 +31,9 @@ export interface Context {
   $context?: any[];      // Original input to the expression
   $resource?: any[];     // Current resource being processed
   $rootResource?: any[]; // Top-level resource
+  
+  // Custom functions (if any)
+  customFunctions?: Record<string, (context: Context, input: any[], ...args: any[]) => any[]>;
 }
 
 /**

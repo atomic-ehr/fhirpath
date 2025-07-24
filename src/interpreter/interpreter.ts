@@ -236,6 +236,23 @@ export class Interpreter implements IInterpreter {
       throw new EvaluationError('Complex function names not yet supported', node.position);
     }
     
+    // Check for custom functions first
+    if (context.customFunctions && funcName in context.customFunctions) {
+      const customFunc = context.customFunctions[funcName];
+      
+      // Evaluate all arguments
+      const evaluatedArgs: any[] = [];
+      for (const arg of node.arguments) {
+        const argResult = this.evaluate(arg, functionInput, context);
+        evaluatedArgs.push(argResult.value);
+        context = argResult.context;
+      }
+      
+      // Call custom function
+      const result = customFunc!(context, functionInput, ...evaluatedArgs);
+      return { value: result, context };
+    }
+    
     // Get function from registry
     const operation = Registry.get(funcName);
     if (!operation || operation.kind !== 'function') {
