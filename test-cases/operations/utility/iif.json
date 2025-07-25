@@ -130,6 +130,149 @@
         "navigation",
         "function:iif"
       ]
+    },
+    {
+      "name": "iif - two parameter form returns empty when false",
+      "expression": "iif(false, 'true-result').empty()",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "conditional",
+        "iif",
+        "two-parameter",
+        "spec",
+        "function:iif"
+      ]
+    },
+    {
+      "name": "iif - non-boolean criteria returns empty",
+      "expression": "iif('non boolean criteria', 'true-result', 'false-result')",
+      "input": [],
+      "expected": [],
+      "tags": [
+        "function",
+        "conditional",
+        "iif",
+        "non-boolean",
+        "spec",
+        "function:iif"
+      ]
+    },
+    {
+      "name": "iif - empty input context preservation",
+      "expression": "{}.iif(true, 'true-result', 'false-result')",
+      "input": [],
+      "expected": [
+        "true-result"
+      ],
+      "tags": [
+        "function",
+        "conditional",
+        "iif",
+        "context",
+        "spec",
+        "function:iif"
+      ]
+    },
+    {
+      "name": "iif - single value context preservation",
+      "expression": "('item').iif(true, 'true-result', 'false-result')",
+      "input": [],
+      "expected": [
+        "true-result"
+      ],
+      "tags": [
+        "function",
+        "conditional",
+        "iif",
+        "context",
+        "spec",
+        "function:iif"
+      ]
+    },
+    {
+      "name": "iif - $this in true branch",
+      "expression": "('context').iif(true, select($this), 'false-result')",
+      "input": [],
+      "expected": [
+        "context"
+      ],
+      "tags": [
+        "function",
+        "conditional",
+        "iif",
+        "context",
+        "$this",
+        "spec",
+        "function:iif",
+        "function:select"
+      ]
+    },
+    {
+      "name": "iif - multiple input values returns empty",
+      "expression": "('item1' | 'item2').iif(true, 'true-result', 'false-result')",
+      "input": [],
+      "expected": [],
+      "tags": [
+        "function",
+        "conditional",
+        "iif",
+        "multiple",
+        "spec",
+        "function:iif"
+      ]
+    },
+    {
+      "name": "iif - $this in condition",
+      "expression": "('context').iif($this = 'context','true-result', 'false-result')",
+      "input": [],
+      "expected": [
+        "true-result"
+      ],
+      "tags": [
+        "function",
+        "conditional",
+        "iif",
+        "context",
+        "$this",
+        "spec",
+        "function:iif"
+      ]
+    },
+    {
+      "name": "iif - lazy evaluation with true condition",
+      "expression": "iif(true, true, (1 | 2).toString())",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "conditional",
+        "iif",
+        "lazy",
+        "spec",
+        "function:iif"
+      ]
+    },
+    {
+      "name": "iif - lazy evaluation with false condition",
+      "expression": "iif(false, (1 | 2).toString(), true)",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "conditional",
+        "iif",
+        "lazy",
+        "spec",
+        "function:iif"
+      ]
     }
   ]
 }

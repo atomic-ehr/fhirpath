@@ -194,7 +194,7 @@ export const iifFunction: Function = {
   kind: 'function',
   
   syntax: {
-    notation: 'iif(condition, then, else)'
+    notation: 'iif(condition, then [, else])'
   },
   
   signature: {
@@ -222,7 +222,7 @@ export const iifFunction: Function = {
         kind: 'expression',
         types: { kind: 'any' },
         cardinality: 'collection',
-        optional: false
+        optional: true
       }
     ],
     output: {
@@ -236,39 +236,104 @@ export const iifFunction: Function = {
   analyze: defaultFunctionAnalyze,
   
   evaluate: (interpreter, context, input, condition, thenBranch, elseBranch) => {
-    const condResult = interpreter.evaluate(condition, input, context);
+    // Per spec: if input has multiple values, return empty
+    if (input.length > 1) {
+      return { value: [], context };
+    }
     
-    if (isTruthy(condResult.value)) {
+    // Set up context with $this = input
+    let condContext = RuntimeContextManager.copy(context);
+    if (input.length === 1) {
+      condContext = RuntimeContextManager.setSpecialVariable(condContext, 'this', input[0]);
+    }
+    
+    const condResult = interpreter.evaluate(condition, input, condContext);
+    
+    // Per spec: if condition is empty, treat as false
+    if (condResult.value.length === 0) {
+      if (elseBranch) {
+        return interpreter.evaluate(elseBranch, input, condResult.context);
+      } else {
+        // Two-parameter form: no else branch means return empty
+        return { value: [], context };
+      }
+    }
+    
+    // Per spec: if condition is not boolean singleton, return empty
+    if (condResult.value.length !== 1 || typeof condResult.value[0] !== 'boolean') {
+      return { value: [], context };
+    }
+    
+    if (condResult.value[0] === true) {
       return interpreter.evaluate(thenBranch, input, condResult.context);
     } else {
-      return interpreter.evaluate(elseBranch, input, condResult.context);
+      if (elseBranch) {
+        return interpreter.evaluate(elseBranch, input, condResult.context);
+      } else {
+        // Two-parameter form: no else branch means return empty
+        return { value: [], context };
+      }
     }
   },
   
   compile: (compiler, input, args) => {
     const [condExpr, thenExpr, elseExpr] = args;
     
-    if (!condExpr || !thenExpr || !elseExpr) {
-      throw new Error('iif() requires condition, then, and else expressions');
+    if (!condExpr || !thenExpr) {
+      throw new Error('iif() requires at least condition and then expressions');
     }
     
     return {
       fn: (ctx) => {
         const inputVal = input.fn(ctx);
-        const condCtx = RuntimeContextManager.withInput(ctx, inputVal);
+        
+        // Per spec: if input has multiple values, return empty
+        if (inputVal.length > 1) {
+          return [];
+        }
+        
+        // Set up context with $this = input
+        let condCtx = RuntimeContextManager.withInput(ctx, inputVal);
+        if (inputVal.length === 1) {
+          condCtx = RuntimeContextManager.setSpecialVariable(condCtx, 'this', inputVal[0]);
+        }
+        
         const condResult = condExpr.fn(condCtx);
         
-        if (isTruthy(condResult)) {
+        // Per spec: if condition is empty, treat as false
+        if (condResult.length === 0) {
+          if (elseExpr) {
+            const elseCtx = RuntimeContextManager.withInput(ctx, inputVal);
+            return elseExpr.fn(elseCtx);
+          } else {
+            // Two-parameter form: no else branch means return empty
+            return [];
+          }
+        }
+        
+        // Per spec: if condition is not boolean singleton, return empty
+        if (condResult.length !== 1 || typeof condResult[0] !== 'boolean') {
+          return [];
+        }
+        
+        if (condResult[0] === true) {
           const thenCtx = RuntimeContextManager.withInput(ctx, inputVal);
           return thenExpr.fn(thenCtx);
         } else {
-          const elseCtx = RuntimeContextManager.withInput(ctx, inputVal);
-          return elseExpr.fn(elseCtx);
+          if (elseExpr) {
+            const elseCtx = RuntimeContextManager.withInput(ctx, inputVal);
+            return elseExpr.fn(elseCtx);
+          } else {
+            // Two-parameter form: no else branch means return empty
+            return [];
+          }
         }
       },
       type: compiler.resolveType('Any'),
       isSingleton: false,
-      source: `${input.source || ''}.iif(${condExpr.source || ''}, ${thenExpr.source || ''}, ${elseExpr.source || ''})`
+      source: elseExpr 
+        ? `${input.source || ''}.iif(${condExpr.source || ''}, ${thenExpr.source || ''}, ${elseExpr.source || ''})`
+        : `${input.source || ''}.iif(${condExpr.source || ''}, ${thenExpr.source || ''})`
     };
   }
 };
