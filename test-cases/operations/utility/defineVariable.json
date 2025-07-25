@@ -143,8 +143,7 @@
       "input": [ { "name": [ { "given": [ "Peter", "James" ] }, { "given": [ "Jim" ] } ], "active": true, "id": "example" } ],
       "expected": [ "Jim" ],
       "tags": [ "defineVariable", "fhirpath-lab", "select", "where", "|", "first", "skip", "not" ],
-      "description": "use of a variable in separate contexts defined in 2 but used in 1",
-      "pending": "Uses unimplemented function(s): not()"
+      "description": "use of a variable in separate contexts defined in 2 but used in 1"
     },
     {
       "name": "[FHIRPath Lab] defineVariable6",
