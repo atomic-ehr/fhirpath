@@ -72,6 +72,26 @@ When task finished move files to ./tasks/done/<filename>.md and write what was d
   - `bun tools/compiler.ts "name.where(use = 'official').given" '{"name": [{"use": "official", "given": ["John"]}]}'`
   - `bun tools/compiler.ts "'Hello' + ' ' + 'World'"`
 
+* **Inspect Tool** (`./tools/inspect.ts`) - Debug FHIRPath expressions with rich debugging information including traces, AST, and timing
+  ```bash
+  bun tools/inspect.ts "<fhirpath-expression>" [input-json] [options]
+  ```
+  Options:
+  - `--vars, -v` - JSON object with variables (e.g., '{"x": 10}')
+  - `--max-traces` - Maximum number of traces to collect
+  - `--verbose` - Show full trace values (default: truncated)
+  - `--ast` - Show only the AST
+  - `--traces` - Show only traces
+  - `--timing` - Show only timing information
+  
+  Examples:
+  - `bun tools/inspect.ts "5 + 3"` - Simple expression
+  - `bun tools/inspect.ts "name.trace('names').given.trace('given names')" '{"name": [{"given": ["John"]}]}'` - With traces
+  - `bun tools/inspect.ts "Patient.name.given" @patient.json` - Input from file
+  - `bun tools/inspect.ts "%x + %y" --vars '{"x": 10, "y": 20}'` - With variables
+  - `bun tools/inspect.ts "complex.expression" @data.json --traces` - Show only traces
+  - `bun tools/inspect.ts "expression" --ast` - Show AST structure
+
 * **Registry Lookup Tool** (`./tools/registry-lookup.ts`) - Lookup operation metadata from the FHIRPath registry
   ```bash
   bun tools/registry-lookup.ts <operation-name|"list">
