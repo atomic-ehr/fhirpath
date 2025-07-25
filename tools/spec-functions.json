@@ -1,0 +1,497 @@
+[
+  {
+    "operation": "=",
+    "spec": "§07-operations.md",
+    "line": 15
+  },
+  {
+    "operation": "~",
+    "spec": "§07-operations.md",
+    "line": 83
+  },
+  {
+    "operation": "!=",
+    "spec": "§07-operations.md",
+    "line": 132
+  },
+  {
+    "operation": "!~",
+    "spec": "§07-operations.md",
+    "line": 136
+  },
+  {
+    "operation": ">",
+    "spec": "§07-operations.md",
+    "line": 159
+  },
+  {
+    "operation": "<",
+    "spec": "§07-operations.md",
+    "line": 178
+  },
+  {
+    "operation": "<=",
+    "spec": "§07-operations.md",
+    "line": 197
+  },
+  {
+    "operation": ">=",
+    "spec": "§07-operations.md",
+    "line": 216
+  },
+  {
+    "operation": "is",
+    "spec": "§07-operations.md",
+    "line": 237
+  },
+  {
+    "operation": "as",
+    "spec": "§07-operations.md",
+    "line": 260
+  },
+  {
+    "operation": "|",
+    "spec": "§07-operations.md",
+    "line": 283
+  },
+  {
+    "operation": "in",
+    "spec": "§07-operations.md",
+    "line": 286
+  },
+  {
+    "operation": "contains",
+    "spec": "§07-operations.md",
+    "line": 295
+  },
+  {
+    "operation": "and",
+    "spec": "§07-operations.md",
+    "line": 310
+  },
+  {
+    "operation": "or",
+    "spec": "§07-operations.md",
+    "line": 320
+  },
+  {
+    "operation": "xor",
+    "spec": "§07-operations.md",
+    "line": 340
+  },
+  {
+    "operation": "implies",
+    "spec": "§07-operations.md",
+    "line": 350
+  },
+  {
+    "operation": "*",
+    "spec": "§07-operations.md",
+    "line": 384
+  },
+  {
+    "operation": "/",
+    "spec": "§07-operations.md",
+    "line": 393
+  },
+  {
+    "operation": "+",
+    "spec": "§07-operations.md",
+    "line": 406
+  },
+  {
+    "operation": "-",
+    "spec": "§07-operations.md",
+    "line": 416
+  },
+  {
+    "operation": "div",
+    "spec": "§07-operations.md",
+    "line": 426
+  },
+  {
+    "operation": "mod",
+    "spec": "§07-operations.md",
+    "line": 436
+  },
+  {
+    "operation": "&",
+    "spec": "§07-operations.md",
+    "line": 446
+  },
+  {
+    "operation": "not",
+    "spec": "§07-operations.md",
+    "line": 330
+  },
+  {
+    "operation": "empty",
+    "spec": "§06.1-existence.md",
+    "line": 3
+  },
+  {
+    "operation": "exists",
+    "spec": "§06.1-existence.md",
+    "line": 7
+  },
+  {
+    "operation": "all",
+    "spec": "§06.1-existence.md",
+    "line": 21
+  },
+  {
+    "operation": "allTrue",
+    "spec": "§06.1-existence.md",
+    "line": 29
+  },
+  {
+    "operation": "anyTrue",
+    "spec": "§06.1-existence.md",
+    "line": 39
+  },
+  {
+    "operation": "allFalse",
+    "spec": "§06.1-existence.md",
+    "line": 49
+  },
+  {
+    "operation": "anyFalse",
+    "spec": "§06.1-existence.md",
+    "line": 59
+  },
+  {
+    "operation": "subsetOf",
+    "spec": "§06.1-existence.md",
+    "line": 69
+  },
+  {
+    "operation": "supersetOf",
+    "spec": "§06.1-existence.md",
+    "line": 81
+  },
+  {
+    "operation": "isDistinct",
+    "spec": "§06.1-existence.md",
+    "line": 93
+  },
+  {
+    "operation": "distinct",
+    "spec": "§06.1-existence.md",
+    "line": 105
+  },
+  {
+    "operation": "count",
+    "spec": "§06.1-existence.md",
+    "line": 119
+  },
+  {
+    "operation": "where",
+    "spec": "§06.2-filtering-and-projection.md",
+    "line": 3
+  },
+  {
+    "operation": "select",
+    "spec": "§06.2-filtering-and-projection.md",
+    "line": 15
+  },
+  {
+    "operation": "repeat",
+    "spec": "§06.2-filtering-and-projection.md",
+    "line": 35
+  },
+  {
+    "operation": "ofType",
+    "spec": "§06.2-filtering-and-projection.md",
+    "line": 63
+  },
+  {
+    "operation": "[]",
+    "spec": "§06.3-subsetting.md",
+    "line": 3
+  },
+  {
+    "operation": "single",
+    "spec": "§06.3-subsetting.md",
+    "line": 16
+  },
+  {
+    "operation": "first",
+    "spec": "§06.3-subsetting.md",
+    "line": 26
+  },
+  {
+    "operation": "last",
+    "spec": "§06.3-subsetting.md",
+    "line": 30
+  },
+  {
+    "operation": "tail",
+    "spec": "§06.3-subsetting.md",
+    "line": 34
+  },
+  {
+    "operation": "skip",
+    "spec": "§06.3-subsetting.md",
+    "line": 38
+  },
+  {
+    "operation": "take",
+    "spec": "§06.3-subsetting.md",
+    "line": 42
+  },
+  {
+    "operation": "intersect",
+    "spec": "§06.3-subsetting.md",
+    "line": 46
+  },
+  {
+    "operation": "exclude",
+    "spec": "§06.3-subsetting.md",
+    "line": 50
+  },
+  {
+    "operation": "union",
+    "spec": "§06.4-combining.md",
+    "line": 3
+  },
+  {
+    "operation": "combine",
+    "spec": "§06.4-combining.md",
+    "line": 26
+  },
+  {
+    "operation": "iif",
+    "spec": "§06.5-conversion.md",
+    "line": 36
+  },
+  {
+    "operation": "convertsToBoolean",
+    "spec": "§06.5-conversion.md",
+    "line": 44
+  },
+  {
+    "operation": "toBoolean",
+    "spec": "§06.5-conversion.md",
+    "line": 61
+  },
+  {
+    "operation": "convertsToInteger",
+    "spec": "§06.5-conversion.md",
+    "line": 91
+  },
+  {
+    "operation": "toInteger",
+    "spec": "§06.5-conversion.md",
+    "line": 105
+  },
+  {
+    "operation": "convertsToDate",
+    "spec": "§06.5-conversion.md",
+    "line": 121
+  },
+  {
+    "operation": "toDate",
+    "spec": "§06.5-conversion.md",
+    "line": 135
+  },
+  {
+    "operation": "convertsToDateTime",
+    "spec": "§06.5-conversion.md",
+    "line": 151
+  },
+  {
+    "operation": "toDateTime",
+    "spec": "§06.5-conversion.md",
+    "line": 165
+  },
+  {
+    "operation": "convertsToDecimal",
+    "spec": "§06.5-conversion.md",
+    "line": 181
+  },
+  {
+    "operation": "toDecimal",
+    "spec": "§06.5-conversion.md",
+    "line": 195
+  },
+  {
+    "operation": "convertsToQuantity",
+    "spec": "§06.5-conversion.md",
+    "line": 211
+  },
+  {
+    "operation": "toQuantity",
+    "spec": "§06.5-conversion.md",
+    "line": 230
+  },
+  {
+    "operation": "convertsToString",
+    "spec": "§06.5-conversion.md",
+    "line": 252
+  },
+  {
+    "operation": "toString",
+    "spec": "§06.5-conversion.md",
+    "line": 267
+  },
+  {
+    "operation": "convertsToTime",
+    "spec": "§06.5-conversion.md",
+    "line": 296
+  },
+  {
+    "operation": "toTime",
+    "spec": "§06.5-conversion.md",
+    "line": 309
+  },
+  {
+    "operation": "indexOf",
+    "spec": "§06.6-string-manipulation.md",
+    "line": 7
+  },
+  {
+    "operation": "substring",
+    "spec": "§06.6-string-manipulation.md",
+    "line": 23
+  },
+  {
+    "operation": "startsWith",
+    "spec": "§06.6-string-manipulation.md",
+    "line": 40
+  },
+  {
+    "operation": "endsWith",
+    "spec": "§06.6-string-manipulation.md",
+    "line": 55
+  },
+  {
+    "operation": "contains",
+    "spec": "§06.6-string-manipulation.md",
+    "line": 70
+  },
+  {
+    "operation": "upper",
+    "spec": "§06.6-string-manipulation.md",
+    "line": 89
+  },
+  {
+    "operation": "lower",
+    "spec": "§06.6-string-manipulation.md",
+    "line": 102
+  },
+  {
+    "operation": "replace",
+    "spec": "§06.6-string-manipulation.md",
+    "line": 115
+  },
+  {
+    "operation": "matches",
+    "spec": "§06.6-string-manipulation.md",
+    "line": 129
+  },
+  {
+    "operation": "replaceMatches",
+    "spec": "§06.6-string-manipulation.md",
+    "line": 137
+  },
+  {
+    "operation": "length",
+    "spec": "§06.6-string-manipulation.md",
+    "line": 155
+  },
+  {
+    "operation": "toChars",
+    "spec": "§06.6-string-manipulation.md",
+    "line": 159
+  },
+  {
+    "operation": "abs",
+    "spec": "§06.7-math.md",
+    "line": 10
+  },
+  {
+    "operation": "ceiling",
+    "spec": "§06.7-math.md",
+    "line": 24
+  },
+  {
+    "operation": "exp",
+    "spec": "§06.7-math.md",
+    "line": 38
+  },
+  {
+    "operation": "floor",
+    "spec": "§06.7-math.md",
+    "line": 53
+  },
+  {
+    "operation": "ln",
+    "spec": "§06.7-math.md",
+    "line": 67
+  },
+  {
+    "operation": "log",
+    "spec": "§06.7-math.md",
+    "line": 82
+  },
+  {
+    "operation": "power",
+    "spec": "§06.7-math.md",
+    "line": 99
+  },
+  {
+    "operation": "round",
+    "spec": "§06.7-math.md",
+    "line": 115
+  },
+  {
+    "operation": "sqrt",
+    "spec": "§06.7-math.md",
+    "line": 130
+  },
+  {
+    "operation": "truncate",
+    "spec": "§06.7-math.md",
+    "line": 147
+  },
+  {
+    "operation": "children",
+    "spec": "§06.8-tree-navigation.md",
+    "line": 3
+  },
+  {
+    "operation": "descendants",
+    "spec": "§06.8-tree-navigation.md",
+    "line": 7
+  },
+  {
+    "operation": "trace",
+    "spec": "§06.9-utility-functions.md",
+    "line": 3
+  },
+  {
+    "operation": "now",
+    "spec": "§06.9-utility-functions.md",
+    "line": 21
+  },
+  {
+    "operation": "timeOfDay",
+    "spec": "§06.9-utility-functions.md",
+    "line": 25
+  },
+  {
+    "operation": "today",
+    "spec": "§06.9-utility-functions.md",
+    "line": 29
+  },
+  {
+    "operation": "aggregate",
+    "spec": "§08-aggregates.md",
+    "line": 8
+  },
+  {
+    "operation": "defineVariable",
+    "spec": "definitions.md",
+    "line": 124
+  }
+]

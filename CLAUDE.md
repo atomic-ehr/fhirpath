@@ -150,6 +150,17 @@ When task finished move files to ./tasks/done/<filename>.md and write what was d
   bun tools/testcase.ts --tag arithmetic | grep "Run:" | cut -d' ' -f2- | bash
   ```
 
+* **Spec Info Tool** (`./tools/spec-info.ts`) - Lookup FHIRPath operation specifications
+  ```bash
+  bun tools/spec-info.ts <operation-name>
+  bun tools/spec-info.ts --list
+  ```
+  Examples:
+  - `bun tools/spec-info.ts where` - Get specification for the where function
+  - `bun tools/spec-info.ts "+"` - Get specification for the + operator
+  - `bun tools/spec-info.ts "[]"` - Get specification for the indexer operator
+  - `bun tools/spec-info.ts --list` - List all available operations
+
 
 
 
