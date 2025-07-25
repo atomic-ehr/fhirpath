@@ -150,5 +150,61 @@ export interface FHIRPathAPI {
   evaluate(expression: string | FHIRPathExpression, input?: any): any[];
   compile(expression: string | FHIRPathExpression): CompiledExpression;
   analyze(expression: string | FHIRPathExpression): AnalysisResult;
+  inspect(expression: string | FHIRPathExpression, input?: any, context?: EvaluationContext): InspectResult;
   registry: RegistryAPI;
+}
+
+// Inspect API types
+export interface InspectResult {
+  result: any[];
+  expression: string;
+  ast: ASTNode;
+  executionTime: number;
+  traces: TraceEntry[];
+  evaluationSteps?: EvaluationStep[];
+  errors?: ErrorInfo[];
+  warnings?: WarningInfo[];
+}
+
+export interface TraceEntry {
+  name: string;
+  values: any[];
+  timestamp: number;
+  location?: SourceLocation;
+  depth: number;
+}
+
+export interface EvaluationStep {
+  nodeType: string;
+  expression: string;
+  input: any[];
+  output: any[];
+  variables: Record<string, any>;
+  timestamp: number;
+  duration: number;
+}
+
+export interface SourceLocation {
+  line: number;
+  column: number;
+  offset: number;
+}
+
+export interface ErrorInfo {
+  message: string;
+  type: string;
+  location?: SourceLocation;
+  stack?: string;
+}
+
+export interface WarningInfo {
+  message: string;
+  code: string;
+  location?: SourceLocation;
+}
+
+export interface InspectOptions {
+  recordSteps?: boolean;
+  maxTraces?: number;
+  maxSteps?: number;
 }

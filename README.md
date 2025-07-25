@@ -89,6 +89,56 @@ console.log(analysis.type); // Type information
 console.log(analysis.errors); // Any type errors
 ```
 
+#### `inspect(expression: string | FHIRPathExpression, input?: any, context?: EvaluationContext, options?: InspectOptions): InspectResult`
+
+Evaluates an expression while capturing rich debugging information including traces, execution time, and AST.
+
+```typescript
+// Basic usage - capture trace output
+const result = fhirpath.inspect(
+  'name.trace("names").given.trace("given names")',
+  patient
+);
+
+console.log(result.result);        // ['John', 'James', 'Johnny']
+console.log(result.traces);        // Array of trace entries
+console.log(result.executionTime); // Time in milliseconds
+console.log(result.ast);           // Parsed AST
+
+// Access trace information
+result.traces.forEach(trace => {
+  console.log(`${trace.name}: ${JSON.stringify(trace.values)}`);
+  console.log(`  at ${trace.timestamp}ms, depth: ${trace.depth}`);
+});
+
+// With options
+const detailedResult = fhirpath.inspect(
+  'Patient.name.where(use = "official")',
+  bundle,
+  undefined,
+  { 
+    maxTraces: 100,      // Limit number of traces collected
+    recordSteps: true    // Future: enable step-by-step recording
+  }
+);
+
+// Error handling
+const errorResult = fhirpath.inspect('invalid.expression()');
+if (errorResult.errors) {
+  console.log('Errors:', errorResult.errors);
+}
+```
+
+The `InspectResult` contains:
+- `result`: The evaluation result (same as `evaluate()`)
+- `expression`: The original expression string
+- `ast`: The parsed Abstract Syntax Tree
+- `executionTime`: Total execution time in milliseconds
+- `traces`: Array of trace entries from `trace()` calls
+- `errors`: Any errors encountered during evaluation
+- `warnings`: Any warnings (optional)
+- `evaluationSteps`: Step-by-step evaluation details (when enabled)
+
 ### Registry API
 
 The registry provides introspection capabilities for available operations.
@@ -207,7 +257,9 @@ import type {
   ModelProvider,
   CustomFunction,
   OperationInfo,
-  AnalysisResult
+  AnalysisResult,
+  InspectResult,
+  InspectOptions
 } from '@atomic-ehr/fhirpath';
 ```
 
@@ -272,6 +324,47 @@ const isAdult = fhirpath.evaluate(
   'today() - birthDate.toDateTime() >= 18 years',
   patient
 );
+```
+
+### Debugging Expressions
+
+Use the `inspect()` function to debug complex FHIRPath expressions:
+
+```typescript
+const bundle = {
+  entry: [
+    { resource: { resourceType: 'Patient', name: [{ given: ['John'] }] } },
+    { resource: { resourceType: 'Patient', name: [{ given: ['Jane'] }] } }
+  ]
+};
+
+// Debug a complex expression with traces
+const result = fhirpath.inspect(
+  `entry.resource
+    .trace('all resources')
+    .where(resourceType = 'Patient')
+    .trace('patients only')
+    .name.given
+    .trace('all given names')`,
+  bundle
+);
+
+// Analyze the execution
+console.log('Result:', result.result);
+console.log('Execution time:', result.executionTime + 'ms');
+console.log('\nTrace output:');
+result.traces.forEach(trace => {
+  console.log(`- ${trace.name}: ${trace.values.length} items`);
+});
+
+// Output:
+// Result: ['John', 'Jane']
+// Execution time: 0.523ms
+// 
+// Trace output:
+// - all resources: 2 items
+// - patients only: 2 items
+// - all given names: 2 items
 ```
 
 ## Performance Tips

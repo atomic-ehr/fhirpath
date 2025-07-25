@@ -3,6 +3,7 @@ import { defaultFunctionAnalyze } from '../default-analyzers';
 import { defaultFunctionCompile } from '../default-compilers';
 import { RuntimeContextManager } from '../../runtime/context';
 import { isTruthy } from '../utils';
+import { isDebugContext, addTrace } from '../../runtime/debug-context';
 
 export const aggregateFunction: Function = {
   name: 'aggregate',
@@ -539,7 +540,12 @@ export const traceFunction: Function = {
       values = result.value;
     }
     
-    console.log(`[TRACE] ${traceName}:`, values);
+    // Check if we're in debug mode
+    if (isDebugContext(context)) {
+      addTrace(context, traceName, values);
+    } else {
+      console.log(`[TRACE] ${traceName}:`, values);
+    }
     
     return { value: input, context };
   },

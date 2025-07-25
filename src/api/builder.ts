@@ -8,9 +8,11 @@ import type {
   AnalysisResult,
   EvaluationContext,
   CompileOptions,
-  AnalyzeOptions
+  AnalyzeOptions,
+  InspectResult,
+  InspectOptions
 } from './types';
-import { parse, evaluate, compile, analyze } from './index';
+import { parse, evaluate, compile, analyze, inspect } from './index';
 import { PublicRegistryAPI } from './registry';
 import { Registry } from '../registry/registry';
 import { invalidArgument } from './errors';
@@ -100,6 +102,11 @@ class BuiltAPI implements FHIRPathAPI {
       modelProvider: options?.modelProvider || this.modelProvider
     };
     return analyze(expression, mergedOptions);
+  }
+  
+  inspect(expression: string | FHIRPathExpression, input?: any, context?: EvaluationContext, options?: InspectOptions): InspectResult {
+    const mergedContext = context ? { ...this.createContext(), ...context } : this.createContext();
+    return inspect(expression, input, mergedContext, options);
   }
   
   private createContext(): EvaluationContext {

@@ -4,12 +4,15 @@ import type {
   EvaluationContext,
   CompileOptions,
   AnalyzeOptions,
-  AnalysisResult
+  AnalysisResult,
+  InspectResult,
+  InspectOptions
 } from './types';
 import { FHIRPathParser } from '../parser/parser';
 import { FHIRPathExpression as Expression } from './expression';
 import { FHIRPathError, parseError } from './errors';
 import { publicRegistry } from './registry';
+import { inspect as inspectImpl } from './inspect';
 
 // Parse expression into AST
 export function parse(expression: string): FHIRPathExpression {
@@ -51,6 +54,16 @@ export function analyze(
 ): AnalysisResult {
   const expr = typeof expression === 'string' ? parse(expression) : expression;
   return expr.analyze(options);
+}
+
+// Inspect expression with debugging information
+export function inspect(
+  expression: string | FHIRPathExpression,
+  input?: any,
+  context?: EvaluationContext,
+  options?: InspectOptions
+): InspectResult {
+  return inspectImpl(expression, input, context, options);
 }
 
 // Default registry instance
