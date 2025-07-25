@@ -523,7 +523,15 @@ export const traceFunction: Function = {
   
   analyze: defaultFunctionAnalyze,
   
-  evaluate: (interpreter, context, input, nameExpr, selectorExpr) => {
+  evaluate: (interpreter, context, input, nameValue, selectorExpr) => {
+    // Extract the name from the parameter (it comes as an array when kind is 'value')
+    let traceName = 'trace';
+    if (nameValue && Array.isArray(nameValue) && nameValue.length > 0) {
+      traceName = String(nameValue[0]);
+    } else if (typeof nameValue === 'string') {
+      traceName = nameValue;
+    }
+    
     let values = input;
     
     if (selectorExpr) {
@@ -531,12 +539,48 @@ export const traceFunction: Function = {
       values = result.value;
     }
     
-    console.log(`[TRACE] ${nameExpr || 'trace'}:`, values);
+    console.log(`[TRACE] ${traceName}:`, values);
     
     return { value: input, context };
   },
   
-  compile: defaultFunctionCompile
+  compile: (compiler, input, args) => {
+    const [nameExpr, selectorExpr] = args;
+    
+    return {
+      fn: (ctx) => {
+        const inputVal = input.fn(ctx);
+        
+        // Extract the name
+        let traceName = 'trace';
+        if (nameExpr) {
+          const nameResult = nameExpr.fn(ctx);
+          if (nameResult.length > 0) {
+            traceName = String(nameResult[0]);
+          }
+        }
+        
+        let values = inputVal;
+        
+        if (selectorExpr) {
+          // Create context with input for selector evaluation
+          const selectorCtx = RuntimeContextManager.withInput(ctx, inputVal);
+          values = selectorExpr.fn(selectorCtx);
+        }
+        
+        console.log(`[TRACE] ${traceName}:`, values);
+        
+        return inputVal;
+      },
+      type: input.type,
+      isSingleton: input.isSingleton,
+      source: selectorExpr 
+        ? `${input.source || ''}.trace('${nameExpr?.source || ''}', ${selectorExpr.source || ''})`
+        : nameExpr
+        ? `${input.source || ''}.trace('${nameExpr.source || ''}')`
+        : `${input.source || ''}.trace()`
+    };
+  }
 };
 
 export const checkFunction: Function = {

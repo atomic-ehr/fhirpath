@@ -1,0 +1,91 @@
+{
+  "name": "Trace Function Tests",
+  "description": "Tests for the trace() debugging function",
+  "tests": [
+    {
+      "name": "trace - with name only",
+      "expression": "name.given.trace('test').count()",
+      "input": {
+        "name": [
+          {
+            "given": ["Peter", "James"],
+            "family": "Chalmers"
+          },
+          {
+            "given": ["Jim"],
+            "family": "Windsor"
+          },
+          {
+            "given": ["Peter", "James"],
+            "family": "Windsor"
+          }
+        ]
+      },
+      "expected": [5],
+      "tags": ["function", "utility", "trace", "function:trace", "spec"]
+    },
+    {
+      "name": "trace - with name and selector",
+      "expression": "name.trace('test', given).count()",
+      "input": {
+        "name": [
+          {
+            "given": ["Peter", "James"],
+            "family": "Chalmers"
+          },
+          {
+            "given": ["Jim"],
+            "family": "Windsor"
+          },
+          {
+            "given": ["Peter", "James"],
+            "family": "Windsor"
+          }
+        ]
+      },
+      "expected": [3],
+      "tags": ["function", "utility", "trace", "selector", "function:trace", "spec"]
+    },
+    {
+      "name": "trace - returns input unchanged",
+      "expression": "(1 | 2 | 3).trace('numbers')",
+      "input": [],
+      "expected": [1, 2, 3],
+      "tags": ["function", "utility", "trace", "function:trace"]
+    },
+    {
+      "name": "trace - with empty input",
+      "expression": "{}.trace('empty')",
+      "input": [],
+      "expected": [],
+      "tags": ["function", "utility", "trace", "empty", "function:trace"]
+    },
+    {
+      "name": "trace - without name",
+      "expression": "(1 | 2 | 3).trace()",
+      "input": [],
+      "expected": [1, 2, 3],
+      "tags": ["function", "utility", "trace", "function:trace"]
+    },
+    {
+      "name": "trace - in chain",
+      "expression": "name.trace('before').where(use = 'official').trace('after').given",
+      "input": {
+        "name": [
+          {
+            "use": "official",
+            "given": ["Peter"],
+            "family": "Chalmers"
+          },
+          {
+            "use": "nickname",
+            "given": ["Jim"],
+            "family": "Windsor"
+          }
+        ]
+      },
+      "expected": ["Peter"],
+      "tags": ["function", "utility", "trace", "chain", "function:trace"]
+    }
+  ]
+}
