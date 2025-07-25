@@ -225,26 +225,49 @@ export const notFunction: Function = {
       throw new Error('not() function does not accept any parameters');
     }
     
-    // Three-valued logic for not:
+    // not() behavior per spec:
     // not(true) = false
     // not(false) = true  
     // not(empty) = true
+    // not(single non-boolean) = false
+    // not(multiple values) = empty
     
     if (input.length === 0) {
       // not empty = true
       return { value: [true], context };
     }
     
-    // Convert input to boolean and negate
-    const boolValue = toBoolean(toSingleton(input));
-    return { value: [!boolValue], context };
+    if (input.length > 1) {
+      // not(multiple values) = empty
+      return { value: [], context };
+    }
+    
+    // Single value - check if it's a boolean
+    const singleValue = input[0];
+    if (typeof singleValue === 'boolean') {
+      // Negate boolean value
+      return { value: [!singleValue], context };
+    }
+    
+    // Non-boolean single value returns false
+    return { value: [false], context };
   },
   
   compile: (compiler, input) => ({
     fn: (ctx) => {
       const inputValue = input?.fn(ctx) || [];
+      
+      // Match interpreter behavior
       if (inputValue.length === 0) return [true];
-      return [!toBoolean(toSingleton(inputValue))];
+      if (inputValue.length > 1) return [];
+      
+      const singleValue = inputValue[0];
+      if (typeof singleValue === 'boolean') {
+        return [!singleValue];
+      }
+      
+      // Non-boolean single value returns false
+      return [false];
     },
     type: compiler.resolveType('Boolean'),
     isSingleton: true,

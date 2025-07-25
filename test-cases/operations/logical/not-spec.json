@@ -1,0 +1,62 @@
+{
+  "name": "Not Function Spec Tests",
+  "description": "Tests for not() function based on FHIRPath specification test cases",
+  "tests": [
+    {
+      "name": "not() on true boolean",
+      "expression": "true.not()",
+      "input": [],
+      "expected": [false],
+      "tags": ["function", "logical", "not", "spec"]
+    },
+    {
+      "name": "not() on false boolean",
+      "expression": "false.not()",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "logical", "not", "spec"]
+    },
+    {
+      "name": "not() on empty collection",
+      "expression": "{}.not()",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "logical", "not", "empty", "spec"]
+    },
+    {
+      "name": "not() on integer 0",
+      "expression": "(0).not()",
+      "input": [],
+      "expected": [false],
+      "tags": ["function", "logical", "not", "number", "spec"]
+    },
+    {
+      "name": "not() on integer 1",
+      "expression": "(1).not()",
+      "input": [],
+      "expected": [false],
+      "tags": ["function", "logical", "not", "number", "spec"]
+    },
+    {
+      "name": "not() on multiple values",
+      "expression": "(1|2).not()",
+      "input": [],
+      "expected": [],
+      "tags": ["function", "logical", "not", "multiple", "spec"]
+    },
+    {
+      "name": "not() on string",
+      "expression": "'hello'.not()",
+      "input": [],
+      "expected": [false],
+      "tags": ["function", "logical", "not", "string", "spec"]
+    },
+    {
+      "name": "not() on decimal",
+      "expression": "3.14.not()",
+      "input": [],
+      "expected": [false],
+      "tags": ["function", "logical", "not", "decimal", "spec"]
+    }
+  ]
+}
