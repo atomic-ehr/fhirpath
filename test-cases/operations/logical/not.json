@@ -1,6 +1,6 @@
 {
   "name": "Not Function Tests",
-  "description": "Tests for the not() function",
+  "description": "Tests for the not() function including spec-based tests",
   "tests": [
     {
       "name": "not() - true",
@@ -89,6 +89,41 @@
         "exists",
         "function:not"
       ]
+    },
+    {
+      "name": "not() on integer 0",
+      "expression": "(0).not()",
+      "input": [],
+      "expected": [false],
+      "tags": ["function", "logical", "not", "number", "spec", "function:not"]
+    },
+    {
+      "name": "not() on integer 1",
+      "expression": "(1).not()",
+      "input": [],
+      "expected": [false],
+      "tags": ["function", "logical", "not", "number", "spec", "function:not"]
+    },
+    {
+      "name": "not() on multiple values",
+      "expression": "(1|2).not()",
+      "input": [],
+      "expected": [],
+      "tags": ["function", "logical", "not", "multiple", "spec", "function:not"]
+    },
+    {
+      "name": "not() on string",
+      "expression": "'hello'.not()",
+      "input": [],
+      "expected": [false],
+      "tags": ["function", "logical", "not", "string", "spec", "function:not"]
+    },
+    {
+      "name": "not() on decimal",
+      "expression": "3.14.not()",
+      "input": [],
+      "expected": [false],
+      "tags": ["function", "logical", "not", "decimal", "spec", "function:not"]
     }
   ]
 }
