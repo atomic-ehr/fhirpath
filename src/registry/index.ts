@@ -1,6 +1,6 @@
 import { Registry } from './registry';
 import { arithmeticOperators } from './operations/arithmetic';
-import { logicalOperators } from './operations/logical';
+import { logicalOperators, logicalFunctions } from './operations/logical';
 import { comparisonOperators } from './operations/comparison';
 import { membershipOperators } from './operations/membership';
 import { typeOperators } from './operations/type-operators';
@@ -39,6 +39,7 @@ export * from './default-analyzers';
 [
   ...arithmeticOperators,
   ...logicalOperators,
+  ...logicalFunctions,
   ...comparisonOperators,
   ...membershipOperators,
   ...typeOperators,

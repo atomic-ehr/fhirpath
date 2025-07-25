@@ -1,6 +1,6 @@
 import { TokenType } from '../../lexer/token';
-import type { Operator } from '../types';
-import { defaultOperatorAnalyze } from '../default-analyzers';
+import type { Operator, Function } from '../types';
+import { defaultOperatorAnalyze, defaultFunctionAnalyze } from '../default-analyzers';
 import { toBoolean, toSingleton } from '../utils';
 
 export const andOperator: Operator = {
@@ -195,50 +195,60 @@ export const orOperator: Operator = {
   })
 };
 
-export const notOperator: Operator = {
+export const notFunction: Function = {
   name: 'not',
-  kind: 'operator',
+  kind: 'function',
   
   syntax: {
-    form: 'prefix',
-    token: TokenType.NOT,
-    precedence: 10, // High precedence for unary operators
-    notation: 'not a'
+    notation: 'not()'
   },
   
   signature: {
-    parameters: [
-      { name: 'operand', types: { kind: 'any' }, cardinality: 'any' }
-    ],
+    input: {
+      types: { kind: 'any' },
+      cardinality: 'any'
+    },
+    parameters: [], // not() takes no parameters
     output: {
       type: 'Boolean',
-      cardinality: 'preserve-input'
+      cardinality: 'singleton'
     },
-    propagatesEmpty: false // not empty = true
+    propagatesEmpty: false, // not() on empty returns true
+    deterministic: true
   },
   
-  analyze: defaultOperatorAnalyze,
+  analyze: defaultFunctionAnalyze,
   
-  evaluate: (interpreter, context, input, operand) => {
-    if (operand.length === 0) {
+  evaluate: (interpreter, context, input, ...args) => {
+    // not() should not accept any parameters
+    if (args.length > 0) {
+      throw new Error('not() function does not accept any parameters');
+    }
+    
+    // Three-valued logic for not:
+    // not(true) = false
+    // not(false) = true  
+    // not(empty) = true
+    
+    if (input.length === 0) {
       // not empty = true
       return { value: [true], context };
     }
     
-    // Apply not to each element
-    const result = operand.map((item: any) => !toBoolean(item));
-    return { value: result, context };
+    // Convert input to boolean and negate
+    const boolValue = toBoolean(toSingleton(input));
+    return { value: [!boolValue], context };
   },
   
-  compile: (compiler, input, args) => ({
+  compile: (compiler, input) => ({
     fn: (ctx) => {
-      const operand = args[0]?.fn(ctx) || [];
-      if (operand.length === 0) return [true];
-      return operand.map((item: any) => !toBoolean(item));
+      const inputValue = input?.fn(ctx) || [];
+      if (inputValue.length === 0) return [true];
+      return [!toBoolean(toSingleton(inputValue))];
     },
     type: compiler.resolveType('Boolean'),
-    isSingleton: args[0]?.isSingleton ?? false,
-    source: `not ${args[0]?.source || ''}`
+    isSingleton: true,
+    source: `${input?.source || ''}.not()`
   })
 };
 
@@ -396,7 +406,11 @@ export const impliesOperator: Operator = {
 export const logicalOperators = [
   andOperator,
   orOperator,
-  notOperator,
   xorOperator,
   impliesOperator
+];
+
+// Export logical functions
+export const logicalFunctions = [
+  notFunction
 ];

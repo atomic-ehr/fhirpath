@@ -115,49 +115,6 @@
       ]
     },
     {
-      "name": "not - true",
-      "expression": "not true",
-      "input": [],
-      "expected": [
-        false
-      ],
-      "tags": [
-        "operator",
-        "logical",
-        "not",
-        "operator:or"
-      ]
-    },
-    {
-      "name": "not - false",
-      "expression": "not false",
-      "input": [],
-      "expected": [
-        true
-      ],
-      "tags": [
-        "operator",
-        "logical",
-        "not",
-        "operator:or"
-      ]
-    },
-    {
-      "name": "not - empty",
-      "expression": "not {}",
-      "input": [],
-      "expected": [
-        true
-      ],
-      "tags": [
-        "operator",
-        "logical",
-        "not",
-        "empty",
-        "operator:or"
-      ]
-    },
-    {
       "name": "xor - true xor true",
       "expression": "true xor true",
       "input": [],

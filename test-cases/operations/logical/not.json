@@ -3,45 +3,90 @@
   "description": "Tests for the not() function",
   "tests": [
     {
-      "name": "not - true",
-      "expression": "not true",
+      "name": "not() - true",
+      "expression": "true.not()",
       "input": [],
       "expected": [
         false
       ],
       "tags": [
-        "operator",
+        "function",
         "logical",
         "not",
         "function:not"
       ]
     },
     {
-      "name": "not - false",
-      "expression": "not false",
+      "name": "not() - false",
+      "expression": "false.not()",
       "input": [],
       "expected": [
         true
       ],
       "tags": [
-        "operator",
+        "function",
         "logical",
         "not",
         "function:not"
       ]
     },
     {
-      "name": "not - empty",
-      "expression": "not {}",
+      "name": "not() - empty collection",
+      "expression": "({}).not()",
       "input": [],
       "expected": [
         true
       ],
       "tags": [
-        "operator",
+        "function",
         "logical",
         "not",
         "empty",
+        "function:not"
+      ]
+    },
+    {
+      "name": "not() - with comparison",
+      "expression": "(1 = 2).not()",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "logical",
+        "not",
+        "comparison",
+        "function:not"
+      ]
+    },
+    {
+      "name": "not() - on property",
+      "expression": "active.not()",
+      "input": {"active": false},
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "logical",
+        "not",
+        "navigation",
+        "function:not"
+      ]
+    },
+    {
+      "name": "not() - chained with exists",
+      "expression": "name.exists().not()",
+      "input": {"active": true},
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "logical",
+        "not",
+        "exists",
         "function:not"
       ]
     }

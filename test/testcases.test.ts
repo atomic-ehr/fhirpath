@@ -160,7 +160,10 @@ describe("Unified FHIRPath Tests", () => {
 
     try {
       const ast = parse(test.expression);
-      const result = interpreter.evaluate(ast, test.input, context);
+      // Convert input to array format if needed
+      const inputArray = test.input === undefined ? [] : 
+                        Array.isArray(test.input) ? test.input : [test.input];
+      const result = interpreter.evaluate(ast, inputArray, context);
       const endTime = performance.now();
 
       return {
@@ -189,8 +192,13 @@ describe("Unified FHIRPath Tests", () => {
       const ast = parse(test.expression);
       const compiled = compiler.compile(ast);
 
-      // Use the same context for compiler
-      const result = compiled.fn(context);
+      // Convert input to array format if needed
+      const inputArray = test.input === undefined ? [] : 
+                        Array.isArray(test.input) ? test.input : [test.input];
+      // Update context with the input array
+      const ctxWithInput = RuntimeContextManager.withInput(context, inputArray);
+      // Pass the updated context to compiled function
+      const result = compiled.fn(ctxWithInput);
 
       const endTime = performance.now();
 

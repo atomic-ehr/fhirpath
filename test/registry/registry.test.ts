@@ -27,7 +27,7 @@ describe('Registry', () => {
       
       const not = Registry.get('not');
       expect(not).toBeDefined();
-      expect((not as any).syntax.form).toBe('prefix');
+      expect(not?.kind).toBe('function'); // 'not' is now a function, not an operator
     });
 
     it('should provide operator precedence', () => {
@@ -40,7 +40,7 @@ describe('Registry', () => {
     it('should identify keywords', () => {
       expect(Registry.isKeyword('and')).toBe(true);
       expect(Registry.isKeyword('or')).toBe(true);
-      expect(Registry.isKeyword('not')).toBe(true);
+      expect(Registry.isKeyword('not')).toBe(false); // 'not' is now a function, not a keyword
       expect(Registry.isKeyword('true')).toBe(true);
       expect(Registry.isKeyword('false')).toBe(true);
       expect(Registry.isKeyword('mod')).toBe(true);
@@ -142,7 +142,9 @@ describe('Registry', () => {
 
     it('should get operators by form', () => {
       const prefix = Registry.getOperatorsByForm('prefix');
-      expect(prefix.some(op => op.name === 'not')).toBe(true);
+      expect(prefix.some(op => op.name === 'unary+')).toBe(true); // unary plus
+      expect(prefix.some(op => op.name === 'unary-')).toBe(true); // unary minus
+      // 'not' is no longer a prefix operator
 
       const infix = Registry.getOperatorsByForm('infix');
       expect(infix.some(op => op.name === '+')).toBe(true);

@@ -108,12 +108,14 @@ describe('FHIRPath Parser', () => {
       expect((ast as any).operand.value).toBe(5);
     });
     
-    it('parses not operator', () => {
-      const ast = parse('not true');
-      expect(ast.type).toBe(NodeType.Unary);
-      expect((ast as any).operator).toBe(TokenType.NOT);
-      expect((ast as any).operand.value).toBe(true);
-    });
+    // Note: 'not' is now a function, not an operator
+    // This test is kept but commented out to document the change
+    // it('parses not operator', () => {
+    //   const ast = parse('not true');
+    //   expect(ast.type).toBe(NodeType.Unary);
+    //   expect((ast as any).operator).toBe(TokenType.NOT);
+    //   expect((ast as any).operand.value).toBe(true);
+    // });
   });
   
   describe('Binary Operators', () => {

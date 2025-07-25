@@ -34,7 +34,7 @@ describe('FHIRPath Lexer - Basic Tokens', () => {
     expect(types).toEqual([
       TokenType.TRUE, TokenType.FALSE,
       TokenType.AND, TokenType.OR,
-      TokenType.NOT,
+      TokenType.IDENTIFIER, // 'not' is now a function, not an operator
       TokenType.IN, TokenType.CONTAINS,
       TokenType.AS, TokenType.IS,
       TokenType.DIV, TokenType.MOD
