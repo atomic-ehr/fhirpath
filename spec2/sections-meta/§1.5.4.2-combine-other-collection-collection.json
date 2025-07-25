@@ -1,0 +1,9 @@
+{
+  "title": "combine(other : collection) : collection",
+  "file": "§1.5.4.2-combine-other-collection-collection.md",
+  "keywords": [
+    "combine",
+    "collection",
+    "merge"
+  ]
+}

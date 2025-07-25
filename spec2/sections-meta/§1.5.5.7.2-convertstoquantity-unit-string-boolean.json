@@ -1,0 +1,9 @@
+{
+  "title": "convertsToQuantity([unit : String]) : Boolean",
+  "file": "§1.5.5.7.2-convertstoquantity-unit-string-boolean.md",
+  "keywords": [
+    "convertstoquantity",
+    "quantity",
+    "ucum"
+  ]
+}

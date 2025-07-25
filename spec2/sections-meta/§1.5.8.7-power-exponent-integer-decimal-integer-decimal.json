@@ -1,0 +1,9 @@
+{
+  "title": "power(exponent : Integer | Decimal) : Integer | Decimal",
+  "file": "§1.5.8.7-power-exponent-integer-decimal-integer-decimal.md",
+  "keywords": [
+    "power",
+    "exponent",
+    "decimal"
+  ]
+}

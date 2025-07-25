@@ -1,0 +1,9 @@
+{
+  "title": "encode(format : String) : String",
+  "file": "§1.5.7.1-encode-format-string-string.md",
+  "keywords": [
+    "encode",
+    "format",
+    "base64"
+  ]
+}

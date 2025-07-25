@@ -1,0 +1,9 @@
+{
+  "title": "aggregate(aggregator : expression [, init : value]) : value",
+  "file": "§1.7.1-aggregate-aggregator-expression-init-value-value.md",
+  "keywords": [
+    "aggregate",
+    "expression",
+    "value"
+  ]
+}

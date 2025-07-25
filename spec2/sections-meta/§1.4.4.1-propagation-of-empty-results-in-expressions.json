@@ -1,0 +1,9 @@
+{
+  "title": "Propagation of empty results in expressions",
+  "file": "§1.4.4.1-propagation-of-empty-results-in-expressions.md",
+  "keywords": [
+    "propagation",
+    "expressions",
+    "fhirpath"
+  ]
+}

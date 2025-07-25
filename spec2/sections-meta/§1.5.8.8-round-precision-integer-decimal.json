@@ -1,0 +1,9 @@
+{
+  "title": "round([precision : Integer]) : Decimal",
+  "file": "§1.5.8.8-round-precision-integer-decimal.md",
+  "keywords": [
+    "round",
+    "decimal",
+    "precision"
+  ]
+}

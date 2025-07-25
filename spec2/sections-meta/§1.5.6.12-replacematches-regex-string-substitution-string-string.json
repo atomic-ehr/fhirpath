@@ -1,0 +1,9 @@
+{
+  "title": "replaceMatches(regex : String, substitution: String) : String",
+  "file": "§1.5.6.12-replacematches-regex-string-substitution-string-string.md",
+  "keywords": [
+    "replacematches",
+    "regex",
+    "substitution"
+  ]
+}

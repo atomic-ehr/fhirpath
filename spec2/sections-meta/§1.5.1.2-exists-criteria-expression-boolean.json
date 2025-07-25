@@ -1,0 +1,9 @@
+{
+  "title": "exists([criteria : expression]) : Boolean",
+  "file": "§1.5.1.2-exists-criteria-expression-boolean.md",
+  "keywords": [
+    "exists",
+    "boolean",
+    "expression"
+  ]
+}

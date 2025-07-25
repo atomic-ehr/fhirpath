@@ -1,0 +1,1973 @@
+[
+  {
+    "title": "Features",
+    "file": "§1.1.2-features.md",
+    "keywords": [
+      "graph-traversal",
+      "fluent",
+      "collection-centric"
+    ]
+  },
+  {
+    "title": "+ (addition)",
+    "file": "§1.6.6.3-addition.md",
+    "keywords": [
+      "addition",
+      "quantity",
+      "operand"
+    ]
+  },
+  {
+    "title": "abs() : Integer | Decimal | Quantity",
+    "file": "§1.5.8.1-abs-integer-decimal-quantity.md",
+    "keywords": [
+      "abs",
+      "quantity",
+      "decimal"
+    ]
+  },
+  {
+    "title": "select(projection: expression) : collection",
+    "file": "§1.5.2.2-select-projection-expression-collection.md",
+    "keywords": [
+      "select",
+      "projection",
+      "collection"
+    ]
+  },
+  {
+    "title": "Math",
+    "file": "§1.6.6-math.md",
+    "keywords": [
+      "math",
+      "operators",
+      "quantities"
+    ]
+  },
+  {
+    "title": "first() : collection",
+    "file": "§1.5.3.3-first-collection.md",
+    "keywords": [
+      "first",
+      "collection",
+      "item"
+    ]
+  },
+  {
+    "title": "upper() : String",
+    "file": "§1.5.6.7-upper-string.md",
+    "keywords": [
+      "upper()",
+      "string",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "References",
+    "file": "§1.15-references.md",
+    "keywords": [
+      "references",
+      "fhirpath",
+      "bibliography"
+    ]
+  },
+  {
+    "title": "Decimal",
+    "file": "§1.4.1.4-decimal.md",
+    "keywords": [
+      "decimal",
+      "fixed-precision",
+      "literal"
+    ]
+  },
+  {
+    "title": "Use of FHIRPath on HL7 Version 2 messages",
+    "file": "§1.13-use-of-fhirpath-on-hl7-version-2-messages.md",
+    "keywords": [
+      "fhirpath",
+      "fhirpath",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "Model Information",
+    "file": "§1.12.2-model-information.md",
+    "keywords": [
+      "model",
+      "reflection",
+      "case-sensitivity"
+    ]
+  },
+  {
+    "title": "allFalse() : Boolean",
+    "file": "§1.5.1.6-allfalse-boolean.md",
+    "keywords": [
+      "boolean",
+      "collection",
+      "allfalse"
+    ]
+  },
+  {
+    "title": "and",
+    "file": "§1.6.5.1-and.md",
+    "keywords": [
+      "and",
+      "true",
+      "false"
+    ]
+  },
+  {
+    "title": "toDecimal() : Decimal",
+    "file": "§1.5.5.6.1-todecimal-decimal.md",
+    "keywords": [
+      "todecimal",
+      "decimal",
+      "error"
+    ]
+  },
+  {
+    "title": "Tree navigation",
+    "file": "§1.5.9-tree-navigation.md",
+    "keywords": [
+      "tree",
+      "navigation",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "convertsToDateTime() : Boolean",
+    "file": "§1.5.5.5.2-convertstodatetime-boolean.md",
+    "keywords": [
+      "boolean",
+      "fhirpath",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "Existence",
+    "file": "§1.5.1-existence.md",
+    "keywords": [
+      "existence",
+      "boolean",
+      "evaluation"
+    ]
+  },
+  {
+    "title": "lastIndexOf(substring : String) : Integer",
+    "file": "§1.5.6.2-lastindexof-substring-string-integer.md",
+    "keywords": [
+      "lastindexof",
+      "string",
+      "integer"
+    ]
+  },
+  {
+    "title": "Environment variables",
+    "file": "§1.9-environment-variables.md",
+    "keywords": [
+      "fhirpath",
+      "tokens",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "power(exponent : Integer | Decimal) : Integer | Decimal",
+    "file": "§1.5.8.7-power-exponent-integer-decimal-integer-decimal.md",
+    "keywords": [
+      "power",
+      "exponent",
+      "decimal"
+    ]
+  },
+  {
+    "title": "toString() : String",
+    "file": "§1.5.5.8.1-tostring-string.md",
+    "keywords": [
+      "tostring",
+      "string",
+      "collection"
+    ]
+  },
+  {
+    "title": "Conventions",
+    "file": "§1.1.4-conventions.md",
+    "keywords": [
+      "fhirpath",
+      "collection",
+      "date"
+    ]
+  },
+  {
+    "title": "* (multiplication)",
+    "file": "§1.6.6.1-multiplication.md",
+    "keywords": [
+      "multiplication",
+      "quantity",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "Operations",
+    "file": "§1.6-operations.md",
+    "keywords": [
+      "operators",
+      "fhirpath",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "replaceMatches(regex : String, substitution: String) : String",
+    "file": "§1.5.6.12-replacematches-regex-string-substitution-string-string.md",
+    "keywords": [
+      "replacematches",
+      "regex",
+      "substitution"
+    ]
+  },
+  {
+    "title": "Additional String Functions",
+    "file": "§1.5.7-additional-string-functions.md",
+    "keywords": [
+      "string",
+      "functions",
+      "stu"
+    ]
+  },
+  {
+    "title": "join([separator: String]) : String",
+    "file": "§1.5.7.7-join-separator-string-string.md",
+    "keywords": [
+      "join",
+      "string",
+      "collection"
+    ]
+  },
+  {
+    "title": "Propagation of empty results in expressions",
+    "file": "§1.4.4.1-propagation-of-empty-results-in-expressions.md",
+    "keywords": [
+      "propagation",
+      "expressions",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "length() : Integer",
+    "file": "§1.5.6.13-length-integer.md",
+    "keywords": [
+      "length",
+      "string",
+      "integer"
+    ]
+  },
+  {
+    "title": "Utility functions",
+    "file": "§1.5.10-utility-functions.md",
+    "keywords": [
+      "utility",
+      "function",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "Comparison",
+    "file": "§1.6.2-comparison.md",
+    "keywords": [
+      "comparison",
+      "quantity",
+      "datetime"
+    ]
+  },
+  {
+    "title": "skip(num : Integer) : collection",
+    "file": "§1.5.3.6-skip-num-integer-collection.md",
+    "keywords": [
+      "skip",
+      "collection",
+      "integer"
+    ]
+  },
+  {
+    "title": "Path selection",
+    "file": "§1.3-path-selection.md",
+    "keywords": [
+      "path",
+      "type",
+      "selection"
+    ]
+  },
+  {
+    "title": "Date/Time Equality",
+    "file": "§1.6.1.1.2-date-time-equality.md",
+    "keywords": [
+      "date/time",
+      "equality",
+      "comparison"
+    ]
+  },
+  {
+    "title": "Literals",
+    "file": "§1.4.1-literals.md",
+    "keywords": [
+      "literals",
+      "types",
+      "quantity"
+    ]
+  },
+  {
+    "title": "Cross Version Analysis",
+    "file": "§1.17-cross-version-analysis.md",
+    "keywords": [
+      "cross-version",
+      "analysis",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "floor() : Integer",
+    "file": "§1.5.8.4-floor-integer.md",
+    "keywords": [
+      "floor",
+      "integer",
+      "collection"
+    ]
+  },
+  {
+    "title": "take(num : Integer) : collection",
+    "file": "§1.5.3.7-take-num-integer-collection.md",
+    "keywords": [
+      "take",
+      "collection",
+      "integer"
+    ]
+  },
+  {
+    "title": "/ (division)",
+    "file": "§1.6.6.2-division.md",
+    "keywords": [
+      "division",
+      "quantity",
+      "decimal"
+    ]
+  },
+  {
+    "title": "Identifiers",
+    "file": "§1.8.6-identifiers.md",
+    "keywords": [
+      "identifiers",
+      "simple",
+      "delimited"
+    ]
+  },
+  {
+    "title": "convertsToDate() : Boolean",
+    "file": "§1.5.5.4.2-convertstodate-boolean.md",
+    "keywords": [
+      "convertstodate",
+      "boolean",
+      "date"
+    ]
+  },
+  {
+    "title": "!~ (Not Equivalent)",
+    "file": "§1.6.1.4-not-equivalent.md",
+    "keywords": [
+      "equivalent",
+      "fhirpath",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "timezoneOffsetOf(): Decimal",
+    "file": "§1.5.10.7.8-timezoneoffsetof-decimal.md",
+    "keywords": [
+      "datetime",
+      "timezoneoffset",
+      "decimal"
+    ]
+  },
+  {
+    "title": "exclude(other: collection) : collection",
+    "file": "§1.5.3.9-exclude-other-collection-collection.md",
+    "keywords": [
+      "exclude",
+      "collection",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "ofType(type : _type specifier_) : collection",
+    "file": "§1.5.2.4-oftype-type-type-specifier-collection.md",
+    "keywords": [
+      "oftype",
+      "collection",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "Integer",
+    "file": "§1.4.1.3-integer.md",
+    "keywords": [
+      "integer",
+      "literal",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "Boolean Conversion Functions",
+    "file": "§1.5.5.2-boolean-conversion-functions.md",
+    "keywords": [
+      "boolean",
+      "conversion",
+      "functions"
+    ]
+  },
+  {
+    "title": "Models",
+    "file": "§1.10.1-models.md",
+    "keywords": [
+      "models",
+      "system",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "Collections",
+    "file": "§1.6.4-collections.md",
+    "keywords": [
+      "collections",
+      "functions",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "convertsToString() : String",
+    "file": "§1.5.5.8.2-convertstostring-string.md",
+    "keywords": [
+      "convertstostring",
+      "collection",
+      "datatype"
+    ]
+  },
+  {
+    "title": "Literals",
+    "file": "§1.8.3-literals.md",
+    "keywords": [
+      "literals",
+      "fhirpath",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "is _type specifier_",
+    "file": "§1.6.3.1-is-type-specifier.md",
+    "keywords": [
+      "is",
+      "fhirpath",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "ln() : Decimal",
+    "file": "§1.5.8.5-ln-decimal.md",
+    "keywords": [
+      "ln",
+      "decimal",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "~ (Equivalent)",
+    "file": "§1.6.1.2-equivalent.md",
+    "keywords": [
+      "equivalence",
+      "collections",
+      "comparison"
+    ]
+  },
+  {
+    "title": "as(type : _type specifier_)",
+    "file": "§1.6.3.4-as-type-type-specifier.md",
+    "keywords": [
+      "as",
+      "fhirpath",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "String Equivalence",
+    "file": "§1.6.1.2.3-string-equivalence.md",
+    "keywords": [
+      "string",
+      "equivalence",
+      "whitespace"
+    ]
+  },
+  {
+    "title": "convertsToQuantity([unit : String]) : Boolean",
+    "file": "§1.5.5.7.2-convertstoquantity-unit-string-boolean.md",
+    "keywords": [
+      "convertstoquantity",
+      "quantity",
+      "ucum"
+    ]
+  },
+  {
+    "title": "toLong() : Long",
+    "file": "§1.5.5.3.3-tolong-long.md",
+    "keywords": [
+      "tolong",
+      "long",
+      "integer"
+    ]
+  },
+  {
+    "title": "last() : collection",
+    "file": "§1.5.3.4-last-collection.md",
+    "keywords": [
+      "collection",
+      "last",
+      "empty"
+    ]
+  },
+  {
+    "title": "Comments",
+    "file": "§1.8.2-comments.md",
+    "keywords": [
+      "comments",
+      "single-line",
+      "multi-line"
+    ]
+  },
+  {
+    "title": "lowBoundary([precision: Integer]): Decimal | Date | DateTime | Time",
+    "file": "§1.5.10.4-lowboundary-precision-integer-decimal-date-datetime-time.md",
+    "keywords": [
+      "decimal",
+      "date",
+      "datetime"
+    ]
+  },
+  {
+    "title": "ceiling() : Integer",
+    "file": "§1.5.8.2-ceiling-integer.md",
+    "keywords": [
+      "ceiling",
+      "integer",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "toChars() : collection",
+    "file": "§1.5.6.14-tochars-collection.md",
+    "keywords": [
+      "tochars",
+      "collection",
+      "string"
+    ]
+  },
+  {
+    "title": "Requirements",
+    "file": "§1.1.1-requirements.md",
+    "keywords": [
+      "requirements",
+      "expressions",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "contains(substring : String) : Boolean",
+    "file": "§1.5.6.6-contains-substring-string-boolean.md",
+    "keywords": [
+      "contains",
+      "substring",
+      "boolean"
+    ]
+  },
+  {
+    "title": "unescape(target : String) : String",
+    "file": "§1.5.7.4-unescape-target-string-string.md",
+    "keywords": [
+      "unescape",
+      "string",
+      "target"
+    ]
+  },
+  {
+    "title": "exists([criteria : expression]) : Boolean",
+    "file": "§1.5.1.2-exists-criteria-expression-boolean.md",
+    "keywords": [
+      "exists",
+      "boolean",
+      "expression"
+    ]
+  },
+  {
+    "title": "replace(pattern : String, substitution : String) : String",
+    "file": "§1.5.6.9-replace-pattern-string-substitution-string-string.md",
+    "keywords": [
+      "replace",
+      "pattern",
+      "substitution"
+    ]
+  },
+  {
+    "title": "exp() : Decimal",
+    "file": "§1.5.8.3-exp-decimal.md",
+    "keywords": [
+      "decimal",
+      "exp",
+      "collection"
+    ]
+  },
+  {
+    "title": "Whitespace",
+    "file": "§1.8.1-whitespace.md",
+    "keywords": [
+      "whitespace",
+      "fhirpath",
+      "token"
+    ]
+  },
+  {
+    "title": "Time Conversion Functions",
+    "file": "§1.5.5.9-time-conversion-functions.md",
+    "keywords": [
+      "time",
+      "conversion",
+      "functions"
+    ]
+  },
+  {
+    "title": "Boolean",
+    "file": "§1.4.1.1-boolean.md",
+    "keywords": [
+      "boolean",
+      "true",
+      "false"
+    ]
+  },
+  {
+    "title": "Global Profiles",
+    "file": "§1.18-global-profiles.md",
+    "keywords": [
+      "global",
+      "profiles",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "round([precision : Integer]) : Decimal",
+    "file": "§1.5.8.8-round-precision-integer-decimal.md",
+    "keywords": [
+      "round",
+      "decimal",
+      "precision"
+    ]
+  },
+  {
+    "title": "| (union collections)",
+    "file": "§1.6.4.1-union-collections.md",
+    "keywords": [
+      "union",
+      "collections",
+      "equals"
+    ]
+  },
+  {
+    "title": "encode(format : String) : String",
+    "file": "§1.5.7.1-encode-format-string-string.md",
+    "keywords": [
+      "encode",
+      "format",
+      "base64"
+    ]
+  },
+  {
+    "title": "not() : Boolean",
+    "file": "§1.6.5.3-not-boolean.md",
+    "keywords": [
+      "not",
+      "boolean",
+      "empty"
+    ]
+  },
+  {
+    "title": "escape(target : String) : String",
+    "file": "§1.5.7.3-escape-target-string-string.md",
+    "keywords": [
+      "escape",
+      "string",
+      "target"
+    ]
+  },
+  {
+    "title": "&gt; (Greater Than)",
+    "file": "§1.6.2.1-gt-greater-than.md",
+    "keywords": [
+      "comparison",
+      "fhirpath",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "contains (containership)",
+    "file": "§1.6.4.3-contains-containership.md",
+    "keywords": [
+      "contains",
+      "containership",
+      "equality"
+    ]
+  },
+  {
+    "title": "Operators",
+    "file": "§1.4.2-operators.md",
+    "keywords": [
+      "operators",
+      "expressions",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "or",
+    "file": "§1.6.5.2-or.md",
+    "keywords": [
+      "or",
+      "true",
+      "false"
+    ]
+  },
+  {
+    "title": "highBoundary([precision: Integer]): Decimal | Date | DateTime | Time",
+    "file": "§1.5.10.5-highboundary-precision-integer-decimal-date-datetime-time.md",
+    "keywords": [
+      "highboundary",
+      "precision",
+      "decimal"
+    ]
+  },
+  {
+    "title": "toTime() : Time",
+    "file": "§1.5.5.9.1-totime-time.md",
+    "keywords": [
+      "time",
+      "totime()",
+      "collection"
+    ]
+  },
+  {
+    "title": "distinct() : collection",
+    "file": "§1.5.1.11-distinct-collection.md",
+    "keywords": [
+      "distinct",
+      "collection",
+      "equals"
+    ]
+  },
+  {
+    "title": "descendants() : collection",
+    "file": "§1.5.9.2-descendants-collection.md",
+    "keywords": [
+      "descendants",
+      "collection",
+      "children"
+    ]
+  },
+  {
+    "title": "subsetOf(other : collection) : Boolean",
+    "file": "§1.5.1.8-subsetof-other-collection-boolean.md",
+    "keywords": [
+      "subsetof",
+      "collection",
+      "equals"
+    ]
+  },
+  {
+    "title": "Symbols",
+    "file": "§1.8.4-symbols.md",
+    "keywords": [
+      "symbols",
+      "operators",
+      "expressions"
+    ]
+  },
+  {
+    "title": "toDateTime() : DateTime",
+    "file": "§1.5.5.5.1-todatetime-datetime.md",
+    "keywords": [
+      "datetime",
+      "todatetime",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "minuteOf(): Integer",
+    "file": "§1.5.10.7.5-minuteof-integer.md",
+    "keywords": [
+      "integer",
+      "minuteof",
+      "collection"
+    ]
+  },
+  {
+    "title": "tail() : collection",
+    "file": "§1.5.3.5-tail-collection.md",
+    "keywords": [
+      "collection",
+      "tail",
+      "empty"
+    ]
+  },
+  {
+    "title": "empty() : Boolean",
+    "file": "§1.5.1.1-empty-boolean.md",
+    "keywords": [
+      "empty",
+      "boolean",
+      "collection"
+    ]
+  },
+  {
+    "title": "FHIRPath Tooling and Implementation",
+    "file": "§1.14-fhirpath-tooling-and-implementation.md",
+    "keywords": [
+      "fhirpath",
+      "tooling",
+      "implementation"
+    ]
+  },
+  {
+    "title": "hourOf(): Integer",
+    "file": "§1.5.10.7.4-hourof-integer.md",
+    "keywords": [
+      "date",
+      "datetime",
+      "hourof"
+    ]
+  },
+  {
+    "title": "count() : Integer",
+    "file": "§1.5.1.10-count-integer.md",
+    "keywords": [
+      "count",
+      "integer",
+      "collection"
+    ]
+  },
+  {
+    "title": "Collections",
+    "file": "§1.3.1-collections.md",
+    "keywords": [
+      "collections",
+      "order",
+      "index"
+    ]
+  },
+  {
+    "title": "indexOf(substring : String) : Integer",
+    "file": "§1.5.6.1-indexof-substring-string-integer.md",
+    "keywords": [
+      "index",
+      "substring",
+      "integer"
+    ]
+  },
+  {
+    "title": "Reflection",
+    "file": "§1.10.2-reflection.md",
+    "keywords": [
+      "reflection",
+      "type",
+      "standard"
+    ]
+  },
+  {
+    "title": "[ index : Integer ] : collection",
+    "file": "§1.5.3.1-index-integer-collection.md",
+    "keywords": [
+      "indexer",
+      "collection",
+      "integer"
+    ]
+  },
+  {
+    "title": "Collection Types",
+    "file": "§1.10.2.3-collection-types.md",
+    "keywords": [
+      "collection",
+      "listtype",
+      "address"
+    ]
+  },
+  {
+    "title": "Time-valued Quantities",
+    "file": "§1.4.1.8.1-time-valued-quantities.md",
+    "keywords": [
+      "fhirpath",
+      "fhirpath",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "Primitive Types",
+    "file": "§1.10.2.1-primitive-types.md",
+    "keywords": [
+      "primitive",
+      "simpletypeinfo",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "Decimal Conversion Functions",
+    "file": "§1.5.5.6-decimal-conversion-functions.md",
+    "keywords": [
+      "decimal",
+      "conversion",
+      "functions"
+    ]
+  },
+  {
+    "title": "log(base : Decimal) : Decimal",
+    "file": "§1.5.8.6-log-base-decimal-decimal.md",
+    "keywords": [
+      "log",
+      "decimal",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "&lt;= (Less or Equal)",
+    "file": "§1.6.2.3-lt-less-or-equal.md",
+    "keywords": [
+      "comparison",
+      "fhirpath",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "- (subtraction)",
+    "file": "§1.6.6.4-subtraction.md",
+    "keywords": [
+      "subtraction",
+      "quantity",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "Types and Reflection",
+    "file": "§1.10-types-and-reflection.md",
+    "keywords": [
+      "types",
+      "reflection",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "toBoolean() : Boolean",
+    "file": "§1.5.5.2.1-toboolean-boolean.md",
+    "keywords": [
+      "toboolean",
+      "boolean",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "DateTime",
+    "file": "§1.4.1.7-datetime.md",
+    "keywords": [
+      "datetime",
+      "date",
+      "time"
+    ]
+  },
+  {
+    "title": "truncate() : Integer",
+    "file": "§1.5.8.10-truncate-integer.md",
+    "keywords": [
+      "truncate",
+      "integer",
+      "collection"
+    ]
+  },
+  {
+    "title": "matchesFull(regex : String) : Boolean",
+    "file": "§1.5.6.11-matchesfull-regex-string-boolean.md",
+    "keywords": [
+      "matchesfull",
+      "regex",
+      "boolean"
+    ]
+  },
+  {
+    "title": "!= (Not Equals)",
+    "file": "§1.6.1.3-not-equals.md",
+    "keywords": [
+      "equals",
+      "not",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "Formal Specifications",
+    "file": "§1.12-formal-specifications.md",
+    "keywords": [
+      "formal",
+      "specifications",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "Quantity Conversion Functions",
+    "file": "§1.5.5.7-quantity-conversion-functions.md",
+    "keywords": [
+      "quantity",
+      "conversion",
+      "functions"
+    ]
+  },
+  {
+    "title": "toQuantity([unit : String]) : Quantity",
+    "file": "§1.5.5.7.1-toquantity-unit-string-quantity.md",
+    "keywords": [
+      "quantity",
+      "fhirpath",
+      "toquantity"
+    ]
+  },
+  {
+    "title": "Current date and time functions",
+    "file": "§1.5.10.2-current-date-and-time-functions.md",
+    "keywords": [
+      "now()",
+      "datetime",
+      "time"
+    ]
+  },
+  {
+    "title": "single() : collection",
+    "file": "§1.5.3.2-single-collection.md",
+    "keywords": [
+      "single",
+      "collection",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "&amp; (String concatenation)",
+    "file": "§1.6.6.7-amp-string-concatenation.md",
+    "keywords": [
+      "fhirpath",
+      "fhirpath",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "Integer Conversion Functions",
+    "file": "§1.5.5.3-integer-conversion-functions.md",
+    "keywords": [
+      "integer",
+      "conversion",
+      "functions"
+    ]
+  },
+  {
+    "title": "Combining",
+    "file": "§1.5.4-combining.md",
+    "keywords": [
+      "combining",
+      "operations",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "Types",
+    "file": "§1.6.3-types.md",
+    "keywords": [
+      "types",
+      "operations",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "convertsToLong() : Boolean",
+    "file": "§1.5.5.3.4-convertstolong-boolean.md",
+    "keywords": [
+      "convertstolong",
+      "boolean",
+      "integer"
+    ]
+  },
+  {
+    "title": "<a name=\"unionother-collection\"></a>union(other : collection)",
+    "file": "§1.5.4.1-a-name-unionother-collection-a-union-other-collection.md",
+    "keywords": [
+      "union",
+      "collection",
+      "equals"
+    ]
+  },
+  {
+    "title": "Case-Sensitivity",
+    "file": "§1.8.7-case-sensitivity.md",
+    "keywords": [
+      "case-sensitivity",
+      "fhirpath",
+      "model"
+    ]
+  },
+  {
+    "title": "decode(format : String) : String",
+    "file": "§1.5.7.2-decode-format-string-string.md",
+    "keywords": [
+      "decode",
+      "format",
+      "string"
+    ]
+  },
+  {
+    "title": "URI and Media Types",
+    "file": "§1.12.3-uri-and-media-types.md",
+    "keywords": [
+      "uri",
+      "fhirpath",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "Keywords",
+    "file": "§1.8.5-keywords.md",
+    "keywords": [
+      "keywords",
+      "fhirpath",
+      "reserved"
+    ]
+  },
+  {
+    "title": "Formal Syntax",
+    "file": "§1.12.1-formal-syntax.md",
+    "keywords": [
+      "antlr",
+      "grammar",
+      "syntax"
+    ]
+  },
+  {
+    "title": "Expressions",
+    "file": "§1.4-expressions.md",
+    "keywords": [
+      "expressions",
+      "paths",
+      "literals"
+    ]
+  },
+  {
+    "title": "Equality",
+    "file": "§1.6.1-equality.md",
+    "keywords": [
+      "equality",
+      "comparison",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "repeat(projection: expression) : collection",
+    "file": "§1.5.2.3-repeat-projection-expression-collection.md",
+    "keywords": [
+      "repeat",
+      "projection",
+      "collection"
+    ]
+  },
+  {
+    "title": "combine(other : collection) : collection",
+    "file": "§1.5.4.2-combine-other-collection-collection.md",
+    "keywords": [
+      "combine",
+      "collection",
+      "merge"
+    ]
+  },
+  {
+    "title": "Subsetting",
+    "file": "§1.5.3-subsetting.md",
+    "keywords": [
+      "subsetting",
+      "fhirpath",
+      "subset"
+    ]
+  },
+  {
+    "title": "is(type : _type specifier_)",
+    "file": "§1.6.3.2-is-type-type-specifier.md",
+    "keywords": [
+      "is",
+      "fhirpath",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "dateOf(): Date",
+    "file": "§1.5.10.7.9-dateof-date.md",
+    "keywords": [
+      "dateof",
+      "date",
+      "datetime"
+    ]
+  },
+  {
+    "title": "intersect(other: collection) : collection",
+    "file": "§1.5.3.8-intersect-other-collection-collection.md",
+    "keywords": [
+      "intersect",
+      "collection",
+      "duplicate"
+    ]
+  },
+  {
+    "title": "Date",
+    "file": "§1.4.1.5-date.md",
+    "keywords": [
+      "date",
+      "literal",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "monthOf(): Integer",
+    "file": "§1.5.10.7.2-monthof-integer.md",
+    "keywords": [
+      "date",
+      "datetime",
+      "monthof"
+    ]
+  },
+  {
+    "title": "Aggregates",
+    "file": "§1.7-aggregates.md",
+    "keywords": [
+      "aggregates",
+      "fhirpath",
+      "functions"
+    ]
+  },
+  {
+    "title": "Math",
+    "file": "§1.5.8-math.md",
+    "keywords": [
+      "math",
+      "fhirpath",
+      "collections"
+    ]
+  },
+  {
+    "title": "Quantity",
+    "file": "§1.4.1.8-quantity.md",
+    "keywords": [
+      "quantity",
+      "ucum",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "toDate() : Date",
+    "file": "§1.5.5.4.1-todate-date.md",
+    "keywords": [
+      "todate",
+      "date",
+      "collection"
+    ]
+  },
+  {
+    "title": "split(separator: String) : collection",
+    "file": "§1.5.7.6-split-separator-string-collection.md",
+    "keywords": [
+      "split",
+      "string",
+      "collection"
+    ]
+  },
+  {
+    "title": "supersetOf(other : collection) : Boolean",
+    "file": "§1.5.1.9-supersetof-other-collection-boolean.md",
+    "keywords": [
+      "supersetof",
+      "collection",
+      "equals"
+    ]
+  },
+  {
+    "title": "today() : Date",
+    "file": "§1.5.10.2.3-today-date.md",
+    "keywords": [
+      "today",
+      "date",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "Dependencies",
+    "file": "§1.16-dependencies.md",
+    "keywords": [
+      "dependencies",
+      "table",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "endsWith(suffix : String) : Boolean",
+    "file": "§1.5.6.5-endswith-suffix-string-boolean.md",
+    "keywords": [
+      "endswith",
+      "string",
+      "boolean"
+    ]
+  },
+  {
+    "title": "now() : DateTime",
+    "file": "§1.5.10.2.1-now-datetime.md",
+    "keywords": [
+      "now",
+      "datetime",
+      "timezone"
+    ]
+  },
+  {
+    "title": "implies",
+    "file": "§1.6.5.5-implies.md",
+    "keywords": [
+      "implies",
+      "boolean",
+      "short-circuit"
+    ]
+  },
+  {
+    "title": "Conformance Language",
+    "file": "§1.1.4.1-conformance-language.md",
+    "keywords": [
+      "conformance",
+      "shall",
+      "should"
+    ]
+  },
+  {
+    "title": "timeOf(): Time",
+    "file": "§1.5.10.7.10-timeof-time.md",
+    "keywords": [
+      "datetime",
+      "timeof",
+      "error"
+    ]
+  },
+  {
+    "title": "lower() : String",
+    "file": "§1.5.6.8-lower-string.md",
+    "keywords": [
+      "lower",
+      "string",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "as _type specifier_",
+    "file": "§1.6.3.3-as-type-specifier.md",
+    "keywords": [
+      "type",
+      "operand",
+      "identifier"
+    ]
+  },
+  {
+    "title": "toInteger() : Integer",
+    "file": "§1.5.5.3.1-tointeger-integer.md",
+    "keywords": [
+      "integer",
+      "empty",
+      "tointeger"
+    ]
+  },
+  {
+    "title": "Date Conversion Functions",
+    "file": "§1.5.5.4-date-conversion-functions.md",
+    "keywords": [
+      "date",
+      "conversion",
+      "functions"
+    ]
+  },
+  {
+    "title": "+ (addition)",
+    "file": "§1.6.7.1-addition.md",
+    "keywords": [
+      "date",
+      "datetime",
+      "time"
+    ]
+  },
+  {
+    "title": "aggregate(aggregator : expression [, init : value]) : value",
+    "file": "§1.7.1-aggregate-aggregator-expression-init-value-value.md",
+    "keywords": [
+      "aggregate",
+      "expression",
+      "value"
+    ]
+  },
+  {
+    "title": "<a name=\"equals\"></a>= (Equals)",
+    "file": "§1.6.1.1-a-name-equals-a-equals.md",
+    "keywords": [
+      "equals",
+      "collection",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "DateTime Conversion Functions",
+    "file": "§1.5.5.5-datetime-conversion-functions.md",
+    "keywords": [
+      "datetime",
+      "conversion",
+      "functions"
+    ]
+  },
+  {
+    "title": "allTrue() : Boolean",
+    "file": "§1.5.1.4-alltrue-boolean.md",
+    "keywords": [
+      "alltrue",
+      "boolean",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "&lt; (Less Than)",
+    "file": "§1.6.2.2-lt-less-than.md",
+    "keywords": [
+      "comparison",
+      "fhirpath",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "Function Invocations",
+    "file": "§1.4.3-function-invocations.md",
+    "keywords": [
+      "function",
+      "collection",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "Type safety and strict evaluation",
+    "file": "§1.11-type-safety-and-strict-evaluation.md",
+    "keywords": [
+      "fhirpath",
+      "fhirpath",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "timeOfDay() : Time",
+    "file": "§1.5.10.2.2-timeofday-time.md",
+    "keywords": [
+      "timeofday",
+      "time",
+      "function"
+    ]
+  },
+  {
+    "title": "Usage",
+    "file": "§1.1.3-usage.md",
+    "keywords": [
+      "fhirpath",
+      "cql",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "- (subtraction)",
+    "file": "§1.6.7.2-subtraction.md",
+    "keywords": [
+      "date",
+      "datetime",
+      "time"
+    ]
+  },
+  {
+    "title": "secondOf(): Integer",
+    "file": "§1.5.10.7.6-secondof-integer.md",
+    "keywords": [
+      "secondof",
+      "datetime",
+      "integer"
+    ]
+  },
+  {
+    "title": "convertsToDecimal() : Boolean",
+    "file": "§1.5.5.6.2-convertstodecimal-boolean.md",
+    "keywords": [
+      "convertstodecimal",
+      "boolean",
+      "decimal"
+    ]
+  },
+  {
+    "title": "Quantity Equivalence",
+    "file": "§1.6.1.2.1-quantity-equivalence.md",
+    "keywords": [
+      "quantity",
+      "equivalence",
+      "units"
+    ]
+  },
+  {
+    "title": "matches(regex : String) : Boolean",
+    "file": "§1.5.6.10-matches-regex-string-boolean.md",
+    "keywords": [
+      "matches",
+      "regex",
+      "boolean"
+    ]
+  },
+  {
+    "title": "isDistinct() : Boolean",
+    "file": "§1.5.1.12-isdistinct-boolean.md",
+    "keywords": [
+      "isdistinct",
+      "equals",
+      "distinct"
+    ]
+  },
+  {
+    "title": "precision() : Integer",
+    "file": "§1.5.10.6-precision-integer.md",
+    "keywords": [
+      "precision",
+      "integer",
+      "function"
+    ]
+  },
+  {
+    "title": "Date/Time Arithmetic",
+    "file": "§1.6.7-date-time-arithmetic.md",
+    "keywords": [
+      "date/time",
+      "arithmetic",
+      "quantity"
+    ]
+  },
+  {
+    "title": "mod",
+    "file": "§1.6.6.6-mod.md",
+    "keywords": [
+      "mod",
+      "integer",
+      "decimal"
+    ]
+  },
+  {
+    "title": "Date/Time Equivalence",
+    "file": "§1.6.1.2.2-date-time-equivalence.md",
+    "keywords": [
+      "date/time",
+      "equivalence",
+      "precision"
+    ]
+  },
+  {
+    "title": "Lexical Elements",
+    "file": "§1.8-lexical-elements.md",
+    "keywords": [
+      "whitespace",
+      "literal",
+      "identifier"
+    ]
+  },
+  {
+    "title": "String Manipulation",
+    "file": "§1.5.6-string-manipulation.md",
+    "keywords": [
+      "string",
+      "collection",
+      "substring"
+    ]
+  },
+  {
+    "title": "div",
+    "file": "§1.6.6.5-div.md",
+    "keywords": [
+      "div",
+      "integer",
+      "decimal"
+    ]
+  },
+  {
+    "title": "convertsToBoolean() : Boolean",
+    "file": "§1.5.5.2.2-convertstoboolean-boolean.md",
+    "keywords": [
+      "convertstoboolean",
+      "boolean",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "Long",
+    "file": "§1.4.1.3.1-long.md",
+    "keywords": [
+      "long",
+      "fhirpath",
+      "system.long"
+    ]
+  },
+  {
+    "title": "convertsToTime() : Boolean",
+    "file": "§1.5.5.9.2-convertstotime-boolean.md",
+    "keywords": [
+      "convertstotime",
+      "boolean",
+      "time"
+    ]
+  },
+  {
+    "title": "Quantity Equality",
+    "file": "§1.6.1.1.1-quantity-equality.md",
+    "keywords": [
+      "quantity",
+      "equality",
+      "ucum"
+    ]
+  },
+  {
+    "title": "sqrt() : Decimal",
+    "file": "§1.5.8.9-sqrt-decimal.md",
+    "keywords": [
+      "sqrt",
+      "decimal",
+      "power"
+    ]
+  },
+  {
+    "title": "iif(criterion: expression, true-result: collection [, otherwise-result: collection]) : collection",
+    "file": "§1.5.5.1-iif-criterion-expression-true-result-collection-otherwise-result-collection-collection.md",
+    "keywords": [
+      "iif",
+      "criterion",
+      "collection"
+    ]
+  },
+  {
+    "title": "children() : collection",
+    "file": "§1.5.9.1-children-collection.md",
+    "keywords": [
+      "children",
+      "collection",
+      "ordering"
+    ]
+  },
+  {
+    "title": "Anonymous Types",
+    "file": "§1.10.2.4-anonymous-types.md",
+    "keywords": [
+      "tuple",
+      "fhirpath",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "Boolean logic",
+    "file": "§1.6.5-boolean-logic.md",
+    "keywords": [
+      "boolean",
+      "iif",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "Paths and polymorphic items",
+    "file": "§1.3.2-paths-and-polymorphic-items.md",
+    "keywords": [
+      "paths",
+      "polymorphic",
+      "oftype"
+    ]
+  },
+  {
+    "title": "Operator precedence",
+    "file": "§1.6.8-operator-precedence.md",
+    "keywords": [
+      "operator",
+      "precedence",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "Background",
+    "file": "§1.1-background.md",
+    "keywords": [
+      "knowledge",
+      "fhirpath",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "all(criteria : expression) : Boolean",
+    "file": "§1.5.1.3-all-criteria-expression-boolean.md",
+    "keywords": [
+      "all",
+      "boolean",
+      "expression"
+    ]
+  },
+  {
+    "title": "anyTrue() : Boolean",
+    "file": "§1.5.1.5-anytrue-boolean.md",
+    "keywords": [
+      "anytrue",
+      "boolean",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "startsWith(prefix : String) : Boolean",
+    "file": "§1.5.6.4-startswith-prefix-string-boolean.md",
+    "keywords": [
+      "startswith",
+      "string",
+      "boolean"
+    ]
+  },
+  {
+    "title": "Time",
+    "file": "§1.4.1.6-time.md",
+    "keywords": [
+      "time",
+      "literal",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "substring(start : Integer [, length : Integer]) : String",
+    "file": "§1.5.6.3-substring-start-integer-length-integer-string.md",
+    "keywords": [
+      "substring",
+      "integer",
+      "string"
+    ]
+  },
+  {
+    "title": "Extract Date/DateTime/Time components",
+    "file": "§1.5.10.7-extract-date-datetime-time-components.md",
+    "keywords": [
+      "date",
+      "datetime",
+      "time"
+    ]
+  },
+  {
+    "title": "xor",
+    "file": "§1.6.5.4-xor.md",
+    "keywords": [
+      "xor",
+      "true",
+      "false"
+    ]
+  },
+  {
+    "title": "Navigation model",
+    "file": "§1.2-navigation-model.md",
+    "keywords": [
+      "navigation",
+      "context",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "in (membership)",
+    "file": "§1.6.4.2-in-membership.md",
+    "keywords": [
+      "in",
+      "membership",
+      "equality"
+    ]
+  },
+  {
+    "title": "yearOf(): Integer",
+    "file": "§1.5.10.7.1-yearof-integer.md",
+    "keywords": [
+      "date",
+      "datetime",
+      "yearof"
+    ]
+  },
+  {
+    "title": "Singleton Evaluation of Collections",
+    "file": "§1.4.5-singleton-evaluation-of-collections.md",
+    "keywords": [
+      "singleton",
+      "collection",
+      "evaluation"
+    ]
+  },
+  {
+    "title": "String",
+    "file": "§1.4.1.2-string.md",
+    "keywords": [
+      "string",
+      "escape",
+      "unicode"
+    ]
+  },
+  {
+    "title": "dayOf(): Integer",
+    "file": "§1.5.10.7.3-dayof-integer.md",
+    "keywords": [
+      "date",
+      "datetime",
+      "dayof()"
+    ]
+  },
+  {
+    "title": "trim() : String",
+    "file": "§1.5.7.5-trim-string.md",
+    "keywords": [
+      "trim",
+      "string",
+      "whitespace"
+    ]
+  },
+  {
+    "title": "&gt;= (Greater or Equal)",
+    "file": "§1.6.2.4-gt-greater-or-equal.md",
+    "keywords": [
+      "greater",
+      "equal",
+      "type"
+    ]
+  },
+  {
+    "title": "Filtering and projection",
+    "file": "§1.5.2-filtering-and-projection.md",
+    "keywords": [
+      "filtering",
+      "projection",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "IP Statements",
+    "file": "§1.19-ip-statements.md",
+    "keywords": [
+      "fhirpath",
+      "xhtml",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "String Conversion Functions",
+    "file": "§1.5.5.8-string-conversion-functions.md",
+    "keywords": [
+      "string",
+      "conversion",
+      "functions"
+    ]
+  },
+  {
+    "title": "anyFalse() : Boolean",
+    "file": "§1.5.1.7-anyfalse-boolean.md",
+    "keywords": [
+      "boolean",
+      "collection",
+      "anyfalseo"
+    ]
+  },
+  {
+    "title": "defineVariable(name: String [, expr: expression])",
+    "file": "§1.5.10.3-definevariable-name-string-expr-expression.md",
+    "keywords": [
+      "definevariable",
+      "expression",
+      "variable"
+    ]
+  },
+  {
+    "title": "Conversion",
+    "file": "§1.5.5-conversion.md",
+    "keywords": [
+      "conversion",
+      "implicit",
+      "explicit"
+    ]
+  },
+  {
+    "title": "millisecondOf(): Integer",
+    "file": "§1.5.10.7.7-millisecondof-integer.md",
+    "keywords": [
+      "date",
+      "datetime",
+      "millisecondof"
+    ]
+  },
+  {
+    "title": "where(criteria : expression) : collection",
+    "file": "§1.5.2.1-where-criteria-expression-collection.md",
+    "keywords": [
+      "where",
+      "expression",
+      "collection"
+    ]
+  },
+  {
+    "title": "FHIRPath (Continuous Build)",
+    "file": "§1-fhirpath-continuous-build.md",
+    "keywords": [
+      "fhirpath",
+      "path",
+      "extraction"
+    ]
+  },
+  {
+    "title": "trace(name : String [, projection: Expression]) : collection",
+    "file": "§1.5.10.1-trace-name-string-projection-expression-collection.md",
+    "keywords": [
+      "trace",
+      "projection",
+      "collection"
+    ]
+  },
+  {
+    "title": "Functions",
+    "file": "§1.5-functions.md",
+    "keywords": [
+      "functions",
+      "parameters",
+      "collections"
+    ]
+  },
+  {
+    "title": "convertsToInteger() : Boolean",
+    "file": "§1.5.5.3.2-convertstointeger-boolean.md",
+    "keywords": [
+      "convertstointeger",
+      "boolean",
+      "integer"
+    ]
+  },
+  {
+    "title": "Class Types",
+    "file": "§1.10.2.2-class-types.md",
+    "keywords": [
+      "class",
+      "classinfo",
+      "fhirpath"
+    ]
+  },
+  {
+    "title": "Null and empty",
+    "file": "§1.4.4-null-and-empty.md",
+    "keywords": [
+      "null",
+      "empty",
+      "fhirpath"
+    ]
+  }
+]

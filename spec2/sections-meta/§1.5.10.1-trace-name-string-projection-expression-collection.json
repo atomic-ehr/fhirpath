@@ -1,0 +1,9 @@
+{
+  "title": "trace(name : String [, projection: Expression]) : collection",
+  "file": "§1.5.10.1-trace-name-string-projection-expression-collection.md",
+  "keywords": [
+    "trace",
+    "projection",
+    "collection"
+  ]
+}

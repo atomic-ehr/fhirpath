@@ -1,0 +1,9 @@
+{
+  "title": "endsWith(suffix : String) : Boolean",
+  "file": "§1.5.6.5-endswith-suffix-string-boolean.md",
+  "keywords": [
+    "endswith",
+    "string",
+    "boolean"
+  ]
+}

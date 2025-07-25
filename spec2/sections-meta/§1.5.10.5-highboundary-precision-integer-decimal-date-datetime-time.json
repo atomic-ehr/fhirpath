@@ -1,0 +1,9 @@
+{
+  "title": "highBoundary([precision: Integer]): Decimal | Date | DateTime | Time",
+  "file": "§1.5.10.5-highboundary-precision-integer-decimal-date-datetime-time.md",
+  "keywords": [
+    "highboundary",
+    "precision",
+    "decimal"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "title": "supersetOf(other : collection) : Boolean",
+  "file": "§1.5.1.9-supersetof-other-collection-boolean.md",
+  "keywords": [
+    "supersetof",
+    "collection",
+    "equals"
+  ]
+}

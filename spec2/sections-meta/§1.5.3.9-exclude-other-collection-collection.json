@@ -1,0 +1,9 @@
+{
+  "title": "exclude(other: collection) : collection",
+  "file": "§1.5.3.9-exclude-other-collection-collection.md",
+  "keywords": [
+    "exclude",
+    "collection",
+    "fhirpath"
+  ]
+}

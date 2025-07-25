@@ -1,0 +1,9 @@
+{
+  "title": "substring(start : Integer [, length : Integer]) : String",
+  "file": "§1.5.6.3-substring-start-integer-length-integer-string.md",
+  "keywords": [
+    "substring",
+    "integer",
+    "string"
+  ]
+}

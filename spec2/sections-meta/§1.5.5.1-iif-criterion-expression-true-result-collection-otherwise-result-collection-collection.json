@@ -1,0 +1,9 @@
+{
+  "title": "iif(criterion: expression, true-result: collection [, otherwise-result: collection]) : collection",
+  "file": "§1.5.5.1-iif-criterion-expression-true-result-collection-otherwise-result-collection-collection.md",
+  "keywords": [
+    "iif",
+    "criterion",
+    "collection"
+  ]
+}

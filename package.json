@@ -35,9 +35,12 @@
     "@types/bun": "latest",
     "@types/node": "22.13.14",
     "tsup": "8.5.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "@anthropic-ai/sdk": "^0.57.0"
   },
   "peerDependencies": {
     "typescript": "^5"
+  },
+  "dependencies": {
   }
 }

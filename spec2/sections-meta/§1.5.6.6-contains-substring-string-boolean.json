@@ -1,0 +1,9 @@
+{
+  "title": "contains(substring : String) : Boolean",
+  "file": "§1.5.6.6-contains-substring-string-boolean.md",
+  "keywords": [
+    "contains",
+    "substring",
+    "boolean"
+  ]
+}

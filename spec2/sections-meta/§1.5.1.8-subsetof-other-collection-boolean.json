@@ -1,0 +1,9 @@
+{
+  "title": "subsetOf(other : collection) : Boolean",
+  "file": "§1.5.1.8-subsetof-other-collection-boolean.md",
+  "keywords": [
+    "subsetof",
+    "collection",
+    "equals"
+  ]
+}

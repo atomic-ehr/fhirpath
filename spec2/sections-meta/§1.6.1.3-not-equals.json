@@ -1,0 +1,9 @@
+{
+  "title": "!= (Not Equals)",
+  "file": "§1.6.1.3-not-equals.md",
+  "keywords": [
+    "equals",
+    "not",
+    "fhirpath"
+  ]
+}

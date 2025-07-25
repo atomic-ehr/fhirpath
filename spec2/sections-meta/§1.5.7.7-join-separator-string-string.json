@@ -1,0 +1,9 @@
+{
+  "title": "join([separator: String]) : String",
+  "file": "§1.5.7.7-join-separator-string-string.md",
+  "keywords": [
+    "join",
+    "string",
+    "collection"
+  ]
+}

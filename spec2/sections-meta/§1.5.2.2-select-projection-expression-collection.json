@@ -1,0 +1,9 @@
+{
+  "title": "select(projection: expression) : collection",
+  "file": "§1.5.2.2-select-projection-expression-collection.md",
+  "keywords": [
+    "select",
+    "projection",
+    "collection"
+  ]
+}

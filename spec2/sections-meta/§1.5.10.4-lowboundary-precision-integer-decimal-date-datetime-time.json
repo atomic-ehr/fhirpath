@@ -1,0 +1,9 @@
+{
+  "title": "lowBoundary([precision: Integer]): Decimal | Date | DateTime | Time",
+  "file": "§1.5.10.4-lowboundary-precision-integer-decimal-date-datetime-time.md",
+  "keywords": [
+    "decimal",
+    "date",
+    "datetime"
+  ]
+}

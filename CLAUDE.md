@@ -150,16 +150,31 @@ When task finished move files to ./tasks/done/<filename>.md and write what was d
   bun tools/testcase.ts --tag arithmetic | grep "Run:" | cut -d' ' -f2- | bash
   ```
 
-* **Spec Info Tool** (`./tools/spec-info.ts`) - Lookup FHIRPath operation specifications
+* **Spec Search Tool** (`./tools/spec.ts`) - Search FHIRPath specifications by keywords and title
   ```bash
-  bun tools/spec-info.ts <operation-name>
-  bun tools/spec-info.ts --list
+  bun tools/spec.ts <search-query> [options]
   ```
+  Options:
+  - `--content, -c` - Show full content of matching sections
+  - `--limit, -l <n>` - Limit results to top N matches (default: 10)
+  - `--all, -a` - Show all matching results (no limit)
+  
   Examples:
-  - `bun tools/spec-info.ts where` - Get specification for the where function
-  - `bun tools/spec-info.ts "+"` - Get specification for the + operator
-  - `bun tools/spec-info.ts "[]"` - Get specification for the indexer operator
-  - `bun tools/spec-info.ts --list` - List all available operations
+  - `bun tools/spec.ts "where"` - Search for sections about 'where'
+  - `bun tools/spec.ts "where function" -c` - Search and show content
+  - `bun tools/spec.ts "arithmetic operator" -l 5` - Show top 5 matches
+  - `bun tools/spec.ts "+" -c` - Search for plus operator with content
+  - `bun tools/spec.ts "defineVariable" -c` - Get full specification for defineVariable
+
+* **Build Spec Index** (`./scripts/build-spec-index.ts`) - Build cached index for faster spec searches
+  ```bash
+  bun scripts/build-spec-index.ts
+  ```
+  This script:
+  - Reads all metadata files from `spec2/sections-meta/`
+  - Creates a single `.index.json` file containing all metadata
+  - Improves spec.ts search performance by ~15%
+  - Should be run after updating section metadata files
 
 
 

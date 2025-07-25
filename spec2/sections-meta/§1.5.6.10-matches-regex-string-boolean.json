@@ -1,0 +1,9 @@
+{
+  "title": "matches(regex : String) : Boolean",
+  "file": "§1.5.6.10-matches-regex-string-boolean.md",
+  "keywords": [
+    "matches",
+    "regex",
+    "boolean"
+  ]
+}

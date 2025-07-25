@@ -1,0 +1,9 @@
+{
+  "title": "log(base : Decimal) : Decimal",
+  "file": "§1.5.8.6-log-base-decimal-decimal.md",
+  "keywords": [
+    "log",
+    "decimal",
+    "fhirpath"
+  ]
+}

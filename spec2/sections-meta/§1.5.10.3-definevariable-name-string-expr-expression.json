@@ -1,0 +1,9 @@
+{
+  "title": "defineVariable(name: String [, expr: expression])",
+  "file": "§1.5.10.3-definevariable-name-string-expr-expression.md",
+  "keywords": [
+    "definevariable",
+    "expression",
+    "variable"
+  ]
+}

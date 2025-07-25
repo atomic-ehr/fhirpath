@@ -1,0 +1,9 @@
+{
+  "title": "ofType(type : _type specifier_) : collection",
+  "file": "§1.5.2.4-oftype-type-type-specifier-collection.md",
+  "keywords": [
+    "oftype",
+    "collection",
+    "fhirpath"
+  ]
+}

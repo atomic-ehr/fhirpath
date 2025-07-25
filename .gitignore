@@ -36,3 +36,4 @@ node_modules
 spec/.antlr
 test-output
 tmp
+.env
