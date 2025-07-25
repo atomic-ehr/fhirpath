@@ -1,8 +1,8 @@
-# Parser Diagnostics Improvements for LSP Integration
+# Parser Diagnostics Source Generation
 
 ## Overview
 
-This document outlines required improvements to the FHIRPath parser to support robust diagnostic reporting for Language Server Protocol (LSP) integration and VSCode extension development.
+This document outlines required improvements to the FHIRPath parser to generate detailed diagnostic information. The parser will serve as the diagnostic source, while auxiliary actions, quick fixes, and LSP-specific features will be implemented in a dedicated package.
 
 ## Current State Analysis
 
@@ -38,37 +38,22 @@ class FHIRPathError extends Error {
 5. **No Severity Levels**: All errors treated equally, no warnings or hints
 6. **No Related Information**: Cannot reference related code locations
 
-## LSP Diagnostic Requirements
+## Parser Diagnostic Requirements
 
-### Diagnostic Structure (LSP 3.17)
-```typescript
-interface Diagnostic {
-  range: Range;                    // Required: where the diagnostic applies
-  severity?: DiagnosticSeverity;   // Error, Warning, Information, Hint
-  code?: integer | string;         // Optional error code
-  source?: string;                 // Optional source identifier
-  message: string;                 // Required human-readable message
-  tags?: DiagnosticTag[];          // Optional tags (Unnecessary, Deprecated)
-  relatedInformation?: DiagnosticRelatedInformation[];
-}
+### Core Diagnostic Information
+The parser should generate structured diagnostic information including:
 
-interface Range {
-  start: Position;                 // Start position (line, character)
-  end: Position;                   // End position (line, character)
-}
-
-interface Position {
-  line: number;                    // Zero-based line number
-  character: number;               // Zero-based character offset
-}
-```
+1. **Precise Location Data**: Exact position and range information for each diagnostic
+2. **Error Classification**: Categorized error types with specific codes
+3. **Contextual Messages**: Detailed, helpful error descriptions
+4. **Multiple Diagnostics**: Collect all issues in a single parse pass
+5. **Related Information**: Link related locations and provide context
 
 ### Required Capabilities
-1. **Multiple Diagnostics**: Collect all errors and warnings in single pass
-2. **Precise Ranges**: Map AST nodes to exact text ranges
-3. **Error Recovery**: Continue parsing after errors to find more issues
-4. **Contextual Messages**: Provide helpful, specific error messages
-5. **Related Information**: Link related errors and provide context
+1. **Error Recovery**: Continue parsing after errors to find additional issues
+2. **Range Calculation**: Map AST nodes and tokens to exact text ranges
+3. **Diagnostic Collection**: Accumulate multiple diagnostics during parsing
+4. **Context Tracking**: Maintain parsing context for better error messages
 
 ## Improvement Plan
 
@@ -149,7 +134,6 @@ interface ParseDiagnostic {
   message: string;
   source: 'fhirpath-parser';
   relatedInformation?: RelatedInformation[];
-  quickFixes?: QuickFix[];
 }
 
 interface TextRange {
@@ -160,12 +144,6 @@ interface TextRange {
 interface RelatedInformation {
   location: TextRange;
   message: string;
-}
-
-interface QuickFix {
-  title: string;
-  description?: string;
-  edits: TextEdit[];
 }
 
 class DiagnosticCollector {
@@ -346,24 +324,17 @@ enum ParseContext {
 }
 ```
 
-#### 3.2 Specific Error Types with Quick Fixes
+#### 3.2 Specific Error Types
 ```typescript
 class FHIRPathDiagnostics {
   // Unclosed parenthesis
-  static unclosedParenthesis(openParen: Token, source: string): ParseDiagnostic {
+  static unclosedParenthesis(openParen: Token): ParseDiagnostic {
     return {
       range: sourceMapper.tokenToRange(openParen),
       severity: DiagnosticSeverity.Error,
       code: ErrorCode.UNCLOSED_PARENTHESIS,
       message: "Unclosed parenthesis - missing ')' to close function call or grouping",
-      source: 'fhirpath-parser',
-      quickFixes: [{
-        title: "Add closing parenthesis",
-        edits: [{
-          range: { start: { line: 0, character: source.length }, end: { line: 0, character: source.length } },
-          newText: ")"
-        }]
-      }]
+      source: 'fhirpath-parser'
     };
   }
   
@@ -394,14 +365,7 @@ class FHIRPathDiagnostics {
       severity: DiagnosticSeverity.Error,
       code: ErrorCode.INVALID_OPERATOR,
       message: "Invalid '..' operator - use single '.' for navigation",
-      source: 'fhirpath-parser',
-      quickFixes: [{
-        title: "Replace with single dot",
-        edits: [{
-          range,
-          newText: "."
-        }]
-      }]
+      source: 'fhirpath-parser'
     };
   }
 }
@@ -486,28 +450,10 @@ export function parseWithDiagnostics(expression: string): ParseResult {
   return parser.parse();
 }
 
-// LSP-compatible diagnostic format
-export function toLSPDiagnostics(diagnostics: ParseDiagnostic[]): LSPDiagnostic[] {
-  return diagnostics.map(d => ({
-    range: {
-      start: { line: d.range.start.line, character: d.range.start.character },
-      end: { line: d.range.end.line, character: d.range.end.character }
-    },
-    severity: d.severity,
-    code: d.code,
-    source: d.source,
-    message: d.message,
-    relatedInformation: d.relatedInformation?.map(ri => ({
-      location: {
-        uri: '', // Will be filled by LSP server
-        range: {
-          start: { line: ri.location.start.line, character: ri.location.start.character },
-          end: { line: ri.location.end.line, character: ri.location.end.character }
-        }
-      },
-      message: ri.message
-    }))
-  }));
+// Diagnostic export for external packages
+export function getDiagnostics(expression: string): ParseDiagnostic[] {
+  const result = parseWithDiagnostics(expression);
+  return result.diagnostics;
 }
 ```
 
@@ -569,16 +515,17 @@ describe('Position Mapping', () => {
 });
 ```
 
-### LSP Integration Tests
+### Diagnostic Export Tests
 ```typescript
-describe('LSP Diagnostic Conversion', () => {
-  it('should convert to LSP format correctly', () => {
-    const result = parseWithDiagnostics('invalid expression');
-    const lspDiagnostics = toLSPDiagnostics(result.diagnostics);
-    expect(lspDiagnostics[0]).toMatchObject({
+describe('Diagnostic Export', () => {
+  it('should export diagnostics correctly', () => {
+    const diagnostics = getDiagnostics('invalid expression');
+    expect(diagnostics[0]).toMatchObject({
       range: expect.any(Object),
       severity: expect.any(Number),
-      message: expect.any(String)
+      message: expect.any(String),
+      code: expect.any(String),
+      source: 'fhirpath-parser'
     });
   });
 });
@@ -590,22 +537,20 @@ describe('LSP Diagnostic Conversion', () => {
 2. **Position Accuracy**: Range mapping should be accurate within 1 character for 99%+ of cases
 3. **Performance**: Diagnostic collection should add <20% overhead to parsing time
 4. **Message Quality**: Error messages should be specific and actionable
-5. **LSP Compatibility**: All diagnostics should map correctly to LSP format
+5. **Diagnostic Completeness**: All parse errors should generate structured diagnostics
 
 ## Future Enhancements
 
-1. **Semantic Diagnostics**: Type-level error reporting
+1. **Semantic Diagnostics**: Type-level error reporting from analyzer
 2. **Performance Diagnostics**: Warn about potentially slow expressions
 3. **Style Diagnostics**: Suggest FHIRPath best practices
-4. **Auto-completion Context**: Use partial AST for completion suggestions
-5. **Incremental Parsing**: Support partial re-parsing for real-time editing
+4. **Incremental Parsing**: Support partial re-parsing for real-time editing
 
 ## Dependencies
 
-1. **LSP Library**: vscode-languageserver for LSP implementation
-2. **Testing**: Enhanced test suite for error scenarios
-3. **Documentation**: Update parser documentation with diagnostic capabilities
+1. **Testing**: Enhanced test suite for error scenarios
+2. **Documentation**: Update parser documentation with diagnostic capabilities
 
 ## Conclusion
 
-These improvements will transform the FHIRPath parser from a basic syntax checker into a robust diagnostic engine suitable for LSP integration and professional IDE support. The enhanced error recovery, precise position mapping, and contextual error messages will significantly improve the developer experience when working with FHIRPath expressions.
+These improvements will transform the FHIRPath parser into a robust diagnostic source that generates detailed, structured error information. The enhanced error recovery, precise position mapping, and contextual error messages will provide a solid foundation for external packages to build LSP servers, IDE extensions, and other developer tools.
