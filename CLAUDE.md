@@ -38,7 +38,7 @@ Please be concise and to the point.
   - Avoid `any` type - use `unknown` if type is truly unknown
 
 * **Imports and Exports**:
-  - Use ES6 module syntax, not `require()`
+  - Use ES6 module syntax (`import`/`export`), NEVER use `require()` or `module.exports`
   - Prefer relative imports for files in same project: `./foo` not `path/to/foo`
   - Use named exports, avoid default exports
   - Export visibility: minimize exported API surface

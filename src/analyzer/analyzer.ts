@@ -17,6 +17,7 @@ import type {
 } from '../parser/ast';
 import { NodeType } from '../parser/ast';
 import { TokenType } from '../lexer/token';
+import { parseForEvaluation } from '../api';
 import type { 
   ModelProvider, 
   TypeRef, 
@@ -489,7 +490,7 @@ export function analyzeFHIRPath(
 ): TypeAnalysisResult {
   // Parse if string
   const ast = typeof expression === 'string'
-    ? require('../parser').parse(expression)
+    ? parseForEvaluation(expression)
     : expression;
   
   // Create analyzer and analyze
