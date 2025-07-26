@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'bun:test';
 import { parse as legacyParse } from '../../src/parser/parser';
-import { parse, parseForEvaluation, ParserMode } from '../../src/api';
-import type { StandardParseResult } from '../../src/parser/types';
+import { parse, parseForEvaluation } from '../../src/api';
+import type { ParseResult } from '../../src/parser/types';
 import { NodeType } from '../../src/parser/ast';
 
 describe('Backward Compatibility', () => {
@@ -40,7 +40,7 @@ describe('Backward Compatibility', () => {
     testExpressions.forEach(expression => {
       it(`parses "${expression}" identically with throwOnError`, () => {
         const oldResult = legacyParse(expression);
-        const newResult = parse(expression, { throwOnError: true }) as StandardParseResult;
+        const newResult = parse(expression, { throwOnError: true });
         
         // Compare AST structure
         expect(newResult.ast).toEqual(oldResult);
@@ -161,7 +161,7 @@ describe('Backward Compatibility', () => {
       const legacyAst = legacyParse(tokens as any);
       
       // New parse with tokens and throwOnError
-      const newResult = parse(tokens as any, { throwOnError: true }) as StandardParseResult;
+      const newResult = parse(tokens as any, { throwOnError: true });
       
       expect(newResult.ast.type).toBe(legacyAst.type);
     });

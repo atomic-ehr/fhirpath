@@ -1,28 +1,19 @@
 import type { ASTNode } from './ast';
 import type { ErrorCode } from '../api/errors';
 
-export enum ParserMode {
-  Standard = 'standard',
-  Diagnostic = 'diagnostic'
-}
-
 export interface ParserOptions {
-  mode?: ParserMode;
   maxErrors?: number;
-  throwOnError?: boolean;  // When true, throws on first error instead of collecting diagnostics
+  throwOnError?: boolean;      // When true, throws on first error instead of collecting diagnostics
+  trackRanges?: boolean;        // Enable source range tracking for each AST node (useful for IDEs)
+  errorRecovery?: boolean;      // Enable error recovery to continue parsing after errors (useful for IDEs)
 }
 
-export type ParseResult = StandardParseResult | DiagnosticParseResult;
-
-export interface StandardParseResult {
+export interface ParseResult {
   ast: ASTNode;
   diagnostics: ParseDiagnostic[];
   hasErrors: boolean;
-}
-
-export interface DiagnosticParseResult extends StandardParseResult {
-  isPartial: boolean;
-  ranges: Map<ASTNode, TextRange>;
+  isPartial?: boolean;                    // Present when errorRecovery is enabled
+  ranges?: Map<ASTNode, TextRange>;       // Present when trackRanges is enabled
 }
 
 export interface ParseDiagnostic {

@@ -10,12 +10,10 @@ import type {
 } from './types';
 import { FHIRPathParser } from '../parser/parser';
 import { 
-  ParserMode,
   type ParserOptions,
   type ParseResult,
-  type StandardParseResult,
-  type DiagnosticParseResult,
-  type ParseDiagnostic
+  type ParseDiagnostic,
+  type TextRange
 } from '../parser/types';
 import type { ASTNode } from '../parser/ast';
 import { FHIRPathExpression as Expression } from './expression';
@@ -25,11 +23,8 @@ import { inspect as inspectImpl } from './inspect';
 
 // Export parser types for API consumers
 export { 
-  ParserMode,
   type ParserOptions,
   type ParseResult,
-  type StandardParseResult,
-  type DiagnosticParseResult,
   type ParseDiagnostic,
   type DiagnosticSeverity,
   type TextRange,
@@ -44,23 +39,23 @@ export function parse(expression: string, options: ParserOptions = {}): ParseRes
 
 // Convenience function for evaluation (throws on error)
 export function parseForEvaluation(expression: string): ASTNode {
-  const result = parse(expression, { throwOnError: true }) as StandardParseResult;
+  const result = parse(expression, { throwOnError: true });
   return result.ast;
 }
 
 // Type guards for result types
 
-export function isStandardResult(result: ParseResult): result is StandardParseResult {
+export function isStandardResult(result: ParseResult): result is ParseResult {
   return 'ast' in result && 'diagnostics' in result && 'hasErrors' in result;
 }
 
-export function isDiagnosticResult(result: ParseResult): result is DiagnosticParseResult {
+export function isDiagnosticResult(result: ParseResult): result is ParseResult & { isPartial: boolean; ranges: Map<ASTNode, TextRange> } {
   return isStandardResult(result) && 'isPartial' in result && 'ranges' in result;
 }
 
 // Validate function - alternative to removed Validate mode
 export function validate(expression: string): { valid: boolean; diagnostics: ParseDiagnostic[] } {
-  const result = parse(expression, { mode: ParserMode.Standard });
+  const result = parse(expression);
   if (isStandardResult(result)) {
     return {
       valid: !result.hasErrors,

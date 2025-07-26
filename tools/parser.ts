@@ -1,18 +1,23 @@
 #!/usr/bin/env bun
 
-import { parse, ParserMode, type ParseResult } from '../src';
+import { parse, type ParseResult } from '../src';
 
 const expression = process.argv[2];
-const mode = (process.argv[3] as ParserMode) || ParserMode.Standard;
+const options = process.argv[3];
 
 if (!expression) {
-  console.error('Usage: bun tools/parser.ts "<expression>" [mode]');
-  console.error('Modes: fast, standard, diagnostic');
+  console.error('Usage: bun tools/parser.ts "<expression>" [options]');
+  console.error('Options: --throw-on-error, --track-ranges, --error-recovery');
   process.exit(1);
 }
 
+// Parse options from command line
+const throwOnError = options?.includes('--throw-on-error');
+const trackRanges = options?.includes('--track-ranges');
+const errorRecovery = options?.includes('--error-recovery');
+
 try {
-  const result = parse(expression, { mode });
+  const result = parse(expression, { throwOnError, trackRanges, errorRecovery });
   console.log(JSON.stringify(result, null, 2));
 } catch (error: any) {
   console.error('Parse error:', error.message);

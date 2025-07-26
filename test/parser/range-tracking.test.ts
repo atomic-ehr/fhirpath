@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { parse, ParserMode, isDiagnosticResult, isStandardResult } from '../../src/api';
+import { parse, isDiagnosticResult, isStandardResult } from '../../src/api';
 import { SourceMapper } from '../../src/parser/source-mapper';
 import { NodeType } from '../../src/parser/ast';
 
@@ -7,7 +7,7 @@ describe.skip('Range Tracking', () => {
   it('tracks ranges for diagnostics in standard mode', () => {
     const expression = 'Patient..name';
     const result = parse(expression, { 
-      mode: ParserMode.Standard 
+      // Standard mode 
     });
     
     if (!isStandardResult(result)) {
@@ -25,7 +25,7 @@ describe.skip('Range Tracking', () => {
   it('tracks ranges for multiple errors', () => {
     const expression = 'Patient.where(active = true';
     const result = parse(expression, { 
-      mode: ParserMode.Diagnostic 
+      trackRanges: true 
     });
     
     if (!isDiagnosticResult(result)) {
@@ -60,7 +60,7 @@ describe.skip('Range Tracking', () => {
   it('handles multi-line expressions correctly', () => {
     const expression = 'Patient\n  .name\n  .given';
     const result = parse(expression, { 
-      mode: ParserMode.Standard 
+      // Standard mode 
     });
     
     if (!isStandardResult(result)) {
@@ -75,7 +75,7 @@ describe.skip('Range Tracking', () => {
   it('tracks range for error at end of expression', () => {
     const expression = 'Patient.name.';
     const result = parse(expression, { 
-      mode: ParserMode.Diagnostic 
+      trackRanges: true 
     });
     
     if (!isDiagnosticResult(result)) {
@@ -112,7 +112,7 @@ describe.skip('Range Tracking', () => {
   it('provides accurate ranges for collection literals', () => {
     const expression = '{1, 2, 3}';
     const result = parse(expression, { 
-      mode: ParserMode.Standard 
+      // Standard mode 
     });
     
     if (!isStandardResult(result)) {
@@ -126,7 +126,7 @@ describe.skip('Range Tracking', () => {
   it('tracks ranges for complex error scenarios', () => {
     const expression = 'Patient.where(name.given contains "John" and age > )';
     const result = parse(expression, { 
-      mode: ParserMode.Diagnostic 
+      trackRanges: true 
     });
     
     if (!isDiagnosticResult(result)) {

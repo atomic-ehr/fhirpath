@@ -10,7 +10,6 @@ import {
   compile, 
   analyze, 
   registry,
-  ParserMode,
   isStandardResult,
   isDiagnosticResult,
   validate
@@ -36,7 +35,6 @@ export {
   compile, 
   analyze, 
   registry,
-  ParserMode,
   isStandardResult,
   isDiagnosticResult,
   validate
@@ -81,8 +79,6 @@ export type {
 export type {
   ParserOptions,
   ParseResult,
-  StandardParseResult,
-  DiagnosticParseResult,
   ParseDiagnostic,
   DiagnosticSeverity,
   TextRange,

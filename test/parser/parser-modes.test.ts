@@ -1,15 +1,14 @@
 import { describe, it, expect } from 'bun:test';
 import { 
   parse, 
-  ParserMode, 
   isStandardResult,
   isDiagnosticResult 
 } from '../../src/api';
 import { NodeType } from '../../src/parser/ast';
 import { ErrorCode } from '../../src/api/errors';
 
-describe('Parser Modes', () => {
-  it('defaults to Standard mode', () => {
+describe('Parser Options', () => {
+  it('defaults to collecting diagnostics without throwing', () => {
     const result = parse('Patient.name');
     expect(isStandardResult(result)).toBe(true);
     
@@ -35,8 +34,8 @@ describe('Parser Modes', () => {
     }
   });
   
-  it('returns diagnostics in Standard mode for errors', () => {
-    const result = parse('Patient..name', { mode: ParserMode.Standard });
+  it('returns diagnostics for errors by default', () => {
+    const result = parse('Patient..name');
     
     expect(isStandardResult(result)).toBe(true);
     if (isStandardResult(result)) {
@@ -53,10 +52,9 @@ describe('Parser Modes', () => {
     }).toThrow();
   });
   
-  it('respects maxErrors option in Standard mode', () => {
+  it('respects maxErrors option', () => {
     const expression = 'Patient..name[.given..family';
     const result = parse(expression, { 
-      mode: ParserMode.Standard,
       maxErrors: 1 
     });
     
@@ -66,9 +64,9 @@ describe('Parser Modes', () => {
     }
   });
   
-  it('collects multiple errors in Standard mode', () => {
+  it('collects multiple errors by default', () => {
     const expression = 'Patient.name.where()'; // Missing arguments
-    const result = parse(expression, { mode: ParserMode.Standard });
+    const result = parse(expression);
     
     if (isStandardResult(result)) {
       // Currently this might not report as error in our basic implementation
@@ -79,23 +77,21 @@ describe('Parser Modes', () => {
   
   describe('Type Guards', () => {
     
-    it('correctly identifies Standard results', () => {
-      const result = parse('5 + 3', { mode: ParserMode.Standard });
+    it('correctly identifies results without recovery features', () => {
+      const result = parse('5 + 3');
       expect(isStandardResult(result)).toBe(true);
       expect(isDiagnosticResult(result)).toBe(false);
     });
     
-    // Diagnostic mode now returns DiagnosticParseResult
-    it('Diagnostic mode returns DiagnosticParseResult', () => {
-      const result = parse('5 + 3', { mode: ParserMode.Diagnostic });
+    // Error recovery and range tracking returns additional properties
+    it('error recovery and range tracking adds extra properties', () => {
+      const result = parse('5 + 3', { errorRecovery: true, trackRanges: true });
+      expect(isStandardResult(result)).toBe(true);
       expect(isDiagnosticResult(result)).toBe(true);
-      expect(isStandardResult(result)).toBe(true); // DiagnosticResult extends StandardResult
       
       // Check diagnostic-specific properties
-      if (isDiagnosticResult(result)) {
-        expect(result.isPartial).toBe(false);
-        expect(result.ranges).toBeDefined();
-      }
+      expect(result.isPartial).toBe(false);
+      expect(result.ranges).toBeDefined();
     });
   });
   
@@ -113,16 +109,14 @@ describe('Parser Modes', () => {
       expect(duration).toBeLessThan(10); // Should be very fast
     });
     
-    it('Standard mode provides basic diagnostics without significant overhead', () => {
+    it('default parsing provides basic diagnostics without significant overhead', () => {
       const expression = 'Patient.name.given.first()';
       
-      const result = parse(expression, { mode: ParserMode.Standard });
+      const result = parse(expression);
       
-      if (isStandardResult(result)) {
-        expect(result.diagnostics).toEqual([]);
-        expect(result.hasErrors).toBe(false);
-        expect(result.ast).toBeDefined();
-      }
+      expect(result.diagnostics).toEqual([]);
+      expect(result.hasErrors).toBe(false);
+      expect(result.ast).toBeDefined();
     });
   });
 });

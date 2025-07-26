@@ -38,16 +38,35 @@ const age = fhirpath.evaluate('today().year() - birthDate.toDateTime().year()', 
 
 ### Core Functions
 
-#### `parse(expression: string): FHIRPathExpression`
+#### `parse(expression: string, options?: ParserOptions): ParseResult`
 
-Parses a FHIRPath expression string into an AST (Abstract Syntax Tree).
+Parses a FHIRPath expression string into an AST (Abstract Syntax Tree) with optional parser features.
 
 ```typescript
-const expr = fhirpath.parse('Patient.name.given');
-// Use the parsed expression multiple times
-const result1 = fhirpath.evaluate(expr, patient1);
-const result2 = fhirpath.evaluate(expr, patient2);
+// Basic parsing (default - collects diagnostics)
+const result = fhirpath.parse('Patient.name.given');
+console.log(result.ast);         // The parsed AST
+console.log(result.diagnostics); // Array of any syntax issues
+console.log(result.hasErrors);   // Boolean indicating if there are errors
+
+// Parse with error on first syntax error (fastest)
+const ast = fhirpath.parseForEvaluation('Patient.name.given');
+// Throws immediately on syntax errors - best for production use
+
+// Parse with advanced features for development tools
+const result = fhirpath.parse('Patient..name', {
+  errorRecovery: true,  // Continue parsing after errors
+  trackRanges: true     // Track source location for each AST node
+});
+console.log(result.isPartial);  // true - indicates incomplete AST due to errors
+console.log(result.ranges);     // Map of AST nodes to source locations
 ```
+
+**Parser Options:**
+- `throwOnError?: boolean` - Throw on first error instead of collecting diagnostics (performance mode)
+- `trackRanges?: boolean` - Enable source range tracking for each AST node (useful for IDEs)
+- `errorRecovery?: boolean` - Enable error recovery to continue parsing after errors (useful for IDEs)
+- `maxErrors?: number` - Maximum number of errors to collect before stopping
 
 #### `evaluate(expression: string | FHIRPathExpression, input?: any, context?: EvaluationContext): any[]`
 
@@ -138,6 +157,32 @@ The `InspectResult` contains:
 - `errors`: Any errors encountered during evaluation
 - `warnings`: Any warnings (optional)
 - `evaluationSteps`: Step-by-step evaluation details (when enabled)
+
+### Convenience Functions
+
+#### `parseForEvaluation(expression: string): ASTNode`
+
+Parses an expression and returns just the AST, throwing on any syntax errors. This is the most performant option for production use.
+
+```typescript
+try {
+  const ast = fhirpath.parseForEvaluation('Patient.name.given');
+  // Use ast for evaluation
+} catch (error) {
+  console.error('Parse error:', error.message);
+}
+```
+
+#### `validate(expression: string): { valid: boolean; diagnostics: ParseDiagnostic[] }`
+
+Validates a FHIRPath expression syntax without throwing errors.
+
+```typescript
+const validation = fhirpath.validate('Patient..name');
+if (!validation.valid) {
+  console.log('Syntax errors:', validation.diagnostics);
+}
+```
 
 ### Registry API
 
@@ -259,7 +304,14 @@ import type {
   OperationInfo,
   AnalysisResult,
   InspectResult,
-  InspectOptions
+  InspectOptions,
+  // Parser types
+  ParserOptions,
+  ParseResult,
+  ParseDiagnostic,
+  DiagnosticSeverity,
+  TextRange,
+  ASTNode
 } from '@atomic-ehr/fhirpath';
 ```
 
@@ -369,7 +421,16 @@ result.traces.forEach(trace => {
 
 ## Performance Tips
 
-1. **Parse Once, Evaluate Many**: Parse expressions once and reuse the parsed AST:
+1. **Use Fast Parsing for Production**: When parsing expressions in production, use `parseForEvaluation()` or enable `throwOnError`:
+   ```typescript
+   // Fastest - throws on first error
+   const ast = fhirpath.parseForEvaluation('name.given');
+   
+   // Or use throwOnError option
+   const result = fhirpath.parse('name.given', { throwOnError: true });
+   ```
+
+2. **Parse Once, Evaluate Many**: Parse expressions once and reuse the parsed AST:
    ```typescript
    const expr = fhirpath.parse('name.given');
    for (const patient of patients) {
@@ -377,13 +438,25 @@ result.traces.forEach(trace => {
    }
    ```
 
-2. **Use Compiled Functions**: For expressions evaluated frequently, use compilation:
+3. **Use Compiled Functions**: For expressions evaluated frequently, use compilation:
    ```typescript
    const getName = fhirpath.compile('name.given');
    const results = patients.map(p => getName(p));
    ```
 
-3. **Builder Instance**: Create a configured instance once and reuse:
+4. **Disable Unnecessary Parser Features**: Only enable parser features you need:
+   ```typescript
+   // For development tools (IDEs, linters)
+   const result = fhirpath.parse(expr, {
+     errorRecovery: true,  // Only if you need partial ASTs
+     trackRanges: true     // Only if you need source mapping
+   });
+   
+   // For production (fastest)
+   const ast = fhirpath.parseForEvaluation(expr);
+   ```
+
+5. **Builder Instance**: Create a configured instance once and reuse:
    ```typescript
    const fp = FHIRPath.builder()
      .withCustomFunction('myFunc', /* ... */)

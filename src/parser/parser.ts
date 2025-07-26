@@ -23,11 +23,8 @@ import {
 } from './ast';
 import { Registry } from '../registry';
 import { 
-  ParserMode, 
   type ParserOptions, 
   type ParseResult, 
-  type StandardParseResult,
-  type DiagnosticParseResult,
   type TextRange
 } from './types';
 import { DiagnosticCollector } from './diagnostics';
@@ -64,8 +61,9 @@ export class ParseError extends Error {
 export class FHIRPathParser {
   private tokens: Token[];
   private current: number = 0;
-  private mode: ParserMode;
   private throwOnError: boolean;
+  private trackRanges: boolean;
+  private errorRecovery: boolean;
   private diagnostics?: DiagnosticCollector;
   private sourceMapper?: SourceMapper;
   private errorReporter?: ContextualErrorReporter;
@@ -74,8 +72,9 @@ export class FHIRPathParser {
   private currentContext: ParseContext = ParseContext.Expression;
   
   constructor(input: string | Token[], options: ParserOptions = {}) {
-    this.mode = options.mode ?? ParserMode.Standard;
     this.throwOnError = options.throwOnError ?? false;
+    this.trackRanges = options.trackRanges ?? false;
+    this.errorRecovery = options.errorRecovery ?? false;
     
     if (typeof input === 'string') {
       this.input = input;
@@ -102,36 +101,33 @@ export class FHIRPathParser {
   }
   
   private initializeForMode(input: string, options: ParserOptions): void {
-    switch (this.mode) {
-      case ParserMode.Standard:
-        // Always create diagnostic infrastructure in Standard mode
-        // When throwOnError is true, we'll throw before adding to diagnostics
-        this.diagnostics = new DiagnosticCollector(options.maxErrors);
-        this.sourceMapper = new SourceMapper(input);
-        break;
-        
-      case ParserMode.Diagnostic:
-        this.diagnostics = new DiagnosticCollector(options.maxErrors);
-        this.sourceMapper = new SourceMapper(input);
-        this.errorReporter = new ContextualErrorReporter(this.sourceMapper, this.diagnostics);
-        break;
+    // Always create diagnostic collector unless throwOnError is true
+    if (!this.throwOnError) {
+      this.diagnostics = new DiagnosticCollector(options.maxErrors);
+    }
+    
+    // Only create source mapper if needed
+    if (this.trackRanges || !this.throwOnError) {
+      this.sourceMapper = new SourceMapper(input);
+    }
+    
+    // Only create error reporter if error recovery is enabled
+    if (this.errorRecovery && this.diagnostics && this.sourceMapper) {
+      this.errorReporter = new ContextualErrorReporter(this.sourceMapper, this.diagnostics);
     }
   }
   
   // Main entry point
   parse(): ParseResult {
-    switch (this.mode) {
-      case ParserMode.Standard:
-        return this.parseStandard();
-      case ParserMode.Diagnostic:
-        return this.parseDiagnostic();
-      default:
-        throw new Error(`Unknown parser mode: ${this.mode}`);
+    if (this.errorRecovery) {
+      return this.parseWithRecovery();
+    } else {
+      return this.parseStandard();
     }
   }
   
   
-  private parseStandard(): StandardParseResult {
+  private parseStandard(): ParseResult {
     let ast: ASTNode;
     
     // Check for lexer errors first
@@ -215,16 +211,23 @@ export class FHIRPathParser {
       }
     }
     
-    return {
+    const result: ParseResult = {
       ast,
-      diagnostics: this.diagnostics!.getDiagnostics(),
-      hasErrors: this.diagnostics!.hasErrors()
+      diagnostics: this.diagnostics ? this.diagnostics.getDiagnostics() : [],
+      hasErrors: this.diagnostics ? this.diagnostics.hasErrors() : false
     };
+    
+    // Add ranges if tracking is enabled
+    if (this.trackRanges && this.sourceMapper) {
+      result.ranges = this.collectNodeRanges(ast);
+    }
+    
+    return result;
   }
   
-  private parseDiagnostic(): DiagnosticParseResult {
+  private parseWithRecovery(): ParseResult {
     let ast: ASTNode;
-    const ranges = new Map<ASTNode, TextRange>();
+    const ranges = this.trackRanges ? new Map<ASTNode, TextRange>() : undefined;
     
     // Check for lexer errors first
     if ((this as any).lexerError) {
@@ -267,13 +270,16 @@ export class FHIRPathParser {
         }
       } as ErrorNode;
       
-      return {
+      const result: ParseResult = {
         ast,
         diagnostics: this.diagnostics!.getDiagnostics(),
         hasErrors: true,
-        isPartial: true,
-        ranges
+        isPartial: true
       };
+      if (this.trackRanges && ranges) {
+        result.ranges = ranges;
+      }
+      return result;
     }
     
     try {
@@ -303,13 +309,21 @@ export class FHIRPathParser {
       }
     }
     
-    return {
+    const result: ParseResult = {
       ast,
       diagnostics: this.diagnostics!.getDiagnostics(),
-      hasErrors: this.diagnostics!.hasErrors(),
-      isPartial: this.isPartial,
-      ranges
+      hasErrors: this.diagnostics!.hasErrors()
     };
+    
+    if (this.errorRecovery) {
+      result.isPartial = this.isPartial;
+    }
+    
+    if (this.trackRanges && this.sourceMapper) {
+      result.ranges = this.collectNodeRanges(ast);
+    }
+    
+    return result;
   }
   
   // Pratt parser for expressions
@@ -529,7 +543,7 @@ export class FHIRPathParser {
           // Check for trailing comma before trying to parse expression
           if (this.check(TokenType.RBRACE)) {
             // We have a trailing comma
-            if (this.mode === ParserMode.Diagnostic || this.mode === ParserMode.Standard) {
+            if (this.diagnostics) {
               const commaToken = this.previous(); // The comma we just consumed
               const diagnostic = FHIRPathDiagnostics.trailingComma(commaToken, this.sourceMapper!);
               this.diagnostics!.addError(diagnostic.range, diagnostic.message, diagnostic.code);
@@ -538,9 +552,9 @@ export class FHIRPathParser {
           }
           
           try {
-            elements.push(this.mode === ParserMode.Diagnostic ? this.expressionWithRecovery() : this.expression());
+            elements.push(this.errorRecovery ? this.expressionWithRecovery() : this.expression());
           } catch (error) {
-            if (error instanceof ParseError && this.mode === ParserMode.Diagnostic) {
+            if (error instanceof ParseError && this.errorRecovery) {
               elements.push(this.createErrorNode(error.token, error.message));
               // Skip to next comma or closing brace
               while (!this.isAtEnd() && !this.check(TokenType.COMMA) && !this.check(TokenType.RBRACE)) {
@@ -561,7 +575,7 @@ export class FHIRPathParser {
       }
       
       if (!this.match(TokenType.RBRACE)) {
-        if (this.mode === ParserMode.Diagnostic || this.mode === ParserMode.Standard) {
+        if (this.diagnostics) {
           this.errorReporter?.reportUnclosedDelimiter(lbrace, '}') ||
             this.diagnostics!.addError(
               this.sourceMapper!.tokenToRange(lbrace),
@@ -642,7 +656,7 @@ export class FHIRPathParser {
         // Regular is TypeName syntax
         const typeToken = this.peek();
         if (!this.match(TokenType.IDENTIFIER)) {
-          if (this.mode === ParserMode.Diagnostic) {
+          if (this.errorRecovery) {
             const context = op.type === TokenType.AS ? ParseContext.TypeCast : ParseContext.MembershipTest;
             this.errorReporter!.reportExpectedToken(
               [TokenType.IDENTIFIER],
@@ -651,7 +665,7 @@ export class FHIRPathParser {
             );
             // Create incomplete node
             return this.createIncompleteNode(left, ['type name']);
-          } else if (this.mode === ParserMode.Standard) {
+          } else if (!this.errorRecovery && this.diagnostics) {
             // In standard mode, add error once and throw
             const range = this.sourceMapper!.tokenToRange(typeToken);
             this.diagnostics!.addError(
@@ -682,7 +696,7 @@ export class FHIRPathParser {
     // Check for common mistake: == instead of =
     if (op.type === TokenType.EQ && this.check(TokenType.EQ)) {
       const secondEq = this.peek();
-      if (this.mode === ParserMode.Diagnostic || this.mode === ParserMode.Standard) {
+      if (this.diagnostics) {
         const range = this.sourceMapper!.mergeRanges(
           this.sourceMapper!.tokenToRange(op),
           this.sourceMapper!.tokenToRange(secondEq)
@@ -722,14 +736,14 @@ export class FHIRPathParser {
       // Check for double dot error
       if (this.check(TokenType.DOT)) {
         const secondDot = this.peek();
-        if (this.mode === ParserMode.Diagnostic || this.mode === ParserMode.Standard) {
+        if (this.diagnostics) {
           const diagnostic = FHIRPathDiagnostics.doubleDotOperator(op, secondDot, this.sourceMapper!);
           this.diagnostics!.addError(diagnostic.range, diagnostic.message, diagnostic.code);
           
           // Skip the extra dot to avoid cascading errors
           this.advance();
           
-          if (this.mode === ParserMode.Diagnostic) {
+          if (this.errorRecovery) {
             this.isPartial = true;
           }
         }
@@ -755,7 +769,7 @@ export class FHIRPathParser {
       } else {
         // Check for invalid syntax like .[ or .123
         if (this.check(TokenType.LBRACKET) || this.check(TokenType.NUMBER)) {
-          if (this.mode === ParserMode.Diagnostic || this.mode === ParserMode.Standard) {
+          if (this.diagnostics) {
             this.errorReporter?.reportExpectedToken(
               [TokenType.IDENTIFIER],
               this.peek(),
@@ -766,7 +780,7 @@ export class FHIRPathParser {
               ErrorCode.EXPECTED_IDENTIFIER
             );
             
-            if (this.mode === ParserMode.Diagnostic) {
+            if (this.errorRecovery) {
               // Create error node and continue to parse the index
               right = this.createErrorNode(this.peek(), "Expected identifier");
               return {
@@ -785,7 +799,7 @@ export class FHIRPathParser {
         try {
           right = this.primary();
         } catch (error) {
-          if (error instanceof ParseError && this.mode === ParserMode.Diagnostic) {
+          if (error instanceof ParseError && this.errorRecovery) {
             // Report missing identifier after dot
             this.errorReporter!.reportMissingIdentifier(this.peek(), "after '.'");
             return this.createIncompleteNode(left, ['property']);
@@ -824,12 +838,12 @@ export class FHIRPathParser {
     try {
       right = this.expression(precedence + associativity);
     } catch (error) {
-      if (error instanceof ParseError && (this.mode === ParserMode.Diagnostic || this.mode === ParserMode.Standard)) {
+      if (error instanceof ParseError && (this.diagnostics)) {
         // Report missing operand
         const diagnostic = FHIRPathDiagnostics.missingOperand(op, 'right', this.sourceMapper!);
         this.diagnostics!.addError(diagnostic.range, diagnostic.message, diagnostic.code);
         
-        if (this.mode === ParserMode.Diagnostic) {
+        if (this.errorRecovery) {
           return this.createIncompleteNode(left, ['right operand']);
         }
       }
@@ -851,7 +865,7 @@ export class FHIRPathParser {
     const lparen = this.peek();
     
     if (!this.match(TokenType.LPAREN)) {
-      if (this.mode === ParserMode.Diagnostic) {
+      if (this.errorRecovery) {
         this.errorReporter!.reportExpectedToken(
           [TokenType.LPAREN],
           this.peek(),
@@ -869,7 +883,7 @@ export class FHIRPathParser {
       this.currentContext = ParseContext.FunctionCall;
       // Check for immediate unexpected tokens in function context
       if (this.check(TokenType.RBRACKET) || this.check(TokenType.RBRACE)) {
-        if (this.mode === ParserMode.Diagnostic) {
+        if (this.errorRecovery) {
           this.errorReporter!.reportExpectedToken(
             [TokenType.IDENTIFIER, TokenType.NUMBER, TokenType.STRING, TokenType.LPAREN, TokenType.LBRACE],
             this.peek(),
@@ -882,9 +896,9 @@ export class FHIRPathParser {
       
       do {
         try {
-          args.push(this.mode === ParserMode.Diagnostic ? this.expressionWithRecovery() : this.expression());
+          args.push(this.errorRecovery ? this.expressionWithRecovery() : this.expression());
         } catch (error) {
-          if (error instanceof ParseError && this.mode === ParserMode.Diagnostic) {
+          if (error instanceof ParseError && this.errorRecovery) {
             // Report contextual error for function arguments
             this.errorReporter!.reportExpectedToken(
               [TokenType.IDENTIFIER, TokenType.NUMBER, TokenType.STRING, TokenType.LPAREN, TokenType.LBRACE],
@@ -915,13 +929,13 @@ export class FHIRPathParser {
     // Check for empty function that requires arguments
     const funcName = func.type === NodeType.Identifier ? (func as IdentifierNode).name : '';
     if (args.length === 0 && funcName === 'where') {
-      if (this.mode === ParserMode.Diagnostic) {
+      if (this.errorRecovery) {
         this.errorReporter!.reportMissingArguments(funcName, lparen);
       }
     }
     
     if (!this.match(TokenType.RPAREN)) {
-      if (this.mode === ParserMode.Diagnostic) {
+      if (this.errorRecovery) {
         // Report unclosed parenthesis
         this.errorReporter!.reportUnclosedDelimiter(lparen, ')');
         this.isPartial = true;
@@ -993,7 +1007,7 @@ export class FHIRPathParser {
     
     // Check for empty brackets
     if (this.check(TokenType.RBRACKET)) {
-      if (this.mode === ParserMode.Diagnostic || this.mode === ParserMode.Standard) {
+      if (this.diagnostics) {
         const diagnostic = FHIRPathDiagnostics.emptyBrackets(lbracket, this.sourceMapper!);
         this.diagnostics!.addError(diagnostic.range, diagnostic.message, diagnostic.code);
       }
@@ -1004,9 +1018,9 @@ export class FHIRPathParser {
     
     let index: ASTNode;
     try {
-      index = this.mode === ParserMode.Diagnostic ? this.expressionWithRecovery() : this.expression();
+      index = this.errorRecovery ? this.expressionWithRecovery() : this.expression();
     } catch (error) {
-      if (error instanceof ParseError && this.mode === ParserMode.Diagnostic) {
+      if (error instanceof ParseError && this.errorRecovery) {
         index = this.createErrorNode(error.token, error.message);
       } else {
         throw error;
@@ -1014,9 +1028,9 @@ export class FHIRPathParser {
     }
     
     if (!this.match(TokenType.RBRACKET)) {
-      if (this.mode === ParserMode.Diagnostic || this.mode === ParserMode.Standard) {
+      if (this.diagnostics) {
         this.errorReporter?.reportUnclosedDelimiter(lbracket, ']') ||
-          this.diagnostics!.addError(
+          this.diagnostics.addError(
             this.sourceMapper!.tokenToRange(lbracket),
             "Expected ']' after index expression",
             ErrorCode.UNCLOSED_BRACKET
@@ -1229,7 +1243,7 @@ export class FHIRPathParser {
     try {
       return this.expression(minPrecedence);
     } catch (error) {
-      if (error instanceof ParseError && this.mode === ParserMode.Diagnostic) {
+      if (error instanceof ParseError && this.errorRecovery) {
         const errorNode = this.createErrorNode(error.token, error.message);
         this.recoverToSyncPoint();
         
@@ -1262,7 +1276,7 @@ export class FHIRPathParser {
     try {
       return this.primary();
     } catch (error) {
-      if (error instanceof ParseError && this.mode === ParserMode.Diagnostic) {
+      if (error instanceof ParseError && this.errorRecovery) {
         const errorNode = this.createErrorNode(error.token, error.message);
         this.recoverToSyncPoint();
         return errorNode;
@@ -1345,11 +1359,68 @@ export class FHIRPathParser {
       this.advance();
     }
   }
+
+  // Add helper method to collect node ranges
+  private collectNodeRanges(ast: ASTNode): Map<ASTNode, TextRange> {
+    const ranges = new Map<ASTNode, TextRange>();
+    
+    const visit = (node: ASTNode) => {
+      if (this.sourceMapper && node.position) {
+        // Create range from node position
+        const range: TextRange = {
+          start: {
+            line: node.position.line - 1,
+            character: node.position.column - 1,
+            offset: node.position.offset
+          },
+          end: {
+            line: node.position.line - 1,
+            character: node.position.column - 1,
+            offset: node.position.offset
+          }
+        };
+        ranges.set(node, range);
+      }
+      
+      // Visit child nodes based on node type
+      switch (node.type) {
+        case NodeType.Binary:
+          visit((node as BinaryNode).left);
+          visit((node as BinaryNode).right);
+          break;
+        case NodeType.Unary:
+          visit((node as UnaryNode).operand);
+          break;
+        case NodeType.Function:
+          (node as FunctionNode).arguments.forEach(visit);
+          break;
+        case NodeType.Index:
+          visit((node as IndexNode).expression);
+          visit((node as IndexNode).index);
+          break;
+        case NodeType.Union:
+          (node as UnionNode).operands.forEach(visit);
+          break;
+        case NodeType.Collection:
+          (node as CollectionNode).elements.forEach(visit);
+          break;
+        case NodeType.MembershipTest:
+          visit((node as MembershipTestNode).expression);
+          break;
+        case NodeType.TypeCast:
+          visit((node as TypeCastNode).expression);
+          break;
+      }
+    };
+    
+    visit(ast);
+    return ranges;
+  }
 }
 
 // Export convenience function - for backward compatibility
 export function parse(input: string | Token[]): ASTNode {
   const parser = new FHIRPathParser(input, { throwOnError: true });
-  const result = parser.parse() as StandardParseResult;
+  const result = parser.parse();
   return result.ast;
 }

@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'bun:test';
-import { parse, ParserMode, isDiagnosticResult } from '../../src/api';
+import { parse, isDiagnosticResult } from '../../src/api';
 import { ErrorCode } from '../../src/api/errors';
 
 describe.skip('Contextual Error Messages', () => {
   it('provides context-specific messages for function calls', () => {
     const result = parse('Patient.where(])', { 
-      mode: ParserMode.Diagnostic 
+      errorRecovery: true, trackRanges: true 
     });
     
     if (!isDiagnosticResult(result)) {
@@ -20,7 +20,7 @@ describe.skip('Contextual Error Messages', () => {
   
   it('describes tokens in human-readable form', () => {
     const result = parse('Patient.name[', { 
-      mode: ParserMode.Diagnostic 
+      errorRecovery: true, trackRanges: true 
     });
     
     if (!isDiagnosticResult(result)) {
@@ -33,7 +33,7 @@ describe.skip('Contextual Error Messages', () => {
   
   it('provides clear message for double dot operator', () => {
     const result = parse('Patient..name', { 
-      mode: ParserMode.Diagnostic 
+      errorRecovery: true, trackRanges: true 
     });
     
     if (!isDiagnosticResult(result)) {
@@ -47,7 +47,7 @@ describe.skip('Contextual Error Messages', () => {
   
   it('provides context for type cast errors', () => {
     const result = parse('Patient.name as', { 
-      mode: ParserMode.Diagnostic 
+      errorRecovery: true, trackRanges: true 
     });
     
     if (!isDiagnosticResult(result)) {
@@ -61,7 +61,7 @@ describe.skip('Contextual Error Messages', () => {
   
   it('provides context for membership test errors', () => {
     const result = parse('Patient.name is', { 
-      mode: ParserMode.Diagnostic 
+      errorRecovery: true, trackRanges: true 
     });
     
     if (!isDiagnosticResult(result)) {
@@ -75,7 +75,7 @@ describe.skip('Contextual Error Messages', () => {
   
   it('reports multiple errors with appropriate context', () => {
     const result = parse('Patient.where().name[.exists(', { 
-      mode: ParserMode.Diagnostic 
+      errorRecovery: true, trackRanges: true 
     });
     
     if (!isDiagnosticResult(result)) {
@@ -99,7 +99,7 @@ describe.skip('Contextual Error Messages', () => {
   
   it('provides helpful error for empty brackets', () => {
     const result = parse('Patient.name[]', { 
-      mode: ParserMode.Diagnostic 
+      errorRecovery: true, trackRanges: true 
     });
     
     if (!isDiagnosticResult(result)) {
@@ -113,7 +113,7 @@ describe.skip('Contextual Error Messages', () => {
   
   it('handles unexpected end of expression', () => {
     const result = parse('Patient.name +', { 
-      mode: ParserMode.Diagnostic 
+      errorRecovery: true, trackRanges: true 
     });
     
     if (!isDiagnosticResult(result)) {

@@ -5,7 +5,7 @@ import { Interpreter } from "../src/interpreter/interpreter";
 import { Compiler } from "../src/compiler";
 import { RuntimeContextManager } from "../src/runtime/context";
 import { parse as legacyParse } from "../src/parser/parser";
-import { parse, parseForEvaluation, ParserMode, isStandardResult, isDiagnosticResult, type ParseResult } from "../src/api";
+import { parse, parseForEvaluation, isStandardResult, isDiagnosticResult, type ParseResult } from "../src/api";
 import type { RuntimeContext } from "../src/runtime/context";
 
 // Import the global registry to ensure all operations are registered
@@ -258,21 +258,18 @@ describe("Unified FHIRPath Tests", () => {
 
   function runParserModeTest(test: UnifiedTest): { success: boolean; error?: string } {
     try {
-      // Get parser mode - default to Standard for parser error tests
-      const mode = test.mode === 'standard' ? ParserMode.Standard :
-                   test.mode === 'diagnostic' ? ParserMode.Diagnostic :
-                   ParserMode.Standard;
-      
-      // Map 'fast' mode to throwOnError flag
+      // Map test modes to parser options
       const throwOnError = test.mode === 'fast';
+      const errorRecovery = test.mode === 'diagnostic';
+      const trackRanges = test.mode === 'diagnostic';
       
       // If testing all modes
       if (test.testAllModes) {
         // Test that all modes can parse without throwing
         try {
           parse(test.expression, { throwOnError: true });
-          parse(test.expression, { mode: ParserMode.Standard });
-          parse(test.expression, { mode: ParserMode.Diagnostic });
+          parse(test.expression);
+          parse(test.expression, { errorRecovery: true, trackRanges: true });
           return { success: true };
         } catch (e) {
           return { success: false, error: 'Not all modes parsed successfully' };
@@ -282,7 +279,7 @@ describe("Unified FHIRPath Tests", () => {
       // Handle expected throws (for Fast mode error tests)
       if (typeof test.expected === 'object' && !Array.isArray(test.expected) && test.expected.throws) {
         try {
-          const result = parse(test.expression, { mode, throwOnError, ...test.options });
+          const result = parse(test.expression, { throwOnError, errorRecovery, trackRanges, ...test.options });
           return { success: false, error: 'Expected parse to throw but it succeeded' };
         } catch (e: any) {
           // Check errorType if specified
@@ -293,8 +290,8 @@ describe("Unified FHIRPath Tests", () => {
         }
       }
       
-      // Parse with mode
-      const result = parse(test.expression, { mode, throwOnError, ...test.options });
+      // Parse with options
+      const result = parse(test.expression, { throwOnError, errorRecovery, trackRanges, ...test.options });
       
       // Check expectations
       if (typeof test.expected === 'object' && !Array.isArray(test.expected)) {
