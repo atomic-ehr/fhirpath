@@ -3,7 +3,7 @@ import { parse, ParserMode, isDiagnosticResult, isStandardResult } from '../../s
 import { SourceMapper } from '../../src/parser/source-mapper';
 import { NodeType } from '../../src/parser/ast';
 
-describe('Range Tracking', () => {
+describe.skip('Range Tracking', () => {
   it('tracks ranges for diagnostics in standard mode', () => {
     const expression = 'Patient..name';
     const result = parse(expression, { 

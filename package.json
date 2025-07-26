@@ -31,16 +31,19 @@
   },
   "homepage": "https://github.com/atomic-ehr/fhirpath#readme",
   "devDependencies": {
+    "@anthropic-ai/sdk": "^0.57.0",
     "@rgrove/parse-xml": "^4.2.0",
     "@types/bun": "latest",
+    "@types/jsdom": "^21.1.7",
     "@types/node": "22.13.14",
+    "@types/turndown": "^5.0.5",
+    "jsdom": "^26.1.0",
     "tsup": "8.5.0",
-    "typescript": "^5",
-    "@anthropic-ai/sdk": "^0.57.0"
+    "turndown": "^7.2.0",
+    "typescript": "^5"
   },
   "peerDependencies": {
     "typescript": "^5"
   },
-  "dependencies": {
-  }
+  "dependencies": {}
 }

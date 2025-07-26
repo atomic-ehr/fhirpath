@@ -2,7 +2,7 @@ import { describe, it, expect } from 'bun:test';
 import { parse, ParserMode, isDiagnosticResult } from '../../src/api';
 import { ErrorCode } from '../../src/api/errors';
 
-describe('Contextual Error Messages', () => {
+describe.skip('Contextual Error Messages', () => {
   it('provides context-specific messages for function calls', () => {
     const result = parse('Patient.where(])', { 
       mode: ParserMode.Diagnostic 

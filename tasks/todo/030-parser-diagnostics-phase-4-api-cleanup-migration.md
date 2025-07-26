@@ -1,4 +1,4 @@
-# Task 028: Parser Diagnostics Phase 4 - API Cleanup and Migration
+# Task 030: Parser Diagnostics Phase 4 - API Cleanup and Migration
 
 ## Overview
 Remove old parser interfaces, migrate all existing code to use the new mode-based API, and update all tests, tools, and documentation to reflect the breaking changes.

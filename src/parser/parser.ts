@@ -29,6 +29,7 @@ import {
   type FastParseResult, 
   type StandardParseResult,
   type DiagnosticParseResult,
+  type ValidationResult,
   type TextRange
 } from './types';
 import { DiagnosticCollector } from './diagnostics';
@@ -133,9 +134,10 @@ export class FHIRPathParser {
         return this.parseStandard();
       case ParserMode.Diagnostic:
         return this.parseDiagnostic();
+      case ParserMode.Validate:
+        return this.parseValidate();
       default:
-        // Validate mode falls back to Standard for now
-        return this.parseStandard();
+        throw new Error(`Unknown parser mode: ${this.mode}`);
     }
   }
   
@@ -314,6 +316,268 @@ export class FHIRPathParser {
       isPartial: this.isPartial,
       ranges
     };
+  }
+  
+  private parseValidate(): ValidationResult {
+    // Check for lexer errors first
+    if ((this as any).lexerError) {
+      const error = (this as any).lexerError;
+      const range: TextRange = {
+        start: { 
+          line: error.position.line - 1,
+          character: error.position.column - 1,
+          offset: error.position.offset 
+        },
+        end: { 
+          line: error.position.line - 1, 
+          character: error.position.column,
+          offset: error.position.offset + 1 
+        }
+      };
+      
+      let errorCode = ErrorCode.SYNTAX_ERROR;
+      if (error.message.includes('Invalid escape sequence')) {
+        errorCode = ErrorCode.INVALID_ESCAPE;
+      } else if (error.message.includes('Unterminated string')) {
+        errorCode = ErrorCode.UNTERMINATED_STRING;
+      }
+      
+      this.diagnostics!.addError(range, error.message, errorCode);
+      
+      return {
+        valid: false,
+        diagnostics: this.diagnostics!.getDiagnostics()
+      };
+    }
+    
+    try {
+      this.validateExpression();
+      
+      if (!this.isAtEnd()) {
+        const unexpectedToken = this.peek();
+        const range = this.sourceMapper!.tokenToRange(unexpectedToken);
+        this.diagnostics!.addError(
+          range,
+          `Unexpected token '${unexpectedToken.value}' after expression`,
+          ErrorCode.UNEXPECTED_TOKEN
+        );
+        return {
+          valid: false,
+          diagnostics: this.diagnostics!.getDiagnostics()
+        };
+      }
+      
+      return {
+        valid: true,
+        diagnostics: this.diagnostics!.getDiagnostics()
+      };
+    } catch (error) {
+      // Validation failed
+      return {
+        valid: false,
+        diagnostics: this.diagnostics!.getDiagnostics()
+      };
+    }
+  }
+  
+  // Validation methods for Validate mode - these don't create AST nodes
+  private validateExpression(minPrecedence: number = 14): void {
+    this.validatePrimary();
+    
+    while (!this.isAtEnd()) {
+      // Handle postfix operators
+      if (this.check(TokenType.LBRACKET) && minPrecedence >= 2) {
+        this.validateIndex();
+        continue;
+      }
+      
+      // Handle dot operator
+      if (this.check(TokenType.DOT) && minPrecedence >= 1) {
+        const dotToken = this.peek();
+        const precedence = this.getPrecedence(dotToken);
+        if (precedence > minPrecedence) break;
+        
+        this.validateBinary(precedence);
+        continue;
+      }
+      
+      const token = this.peek();
+      const precedence = this.getPrecedence(token);
+      
+      if (precedence === 0 || precedence > minPrecedence) break;
+      
+      this.validateBinary(precedence);
+    }
+  }
+  
+  private validatePrimary(): void {
+    // Handle literals
+    if (this.match(TokenType.LITERAL, TokenType.NUMBER, TokenType.STRING, 
+                   TokenType.TRUE, TokenType.FALSE, TokenType.NULL)) {
+      return;
+    }
+    
+    // Handle variables
+    if (this.match(TokenType.THIS, TokenType.INDEX, TokenType.TOTAL, TokenType.ENV_VAR)) {
+      return;
+    }
+    
+    // Handle dates/times
+    if (this.match(TokenType.DATE, TokenType.DATETIME, TokenType.TIME)) {
+      return;
+    }
+    
+    // Handle grouping
+    if (this.match(TokenType.LPAREN)) {
+      this.validateExpression();
+      this.consume(TokenType.RPAREN, "Expected ')' after expression", ErrorCode.UNCLOSED_PARENTHESIS);
+      
+      // Check for method calls after parentheses
+      while (this.check(TokenType.DOT)) {
+        this.advance(); // consume dot
+        this.validatePrimary();
+        if (this.check(TokenType.LPAREN)) {
+          this.validateFunctionCall();
+        }
+      }
+      return;
+    }
+    
+    // Handle identifiers (which might be function calls)
+    if (this.match(TokenType.IDENTIFIER, TokenType.DELIMITED_IDENTIFIER)) {
+      if (this.check(TokenType.LPAREN)) {
+        this.validateFunctionCall();
+      }
+      return;
+    }
+    
+    // Handle unary operators
+    if (this.match(TokenType.PLUS, TokenType.MINUS, TokenType.NOT)) {
+      this.validateExpression(3); // UNARY precedence
+      return;
+    }
+    
+    // Handle collection literals
+    if (this.match(TokenType.LBRACE)) {
+      if (!this.check(TokenType.RBRACE)) {
+        do {
+          if (this.check(TokenType.RBRACE)) {
+            // Trailing comma
+            if (this.mode === ParserMode.Validate) {
+              const commaToken = this.previous();
+              const diagnostic = FHIRPathDiagnostics.trailingComma(commaToken, this.sourceMapper!);
+              this.diagnostics!.addError(diagnostic.range, diagnostic.message, diagnostic.code);
+            }
+            break;
+          }
+          this.validateExpression();
+        } while (this.match(TokenType.COMMA));
+      }
+      
+      this.consume(TokenType.RBRACE, "Expected '}' after collection elements", ErrorCode.UNCLOSED_BRACE);
+      return;
+    }
+    
+    // Handle operator keywords as identifiers at expression start
+    if (this.isOperatorKeyword(this.peek().type)) {
+      this.advance();
+      if (this.check(TokenType.LPAREN)) {
+        this.validateFunctionCall();
+      }
+      return;
+    }
+    
+    throw this.error("Expected expression", ErrorCode.EXPECTED_EXPRESSION);
+  }
+  
+  private validateBinary(precedence: number): void {
+    const op = this.advance(); // consume operator
+    
+    // Special handling for type operators
+    if (op.type === TokenType.IS || op.type === TokenType.AS) {
+      if (this.check(TokenType.LPAREN)) {
+        this.advance(); // consume (
+        this.consume(TokenType.IDENTIFIER, "Expected type name", ErrorCode.EXPECTED_IDENTIFIER);
+        this.consume(TokenType.RPAREN, "Expected ')' after type name", ErrorCode.UNCLOSED_PARENTHESIS);
+      } else {
+        this.consume(TokenType.IDENTIFIER, "Expected type name", ErrorCode.EXPECTED_IDENTIFIER);
+      }
+      return;
+    }
+    
+    // Check for common mistake: == instead of =
+    if (op.type === TokenType.EQ && this.check(TokenType.EQ)) {
+      const secondEq = this.peek();
+      const range = this.sourceMapper!.mergeRanges(
+        this.sourceMapper!.tokenToRange(op),
+        this.sourceMapper!.tokenToRange(secondEq)
+      );
+      this.diagnostics!.addError(
+        range,
+        "'==' is not valid in FHIRPath, use '=' for equality",
+        ErrorCode.INVALID_OPERATOR
+      );
+      this.advance(); // skip the extra =
+    }
+    
+    // Special handling for union operator
+    if (op.type === TokenType.PIPE) {
+      this.validateExpression(precedence - 1);
+      return;
+    }
+    
+    // Special handling for dot operator
+    if (op.type === TokenType.DOT) {
+      if (this.check(TokenType.DOT)) {
+        const secondDot = this.peek();
+        const range = this.sourceMapper!.mergeRanges(
+          this.sourceMapper!.tokenToRange(op),
+          this.sourceMapper!.tokenToRange(secondDot)
+        );
+        this.diagnostics!.addError(
+          range,
+          "'..' is not a valid operator in FHIRPath",
+          ErrorCode.INVALID_OPERATOR
+        );
+        this.advance(); // skip the extra dot
+      }
+      
+      this.validatePrimary();
+      
+      if (this.check(TokenType.LPAREN)) {
+        this.validateFunctionCall();
+      }
+      return;
+    }
+    
+    // Right-hand side of binary operator
+    const nextPrecedence = op.type === TokenType.PIPE ? precedence - 1 : precedence;
+    this.validateExpression(nextPrecedence);
+  }
+  
+  private validateIndex(): void {
+    this.advance(); // consume [
+    this.validateExpression();
+    this.consume(TokenType.RBRACKET, "Expected ']' after index", ErrorCode.UNCLOSED_BRACKET);
+  }
+  
+  private validateFunctionCall(): void {
+    this.advance(); // consume (
+    
+    if (!this.check(TokenType.RPAREN)) {
+      do {
+        if (this.check(TokenType.RPAREN)) {
+          // Trailing comma
+          const commaToken = this.previous();
+          const diagnostic = FHIRPathDiagnostics.trailingComma(commaToken, this.sourceMapper!);
+          this.diagnostics!.addError(diagnostic.range, diagnostic.message, diagnostic.code);
+          break;
+        }
+        this.validateExpression();
+      } while (this.match(TokenType.COMMA));
+    }
+    
+    this.consume(TokenType.RPAREN, "Expected ')' after function arguments", ErrorCode.UNCLOSED_PARENTHESIS);
   }
   
   // Pratt parser for expressions

@@ -25,7 +25,63 @@ Please be concise and to the point.
 
 ## Coding
 
-* While importing files, remember about import type for types.
+* Follow the Google TypeScript Style Guide located at `./guides/tsguide.md` for all TypeScript code
+* Key style points from the guide:
+  - Use 2 spaces for indentation (not tabs)
+  - Use single quotes for strings unless escaping
+  - Always use `const` or `let`, never `var`
+  - Prefer `const` for values that don't change
+  - Use `import type` for type-only imports
+  - Use trailing commas in multi-line structures
+  - Prefer interfaces over type aliases for object types
+  - Use PascalCase for types/interfaces, camelCase for variables/functions
+  - Avoid `any` type - use `unknown` if type is truly unknown
+
+* **Imports and Exports**:
+  - Use ES6 module syntax, not `require()`
+  - Prefer relative imports for files in same project: `./foo` not `path/to/foo`
+  - Use named exports, avoid default exports
+  - Export visibility: minimize exported API surface
+  - Never use `namespace`, use separate files instead
+  - Group imports: external deps first, then internal by path depth
+
+* **Classes and Functions**:
+  - Prefer function declarations for named functions: `function foo() {}` not `const foo = () => {}`
+  - Arrow functions for callbacks and when `this` binding needed
+  - Class members: use `readonly` for never-reassigned properties
+  - Use parameter properties in constructors: `constructor(private readonly foo: Foo) {}`
+  - Never use `#private` fields, use TypeScript's `private` keyword
+  - Avoid `public` modifier (it's default), except for parameter properties
+  - Getters must be pure functions (no side effects)
+
+* **Error Handling**:
+  - Always throw `Error` objects, never strings: `throw new Error('msg')`
+  - Use `try-catch` with typed catch: `catch (e: unknown)`
+  - Empty catch blocks must have explanatory comment
+  - Custom errors should extend `Error` class
+
+* **Type Safety**:
+  - Use type annotations on object literals: `const foo: Foo = {...}` not `{...} as Foo`
+  - Avoid type assertions (`as`) and non-null assertions (`!`) without clear justification
+  - Use `===` and `!==` for equality (exception: `== null` to check null/undefined)
+  - No implicit boolean coercion for enums
+  - Arrays: use `[]` syntax not `Array()` constructor
+  - Objects: use `{}` syntax not `Object()` constructor
+
+* **Control Flow**:
+  - Always use braces for control structures (if/for/while)
+  - `switch` statements must have `default` case
+  - Prefer `for-of` for arrays, `Object.entries()` for objects
+  - No assignment in conditionals unless double-parenthesized
+
+* **Best Practices**:
+  - One variable per declaration
+  - Initialize class fields at declaration when possible
+  - Destructuring: provide defaults on left side: `{foo = 'default'}: Options = {}`
+  - Template literals for complex string concatenation
+  - Use `Number()` for parsing, check for `NaN`
+  - Never use `parseInt()`/`parseFloat()` except for non-base-10
+
 * Use `bun run <filename.ts>` to run files
 * When you create or update typescript file, run `bun tsc --noEmit` to check for errors and fix them.
 * Create tests for new functionality. Put test file as ./test/<filename>.test.ts by convention.
@@ -175,6 +231,33 @@ When task finished move files to ./tasks/done/<filename>.md and write what was d
   - Creates a single `.index.json` file containing all metadata
   - Improves spec.ts search performance by ~15%
   - Should be run after updating section metadata files
+
+* **Research Tool** (`./tools/research.ts`) - Query multiple AI models and collect responses for research purposes
+  ```bash
+  bun tools/research.ts "<prompt>" [options]
+  ```
+  Options:
+  - `-m, --models <model>` - Models to query (default: grok-heavy, o3, claude-3-opus). Can be specified multiple times
+  - `-s, --summarize` - Generate a summary of responses (default: true)
+  - `--no-summarize` - Disable summary generation
+  - `-h, --help` - Show help message
+  
+  Environment Variables:
+  - `XAI_API_KEY` - API key for X.AI (Grok)
+  - `OPENAI_API_KEY` - API key for OpenAI
+  - `ANTHROPIC_API_KEY` - API key for Anthropic (Claude)
+  
+  Examples:
+  - `bun tools/research.ts "What are the key differences between interpreted and compiled languages?"`
+  - `bun tools/research.ts "Explain quantum computing" -m gpt-4 -m claude`
+  - `bun tools/research.ts "Compare React and Vue frameworks" --no-summarize`
+  
+  This tool:
+  - Queries multiple AI models simultaneously with the same prompt
+  - Saves individual responses to `llm/<date>-<prompt-slug>/` directory
+  - Creates files: `prompt.md`, `grok.md`, `openai.md`, `anthropic.md`
+  - Optionally generates a summary comparing responses and extracting common themes
+  - Useful for getting diverse perspectives on technical questions during research
 
 
 

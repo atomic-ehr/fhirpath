@@ -1,4 +1,4 @@
-# Task 030: Fix Remaining Parser Test Failures
+# Task 029: Fix Remaining Parser Test Failures
 
 ## Overview
 Address the remaining 37 failing parser tests by implementing missing features, fixing test expectations, and completing error recovery functionality.

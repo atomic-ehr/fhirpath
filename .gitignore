@@ -37,3 +37,4 @@ spec/.antlr
 test-output
 tmp
 .env
+llm
