@@ -1,0 +1,173 @@
+{
+  "name": "Parser Mode Behavior",
+  "description": "Test cases to verify different parser modes behave correctly",
+  "version": "1.0.0",
+  "tests": [
+    {
+      "name": "fast mode throws on first error",
+      "expression": "Patient..name",
+      "mode": "fast",
+      "tags": ["mode", "fast", "error"],
+      "expected": {
+        "throws": true,
+        "errorType": "ParseError"
+      }
+    },
+    {
+      "name": "standard mode collects basic diagnostics",
+      "expression": "Patient..name",
+      "mode": "standard",
+      "tags": ["mode", "standard", "diagnostics"],
+      "expected": {
+        "error": true,
+        "diagnostics": [{
+          "code": "INVALID_OPERATOR",
+          "severity": "error"
+        }],
+        "hasAst": true,
+        "hasRanges": true
+      }
+    },
+    {
+      "name": "diagnostic mode recovers from errors",
+      "expression": "Patient..name.given",
+      "mode": "diagnostic",
+      "tags": ["mode", "diagnostic", "recovery"],
+      "expected": {
+        "error": true,
+        "hasPartialAst": true,
+        "diagnostics": [{
+          "code": "INVALID_OPERATOR"
+        }],
+        "astContains": ["given"]
+      }
+    },
+    {
+      "name": "validate mode without AST",
+      "expression": "Patient.name.given",
+      "mode": "validate",
+      "tags": ["mode", "validate", "valid"],
+      "expected": {
+        "valid": true,
+        "hasAst": false,
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "validate mode with error",
+      "expression": "Patient..name",
+      "mode": "validate",
+      "tags": ["mode", "validate", "error"],
+      "expected": {
+        "valid": false,
+        "hasAst": false,
+        "diagnostics": [{
+          "code": "INVALID_OPERATOR"
+        }]
+      }
+    },
+    {
+      "name": "diagnostic mode with trivia",
+      "expression": "Patient.name  // comment",
+      "mode": "diagnostic",
+      "options": {
+        "trackTrivia": true
+      },
+      "tags": ["mode", "diagnostic", "trivia"],
+      "expected": {
+        "error": false,
+        "hasTrivia": true,
+        "triviaContains": ["comment"]
+      }
+    },
+    {
+      "name": "standard mode ignores trivia option",
+      "expression": "Patient.name  // comment",
+      "mode": "standard",
+      "options": {
+        "trackTrivia": true
+      },
+      "tags": ["mode", "standard", "trivia"],
+      "expected": {
+        "error": false,
+        "hasTrivia": false
+      }
+    },
+    {
+      "name": "fast mode performance baseline",
+      "expression": "Patient.name.given.first().substring(0, 10)",
+      "mode": "fast",
+      "tags": ["mode", "fast", "performance"],
+      "expected": {
+        "error": false,
+        "performanceBaseline": true
+      }
+    },
+    {
+      "name": "mode consistency for valid expressions",
+      "expression": "Patient.name.given",
+      "testAllModes": true,
+      "tags": ["mode", "consistency"],
+      "expected": {
+        "astConsistency": true,
+        "noErrors": true
+      }
+    },
+    {
+      "name": "diagnostic mode multiple errors",
+      "expression": "Patient..name[.given",
+      "mode": "diagnostic",
+      "tags": ["mode", "diagnostic", "multiple"],
+      "expected": {
+        "error": true,
+        "minDiagnostics": 2,
+        "hasPartialAst": true
+      }
+    },
+    {
+      "name": "validate mode early exit",
+      "expression": "(((((((((",
+      "mode": "validate",
+      "tags": ["mode", "validate", "performance"],
+      "expected": {
+        "valid": false,
+        "diagnosticCount": 1,
+        "earlyExit": true
+      }
+    },
+    {
+      "name": "standard mode with maxErrors",
+      "expression": "a..b..c..d..e",
+      "mode": "standard",
+      "options": {
+        "maxErrors": 3
+      },
+      "tags": ["mode", "standard", "options"],
+      "expected": {
+        "error": true,
+        "diagnosticCount": 3
+      }
+    },
+    {
+      "name": "diagnostic mode creates error nodes",
+      "expression": "Patient.[invalid].name",
+      "mode": "diagnostic",
+      "tags": ["mode", "diagnostic", "error-node"],
+      "expected": {
+        "error": true,
+        "hasErrorNode": true,
+        "astContains": ["name"]
+      }
+    },
+    {
+      "name": "fast mode matches current behavior",
+      "expression": "Patient.name",
+      "mode": "fast",
+      "tags": ["mode", "fast", "compatibility"],
+      "expected": {
+        "error": false,
+        "backwardCompatible": true
+      }
+    }
+  ]
+}

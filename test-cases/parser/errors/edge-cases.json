@@ -1,0 +1,175 @@
+{
+  "name": "Parser Error Edge Cases",
+  "description": "Edge cases and boundary conditions for parser error handling",
+  "version": "1.0.0",
+  "tests": [
+    {
+      "name": "empty expression",
+      "expression": "",
+      "tags": ["error", "edge", "empty"],
+      "expected": {
+        "error": true,
+        "diagnostics": [{
+          "code": "EXPECTED_EXPRESSION",
+          "severity": "error",
+          "message": "Expected expression"
+        }]
+      }
+    },
+    {
+      "name": "only whitespace",
+      "expression": "   \n\t  ",
+      "tags": ["error", "edge", "whitespace"],
+      "expected": {
+        "error": true,
+        "diagnostics": [{
+          "code": "EXPECTED_EXPRESSION",
+          "severity": "error"
+        }]
+      }
+    },
+    {
+      "name": "single operator",
+      "expression": "+",
+      "tags": ["error", "edge", "operator"],
+      "expected": {
+        "error": true,
+        "diagnostics": [{
+          "code": "EXPECTED_EXPRESSION",
+          "severity": "error",
+          "message": "Expected expression before '+'"
+        }]
+      }
+    },
+    {
+      "name": "single dot",
+      "expression": ".",
+      "tags": ["error", "edge", "operator"],
+      "expected": {
+        "error": true,
+        "diagnostics": [{
+          "code": "EXPECTED_EXPRESSION",
+          "severity": "error"
+        }]
+      }
+    },
+    {
+      "name": "only opening parenthesis",
+      "expression": "(",
+      "tags": ["error", "edge", "delimiter"],
+      "expected": {
+        "error": true,
+        "diagnostics": [{
+          "code": "EXPECTED_EXPRESSION",
+          "severity": "error"
+        },
+        {
+          "code": "UNCLOSED_PARENTHESIS",
+          "severity": "error"
+        }]
+      }
+    },
+    {
+      "name": "only closing parenthesis",
+      "expression": ")",
+      "tags": ["error", "edge", "delimiter"],
+      "expected": {
+        "error": true,
+        "diagnostics": [{
+          "code": "UNEXPECTED_TOKEN",
+          "severity": "error",
+          "message": "Unexpected ')'"
+        }]
+      }
+    },
+    {
+      "name": "deeply nested unclosed",
+      "expression": "((((((a",
+      "tags": ["error", "edge", "nested"],
+      "modes": ["diagnostic"],
+      "expected": {
+        "error": true,
+        "diagnosticCount": 6
+      }
+    },
+    {
+      "name": "alternating delimiters",
+      "expression": "[({[({",
+      "tags": ["error", "edge", "delimiter"],
+      "expected": {
+        "error": true,
+        "minDiagnostics": 3
+      }
+    },
+    {
+      "name": "maximum expression length",
+      "expression": "Patient.name.given.family.suffix.prefix.text.value.system.code",
+      "tags": ["edge", "valid", "long"],
+      "expected": {
+        "error": false
+      }
+    },
+    {
+      "name": "unicode in errors",
+      "expression": "Patient.名前",
+      "tags": ["edge", "unicode"],
+      "expected": {
+        "error": false
+      }
+    },
+    {
+      "name": "emoji in identifier",
+      "expression": "Patient.😀",
+      "tags": ["error", "edge", "emoji"],
+      "expected": {
+        "error": true,
+        "diagnostics": [{
+          "code": "INVALID_CHARACTER",
+          "severity": "error"
+        }]
+      }
+    },
+    {
+      "name": "null character",
+      "expression": "Patient\u0000name",
+      "tags": ["error", "edge", "null"],
+      "expected": {
+        "error": true,
+        "diagnostics": [{
+          "code": "INVALID_CHARACTER",
+          "severity": "error"
+        }]
+      }
+    },
+    {
+      "name": "very long identifier",
+      "expression": "Patient.veryveryveryveryveryveryveryveryveryveryveryveryverylongidentifiername",
+      "tags": ["edge", "valid", "long"],
+      "expected": {
+        "error": false
+      }
+    },
+    {
+      "name": "mixed valid and invalid",
+      "expression": "Patient.name + @ - Practitioner.name",
+      "tags": ["error", "edge", "mixed"],
+      "modes": ["diagnostic"],
+      "expected": {
+        "error": true,
+        "hasPartialAst": true
+      }
+    },
+    {
+      "name": "error at end of long expression",
+      "expression": "Patient.name.given.first().substring(0, 10).length().",
+      "tags": ["error", "edge", "trailing"],
+      "expected": {
+        "error": true,
+        "diagnostics": [{
+          "code": "EXPECTED_IDENTIFIER",
+          "severity": "error"
+        }]
+      }
+    }
+  ]
+}

@@ -34,8 +34,7 @@ Introduce different parsing modes to balance performance and diagnostic capabili
 enum ParserMode {
   Fast = 'fast',              // No diagnostics, throws on first error (baseline performance)
   Standard = 'standard',      // Basic diagnostics, limited error recovery (~95% performance)
-  Diagnostic = 'diagnostic',  // Full diagnostics with error recovery (~80-85% performance)
-  LanguageServer = 'lsp',     // Everything + trivia tracking (~75-80% performance)
+  Diagnostic = 'diagnostic',  // Full diagnostics with error recovery, optional trivia (~75-85% performance)
   Validate = 'validate'       // Validation only, no AST (~90% performance)
 }
 ```
@@ -47,20 +46,20 @@ enum ParserMode {
 - Related information to link associated code locations
 - Conditional initialization based on parser mode
 
-### 3. Enhanced Error Recovery (Diagnostic/LSP modes only)
+### 3. Enhanced Error Recovery (Diagnostic mode only)
 - Synchronization points for recovering from errors (commas, closing parens, operators)
 - Error nodes in the AST to represent malformed expressions
 - Incomplete nodes for partial expressions
 - Continue parsing after errors to find additional issues
 
-### 4. Precise Location Tracking (Standard/Diagnostic/LSP modes)
+### 4. Precise Location Tracking (Standard/Diagnostic modes)
 - `SourceMapper` class to convert between offsets and line/column positions
 - Text ranges (start/end positions) for all AST nodes
 - Accurate span calculation for complex expressions
 - Token-to-range and node-to-range mapping
 - Lazy range calculation for performance
 
-### 5. Contextual Error Reporting (Diagnostic/LSP modes)
+### 5. Contextual Error Reporting (Diagnostic mode)
 - `ContextualErrorReporter` with parse context awareness
 - Human-readable token descriptions
 - Specific error messages based on parsing context
@@ -78,10 +77,10 @@ enum ParserMode {
 
 - **Performance Flexibility**: Users can choose the appropriate performance/feature trade-off
 - **Zero Overhead Option**: Fast mode maintains baseline performance for production use
-- **Multiple Diagnostics**: Diagnostic modes can report all issues in an expression
+- **Multiple Diagnostics**: Diagnostic mode can report all issues in an expression
 - **Better Developer Experience**: Clear, contextual error messages with precise locations
-- **LSP Foundation**: LSP mode provides everything needed for ADR-005's implementation
-- **Partial Parsing**: Diagnostic modes can provide analysis even for malformed expressions
+- **LSP Foundation**: Diagnostic mode with trivia tracking provides everything needed for ADR-005's LSP implementation
+- **Partial Parsing**: Diagnostic mode can provide analysis even for malformed expressions
 - **Extensibility**: Mode system allows adding new capabilities without affecting existing modes
 - **IDE Integration**: Enables squiggles, error tooltips, and problem panel integration
 - **Progressive Enhancement**: Can start with fast parsing and upgrade to diagnostics when needed
@@ -183,7 +182,7 @@ interface ParserOptions {
   mode?: ParserMode;
   maxErrors?: number;        // Limit error collection
   collectRanges?: boolean;   // Force range collection in any mode
-  trackTrivia?: boolean;     // Track whitespace/comments (LSP mode)
+  trackTrivia?: boolean;     // Track whitespace/comments (Diagnostic mode only)
 }
 
 class FHIRPathParser {
@@ -212,10 +211,13 @@ class FHIRPathParser {
         break;
         
       case ParserMode.Diagnostic:
-      case ParserMode.LanguageServer:
         this.sourceMapper = new SourceMapper(input);
         this.diagnostics = new DiagnosticCollector();
         this.errorReporter = new ContextualErrorReporter(this.sourceMapper, this.diagnostics);
+        // Track trivia if requested
+        if (options.trackTrivia) {
+          this.enableTriviaTracking();
+        }
         break;
         
       case ParserMode.Validate:
@@ -419,7 +421,7 @@ enum ErrorCode {
 }
 ```
 
-### Error Recovery Strategy (Diagnostic/LSP modes)
+### Error Recovery Strategy (Diagnostic mode)
 
 The parser will implement synchronization points at:
 - Comma (`,`) - for function arguments and collections
@@ -485,6 +487,9 @@ const result = parse(expression, { mode: ParserMode.Standard });
 // For IDE integration (full features)
 const ideResult = parse(expression, { mode: ParserMode.Diagnostic });
 
+// For LSP with trivia tracking
+const lspResult = parse(expression, { mode: ParserMode.Diagnostic, trackTrivia: true });
+
 // Convenience functions for specific use cases
 export function parseForEvaluation(input: string): ASTNode {
   const result = parse(input, { mode: ParserMode.Fast });
@@ -527,6 +532,7 @@ export function isDiagnosticResult(result: ParseResult): result is DiagnosticPar
 - Complete range tracking with lazy calculation
 - Comprehensive error recovery
 - Contextual error messages
+- Optional trivia tracking (whitespace/comments) for LSP
 
 **Validate Mode**:
 - Diagnostic collector without AST building
@@ -547,7 +553,7 @@ Following the pattern established in ADR-008, we recommend using JSON test cases
     {
       "name": "unclosed parenthesis",
       "expression": "Patient.name.where(active = true",
-      "modes": ["standard", "diagnostic", "lsp"],
+      "modes": ["standard", "diagnostic"],
       "expected": {
         "diagnostics": [{
           "code": "UNCLOSED_PARENTHESIS",
@@ -565,7 +571,7 @@ Following the pattern established in ADR-008, we recommend using JSON test cases
     {
       "name": "multiple errors",
       "expression": "Patient..name[.given",
-      "modes": ["diagnostic", "lsp"],
+      "modes": ["diagnostic"],
       "expected": {
         "diagnosticCount": 3,
         "hasErrors": true
@@ -609,7 +615,7 @@ class SmartMatrixRunner {
   private validateModeConsistency(results: TestResults[]) {
     // Ensure Fast mode AST matches other modes (when no errors)
     // Verify diagnostic counts increase with mode complexity
-    // Check that LSP mode includes all diagnostics from lower modes
+    // Check that Diagnostic mode with trivia includes all base diagnostics
   }
 }
 ```
