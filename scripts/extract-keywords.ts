@@ -1,12 +1,12 @@
-import { readdirSync, readFileSync, writeFileSync } from 'fs';
+import { readdirSync, readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 
 const sectionsDir = './spec2/sections';
 const outputDir = './spec2/sections-meta';
 
 // Create output directory if it doesn't exist
-if (!Bun.file(outputDir).exists()) {
-  Bun.spawn(['mkdir', '-p', outputDir]).sync();
+if (!existsSync(outputDir)) {
+  mkdirSync(outputDir, { recursive: true });
 }
 
 // Common stop words to filter out
@@ -148,7 +148,7 @@ for (const file of files) {
   
   // Extract title from first line (header)
   const titleMatch = content.match(/^#+\s+(.+)$/m);
-  const title = titleMatch ? titleMatch[1].trim() : file.replace('.md', '');
+  const title = titleMatch?.[1]?.trim() ?? file.replace('.md', '');
   
   // Extract keywords
   const keywords = extractKeywords(content, title);

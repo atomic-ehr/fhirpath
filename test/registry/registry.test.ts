@@ -31,8 +31,8 @@ describe('Registry', () => {
     });
 
     it('should provide operator precedence', () => {
-      expect(Registry.getPrecedence(TokenType.STAR)).toBe(6); // multiplication
-      expect(Registry.getPrecedence(TokenType.PLUS)).toBe(5); // addition
+      expect(Registry.getPrecedence(TokenType.STAR)).toBe(10); // multiplication
+      expect(Registry.getPrecedence(TokenType.PLUS)).toBe(9); // addition
       expect(Registry.getPrecedence(TokenType.AND)).toBe(3); // logical and
       expect(Registry.getPrecedence(TokenType.OR)).toBe(2); // logical or
     });

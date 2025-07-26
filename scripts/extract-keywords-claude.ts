@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync, writeFileSync } from 'fs';
+import { readdirSync, readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import Anthropic from '@anthropic-ai/sdk';
 
@@ -11,8 +11,8 @@ const anthropic = new Anthropic({
 });
 
 // Create output directory if it doesn't exist
-if (!Bun.file(outputDir).exists()) {
-  Bun.spawn(['mkdir', '-p', outputDir]).sync();
+if (!existsSync(outputDir)) {
+  mkdirSync(outputDir, { recursive: true });
 }
 
 async function extractKeywordsWithClaude(content: string, title: string): Promise<string[]> {
@@ -45,7 +45,8 @@ Output exactly 3 keywords:`;
       }]
     });
 
-    const response = message.content[0].type === 'text' ? message.content[0].text : '';
+    const firstContent = message.content[0];
+    const response = firstContent && 'text' in firstContent ? firstContent.text : '';
     const keywords = response
       .split('\n')
       .map(line => line.trim().toLowerCase())
@@ -89,7 +90,7 @@ async function processFiles() {
       
       // Extract title from first line (header)
       const titleMatch = content.match(/^#+\s+(.+)$/m);
-      const title = titleMatch ? titleMatch[1].trim() : file.replace('.md', '');
+      const title = titleMatch?.[1]?.trim() ?? file.replace('.md', '');
       
       // Extract keywords using Claude
       const keywords = await extractKeywordsWithClaude(content, title);

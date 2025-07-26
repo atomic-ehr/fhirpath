@@ -10,7 +10,7 @@ export const andOperator: Operator = {
   syntax: {
     form: 'infix',
     token: TokenType.AND,
-    precedence: 3,
+    precedence: 3, // AND precedence
     associativity: 'left',
     notation: 'a and b'
   },
@@ -106,7 +106,7 @@ export const orOperator: Operator = {
   syntax: {
     form: 'infix',
     token: TokenType.OR,
-    precedence: 2,
+    precedence: 2, // OR precedence
     associativity: 'left',
     notation: 'a or b'
   },
@@ -282,7 +282,7 @@ export const xorOperator: Operator = {
   syntax: {
     form: 'infix',
     token: TokenType.XOR,
-    precedence: 2,
+    precedence: 2, // OR precedence
     associativity: 'left',
     notation: 'a xor b'
   },
@@ -336,7 +336,7 @@ export const impliesOperator: Operator = {
   syntax: {
     form: 'infix',
     token: TokenType.IMPLIES,
-    precedence: 1, // Lowest precedence
+    precedence: 1, // IMPLIES - lowest precedence
     associativity: 'left',
     notation: 'a implies b'
   },

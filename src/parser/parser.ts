@@ -44,19 +44,20 @@ export class ParseError extends Error {
 }
 
 // Precedence levels for reference (from spec)
-// INVOCATION: 1,      // . (dot), function calls
-// POSTFIX: 2,         // [] indexing
-// UNARY: 3,           // unary +, -, not
-// MULTIPLICATIVE: 4,  // *, /, div, mod
-// ADDITIVE: 5,        // +, -, &
-// TYPE: 6,            // is, as
+// Parser uses standard precedence (higher number = higher precedence)
+// IMPLIES: 1,         // implies - lowest precedence
+// OR: 2,              // or, xor
+// AND: 3,             // and
+// MEMBERSHIP: 4,      // in, contains
+// EQUALITY: 5,        // =, ~, !=, !~
+// RELATIONAL: 6,      // <, >, <=, >=
 // UNION: 7,           // |
-// RELATIONAL: 8,      // <, >, <=, >=
-// EQUALITY: 9,        // =, ~, !=, !~
-// MEMBERSHIP: 10,     // in, contains
-// AND: 11,            // and
-// OR: 12,             // or, xor
-// IMPLIES: 13,        // implies
+// TYPE: 8,            // is, as
+// ADDITIVE: 9,        // +, -, &
+// MULTIPLICATIVE: 10, // *, /, div, mod
+// UNARY: 11,          // unary +, -, not
+// POSTFIX: 12,        // [] indexing
+// INVOCATION: 13,     // . (dot), function calls - highest precedence
 
 export class FHIRPathParser {
   private tokens: Token[];
@@ -327,22 +328,22 @@ export class FHIRPathParser {
   }
   
   // Pratt parser for expressions
-  private expression(minPrecedence: number = 14): ASTNode {
+  private expression(minPrecedence: number = 0): ASTNode {
     let left = this.primary();
     
     while (!this.isAtEnd()) {
       // Handle postfix operators first
-      if (this.check(TokenType.LBRACKET) && minPrecedence >= 2) { // POSTFIX precedence
+      if (this.check(TokenType.LBRACKET) && minPrecedence <= 12) { // POSTFIX precedence
         left = this.parseIndex(left);
         continue;
       }
       
       // Handle function calls that come from primary() or after dots
       // This allows for chained method calls like exists().not()
-      if (this.check(TokenType.DOT) && minPrecedence >= 1) { // INVOCATION precedence
+      if (this.check(TokenType.DOT) && minPrecedence <= 13) { // INVOCATION precedence
         const dotToken = this.peek();
         const precedence = this.getPrecedence(dotToken);
-        if (precedence > minPrecedence) break;
+        if (precedence < minPrecedence) break;
         
         left = this.parseBinary(left, dotToken, precedence);
         continue;
@@ -351,7 +352,7 @@ export class FHIRPathParser {
       const token = this.peek();
       const precedence = this.getPrecedence(token);
       
-      if (precedence === 0 || precedence > minPrecedence) break;
+      if (precedence === 0 || precedence < minPrecedence) break;
       
       left = this.parseBinary(left, token, precedence);
     }
@@ -715,7 +716,7 @@ export class FHIRPathParser {
     
     // Special handling for union operator - can chain multiple
     if (op.type === TokenType.PIPE) {
-      const right = this.expression(precedence - 1);
+      const right = this.expression(precedence + 1);
       
       // If left is already a union, add to it
       if (left.type === NodeType.Union) {
@@ -832,7 +833,9 @@ export class FHIRPathParser {
     }
     
     // Right-associative operators (none in FHIRPath currently)
-    const associativity = this.isRightAssociative(op) ? 0 : -1;
+    // For left-associative operators, we want same precedence to associate left
+    // So we use precedence + 1 to ensure left-to-right evaluation
+    const associativity = this.isRightAssociative(op) ? 0 : 1;
     
     let right: ASTNode;
     try {
@@ -1104,48 +1107,13 @@ export class FHIRPathParser {
     } as FunctionNode;
   }
   
-  // Precedence lookup (high precedence = low number)
+  // Precedence lookup (higher number = higher precedence)
   private getPrecedence(token: Token): number {
     // Special case for DOT which might not be in registry yet
-    if (token.type === TokenType.DOT) return 1;
+    if (token.type === TokenType.DOT) return 13;
     
-    // Use registry for all other operators
-    const registryPrecedence = Registry.getPrecedence(token.type);
-    
-    // Registry uses standard convention (higher number = higher precedence)
-    // Parser uses inverted convention (lower number = higher precedence)
-    // So we need to invert the value
-    if (registryPrecedence === 0) return 0; // No precedence
-    
-    // The Registry precedence values seem to be inverted from FHIRPath spec
-    // We need to map them correctly:
-    // Registry -> Parser (lower is higher precedence)
-    // 1 (implies) -> 13
-    // 2 (or) -> 12  
-    // 3 (and) -> 11
-    // 5 (additive) -> 5
-    // 6 (multiplicative, type) -> 4
-    // 8 (relational) -> 8
-    // 9 (equality) -> 9
-    // 10 (membership, unary) -> 10 or 3
-    // 13 (union) -> 7
-    
-    // For now, use the simple inversion but adjust for proper ordering
-    // Multiplicative (6) should have higher precedence than comparison (8-9)
-    // So we need a different mapping
-    const precedenceMap: Record<number, number> = {
-      1: 13,  // implies - lowest
-      2: 12,  // or, xor
-      3: 11,  // and
-      5: 5,   // additive (+, -, &)
-      6: 4,   // multiplicative (*, /, div, mod) and type (is, as)
-      8: 8,   // relational (<, >, <=, >=)
-      9: 9,   // equality (=, !=, ~, !~)
-      10: 10, // membership (in, contains) - but unary should be 3
-      13: 7   // union (|)
-    };
-    
-    return precedenceMap[registryPrecedence] ?? (15 - registryPrecedence);
+    // Use registry directly - both now use standard convention
+    return Registry.getPrecedence(token.type);
   }
   
   // Helper to infer literal type from value
@@ -1239,7 +1207,7 @@ export class FHIRPathParser {
   }
   
   // Error recovery methods
-  private expressionWithRecovery(minPrecedence: number = 14): ASTNode {
+  private expressionWithRecovery(minPrecedence: number = 0): ASTNode {
     try {
       return this.expression(minPrecedence);
     } catch (error) {

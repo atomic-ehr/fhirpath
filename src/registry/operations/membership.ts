@@ -25,7 +25,7 @@ export const inOperator: Operator = {
   syntax: {
     form: 'infix',
     token: TokenType.IN,
-    precedence: 10,
+    precedence: 4, // MEMBERSHIP precedence
     associativity: 'left',
     notation: 'a in b'
   },
@@ -78,7 +78,7 @@ export const containsOperator: Operator = {
   syntax: {
     form: 'infix',
     token: TokenType.CONTAINS,
-    precedence: 10,
+    precedence: 4, // MEMBERSHIP precedence
     associativity: 'left',
     notation: 'a contains b'
   },

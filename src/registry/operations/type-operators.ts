@@ -15,7 +15,7 @@ export const isOperator: Operator = {
   syntax: {
     form: 'infix',
     token: TokenType.IS,
-    precedence: 6,
+    precedence: 8, // TYPE precedence
     associativity: 'left',
     notation: 'a is Type',
     special: true  // Requires special parsing
@@ -178,7 +178,7 @@ export const asOperator: Operator = {
   syntax: {
     form: 'infix',
     token: TokenType.AS,
-    precedence: 6,
+    precedence: 8, // TYPE precedence
     associativity: 'left',
     notation: 'a as Type',
     special: true  // Requires special parsing

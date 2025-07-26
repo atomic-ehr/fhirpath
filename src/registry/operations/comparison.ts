@@ -32,7 +32,7 @@ export const eqOperator: Operator = {
   syntax: {
     form: 'infix',
     token: TokenType.EQ,
-    precedence: 9,
+    precedence: 5, // EQUALITY precedence
     associativity: 'left',
     notation: 'a = b'
   },
@@ -84,7 +84,7 @@ export const neqOperator: Operator = {
   syntax: {
     form: 'infix',
     token: TokenType.NEQ,
-    precedence: 9,
+    precedence: 5, // EQUALITY precedence
     associativity: 'left',
     notation: 'a != b'
   },
@@ -134,7 +134,7 @@ export const ltOperator: Operator = {
   syntax: {
     form: 'infix',
     token: TokenType.LT,
-    precedence: 8,
+    precedence: 6, // RELATIONAL precedence
     associativity: 'left',
     notation: 'a < b'
   },
@@ -182,7 +182,7 @@ export const gtOperator: Operator = {
   syntax: {
     form: 'infix',
     token: TokenType.GT,
-    precedence: 8,
+    precedence: 6, // RELATIONAL precedence
     associativity: 'left',
     notation: 'a > b'
   },
@@ -230,7 +230,7 @@ export const lteOperator: Operator = {
   syntax: {
     form: 'infix',
     token: TokenType.LTE,
-    precedence: 8,
+    precedence: 6, // RELATIONAL precedence
     associativity: 'left',
     notation: 'a <= b'
   },
@@ -278,7 +278,7 @@ export const gteOperator: Operator = {
   syntax: {
     form: 'infix',
     token: TokenType.GTE,
-    precedence: 8,
+    precedence: 6, // RELATIONAL precedence
     associativity: 'left',
     notation: 'a >= b'
   },
@@ -326,7 +326,7 @@ export const equivOperator: Operator = {
   syntax: {
     form: 'infix',
     token: TokenType.EQUIV,
-    precedence: 9,
+    precedence: 5, // EQUALITY precedence
     associativity: 'left',
     notation: 'a ~ b'
   },
@@ -380,7 +380,7 @@ export const nequivOperator: Operator = {
   syntax: {
     form: 'infix',
     token: TokenType.NEQUIV,
-    precedence: 9,
+    precedence: 5, // EQUALITY precedence
     associativity: 'left',
     notation: 'a !~ b'
   },

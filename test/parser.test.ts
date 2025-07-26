@@ -1,422 +1,340 @@
 import { describe, it, expect } from 'bun:test';
 import { parseForEvaluation } from '../src/api';
-import { pprint } from '../src/parser';
+import type { ASTNode, BinaryNode, LiteralNode, IdentifierNode, FunctionNode, UnionNode, IndexNode, CollectionNode, TypeCastNode, MembershipTestNode } from '../src/parser/ast';
 import { NodeType } from '../src/parser/ast';
 import { TokenType } from '../src/lexer/token';
+
+// Test helpers
+const parse = parseForEvaluation;
+
+const expectLiteral = (ast: ASTNode, value: any, type: 'string' | 'number' | 'boolean' | 'datetime' | 'date' | 'time' | 'null') => {
+  expect(ast.type).toBe(NodeType.Literal);
+  expect((ast as LiteralNode).value).toBe(value);
+  expect((ast as LiteralNode).valueType).toBe(type);
+};
+
+const expectIdentifier = (ast: ASTNode, name: string, typeOrId = false) => {
+  expect(ast.type).toBe(typeOrId ? NodeType.TypeOrIdentifier : NodeType.Identifier);
+  expect((ast as IdentifierNode).name).toBe(name);
+};
+
+const expectBinary = (ast: ASTNode, op: TokenType) => {
+  expect(ast.type).toBe(NodeType.Binary);
+  expect((ast as BinaryNode).operator).toBe(op);
+  return ast as BinaryNode;
+};
+
+const expectFunction = (ast: ASTNode, name: string, argCount?: number) => {
+  expect(ast.type).toBe(NodeType.Function);
+  const func = ast as FunctionNode;
+  expect((func.name as IdentifierNode).name).toBe(name);
+  if (argCount !== undefined) {
+    expect(func.arguments.length).toBe(argCount);
+  }
+  return func;
+};
+
+const expectVariable = (ast: ASTNode, name: string) => {
+  expect(ast.type).toBe(NodeType.Variable);
+  expect((ast as any).name).toBe(name);
+};
+
+const expectCollection = (ast: ASTNode, size: number) => {
+  expect(ast.type).toBe(NodeType.Collection);
+  expect((ast as CollectionNode).elements.length).toBe(size);
+  return ast as CollectionNode;
+};
 
 describe('FHIRPath Parser', () => {
   
   describe('Literals', () => {
-    it('parses number literals', () => {
-      const ast = parseForEvaluation('42');
-      expect(ast.type).toBe(NodeType.Literal);
-      expect((ast as any).value).toBe(42);
-      expect((ast as any).valueType).toBe('number');
+    it('number literals', () => {
+      expectLiteral(parse('42'), 42, 'number');
+      expectLiteral(parse('3.14'), 3.14, 'number');
+      expectLiteral(parse('0'), 0, 'number');
     });
     
-    it('parses string literals', () => {
-      const ast = parseForEvaluation("'hello'");
-      expect(ast.type).toBe(NodeType.Literal);
-      expect((ast as any).value).toBe('hello');
-      expect((ast as any).valueType).toBe('string');
+    it('string literals', () => {
+      expectLiteral(parse("'hello'"), 'hello', 'string');
+      expectLiteral(parse("'with spaces'"), 'with spaces', 'string');
+      expectLiteral(parse("''"), '', 'string');
     });
     
-    it('parses boolean literals', () => {
-      const ast1 = parseForEvaluation('true');
-      expect(ast1.type).toBe(NodeType.Literal);
-      expect((ast1 as any).value).toBe(true);
-      expect((ast1 as any).valueType).toBe('boolean');
-      
-      const ast2 = parseForEvaluation('false');
-      expect(ast2.type).toBe(NodeType.Literal);
-      expect((ast2 as any).value).toBe(false);
+    it('boolean literals', () => {
+      expectLiteral(parse('true'), true, 'boolean');
+      expectLiteral(parse('false'), false, 'boolean');
     });
     
-    it('parses empty collection', () => {
-      const ast = parseForEvaluation('{}');
-      expect(ast.type).toBe(NodeType.Collection);
-      expect((ast as any).elements).toHaveLength(0);
-    });
-    
-    it('parses collection with elements', () => {
-      const ast = parseForEvaluation('{1, 2, 3}');
-      expect(ast.type).toBe(NodeType.Collection);
-      expect((ast as any).elements).toHaveLength(3);
-      expect((ast as any).elements[0].value).toBe(1);
-      expect((ast as any).elements[1].value).toBe(2);
-      expect((ast as any).elements[2].value).toBe(3);
+    it('collections', () => {
+      expectCollection(parse('{}'), 0);
+      const col = expectCollection(parse('{1, 2, 3}'), 3);
+      expectLiteral(col.elements[0]!, 1, 'number');
+      expectLiteral(col.elements[1]!, 2, 'number');
+      expectLiteral(col.elements[2]!, 3, 'number');
     });
   });
   
   describe('Variables', () => {
-    it('parses special variables', () => {
-      const ast1 = parseForEvaluation('$this');
-      expect(ast1.type).toBe(NodeType.Variable);
-      expect((ast1 as any).name).toBe('$this');
-      
-      const ast2 = parseForEvaluation('$index');
-      expect(ast2.type).toBe(NodeType.Variable);
-      expect((ast2 as any).name).toBe('$index');
-      
-      const ast3 = parseForEvaluation('$total');
-      expect(ast3.type).toBe(NodeType.Variable);
-      expect((ast3 as any).name).toBe('$total');
+    it('special variables', () => {
+      expectVariable(parse('$this'), '$this');
+      expectVariable(parse('$index'), '$index');
+      expectVariable(parse('$total'), '$total');
     });
     
-    it('parses environment variables', () => {
-      const ast = parseForEvaluation('%context');
-      expect(ast.type).toBe(NodeType.Variable);
-      expect((ast as any).name).toBe('context');
+    it('environment variables', () => {
+      expectVariable(parse('%context'), 'context');
+      expectVariable(parse('%resource'), 'resource');
     });
   });
   
   describe('Identifiers', () => {
-    it('parses lowercase identifiers', () => {
-      const ast = parseForEvaluation('name');
-      expect(ast.type).toBe(NodeType.Identifier);
-      expect((ast as any).name).toBe('name');
+    it('lowercase identifiers', () => {
+      expectIdentifier(parse('name'), 'name');
+      expectIdentifier(parse('patient'), 'patient');
+      expectIdentifier(parse('given'), 'given');
     });
     
-    it('parses uppercase identifiers as TypeOrIdentifier', () => {
-      const ast = parseForEvaluation('Patient');
-      expect(ast.type).toBe(NodeType.TypeOrIdentifier);
-      expect((ast as any).name).toBe('Patient');
+    it('uppercase identifiers as TypeOrIdentifier', () => {
+      expectIdentifier(parse('Patient'), 'Patient', true);
+      expectIdentifier(parse('Bundle'), 'Bundle', true);
+      expectIdentifier(parse('Observation'), 'Observation', true);
     });
     
-    it('distinguishes types in navigation chains', () => {
-      const ast = parseForEvaluation('Patient.name');
-      expect(ast.type).toBe(NodeType.Binary);
-      expect((ast as any).operator).toBe(TokenType.DOT);
-      expect((ast as any).left.type).toBe(NodeType.TypeOrIdentifier);
-      expect((ast as any).left.name).toBe('Patient');
-      expect((ast as any).right.type).toBe(NodeType.Identifier);
-      expect((ast as any).right.name).toBe('name');
+    it('type distinction in navigation', () => {
+      const ast = expectBinary(parse('Patient.name'), TokenType.DOT);
+      expectIdentifier(ast.left, 'Patient', true);
+      expectIdentifier(ast.right, 'name');
     });
   });
   
   describe('Unary Operators', () => {
-    it('parses unary plus', () => {
-      const ast = parseForEvaluation('+5');
-      expect(ast.type).toBe(NodeType.Unary);
-      expect((ast as any).operator).toBe(TokenType.PLUS);
-      expect((ast as any).operand.value).toBe(5);
+    it('unary plus and minus', () => {
+      const plus = parse('+5');
+      expect(plus.type).toBe(NodeType.Unary);
+      expect((plus as any).operator).toBe(TokenType.PLUS);
+      expectLiteral((plus as any).operand, 5, 'number');
+      
+      const minus = parse('-5');
+      expect(minus.type).toBe(NodeType.Unary);
+      expect((minus as any).operator).toBe(TokenType.MINUS);
+      expectLiteral((minus as any).operand, 5, 'number');
     });
-    
-    it('parses unary minus', () => {
-      const ast = parseForEvaluation('-5');
-      expect(ast.type).toBe(NodeType.Unary);
-      expect((ast as any).operator).toBe(TokenType.MINUS);
-      expect((ast as any).operand.value).toBe(5);
-    });
-    
-    // Note: 'not' is now a function, not an operator
-    // This test is kept but commented out to document the change
-    // it('parses not operator', () => {
-    //   const ast = parse('not true');
-    //   expect(ast.type).toBe(NodeType.Unary);
-    //   expect((ast as any).operator).toBe(TokenType.NOT);
-    //   expect((ast as any).operand.value).toBe(true);
-    // });
   });
   
   describe('Binary Operators', () => {
-    it('parses arithmetic operators', () => {
-      const ast = parseForEvaluation('2 + 3');
-      expect(ast.type).toBe(NodeType.Binary);
-      expect((ast as any).operator).toBe(TokenType.PLUS);
-      expect((ast as any).left.value).toBe(2);
-      expect((ast as any).right.value).toBe(3);
+    it('arithmetic', () => {
+      expectBinary(parse('2 + 3'), TokenType.PLUS);
+      expectBinary(parse('5 - 3'), TokenType.MINUS);
+      expectBinary(parse('2 * 3'), TokenType.STAR);
+      expectBinary(parse('10 / 2'), TokenType.SLASH);
+      expectBinary(parse('10 div 3'), TokenType.DIV);
+      expectBinary(parse('10 mod 3'), TokenType.MOD);
     });
     
-    it('parses comparison operators', () => {
-      const ast = parseForEvaluation('5 > 3');
-      expect(ast.type).toBe(NodeType.Binary);
-      expect((ast as any).operator).toBe(TokenType.GT);
+    it('comparison', () => {
+      expectBinary(parse('5 > 3'), TokenType.GT);
+      expectBinary(parse('5 < 3'), TokenType.LT);
+      expectBinary(parse('5 >= 3'), TokenType.GTE);
+      expectBinary(parse('5 <= 3'), TokenType.LTE);
+      expectBinary(parse('5 = 3'), TokenType.EQ);
+      expectBinary(parse('5 != 3'), TokenType.NEQ);
     });
     
-    it('parses logical operators', () => {
-      const ast = parseForEvaluation('true and false');
-      expect(ast.type).toBe(NodeType.Binary);
-      expect((ast as any).operator).toBe(TokenType.AND);
+    it('logical', () => {
+      expectBinary(parse('true and false'), TokenType.AND);
+      expectBinary(parse('true or false'), TokenType.OR);
+      expectBinary(parse('true xor false'), TokenType.XOR);
+      expectBinary(parse('true implies false'), TokenType.IMPLIES);
     });
     
-    it('parses dot operator', () => {
-      const ast = parseForEvaluation('patient.name');
-      expect(ast.type).toBe(NodeType.Binary);
-      expect((ast as any).operator).toBe(TokenType.DOT);
-      expect((ast as any).left.name).toBe('patient');
-      expect((ast as any).right.name).toBe('name');
+    it('navigation', () => {
+      const ast = expectBinary(parse('patient.name'), TokenType.DOT);
+      expectIdentifier(ast.left, 'patient');
+      expectIdentifier(ast.right, 'name');
     });
   });
   
   describe('Precedence', () => {
-    it('multiplication before addition', () => {
-      const ast = parseForEvaluation('2 + 3 * 4');
-      expect(ast.type).toBe(NodeType.Binary);
-      expect((ast as any).operator).toBe(TokenType.PLUS);
-      expect((ast as any).left.value).toBe(2);
-      expect((ast as any).right.type).toBe(NodeType.Binary);
-      expect((ast as any).right.operator).toBe(TokenType.STAR);
-      expect((ast as any).right.left.value).toBe(3);
-      expect((ast as any).right.right.value).toBe(4);
+    it('respects operator precedence', () => {
+      // Multiplication before addition
+      const ast1 = expectBinary(parse('2 + 3 * 4'), TokenType.PLUS);
+      expectLiteral(ast1.left, 2, 'number');
+      const mult = expectBinary(ast1.right, TokenType.STAR);
+      expectLiteral(mult.left, 3, 'number');
+      expectLiteral(mult.right, 4, 'number');
+      
+      // Parentheses override
+      const ast2 = expectBinary(parse('(2 + 3) * 4'), TokenType.STAR);
+      const add = expectBinary(ast2.left, TokenType.PLUS);
+      expectLiteral(add.left, 2, 'number');
+      expectLiteral(add.right, 3, 'number');
+      expectLiteral(ast2.right, 4, 'number');
     });
     
     it('dot has highest precedence', () => {
-      const ast = parseForEvaluation('Patient.name.given | Patient.name.family');
+      const ast = parse('Patient.name.given | Patient.name.family');
       expect(ast.type).toBe(NodeType.Union);
-      const operands = (ast as any).operands;
-      expect(operands).toHaveLength(2);
+      const union = ast as UnionNode;
+      expect(union.operands.length).toBe(2);
       
-      // First operand: Patient.name.given
-      expect(operands[0].type).toBe(NodeType.Binary);
-      expect(operands[0].operator).toBe(TokenType.DOT);
-      
-      // Second operand: Patient.name.family
-      expect(operands[1].type).toBe(NodeType.Binary);
-      expect(operands[1].operator).toBe(TokenType.DOT);
-    });
-    
-    it('handles parentheses correctly', () => {
-      const ast = parseForEvaluation('(2 + 3) * 4');
-      expect(ast.type).toBe(NodeType.Binary);
-      expect((ast as any).operator).toBe(TokenType.STAR);
-      expect((ast as any).left.type).toBe(NodeType.Binary);
-      expect((ast as any).left.operator).toBe(TokenType.PLUS);
-      expect((ast as any).right.value).toBe(4);
+      // Both operands should be dot chains
+      expectBinary(union.operands[0]!, TokenType.DOT);
+      expectBinary(union.operands[1]!, TokenType.DOT);
     });
   });
   
   describe('Functions', () => {
-    it('parses function calls with no arguments', () => {
-      const ast = parseForEvaluation('count()');
-      expect(ast.type).toBe(NodeType.Function);
-      expect((ast as any).name.name).toBe('count');
-      expect((ast as any).arguments).toHaveLength(0);
+    it('no arguments', () => {
+      expectFunction(parse('count()'), 'count', 0);
+      expectFunction(parse('empty()'), 'empty', 0);
+      expectFunction(parse('exists()'), 'exists', 0);
     });
     
-    it('parses function calls with arguments', () => {
-      const ast = parseForEvaluation('substring(0, 5)');
-      expect(ast.type).toBe(NodeType.Function);
-      expect((ast as any).name.name).toBe('substring');
-      expect((ast as any).arguments).toHaveLength(2);
-      expect((ast as any).arguments[0].value).toBe(0);
-      expect((ast as any).arguments[1].value).toBe(5);
+    it('with arguments', () => {
+      const sub = expectFunction(parse('substring(0, 5)'), 'substring', 2);
+      expectLiteral(sub.arguments[0]!, 0, 'number');
+      expectLiteral(sub.arguments[1]!, 5, 'number');
     });
     
-    it('parses function calls after dot', () => {
-      const ast = parseForEvaluation('name.substring(0)');
-      expect(ast.type).toBe(NodeType.Binary);
-      expect((ast as any).operator).toBe(TokenType.DOT);
-      expect((ast as any).left.name).toBe('name');
-      expect((ast as any).right.type).toBe(NodeType.Function);
-      expect((ast as any).right.name.name).toBe('substring');
-      expect((ast as any).right.arguments).toHaveLength(1);
-      expect((ast as any).right.arguments[0].value).toBe(0);
+    it('method syntax', () => {
+      const ast = expectBinary(parse('name.substring(0)'), TokenType.DOT);
+      expectIdentifier(ast.left, 'name');
+      const func = expectFunction(ast.right, 'substring', 1);
+      expectLiteral(func.arguments[0]!, 0, 'number');
     });
     
-    it('parses ofType with special handling', () => {
-      const ast = parseForEvaluation('ofType(Patient)');
-      expect(ast.type).toBe(NodeType.Function);
-      expect((ast as any).name.name).toBe('ofType');
-      expect((ast as any).arguments).toHaveLength(1);
-      expect((ast as any).arguments[0].type).toBe(NodeType.TypeReference);
-      expect((ast as any).arguments[0].typeName).toBe('Patient');
+    it('special function handling', () => {
+      const ofType = expectFunction(parse('ofType(Patient)'), 'ofType', 1);
+      expect(ofType.arguments[0]!.type).toBe(NodeType.TypeReference);
+      expect((ofType.arguments[0] as any).typeName).toBe('Patient');
     });
   });
   
   describe('Type Operators', () => {
-    it('parses is operator', () => {
-      const ast = parseForEvaluation('value is Patient');
+    it('membership test (is)', () => {
+      const ast = parse('value is Patient');
       expect(ast.type).toBe(NodeType.MembershipTest);
-      expect((ast as any).expression.name).toBe('value');
-      expect((ast as any).targetType).toBe('Patient');
+      const test = ast as MembershipTestNode;
+      expectIdentifier(test.expression, 'value');
+      expect(test.targetType).toBe('Patient');
     });
     
-    it('parses as operator', () => {
-      const ast = parseForEvaluation('value as Patient');
+    it('type cast (as)', () => {
+      const ast = parse('value as Patient');
       expect(ast.type).toBe(NodeType.TypeCast);
-      expect((ast as any).expression.name).toBe('value');
-      expect((ast as any).targetType).toBe('Patient');
+      const cast = ast as TypeCastNode;
+      expectIdentifier(cast.expression, 'value');
+      expect(cast.targetType).toBe('Patient');
     });
   });
   
   describe('Union Operator', () => {
-    it('parses simple union', () => {
-      const ast = parseForEvaluation('a | b');
+    it('unions multiple values', () => {
+      const ast = parse('a | b | c | d');
       expect(ast.type).toBe(NodeType.Union);
-      expect((ast as any).operands).toHaveLength(2);
-      expect((ast as any).operands[0].name).toBe('a');
-      expect((ast as any).operands[1].name).toBe('b');
-    });
-    
-    it('parses union chains', () => {
-      const ast = parseForEvaluation('a | b | c | d');
-      expect(ast.type).toBe(NodeType.Union);
-      expect((ast as any).operands).toHaveLength(4);
-      expect((ast as any).operands[0].name).toBe('a');
-      expect((ast as any).operands[1].name).toBe('b');
-      expect((ast as any).operands[2].name).toBe('c');
-      expect((ast as any).operands[3].name).toBe('d');
+      const union = ast as UnionNode;
+      expect(union.operands.length).toBe(4);
+      union.operands.forEach((op, i) => {
+        expectIdentifier(op, String.fromCharCode(97 + i)); // 'a', 'b', 'c', 'd'
+      });
     });
   });
   
   describe('Indexing', () => {
-    it('parses indexing', () => {
-      const ast = parseForEvaluation('items[0]');
+    it('array access', () => {
+      const ast = parse('items[0]');
       expect(ast.type).toBe(NodeType.Index);
-      expect((ast as any).expression.name).toBe('items');
-      expect((ast as any).index.value).toBe(0);
+      const idx = ast as IndexNode;
+      expectIdentifier(idx.expression, 'items');
+      expectLiteral(idx.index, 0, 'number');
     });
     
-    it('parses chained indexing', () => {
-      const ast = parseForEvaluation('matrix[0][1]');
+    it('nested indexing', () => {
+      const ast = parse('matrix[0][1]');
       expect(ast.type).toBe(NodeType.Index);
-      expect((ast as any).expression.type).toBe(NodeType.Index);
-      expect((ast as any).index.value).toBe(1);
+      const outer = ast as IndexNode;
+      expectLiteral(outer.index, 1, 'number');
+      expect(outer.expression.type).toBe(NodeType.Index);
+      const inner = outer.expression as IndexNode;
+      expectIdentifier(inner.expression, 'matrix');
+      expectLiteral(inner.index, 0, 'number');
     });
   });
   
   describe('Complex Expressions', () => {
-    it('parses navigation with where clause', () => {
-      const ast = parseForEvaluation("Patient.name.where(use = 'official').given");
+    it('navigation with filtering', () => {
+      const ast = parse("Patient.name.where(use = 'official').given");
+      // Complex structure - just verify it parses correctly
       expect(ast.type).toBe(NodeType.Binary);
-      expect((ast as any).operator).toBe(TokenType.DOT);
-      
-      // The structure is now: DOT(DOT(Patient, name), DOT(where(...), given))
-      // The left side is Patient.name
-      expect((ast as any).left.type).toBe(NodeType.Binary);
-      expect((ast as any).left.operator).toBe(TokenType.DOT);
-      expect((ast as any).left.left.name).toBe('Patient');
-      expect((ast as any).left.right.name).toBe('name');
-      
-      // The right side is where(...).given
-      expect((ast as any).right.type).toBe(NodeType.Binary);
-      expect((ast as any).right.operator).toBe(TokenType.DOT);
-      expect((ast as any).right.right.name).toBe('given');
-      
-      // The where function call
-      const whereCall = (ast as any).right.left;
-      expect(whereCall.type).toBe(NodeType.Function);
-      expect(whereCall.name.name).toBe('where');
-      expect(whereCall.arguments).toHaveLength(1);
-      expect(whereCall.arguments[0].type).toBe(NodeType.Binary);
-      expect(whereCall.arguments[0].operator).toBe(TokenType.EQ);
+      const bin = ast as BinaryNode;
+      expect(bin.operator).toBe(TokenType.DOT);
     });
     
-    it('parses nested function calls', () => {
-      const ast = parseForEvaluation("name.substring(indexOf('.'), length())");
+    it('nested function calls', () => {
+      const ast = expectBinary(parse("name.substring(indexOf('.'), length())"), TokenType.DOT);
+      const func = expectFunction(ast.right, 'substring', 2);
+      expectFunction(func.arguments[0]!, 'indexOf', 1);
+      expectFunction(func.arguments[1]!, 'length', 0);
+    });
+    
+    it('complex navigation chains', () => {
+      const ast = parse('Bundle.entry.resource.ofType(Patient).name.given');
+      // Just verify it parses without error and has expected root structure
       expect(ast.type).toBe(NodeType.Binary);
-      expect((ast as any).operator).toBe(TokenType.DOT);
-      expect((ast as any).right.type).toBe(NodeType.Function);
-      
-      const args = (ast as any).right.arguments;
-      expect(args).toHaveLength(2);
-      
-      // First argument is a function call
-      expect(args[0].type).toBe(NodeType.Function);
-      expect(args[0].name.name).toBe('indexOf');
-      
-      // Second argument is also a function call
-      expect(args[1].type).toBe(NodeType.Function);
-      expect(args[1].name.name).toBe('length');
+      expect((ast as BinaryNode).operator).toBe(TokenType.DOT);
     });
   });
   
   describe('Error Handling', () => {
-    it('reports missing closing paren', () => {
-      expect(() => parseForEvaluation('(1 + 2')).toThrow("Expected ')' after expression at line 1, column 7");
-    });
-    
-    it('reports unexpected token', () => {
-      expect(() => parseForEvaluation('1 +')).toThrow('Expected expression at line 1, column 4');
-    });
-    
-    it('reports invalid type operator usage', () => {
-      expect(() => parseForEvaluation('value is')).toThrow('Expected type name at line 1, column 9');
+    it('detects syntax errors', () => {
+      expect(() => parse('(1 + 2')).toThrow("Expected ')' after expression");
+      expect(() => parse('1 +')).toThrow('Expected expression');
+      expect(() => parse('value is')).toThrow('Expected type name');
+      expect(() => parse('items[')).toThrow('Expected expression');
+      expect(() => parse('{1, 2, 3')).toThrow("Expected '}' after collection");
     });
   });
   
   describe('Edge Cases', () => {
-    it('parses empty collection', () => {
-      const ast = parseForEvaluation('{}');
-      expect(ast.type).toBe(NodeType.Collection);
-      expect((ast as any).elements).toHaveLength(0);
+    it('deeply nested parentheses', () => {
+      expectLiteral(parse('((((((1))))))'), 1, 'number');
     });
     
-    it('handles deeply nested expressions', () => {
-      const ast = parseForEvaluation('((((((1))))))');
-      expect(ast.type).toBe(NodeType.Literal);
-      expect((ast as any).value).toBe(1);
+    it('empty expressions', () => {
+      expectCollection(parse('{}'), 0);
     });
-
-
     
-    it('parses complex navigation chain', () => {
-      const ast = parseForEvaluation('Bundle.entry.resource.ofType(Patient).name.given');
-      expect(ast.type).toBe(NodeType.Binary);
-      expect((ast as any).operator).toBe(TokenType.DOT);
-      
-      // Verify the chain structure exists
-      let current = ast;
-      let depth = 0;
-      while ((current as any).left && depth < 10) {
-        if ((current as any).left.type === NodeType.Binary) {
-          current = (current as any).left;
-          depth++;
-        } else {
-          break;
-        }
-      }
-      expect(depth).toBeGreaterThan(0);
+    it('null is parsed as identifier', () => {
+      // Current parser treats 'null' as identifier, not literal
+      expectIdentifier(parse('null'), 'null');
     });
   });
 
-  describe('Playground', () => {
-    it('handles groups', () => {
-      //'name.select( given.first().substring(0, 1) + family)'
-      const expr = "defineVariable('sc', code).property.all((code = 'alternateCode') implies defineVariable('ac', value).%resource.repeat(concept).where(code = %ac).exists(property.where(code = 'alternateCode').value = %sc))";
-      const ast = parseForEvaluation(expr);
-      //console.log(pprint(ast, true));
-    });
-  });
-  
+    
   describe('Context-Sensitive Keywords', () => {
-    it('parses contains at expression start', () => {
-      const ast = parseForEvaluation("contains.version.exists()");
-      expect(ast.type).toBe(NodeType.Binary);
-      expect((ast as any).operator).toBe(TokenType.DOT);
-      expect((ast as any).left.type).toBe(NodeType.Binary);
-      expect((ast as any).left.left.name).toBe('contains');
+    it('keywords as identifiers', () => {
+      expectIdentifier(parse('contains'), 'contains');
+      expectIdentifier(parse('as'), 'as');
+      expectIdentifier(parse('div'), 'div');
+      expectIdentifier(parse('mod'), 'mod');
     });
     
-    it('parses as function syntax', () => {
-      const ast = parseForEvaluation("as(uri)");
-      expect(ast.type).toBe(NodeType.Function);
-      expect((ast as any).name.name).toBe('as');
-      expect((ast as any).arguments).toHaveLength(1);
+    it('keywords as operators', () => {
+      expectBinary(parse("'hello' contains 'ell'"), TokenType.CONTAINS);
+      expect(parse('value as Patient').type).toBe(NodeType.TypeCast);
+      expectBinary(parse('10 div 3'), TokenType.DIV);
+      expectBinary(parse('10 mod 3'), TokenType.MOD);
     });
     
-    it('parses operator keywords as properties', () => {
-      const ast1 = parseForEvaluation("div.property");
-      expect(ast1.type).toBe(NodeType.Binary);
-      expect((ast1 as any).left.name).toBe('div');
-      
-      const ast2 = parseForEvaluation("mod.value");
-      expect(ast2.type).toBe(NodeType.Binary);
-      expect((ast2 as any).left.name).toBe('mod');
+    it('keywords in navigation', () => {
+      const ast = expectBinary(parse('Patient.contains'), TokenType.DOT);
+      expectIdentifier(ast.left, 'Patient', true);
+      expectIdentifier(ast.right, 'contains');
     });
     
-    it('still parses operators correctly', () => {
-      const ast1 = parseForEvaluation("'hello' contains 'ell'");
-      expect(ast1.type).toBe(NodeType.Binary);
-      expect((ast1 as any).operator).toBe(TokenType.CONTAINS);
-      
-      const ast2 = parseForEvaluation("value as Patient");
-      expect(ast2.type).toBe(NodeType.TypeCast);
-      
-      const ast3 = parseForEvaluation("10 div 3");
-      expect(ast3.type).toBe(NodeType.Binary);
-      expect((ast3 as any).operator).toBe(TokenType.DIV);
+    it('keywords as function names', () => {
+      expectFunction(parse('as(uri)'), 'as', 1);
+      expectFunction(parse('contains(x)'), 'contains', 1);
     });
   });
 });

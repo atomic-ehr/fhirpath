@@ -26,11 +26,14 @@ function parseHeaders(content: string): HeaderInfo[] {
   lines.forEach((line, index) => {
     const headerMatch = line.match(/^(#{1,6})\s+(.+)$/);
     if (headerMatch) {
-      const level = headerMatch[1].length;
-      const text = headerMatch[2].trim();
+      const level = headerMatch[1]?.length ?? 1;
+      const text = headerMatch[2]?.trim() ?? '';
       
       // Update level counters
-      currentLevels[level - 1]++;
+      if (level > 0 && level <= currentLevels.length) {
+        const currentCount = currentLevels[level - 1] ?? 0;
+        currentLevels[level - 1] = currentCount + 1;
+      }
       // Reset all deeper levels
       for (let i = level; i < currentLevels.length; i++) {
         currentLevels[i] = 0;
@@ -78,7 +81,7 @@ function splitMarkdown(inputPath: string, outputDir: string) {
   // Split content by headers
   headers.forEach((header, index) => {
     const startLine = header.lineNumber;
-    const endLine = index < headers.length - 1 ? headers[index + 1].lineNumber : lines.length;
+    const endLine = index < headers.length - 1 ? headers[index + 1]?.lineNumber ?? lines.length : lines.length;
     
     // Extract content for this section
     const sectionContent = lines.slice(startLine, endLine).join('\n').trim();

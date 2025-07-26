@@ -20,7 +20,7 @@ export const plusOperator: Operator = {
   syntax: {
     form: 'infix',
     token: TokenType.PLUS,
-    precedence: 5,
+    precedence: 9, // ADDITIVE precedence
     associativity: 'left',
     notation: 'a + b'
   },
@@ -104,7 +104,7 @@ export const minusOperator: Operator = {
   syntax: {
     form: 'infix',
     token: TokenType.MINUS,
-    precedence: 5,
+    precedence: 9, // ADDITIVE precedence
     associativity: 'left',
     notation: 'a - b'
   },
@@ -153,7 +153,7 @@ export const multiplyOperator: Operator = {
   syntax: {
     form: 'infix',
     token: TokenType.STAR,
-    precedence: 6,
+    precedence: 10, // MULTIPLICATIVE precedence
     associativity: 'left',
     notation: 'a * b'
   },
@@ -202,7 +202,7 @@ export const divideOperator: Operator = {
   syntax: {
     form: 'infix',
     token: TokenType.SLASH,
-    precedence: 6,
+    precedence: 10, // MULTIPLICATIVE precedence
     associativity: 'left',
     notation: 'a / b'
   },
@@ -256,7 +256,7 @@ export const modOperator: Operator = {
   syntax: {
     form: 'infix',
     token: TokenType.MOD,
-    precedence: 6,
+    precedence: 10, // MULTIPLICATIVE precedence
     associativity: 'left',
     notation: 'a mod b'
   },
@@ -310,7 +310,7 @@ export const divOperator: Operator = {
   syntax: {
     form: 'infix',
     token: TokenType.DIV,
-    precedence: 6,
+    precedence: 10, // MULTIPLICATIVE precedence
     associativity: 'left',
     notation: 'a div b'
   },
@@ -364,7 +364,7 @@ export const unaryPlusOperator: Operator = {
   syntax: {
     form: 'prefix',
     token: TokenType.PLUS,
-    precedence: 10, // High precedence for unary operators
+    precedence: 11, // UNARY precedence
     notation: '+a'
   },
   
@@ -401,7 +401,7 @@ export const unaryMinusOperator: Operator = {
   syntax: {
     form: 'prefix',
     token: TokenType.MINUS,
-    precedence: 10, // High precedence for unary operators
+    precedence: 11, // UNARY precedence
     notation: '-a'
   },
   
@@ -444,7 +444,7 @@ export const concatOperator: Operator = {
   syntax: {
     form: 'infix',
     token: TokenType.CONCAT,
-    precedence: 5,
+    precedence: 9, // ADDITIVE precedence
     associativity: 'left',
     notation: 'a & b'
   },

@@ -6,6 +6,7 @@ import { membershipOperators } from './operations/membership';
 import { typeOperators } from './operations/type-operators';
 import { literals } from './operations/literals';
 import { existenceFunctions } from './operations/existence';
+import { navigationOperators } from './operations/navigation';
 import { 
   aggregateFunction, 
   childrenFunction, 
@@ -44,6 +45,7 @@ export * from './default-analyzers';
   ...membershipOperators,
   ...typeOperators,
   ...collectionOperators,
+  ...navigationOperators,
   ...literals,
   ...existenceFunctions,
   aggregateFunction,

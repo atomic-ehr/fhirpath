@@ -333,7 +333,7 @@ export const unionOperator: Operator = {
   syntax: {
     form: 'infix',
     token: TokenType.PIPE,
-    precedence: 13,  // Lower precedence than most operators
+    precedence: 7,  // UNION precedence
     associativity: 'left',
     notation: 'a | b'
   },
