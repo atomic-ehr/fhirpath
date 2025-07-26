@@ -67,7 +67,7 @@ for (let i = 1; i < args.length; i++) {
     i++;
     if (i < args.length) {
       try {
-        variables = JSON.parse(args[i]);
+        variables = JSON.parse(args[i]!);
       } catch (e) {
         console.error(`Error parsing variables: ${e}`);
         process.exit(1);
@@ -76,7 +76,7 @@ for (let i = 1; i < args.length; i++) {
   } else if (arg === '--max-traces') {
     i++;
     if (i < args.length) {
-      maxTraces = parseInt(args[i]);
+      maxTraces = parseInt(args[i]!);
       if (isNaN(maxTraces)) {
         console.error('Invalid max-traces value');
         process.exit(1);
@@ -92,7 +92,7 @@ for (let i = 1; i < args.length; i++) {
     showOnlyTiming = true;
   } else if (!inputData && i === 1) {
     // This is the input data argument
-    if (arg.startsWith('@')) {
+    if (arg && arg.startsWith('@')) {
       // Read from file
       const filename = arg.substring(1);
       try {
@@ -105,7 +105,7 @@ for (let i = 1; i < args.length; i++) {
     } else {
       // Parse as JSON
       try {
-        inputData = JSON.parse(arg);
+        inputData = JSON.parse(arg!);
       } catch (e) {
         console.error(`Error parsing input JSON: ${e}`);
         process.exit(1);
@@ -166,7 +166,7 @@ function formatAst(node: any, indent = 0): string {
 try {
   // Run inspect
   const result = inspect(
-    expression,
+    expression!,
     inputData,
     { variables },
     { maxTraces }

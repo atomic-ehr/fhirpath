@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 
-import { parse } from '../src';
+import { parseForEvaluation } from '../src';
 
 const expression = process.argv[2];
 
@@ -10,9 +10,9 @@ if (!expression) {
 }
 
 try {
-  const expr = parse(expression);
-  // Access the AST from the expression object
-  console.log(JSON.stringify(expr.ast, null, 2));
+  const ast = parseForEvaluation(expression);
+  // AST is returned directly
+  console.log(JSON.stringify(ast, null, 2));
 } catch (error) {
   console.error('Parse error:', error);
   process.exit(1);

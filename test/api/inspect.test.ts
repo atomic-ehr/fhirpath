@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { inspect, parse } from '../../src/api';
+import { inspect, parseLegacy } from '../../src/api';
 
 describe('inspect() function', () => {
   it('should return basic result with traces', () => {
@@ -44,7 +44,7 @@ describe('inspect() function', () => {
   });
 
   it('should work with pre-parsed expressions', () => {
-    const expr = parse('name.given');
+    const expr = parseLegacy('name.given');
     const result = inspect(expr, { name: [{ given: ["Alice"] }] });
     
     expect(result.result).toEqual(["Alice"]);

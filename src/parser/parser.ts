@@ -20,6 +20,17 @@ import {
   NodeType
 } from './ast';
 import { Registry } from '../registry';
+import { 
+  ParserMode, 
+  type ParserOptions, 
+  type ParseResult, 
+  type FastParseResult, 
+  type StandardParseResult,
+  type TextRange
+} from './types';
+import { DiagnosticCollector } from './diagnostics';
+import { SourceMapper } from './source-mapper';
+import { ErrorCode } from '../api/errors';
 
 export class ParseError extends Error {
   constructor(
@@ -49,23 +60,105 @@ export class ParseError extends Error {
 export class FHIRPathParser {
   private tokens: Token[];
   private current: number = 0;
+  private mode: ParserMode;
+  private diagnostics?: DiagnosticCollector;
+  private sourceMapper?: SourceMapper;
+  private input: string;
   
-  constructor(input: string | Token[]) {
+  constructor(input: string | Token[], options: ParserOptions = {}) {
+    this.mode = options.mode ?? ParserMode.Standard;
+    
     if (typeof input === 'string') {
-      this.tokens = lex(input);  // Assuming lex function from lexer
+      this.input = input;
+      this.tokens = lex(input);
     } else {
       this.tokens = input;
+      // For token array input, we'll construct a minimal input string
+      this.input = input.map(t => t.value).join(' ');
     }
+    
     this.current = 0;
+    this.initializeForMode(this.input, options);
+  }
+  
+  private initializeForMode(input: string, options: ParserOptions): void {
+    switch (this.mode) {
+      case ParserMode.Fast:
+        // No diagnostic infrastructure
+        break;
+      case ParserMode.Standard:
+      case ParserMode.Diagnostic:
+      case ParserMode.Validate:
+        this.diagnostics = new DiagnosticCollector(options.maxErrors);
+        this.sourceMapper = new SourceMapper(input);
+        break;
+    }
   }
   
   // Main entry point
-  parse(): ASTNode {
+  parse(): ParseResult {
+    switch (this.mode) {
+      case ParserMode.Fast:
+        return this.parseFast();
+      case ParserMode.Standard:
+        return this.parseStandard();
+      default:
+        // For now, Diagnostic and Validate modes fall back to Standard
+        return this.parseStandard();
+    }
+  }
+  
+  private parseFast(): FastParseResult {
     const ast = this.expression();
     if (!this.isAtEnd()) {
       throw this.error("Unexpected token after expression");
     }
-    return ast;
+    return { ast };
+  }
+  
+  private parseStandard(): StandardParseResult {
+    let ast: ASTNode;
+    
+    try {
+      ast = this.expression();
+      
+      if (!this.isAtEnd()) {
+        // In standard mode, report as diagnostic instead of throwing
+        const unexpectedToken = this.peek();
+        const range = this.sourceMapper!.tokenToRange(unexpectedToken);
+        this.diagnostics!.addError(
+          range,
+          `Unexpected token '${unexpectedToken.value}' after expression`,
+          ErrorCode.UNEXPECTED_TOKEN
+        );
+      }
+    } catch (error) {
+      // In standard mode, try to recover and report diagnostic
+      if (error instanceof ParseError) {
+        const range = this.sourceMapper!.tokenToRange(error.token);
+        this.diagnostics!.addError(
+          range,
+          error.message,
+          ErrorCode.PARSE_ERROR
+        );
+        
+        // Create a minimal error AST node
+        ast = {
+          type: NodeType.Literal,
+          value: null,
+          valueType: 'null',
+          position: error.position
+        } as LiteralNode;
+      } else {
+        throw error;
+      }
+    }
+    
+    return {
+      ast,
+      diagnostics: this.diagnostics!.getDiagnostics(),
+      hasErrors: this.diagnostics!.hasErrors()
+    };
   }
   
   // Pratt parser for expressions
@@ -651,9 +744,17 @@ export class FHIRPathParser {
   }
   
   private error(message: string): ParseError {
-    const pos = this.peek().position;
+    const token = this.peek();
+    const pos = token.position;
+    
+    // In Standard mode, also add to diagnostics before throwing
+    if (this.mode === ParserMode.Standard && this.diagnostics && this.sourceMapper) {
+      const range = this.sourceMapper.tokenToRange(token);
+      this.diagnostics.addError(range, message, ErrorCode.PARSE_ERROR);
+    }
+    
     const fullMessage = `${message} at line ${pos.line}, column ${pos.column}`;
-    return new ParseError(fullMessage, pos, this.peek());
+    return new ParseError(fullMessage, pos, token);
   }
   
   private isRightAssociative(op: Token): boolean {
@@ -694,8 +795,9 @@ export class FHIRPathParser {
   }
 }
 
-// Export convenience function
+// Export convenience function - for backward compatibility
 export function parse(input: string | Token[]): ASTNode {
-  const parser = new FHIRPathParser(input);
-  return parser.parse();
+  const parser = new FHIRPathParser(input, { mode: ParserMode.Fast });
+  const result = parser.parse() as FastParseResult;
+  return result.ast;
 }

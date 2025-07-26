@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { evaluate, parse } from '../../src';
+import { evaluate, parseLegacy } from '../../src';
 
 describe('API - evaluate', () => {
   it('should evaluate simple literals', () => {
@@ -28,7 +28,7 @@ describe('API - evaluate', () => {
   });
   
   it('should accept parsed expression', () => {
-    const expr = parse('5 + 3');
+    const expr = parseLegacy('5 + 3');
     expect(evaluate(expr)).toEqual([8]);
   });
   

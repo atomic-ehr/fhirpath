@@ -2,11 +2,26 @@
 import './registry';
 
 // Core API functions
-import { parse, evaluate, compile, analyze, registry } from './api';
+import { 
+  parse, 
+  parseLegacy, 
+  parseForEvaluation,
+  evaluate, 
+  compile, 
+  analyze, 
+  registry,
+  ParserMode,
+  isStandardResult,
+  isFastResult,
+  isDiagnosticResult,
+  isValidationResult
+} from './api';
 
 // Default export with common operations
 export default {
   parse,
+  parseLegacy,
+  parseForEvaluation,
   evaluate,
   compile,
   analyze,
@@ -14,7 +29,20 @@ export default {
 };
 
 // Named exports for core functions
-export { parse, evaluate, compile, analyze, registry };
+export { 
+  parse, 
+  parseLegacy,
+  parseForEvaluation,
+  evaluate, 
+  compile, 
+  analyze, 
+  registry,
+  ParserMode,
+  isStandardResult,
+  isFastResult,
+  isDiagnosticResult,
+  isValidationResult
+};
 
 // Named exports for advanced usage
 export { FHIRPath } from './api/builder';
@@ -50,6 +78,19 @@ export type {
   FHIRPathBuilder,
   FHIRPathAPI
 } from './api/types';
+
+// Export parser types
+export type {
+  ParserOptions,
+  ParseResult,
+  StandardParseResult,
+  DiagnosticParseResult,
+  ValidationResult,
+  ParseDiagnostic,
+  DiagnosticSeverity,
+  TextRange,
+  Position as TextPosition
+} from './api';
 
 // Export AST types for LSP server
 export type {

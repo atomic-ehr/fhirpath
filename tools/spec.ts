@@ -142,10 +142,10 @@ for (let i = 0; i < args.length; i++) {
   if (arg === '--content' || arg === '-c') {
     showContent = true;
   } else if ((arg === '--limit' || arg === '-l') && i + 1 < args.length) {
-    limit = parseInt(args[++i]) || 10;
+    limit = parseInt(args[++i]!) || 10;
   } else if (arg === '--all' || arg === '-a') {
     limit = Infinity;
-  } else if (!arg.startsWith('-')) {
+  } else if (arg && !arg.startsWith('-')) {
     query += (query ? ' ' : '') + arg;
   }
 }
@@ -181,7 +181,7 @@ if (showContent) {
 // Display results
 const displayCount = Math.min(results.length, limit);
 for (let i = 0; i < displayCount; i++) {
-  console.log(formatResult(results[i], i, showContent));
+  console.log(formatResult(results[i]!, i, showContent));
 }
 
 if (results.length > displayCount) {
@@ -192,5 +192,5 @@ if (results.length > displayCount) {
 // If showing content and only one result, provide a tip
 if (showContent && displayCount === 1) {
   console.log('\nTip: You can open the file directly:');
-  console.log(`  bun tools/read.ts spec2/sections/${results[0].metadata.file}`);
+  console.log(`  bun tools/read.ts spec2/sections/${results[0]!.metadata.file}`);
 }

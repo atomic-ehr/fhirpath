@@ -6,7 +6,7 @@ import type {
   ErrorInfo,
   WarningInfo
 } from './types';
-import { parse } from './index';
+import { parseLegacy } from './index';
 import { Interpreter } from '../interpreter/interpreter';
 import { RuntimeContextManager } from '../runtime/context';
 import { createDebugContext, isDebugContext } from '../runtime/debug-context';
@@ -25,7 +25,7 @@ export function inspect(
   const startTime = performance.now();
   
   // Parse if string
-  const expr = typeof expression === 'string' ? parse(expression) : expression;
+  const expr = typeof expression === 'string' ? parseLegacy(expression) : expression;
   const exprString = typeof expression === 'string' ? expression : expr.toString();
   
   // Prepare input (default to empty array)

@@ -12,7 +12,7 @@ import type {
   InspectResult,
   InspectOptions
 } from './types';
-import { parse, evaluate, compile, analyze, inspect } from './index';
+import { parseLegacy, evaluate, compile, analyze, inspect } from './index';
 import { PublicRegistryAPI } from './registry';
 import { Registry } from '../registry/registry';
 import { invalidArgument } from './errors';
@@ -83,7 +83,7 @@ class BuiltAPI implements FHIRPathAPI {
   }
   
   parse(expression: string): FHIRPathExpression {
-    return parse(expression);
+    return parseLegacy(expression);
   }
   
   evaluate(expression: string | FHIRPathExpression, input?: any): any[] {
