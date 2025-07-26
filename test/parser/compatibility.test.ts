@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'bun:test';
 import { parse as legacyParse } from '../../src/parser/parser';
 import { parse, parseForEvaluation, ParserMode } from '../../src/api';
-import type { FastParseResult } from '../../src/parser/types';
+import type { StandardParseResult } from '../../src/parser/types';
 import { NodeType } from '../../src/parser/ast';
 
 describe('Backward Compatibility', () => {
@@ -23,7 +23,7 @@ describe('Backward Compatibility', () => {
     });
   });
   
-  describe('Fast mode matches current parser behavior', () => {
+  describe('throwOnError flag matches current parser behavior', () => {
     const testExpressions = [
       'Patient.name.given',
       '5 + 3',
@@ -38,9 +38,9 @@ describe('Backward Compatibility', () => {
     ];
     
     testExpressions.forEach(expression => {
-      it(`parses "${expression}" identically in Fast mode`, () => {
+      it(`parses "${expression}" identically with throwOnError`, () => {
         const oldResult = legacyParse(expression);
-        const newResult = parse(expression, { mode: ParserMode.Fast }) as FastParseResult;
+        const newResult = parse(expression, { throwOnError: true }) as StandardParseResult;
         
         // Compare AST structure
         expect(newResult.ast).toEqual(oldResult);
@@ -79,8 +79,8 @@ describe('Backward Compatibility', () => {
         // Legacy behavior
         expect(() => legacyParse(expr)).toThrow();
         
-        // Fast mode should match
-        expect(() => parse(expr, { mode: ParserMode.Fast })).toThrow();
+        // throwOnError should match
+        expect(() => parse(expr, { throwOnError: true })).toThrow();
         expect(() => parseForEvaluation(expr)).toThrow();
       });
     });
@@ -160,8 +160,8 @@ describe('Backward Compatibility', () => {
       // Legacy parse with tokens
       const legacyAst = legacyParse(tokens as any);
       
-      // New parse with tokens in Fast mode
-      const newResult = parse(tokens as any, { mode: ParserMode.Fast }) as FastParseResult;
+      // New parse with tokens and throwOnError
+      const newResult = parse(tokens as any, { throwOnError: true }) as StandardParseResult;
       
       expect(newResult.ast.type).toBe(legacyAst.type);
     });

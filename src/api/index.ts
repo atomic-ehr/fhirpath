@@ -13,10 +13,9 @@ import {
   ParserMode,
   type ParserOptions,
   type ParseResult,
-  type FastParseResult,
   type StandardParseResult,
   type DiagnosticParseResult,
-  type ValidationResult
+  type ParseDiagnostic
 } from '../parser/types';
 import type { ASTNode } from '../parser/ast';
 import { FHIRPathExpression as Expression } from './expression';
@@ -31,7 +30,6 @@ export {
   type ParseResult,
   type StandardParseResult,
   type DiagnosticParseResult,
-  type ValidationResult,
   type ParseDiagnostic,
   type DiagnosticSeverity,
   type TextRange,
@@ -44,16 +42,13 @@ export function parse(expression: string, options: ParserOptions = {}): ParseRes
   return parser.parse();
 }
 
-// Convenience function for evaluation (uses Fast mode)
+// Convenience function for evaluation (throws on error)
 export function parseForEvaluation(expression: string): ASTNode {
-  const result = parse(expression, { mode: ParserMode.Fast }) as FastParseResult;
+  const result = parse(expression, { throwOnError: true }) as StandardParseResult;
   return result.ast;
 }
 
 // Type guards for result types
-export function isFastResult(result: ParseResult): result is FastParseResult {
-  return 'ast' in result && !('diagnostics' in result);
-}
 
 export function isStandardResult(result: ParseResult): result is StandardParseResult {
   return 'ast' in result && 'diagnostics' in result && 'hasErrors' in result;
@@ -63,8 +58,17 @@ export function isDiagnosticResult(result: ParseResult): result is DiagnosticPar
   return isStandardResult(result) && 'isPartial' in result && 'ranges' in result;
 }
 
-export function isValidationResult(result: ParseResult): result is ValidationResult {
-  return 'valid' in result && 'diagnostics' in result;
+// Validate function - alternative to removed Validate mode
+export function validate(expression: string): { valid: boolean; diagnostics: ParseDiagnostic[] } {
+  const result = parse(expression, { mode: ParserMode.Standard });
+  if (isStandardResult(result)) {
+    return {
+      valid: !result.hasErrors,
+      diagnostics: result.diagnostics
+    };
+  }
+  // Should not happen, but handle gracefully
+  return { valid: true, diagnostics: [] };
 }
 
 // Legacy parse function for backward compatibility

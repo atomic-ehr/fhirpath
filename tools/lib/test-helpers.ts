@@ -28,7 +28,7 @@ interface UnifiedTest {
   };
   specRef?: string;
   parserOnly?: boolean;  // Flag to indicate this test should only test parser behavior
-  mode?: string; // Parser mode: 'fast', 'standard', 'diagnostic', 'validate'
+  mode?: string; // Parser mode: 'fast', 'standard', 'diagnostic'
 }
 
 interface TestSuite {

@@ -26,10 +26,8 @@ import {
   ParserMode, 
   type ParserOptions, 
   type ParseResult, 
-  type FastParseResult, 
   type StandardParseResult,
   type DiagnosticParseResult,
-  type ValidationResult,
   type TextRange
 } from './types';
 import { DiagnosticCollector } from './diagnostics';
@@ -67,6 +65,7 @@ export class FHIRPathParser {
   private tokens: Token[];
   private current: number = 0;
   private mode: ParserMode;
+  private throwOnError: boolean;
   private diagnostics?: DiagnosticCollector;
   private sourceMapper?: SourceMapper;
   private errorReporter?: ContextualErrorReporter;
@@ -76,17 +75,18 @@ export class FHIRPathParser {
   
   constructor(input: string | Token[], options: ParserOptions = {}) {
     this.mode = options.mode ?? ParserMode.Standard;
+    this.throwOnError = options.throwOnError ?? false;
     
     if (typeof input === 'string') {
       this.input = input;
       try {
         this.tokens = lex(input);
       } catch (error: any) {
-        // In Fast mode, re-throw lexer errors
-        if (this.mode === ParserMode.Fast) {
+        // If throwOnError is true, re-throw lexer errors
+        if (this.throwOnError) {
           throw error;
         }
-        // For other modes, we'll handle lexer errors in parse()
+        // Otherwise, we'll handle lexer errors in parse()
         this.tokens = [];
         // Store the lexer error for later processing
         (this as any).lexerError = error;
@@ -103,11 +103,9 @@ export class FHIRPathParser {
   
   private initializeForMode(input: string, options: ParserOptions): void {
     switch (this.mode) {
-      case ParserMode.Fast:
-        // No diagnostic infrastructure
-        break;
-        
       case ParserMode.Standard:
+        // Always create diagnostic infrastructure in Standard mode
+        // When throwOnError is true, we'll throw before adding to diagnostics
         this.diagnostics = new DiagnosticCollector(options.maxErrors);
         this.sourceMapper = new SourceMapper(input);
         break;
@@ -117,37 +115,21 @@ export class FHIRPathParser {
         this.sourceMapper = new SourceMapper(input);
         this.errorReporter = new ContextualErrorReporter(this.sourceMapper, this.diagnostics);
         break;
-        
-      case ParserMode.Validate:
-        this.diagnostics = new DiagnosticCollector(options.maxErrors);
-        this.sourceMapper = new SourceMapper(input);
-        break;
     }
   }
   
   // Main entry point
   parse(): ParseResult {
     switch (this.mode) {
-      case ParserMode.Fast:
-        return this.parseFast();
       case ParserMode.Standard:
         return this.parseStandard();
       case ParserMode.Diagnostic:
         return this.parseDiagnostic();
-      case ParserMode.Validate:
-        return this.parseValidate();
       default:
         throw new Error(`Unknown parser mode: ${this.mode}`);
     }
   }
   
-  private parseFast(): FastParseResult {
-    const ast = this.expression();
-    if (!this.isAtEnd()) {
-      throw this.error("Unexpected token after expression", ErrorCode.UNEXPECTED_TOKEN);
-    }
-    return { ast };
-  }
   
   private parseStandard(): StandardParseResult {
     let ast: ASTNode;
@@ -155,6 +137,12 @@ export class FHIRPathParser {
     // Check for lexer errors first
     if ((this as any).lexerError) {
       const error = (this as any).lexerError;
+      
+      // If throwOnError is true, throw immediately
+      if (this.throwOnError) {
+        throw error;
+      }
+      
       // Map lexer error positions to our range format
       const range: TextRange = {
         start: { 
@@ -196,7 +184,10 @@ export class FHIRPathParser {
       ast = this.expression();
       
       if (!this.isAtEnd()) {
-        // In standard mode, report as diagnostic instead of throwing
+        if (this.throwOnError) {
+          throw this.error("Unexpected token after expression", ErrorCode.UNEXPECTED_TOKEN);
+        }
+        // Otherwise, report as diagnostic
         const unexpectedToken = this.peek();
         const range = this.sourceMapper!.tokenToRange(unexpectedToken);
         this.diagnostics!.addError(
@@ -206,7 +197,10 @@ export class FHIRPathParser {
         );
       }
     } catch (error) {
-      // In standard mode, try to recover and report diagnostic
+      if (this.throwOnError) {
+        throw error;
+      }
+      // Otherwise, try to recover and report diagnostic
       if (error instanceof ParseError) {
         // Don't add the error again - it was already added in the error() method
         // Just create a minimal error AST node
@@ -316,268 +310,6 @@ export class FHIRPathParser {
       isPartial: this.isPartial,
       ranges
     };
-  }
-  
-  private parseValidate(): ValidationResult {
-    // Check for lexer errors first
-    if ((this as any).lexerError) {
-      const error = (this as any).lexerError;
-      const range: TextRange = {
-        start: { 
-          line: error.position.line - 1,
-          character: error.position.column - 1,
-          offset: error.position.offset 
-        },
-        end: { 
-          line: error.position.line - 1, 
-          character: error.position.column,
-          offset: error.position.offset + 1 
-        }
-      };
-      
-      let errorCode = ErrorCode.SYNTAX_ERROR;
-      if (error.message.includes('Invalid escape sequence')) {
-        errorCode = ErrorCode.INVALID_ESCAPE;
-      } else if (error.message.includes('Unterminated string')) {
-        errorCode = ErrorCode.UNTERMINATED_STRING;
-      }
-      
-      this.diagnostics!.addError(range, error.message, errorCode);
-      
-      return {
-        valid: false,
-        diagnostics: this.diagnostics!.getDiagnostics()
-      };
-    }
-    
-    try {
-      this.validateExpression();
-      
-      if (!this.isAtEnd()) {
-        const unexpectedToken = this.peek();
-        const range = this.sourceMapper!.tokenToRange(unexpectedToken);
-        this.diagnostics!.addError(
-          range,
-          `Unexpected token '${unexpectedToken.value}' after expression`,
-          ErrorCode.UNEXPECTED_TOKEN
-        );
-        return {
-          valid: false,
-          diagnostics: this.diagnostics!.getDiagnostics()
-        };
-      }
-      
-      return {
-        valid: true,
-        diagnostics: this.diagnostics!.getDiagnostics()
-      };
-    } catch (error) {
-      // Validation failed
-      return {
-        valid: false,
-        diagnostics: this.diagnostics!.getDiagnostics()
-      };
-    }
-  }
-  
-  // Validation methods for Validate mode - these don't create AST nodes
-  private validateExpression(minPrecedence: number = 14): void {
-    this.validatePrimary();
-    
-    while (!this.isAtEnd()) {
-      // Handle postfix operators
-      if (this.check(TokenType.LBRACKET) && minPrecedence >= 2) {
-        this.validateIndex();
-        continue;
-      }
-      
-      // Handle dot operator
-      if (this.check(TokenType.DOT) && minPrecedence >= 1) {
-        const dotToken = this.peek();
-        const precedence = this.getPrecedence(dotToken);
-        if (precedence > minPrecedence) break;
-        
-        this.validateBinary(precedence);
-        continue;
-      }
-      
-      const token = this.peek();
-      const precedence = this.getPrecedence(token);
-      
-      if (precedence === 0 || precedence > minPrecedence) break;
-      
-      this.validateBinary(precedence);
-    }
-  }
-  
-  private validatePrimary(): void {
-    // Handle literals
-    if (this.match(TokenType.LITERAL, TokenType.NUMBER, TokenType.STRING, 
-                   TokenType.TRUE, TokenType.FALSE, TokenType.NULL)) {
-      return;
-    }
-    
-    // Handle variables
-    if (this.match(TokenType.THIS, TokenType.INDEX, TokenType.TOTAL, TokenType.ENV_VAR)) {
-      return;
-    }
-    
-    // Handle dates/times
-    if (this.match(TokenType.DATE, TokenType.DATETIME, TokenType.TIME)) {
-      return;
-    }
-    
-    // Handle grouping
-    if (this.match(TokenType.LPAREN)) {
-      this.validateExpression();
-      this.consume(TokenType.RPAREN, "Expected ')' after expression", ErrorCode.UNCLOSED_PARENTHESIS);
-      
-      // Check for method calls after parentheses
-      while (this.check(TokenType.DOT)) {
-        this.advance(); // consume dot
-        this.validatePrimary();
-        if (this.check(TokenType.LPAREN)) {
-          this.validateFunctionCall();
-        }
-      }
-      return;
-    }
-    
-    // Handle identifiers (which might be function calls)
-    if (this.match(TokenType.IDENTIFIER, TokenType.DELIMITED_IDENTIFIER)) {
-      if (this.check(TokenType.LPAREN)) {
-        this.validateFunctionCall();
-      }
-      return;
-    }
-    
-    // Handle unary operators
-    if (this.match(TokenType.PLUS, TokenType.MINUS, TokenType.NOT)) {
-      this.validateExpression(3); // UNARY precedence
-      return;
-    }
-    
-    // Handle collection literals
-    if (this.match(TokenType.LBRACE)) {
-      if (!this.check(TokenType.RBRACE)) {
-        do {
-          if (this.check(TokenType.RBRACE)) {
-            // Trailing comma
-            if (this.mode === ParserMode.Validate) {
-              const commaToken = this.previous();
-              const diagnostic = FHIRPathDiagnostics.trailingComma(commaToken, this.sourceMapper!);
-              this.diagnostics!.addError(diagnostic.range, diagnostic.message, diagnostic.code);
-            }
-            break;
-          }
-          this.validateExpression();
-        } while (this.match(TokenType.COMMA));
-      }
-      
-      this.consume(TokenType.RBRACE, "Expected '}' after collection elements", ErrorCode.UNCLOSED_BRACE);
-      return;
-    }
-    
-    // Handle operator keywords as identifiers at expression start
-    if (this.isOperatorKeyword(this.peek().type)) {
-      this.advance();
-      if (this.check(TokenType.LPAREN)) {
-        this.validateFunctionCall();
-      }
-      return;
-    }
-    
-    throw this.error("Expected expression", ErrorCode.EXPECTED_EXPRESSION);
-  }
-  
-  private validateBinary(precedence: number): void {
-    const op = this.advance(); // consume operator
-    
-    // Special handling for type operators
-    if (op.type === TokenType.IS || op.type === TokenType.AS) {
-      if (this.check(TokenType.LPAREN)) {
-        this.advance(); // consume (
-        this.consume(TokenType.IDENTIFIER, "Expected type name", ErrorCode.EXPECTED_IDENTIFIER);
-        this.consume(TokenType.RPAREN, "Expected ')' after type name", ErrorCode.UNCLOSED_PARENTHESIS);
-      } else {
-        this.consume(TokenType.IDENTIFIER, "Expected type name", ErrorCode.EXPECTED_IDENTIFIER);
-      }
-      return;
-    }
-    
-    // Check for common mistake: == instead of =
-    if (op.type === TokenType.EQ && this.check(TokenType.EQ)) {
-      const secondEq = this.peek();
-      const range = this.sourceMapper!.mergeRanges(
-        this.sourceMapper!.tokenToRange(op),
-        this.sourceMapper!.tokenToRange(secondEq)
-      );
-      this.diagnostics!.addError(
-        range,
-        "'==' is not valid in FHIRPath, use '=' for equality",
-        ErrorCode.INVALID_OPERATOR
-      );
-      this.advance(); // skip the extra =
-    }
-    
-    // Special handling for union operator
-    if (op.type === TokenType.PIPE) {
-      this.validateExpression(precedence - 1);
-      return;
-    }
-    
-    // Special handling for dot operator
-    if (op.type === TokenType.DOT) {
-      if (this.check(TokenType.DOT)) {
-        const secondDot = this.peek();
-        const range = this.sourceMapper!.mergeRanges(
-          this.sourceMapper!.tokenToRange(op),
-          this.sourceMapper!.tokenToRange(secondDot)
-        );
-        this.diagnostics!.addError(
-          range,
-          "'..' is not a valid operator in FHIRPath",
-          ErrorCode.INVALID_OPERATOR
-        );
-        this.advance(); // skip the extra dot
-      }
-      
-      this.validatePrimary();
-      
-      if (this.check(TokenType.LPAREN)) {
-        this.validateFunctionCall();
-      }
-      return;
-    }
-    
-    // Right-hand side of binary operator
-    const nextPrecedence = op.type === TokenType.PIPE ? precedence - 1 : precedence;
-    this.validateExpression(nextPrecedence);
-  }
-  
-  private validateIndex(): void {
-    this.advance(); // consume [
-    this.validateExpression();
-    this.consume(TokenType.RBRACKET, "Expected ']' after index", ErrorCode.UNCLOSED_BRACKET);
-  }
-  
-  private validateFunctionCall(): void {
-    this.advance(); // consume (
-    
-    if (!this.check(TokenType.RPAREN)) {
-      do {
-        if (this.check(TokenType.RPAREN)) {
-          // Trailing comma
-          const commaToken = this.previous();
-          const diagnostic = FHIRPathDiagnostics.trailingComma(commaToken, this.sourceMapper!);
-          this.diagnostics!.addError(diagnostic.range, diagnostic.message, diagnostic.code);
-          break;
-        }
-        this.validateExpression();
-      } while (this.match(TokenType.COMMA));
-    }
-    
-    this.consume(TokenType.RPAREN, "Expected ')' after function arguments", ErrorCode.UNCLOSED_PARENTHESIS);
   }
   
   // Pratt parser for expressions
@@ -962,7 +694,7 @@ export class FHIRPathParser {
         );
         // Skip the extra = to avoid cascading errors
         this.advance();
-      } else if (this.mode === ParserMode.Fast) {
+      } else if (this.throwOnError) {
         throw this.error("'==' is not valid in FHIRPath, use '=' for equality", ErrorCode.INVALID_OPERATOR);
       }
     }
@@ -1002,7 +734,7 @@ export class FHIRPathParser {
           }
         }
         
-        if (this.mode === ParserMode.Fast) {
+        if (this.throwOnError) {
           throw this.error("Invalid '..' operator - use single '.' for navigation", ErrorCode.INVALID_OPERATOR);
         }
       }
@@ -1265,7 +997,7 @@ export class FHIRPathParser {
         const diagnostic = FHIRPathDiagnostics.emptyBrackets(lbracket, this.sourceMapper!);
         this.diagnostics!.addError(diagnostic.range, diagnostic.message, diagnostic.code);
       }
-      if (this.mode === ParserMode.Fast) {
+      if (this.throwOnError) {
         throw this.error("Expected expression in index", ErrorCode.EXPECTED_EXPRESSION);
       }
     }
@@ -1460,9 +1192,8 @@ export class FHIRPathParser {
     const token = this.peek();
     const pos = token.position;
     
-    // In Standard/Diagnostic modes, add to diagnostics before throwing
-    if ((this.mode === ParserMode.Standard || this.mode === ParserMode.Diagnostic) && 
-        this.diagnostics && this.sourceMapper) {
+    // If not throwOnError, add to diagnostics
+    if (!this.throwOnError && this.diagnostics && this.sourceMapper) {
       const range = this.sourceMapper.tokenToRange(token);
       this.diagnostics.addError(range, message, code);
     }
@@ -1618,7 +1349,7 @@ export class FHIRPathParser {
 
 // Export convenience function - for backward compatibility
 export function parse(input: string | Token[]): ASTNode {
-  const parser = new FHIRPathParser(input, { mode: ParserMode.Fast });
-  const result = parser.parse() as FastParseResult;
+  const parser = new FHIRPathParser(input, { throwOnError: true });
+  const result = parser.parse() as StandardParseResult;
   return result.ast;
 }

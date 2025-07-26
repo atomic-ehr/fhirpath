@@ -2,22 +2,17 @@ import type { ASTNode } from './ast';
 import type { ErrorCode } from '../api/errors';
 
 export enum ParserMode {
-  Fast = 'fast',
   Standard = 'standard',
-  Diagnostic = 'diagnostic',
-  Validate = 'validate'
+  Diagnostic = 'diagnostic'
 }
 
 export interface ParserOptions {
   mode?: ParserMode;
   maxErrors?: number;
+  throwOnError?: boolean;  // When true, throws on first error instead of collecting diagnostics
 }
 
-export type ParseResult = FastParseResult | StandardParseResult | DiagnosticParseResult | ValidationResult;
-
-export interface FastParseResult {
-  ast: ASTNode;
-}
+export type ParseResult = StandardParseResult | DiagnosticParseResult;
 
 export interface StandardParseResult {
   ast: ASTNode;
@@ -28,11 +23,6 @@ export interface StandardParseResult {
 export interface DiagnosticParseResult extends StandardParseResult {
   isPartial: boolean;
   ranges: Map<ASTNode, TextRange>;
-}
-
-export interface ValidationResult {
-  valid: boolean;
-  diagnostics: ParseDiagnostic[];
 }
 
 export interface ParseDiagnostic {

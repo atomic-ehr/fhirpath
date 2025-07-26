@@ -2,9 +2,7 @@ import { describe, it, expect } from 'bun:test';
 import { 
   parse, 
   ParserMode, 
-  isStandardResult, 
-  isFastResult,
-  isValidationResult,
+  isStandardResult,
   isDiagnosticResult 
 } from '../../src/api';
 import { NodeType } from '../../src/parser/ast';
@@ -22,12 +20,16 @@ describe('Parser Modes', () => {
     }
   });
   
-  it('uses Fast mode when specified', () => {
-    const result = parse('Patient.name', { mode: ParserMode.Fast });
-    expect(isFastResult(result)).toBe(true);
-    expect('diagnostics' in result).toBe(false);
+  it('uses throwOnError flag when specified', () => {
+    // Should throw on error
+    expect(() => {
+      parse('Patient..name', { throwOnError: true });
+    }).toThrow();
     
-    if (isFastResult(result)) {
+    // Should not throw on valid expression
+    const result = parse('Patient.name', { throwOnError: true });
+    expect(isStandardResult(result)).toBe(true);
+    if (isStandardResult(result)) {
       expect(result.ast).toBeDefined();
       expect(result.ast.type).toBe(NodeType.Binary);
     }
@@ -45,9 +47,9 @@ describe('Parser Modes', () => {
     }
   });
   
-  it('throws in Fast mode for errors', () => {
+  it('throws with throwOnError flag for errors', () => {
     expect(() => {
-      parse('Patient..name', { mode: ParserMode.Fast });
+      parse('Patient..name', { throwOnError: true });
     }).toThrow();
   });
   
@@ -76,20 +78,11 @@ describe('Parser Modes', () => {
   });
   
   describe('Type Guards', () => {
-    it('correctly identifies Fast results', () => {
-      const result = parse('5 + 3', { mode: ParserMode.Fast });
-      expect(isFastResult(result)).toBe(true);
-      expect(isStandardResult(result)).toBe(false);
-      expect(isDiagnosticResult(result)).toBe(false);
-      expect(isValidationResult(result)).toBe(false);
-    });
     
     it('correctly identifies Standard results', () => {
       const result = parse('5 + 3', { mode: ParserMode.Standard });
-      expect(isFastResult(result)).toBe(false);
       expect(isStandardResult(result)).toBe(true);
       expect(isDiagnosticResult(result)).toBe(false);
-      expect(isValidationResult(result)).toBe(false);
     });
     
     // Diagnostic mode now returns DiagnosticParseResult
@@ -104,25 +97,18 @@ describe('Parser Modes', () => {
         expect(result.ranges).toBeDefined();
       }
     });
-    
-    // TODO: Validate mode is not yet implemented - currently falls back to Standard mode
-    it.skip('Validate mode currently returns Standard result', () => {
-      const result = parse('5 + 3', { mode: ParserMode.Validate });
-      expect(isStandardResult(result)).toBe(true);
-      expect(isValidationResult(result)).toBe(false);
-    });
   });
   
   describe('Mode-specific behavior', () => {
-    it('Fast mode maintains performance characteristics', () => {
+    it('throwOnError flag maintains performance characteristics', () => {
       const expression = 'Patient.name.given.first()';
       
-      // Fast mode should not initialize diagnostic infrastructure
+      // throwOnError should have minimal overhead
       const start = performance.now();
-      const result = parse(expression, { mode: ParserMode.Fast });
+      const result = parse(expression, { throwOnError: true });
       const duration = performance.now() - start;
       
-      expect(isFastResult(result)).toBe(true);
+      expect(isStandardResult(result)).toBe(true);
       // This is a simple check - real performance testing would be more sophisticated
       expect(duration).toBeLessThan(10); // Should be very fast
     });

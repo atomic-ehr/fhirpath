@@ -259,20 +259,20 @@ describe("Unified FHIRPath Tests", () => {
   function runParserModeTest(test: UnifiedTest): { success: boolean; error?: string } {
     try {
       // Get parser mode - default to Standard for parser error tests
-      const mode = test.mode === 'fast' ? ParserMode.Fast :
-                   test.mode === 'standard' ? ParserMode.Standard :
+      const mode = test.mode === 'standard' ? ParserMode.Standard :
                    test.mode === 'diagnostic' ? ParserMode.Diagnostic :
-                   test.mode === 'validate' ? ParserMode.Validate :
                    ParserMode.Standard;
+      
+      // Map 'fast' mode to throwOnError flag
+      const throwOnError = test.mode === 'fast';
       
       // If testing all modes
       if (test.testAllModes) {
         // Test that all modes can parse without throwing
         try {
-          parse(test.expression, { mode: ParserMode.Fast });
+          parse(test.expression, { throwOnError: true });
           parse(test.expression, { mode: ParserMode.Standard });
           parse(test.expression, { mode: ParserMode.Diagnostic });
-          // Validate mode currently falls back to Standard
           return { success: true };
         } catch (e) {
           return { success: false, error: 'Not all modes parsed successfully' };
@@ -282,7 +282,7 @@ describe("Unified FHIRPath Tests", () => {
       // Handle expected throws (for Fast mode error tests)
       if (typeof test.expected === 'object' && !Array.isArray(test.expected) && test.expected.throws) {
         try {
-          const result = parse(test.expression, { mode, ...test.options });
+          const result = parse(test.expression, { mode, throwOnError, ...test.options });
           return { success: false, error: 'Expected parse to throw but it succeeded' };
         } catch (e: any) {
           // Check errorType if specified
@@ -294,7 +294,7 @@ describe("Unified FHIRPath Tests", () => {
       }
       
       // Parse with mode
-      const result = parse(test.expression, { mode, ...test.options });
+      const result = parse(test.expression, { mode, throwOnError, ...test.options });
       
       // Check expectations
       if (typeof test.expected === 'object' && !Array.isArray(test.expected)) {
@@ -358,13 +358,7 @@ describe("Unified FHIRPath Tests", () => {
           if (exp.hasAst !== undefined) {
             const hasAst = 'ast' in result && result.ast !== undefined;
             if (hasAst !== exp.hasAst) {
-              // Special case: validate mode currently returns AST but shouldn't
-              if (mode === ParserMode.Validate && exp.hasAst === false && hasAst === true) {
-                // This is a known limitation - validate mode isn't fully implemented
-                // Don't fail the test
-              } else {
-                return { success: false, error: `Expected hasAst=${exp.hasAst}, got ${hasAst}` };
-              }
+              return { success: false, error: `Expected hasAst=${exp.hasAst}, got ${hasAst}` };
             }
           }
           

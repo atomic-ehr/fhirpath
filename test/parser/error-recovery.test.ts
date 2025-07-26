@@ -134,9 +134,9 @@ describe('Error Recovery', () => {
     expect(result.ast).toBeDefined(); // Should still produce some AST
   });
   
-  it('fast mode throws on first error', () => {
+  it('throwOnError flag throws on first error', () => {
     expect(() => {
-      parse('Patient..name', { mode: ParserMode.Fast });
+      parse('Patient..name', { throwOnError: true });
     }).toThrow();
   });
   

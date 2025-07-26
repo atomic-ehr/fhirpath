@@ -12,9 +12,8 @@ import {
   registry,
   ParserMode,
   isStandardResult,
-  isFastResult,
   isDiagnosticResult,
-  isValidationResult
+  validate
 } from './api';
 
 // Default export with common operations
@@ -39,9 +38,8 @@ export {
   registry,
   ParserMode,
   isStandardResult,
-  isFastResult,
   isDiagnosticResult,
-  isValidationResult
+  validate
 };
 
 // Named exports for advanced usage
@@ -85,7 +83,6 @@ export type {
   ParseResult,
   StandardParseResult,
   DiagnosticParseResult,
-  ValidationResult,
   ParseDiagnostic,
   DiagnosticSeverity,
   TextRange,
