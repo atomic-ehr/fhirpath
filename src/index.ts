@@ -4,7 +4,6 @@ import './registry';
 // Core API functions
 import { 
   parse, 
-  parseLegacy, 
   parseForEvaluation,
   evaluate, 
   compile, 
@@ -18,7 +17,6 @@ import {
 // Default export with common operations
 export default {
   parse,
-  parseLegacy,
   parseForEvaluation,
   evaluate,
   compile,
@@ -29,7 +27,6 @@ export default {
 // Named exports for core functions
 export { 
   parse, 
-  parseLegacy,
   parseForEvaluation,
   evaluate, 
   compile, 

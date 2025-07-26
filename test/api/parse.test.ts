@@ -1,17 +1,20 @@
 import { describe, it, expect } from 'bun:test';
-import { parseLegacy, FHIRPathError, ErrorCode } from '../../src';
+import { parseForEvaluation, FHIRPathError, ErrorCode } from '../../src';
 import { NodeType } from '../../src/parser/ast';
+import { FHIRPathExpression } from '../../src/api/expression';
 
 describe('API - parse', () => {
   it('should parse simple identifier', () => {
-    const expr = parseLegacy('name');
+    const ast = parseForEvaluation('name');
+    const expr = new FHIRPathExpression(ast, 'name');
     expect(expr.ast).toBeDefined();
     expect(expr.ast.type).toBe(NodeType.Identifier);
     expect(expr.toString()).toContain('name');
   });
   
   it('should parse path expression', () => {
-    const expr = parseLegacy('Patient.name.given');
+    const ast = parseForEvaluation('Patient.name.given');
+    const expr = new FHIRPathExpression(ast, 'Patient.name.given');
     expect(expr.ast).toBeDefined();
     // pprint uses S-expression format
     expect(expr.toString()).toContain('Patient');
@@ -20,13 +23,15 @@ describe('API - parse', () => {
   });
   
   it('should parse function call', () => {
-    const expr = parseLegacy('name.where(use = \'official\')');
+    const ast = parseForEvaluation('name.where(use = \'official\')');
+    const expr = new FHIRPathExpression(ast, 'name.where(use = \'official\')');
     expect(expr.ast).toBeDefined();
     expect(expr.toString()).toContain('where');
   });
   
   it('should parse arithmetic expression', () => {
-    const expr = parseLegacy('5 + 3');
+    const ast = parseForEvaluation('5 + 3');
+    const expr = new FHIRPathExpression(ast, '5 + 3');
     expect(expr.ast).toBeDefined();
     expect(expr.toString()).toContain('+');
     expect(expr.toString()).toContain('5');
@@ -34,13 +39,13 @@ describe('API - parse', () => {
   });
   
   it('should throw FHIRPathError on invalid syntax', () => {
-    expect(() => parseLegacy('name.')).toThrow(FHIRPathError);
-    expect(() => parseLegacy('name.')).toThrow(/Expected expression/);
+    expect(() => parseForEvaluation('name.')).toThrow(FHIRPathError);
+    expect(() => parseForEvaluation('name.')).toThrow(/Expected expression/);
   });
   
   it('should include expression in error', () => {
     try {
-      parseLegacy('name..family'); // Invalid double dot
+      parseForEvaluation('name..family'); // Invalid double dot
       expect(true).toBe(false); // Should not reach here
     } catch (error) {
       expect(error).toBeInstanceOf(FHIRPathError);
@@ -50,7 +55,8 @@ describe('API - parse', () => {
   });
   
   it('should preserve complex expressions', () => {
-    const expr = parseLegacy('Patient.where(name.given.exists() and active = true).name.family');
+    const ast = parseForEvaluation('Patient.where(name.given.exists() and active = true).name.family');
+    const expr = new FHIRPathExpression(ast, 'Patient.where(name.given.exists() and active = true).name.family');
     expect(expr.toString()).toContain('where');
     expect(expr.toString()).toContain('exists');
     expect(expr.toString()).toContain('and');

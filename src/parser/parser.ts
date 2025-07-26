@@ -1418,9 +1418,3 @@ export class FHIRPathParser {
   }
 }
 
-// Export convenience function - for backward compatibility
-export function parse(input: string | Token[]): ASTNode {
-  const parser = new FHIRPathParser(input, { throwOnError: true });
-  const result = parser.parse();
-  return result.ast;
-}

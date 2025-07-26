@@ -39,8 +39,15 @@ export function parse(expression: string, options: ParserOptions = {}): ParseRes
 
 // Convenience function for evaluation (throws on error)
 export function parseForEvaluation(expression: string): ASTNode {
-  const result = parse(expression, { throwOnError: true });
-  return result.ast;
+  try {
+    const result = parse(expression, { throwOnError: true });
+    return result.ast;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw parseError(error.message, undefined, expression);
+    }
+    throw parseError(String(error), undefined, expression);
+  }
 }
 
 // Type guards for result types
@@ -66,18 +73,6 @@ export function validate(expression: string): { valid: boolean; diagnostics: Par
   return { valid: true, diagnostics: [] };
 }
 
-// Legacy parse function for backward compatibility
-export function parseLegacy(expression: string): FHIRPathExpression {
-  try {
-    const ast = parseForEvaluation(expression);
-    return new Expression(ast, expression);
-  } catch (error) {
-    if (error instanceof Error) {
-      throw parseError(error.message, undefined, expression);
-    }
-    throw parseError(String(error), undefined, expression);
-  }
-}
 
 // Evaluate expression directly
 export function evaluate(
@@ -85,7 +80,9 @@ export function evaluate(
   input?: any,
   context?: EvaluationContext
 ): any[] {
-  const expr = typeof expression === 'string' ? parseLegacy(expression) : expression;
+  const expr = typeof expression === 'string' 
+    ? new Expression(parseForEvaluation(expression), expression)
+    : expression;
   return expr.evaluate(input, context);
 }
 
@@ -94,7 +91,9 @@ export function compile(
   expression: string | FHIRPathExpression,
   options?: CompileOptions
 ): CompiledExpression {
-  const expr = typeof expression === 'string' ? parseLegacy(expression) : expression;
+  const expr = typeof expression === 'string' 
+    ? new Expression(parseForEvaluation(expression), expression)
+    : expression;
   return expr.compile(options);
 }
 
@@ -103,7 +102,9 @@ export function analyze(
   expression: string | FHIRPathExpression,
   options?: AnalyzeOptions
 ): AnalysisResult {
-  const expr = typeof expression === 'string' ? parseLegacy(expression) : expression;
+  const expr = typeof expression === 'string' 
+    ? new Expression(parseForEvaluation(expression), expression)
+    : expression;
   return expr.analyze(options);
 }
 

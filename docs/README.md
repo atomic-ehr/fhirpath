@@ -24,14 +24,22 @@ Welcome to the comprehensive documentation for our FHIRPath implementation. This
 ## Quick Start
 
 ```typescript
-import { evaluate, compile, analyze } from '@fhirpath/core';
+import { parse, evaluate, compile, analyze } from '@atomic-ehr/fhirpath';
+
+// Parse with different modes
+const result = parse("Patient.name.given");              // Default: collects diagnostics
+const ast = parseForEvaluation("Patient.name");          // Fast: throws on error
+const devResult = parse("Patient..name", {               // Development: all features
+  errorRecovery: true,
+  trackRanges: true
+});
 
 // Simple evaluation
-const result = evaluate("Patient.name.given", patient);
+const values = evaluate("Patient.name.given", patient);
 
 // Compile for performance
 const compiled = compile("Patient.name.where(use = 'official').given");
-const result2 = compiled.evaluate(patient);
+const result2 = compiled(patient);
 
 // Type checking
 const analysis = analyze("Patient.name.given", {
@@ -43,8 +51,15 @@ const analysis = analyze("Patient.name.given", {
 
 ### 🚀 Performance
 - **Dual execution modes**: Interpreted and compiled
+- **Configurable parser**: Zero-overhead features with lazy initialization
 - **Optimizations**: Object pooling, string interning, prototype-based contexts
 - **JIT compilation**: Transforms expressions to native JavaScript
+
+### 🛠️ Parser Features
+- **Performance mode**: Throws on first error for fastest parsing (~0.05ms)
+- **Diagnostic mode**: Collects all syntax errors with detailed messages
+- **Development mode**: Error recovery, partial ASTs, and source range tracking
+- **Unified architecture**: Single parser with configurable features
 
 ### 🔍 Type Safety
 - **Static analysis**: Catch type errors before runtime

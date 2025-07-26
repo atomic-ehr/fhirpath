@@ -8,21 +8,97 @@ The FHIRPath implementation provides a clean, user-friendly API for parsing, ana
 **Location**: [`/src/api/index.ts`](../../src/api/index.ts)
 
 ### parse()
-Parse a FHIRPath expression into an Expression object.
+Parse a FHIRPath expression with configurable options.
 
 ```typescript
-export function parse(expression: string): FHIRPathExpression
+export function parse(
+  expression: string, 
+  options?: ParserOptions
+): ParseResult
+
+export interface ParserOptions {
+  throwOnError?: boolean;    // Throw on first error (fastest)
+  trackRanges?: boolean;     // Track source ranges for AST nodes
+  errorRecovery?: boolean;   // Enable error recovery for partial ASTs
+  maxErrors?: number;        // Maximum errors to collect
+}
+
+export interface ParseResult {
+  ast: ASTNode;              // The parsed AST
+  diagnostics: ParseDiagnostic[]; // Syntax errors/warnings
+  hasErrors: boolean;        // Quick error check
+  isPartial?: boolean;       // Present when errorRecovery enabled
+  ranges?: Map<ASTNode, TextRange>; // Present when trackRanges enabled
+}
+```
+
+**Examples:**
+```typescript
+import { parse } from '@atomic-ehr/fhirpath';
+
+// Default parsing - collects diagnostics
+const result = parse("Patient.name.given");
+if (result.hasErrors) {
+  console.log('Syntax errors:', result.diagnostics);
+} else {
+  const ast = result.ast;
+  // Use the AST...
+}
+
+// Fast parsing for production
+try {
+  const result = parse("Patient.name", { throwOnError: true });
+  const ast = result.ast;
+} catch (error) {
+  console.error('Parse error:', error.message);
+}
+
+// Development mode with all features
+const devResult = parse("Patient..name", {
+  errorRecovery: true,
+  trackRanges: true,
+  maxErrors: 10
+});
+```
+
+### parseForEvaluation()
+Convenience function for fast parsing that throws on errors.
+
+```typescript
+export function parseForEvaluation(expression: string): ASTNode
 ```
 
 **Example:**
 ```typescript
-import { parse } from '@fhirpath/core';
+import { parseForEvaluation } from '@atomic-ehr/fhirpath';
 
-// Parse expression
-const expr = parse("Patient.name.given");
+try {
+  const ast = parseForEvaluation("Patient.name.given");
+  // Use AST directly - no need to check result.ast
+} catch (error) {
+  console.error('Invalid expression:', error.message);
+}
+```
 
-// Access the AST
-const ast = expr.ast;
+### validate()
+Validate expression syntax without throwing errors.
+
+```typescript
+export function validate(
+  expression: string
+): { valid: boolean; diagnostics: ParseDiagnostic[] }
+```
+
+**Example:**
+```typescript
+import { validate } from '@atomic-ehr/fhirpath';
+
+const validation = validate("Patient..name");
+if (!validation.valid) {
+  validation.diagnostics.forEach(diag => {
+    console.log(`Error at ${diag.range.start.line}:${diag.range.start.character}: ${diag.message}`);
+  });
+}
 ```
 
 ### evaluate()

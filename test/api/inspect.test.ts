@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'bun:test';
-import { inspect, parseLegacy } from '../../src/api';
+import { inspect, parseForEvaluation } from '../../src/api';
+import { FHIRPathExpression } from '../../src/api/expression';
 
 describe('inspect() function', () => {
   it('should return basic result with traces', () => {
@@ -44,7 +45,8 @@ describe('inspect() function', () => {
   });
 
   it('should work with pre-parsed expressions', () => {
-    const expr = parseLegacy('name.given');
+    const ast = parseForEvaluation('name.given');
+    const expr = new FHIRPathExpression(ast, 'name.given');
     const result = inspect(expr, { name: [{ given: ["Alice"] }] });
     
     expect(result.result).toEqual(["Alice"]);

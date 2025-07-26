@@ -1,3 +1,3 @@
-export { FHIRPathParser, ParseError, parse } from './parser';
+export { FHIRPathParser, ParseError } from './parser';
 export * from './ast';
 export { pprint } from './pprint';

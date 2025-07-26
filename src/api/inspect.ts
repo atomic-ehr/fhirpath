@@ -6,7 +6,8 @@ import type {
   ErrorInfo,
   WarningInfo
 } from './types';
-import { parseLegacy } from './index';
+import { parseForEvaluation } from './index';
+import { FHIRPathExpression as Expression } from './expression';
 import { Interpreter } from '../interpreter/interpreter';
 import { RuntimeContextManager } from '../runtime/context';
 import { createDebugContext, isDebugContext } from '../runtime/debug-context';
@@ -25,7 +26,9 @@ export function inspect(
   const startTime = performance.now();
   
   // Parse if string
-  const expr = typeof expression === 'string' ? parseLegacy(expression) : expression;
+  const expr = typeof expression === 'string' 
+    ? new Expression(parseForEvaluation(expression), expression)
+    : expression;
   const exprString = typeof expression === 'string' ? expression : expr.toString();
   
   // Prepare input (default to empty array)

@@ -12,7 +12,8 @@ import type {
   InspectResult,
   InspectOptions
 } from './types';
-import { parseLegacy, evaluate, compile, analyze, inspect } from './index';
+import { parseForEvaluation, evaluate, compile, analyze, inspect } from './index';
+import { FHIRPathExpression as Expression } from './expression';
 import { PublicRegistryAPI } from './registry';
 import { Registry } from '../registry/registry';
 import { invalidArgument } from './errors';
@@ -83,7 +84,8 @@ class BuiltAPI implements FHIRPathAPI {
   }
   
   parse(expression: string): FHIRPathExpression {
-    return parseLegacy(expression);
+    const ast = parseForEvaluation(expression);
+    return new Expression(ast, expression);
   }
   
   evaluate(expression: string | FHIRPathExpression, input?: any): any[] {

@@ -1,29 +1,40 @@
 import { describe, it, expect } from 'bun:test';
-import { parse as legacyParse } from '../../src/parser/parser';
+import { FHIRPathParser } from '../../src/parser/parser';
 import { parse, parseForEvaluation } from '../../src/api';
 import type { ParseResult } from '../../src/parser/types';
 import { NodeType } from '../../src/parser/ast';
 
 describe('Backward Compatibility', () => {
-  describe('Legacy parse function', () => {
-    it('maintains backward compatibility with direct parser import', () => {
+  describe('Direct parser usage', () => {
+    it('can still use FHIRPathParser class directly', () => {
       const expression = 'Patient.name.given';
       
-      // Legacy function from parser.ts should still work
-      const ast = legacyParse(expression);
+      // Direct use of parser class
+      const parser = new FHIRPathParser(expression, { throwOnError: true });
+      const result = parser.parse();
+      const ast = result.ast;
       
       expect(ast).toBeDefined();
       expect(ast.type).toBe(NodeType.Binary);
     });
     
-    it('throws on first error like current parser', () => {
-      expect(() => legacyParse('Patient..name')).toThrow();
-      expect(() => legacyParse('5 +')).toThrow();
-      expect(() => legacyParse('Patient.name[')).toThrow();
+    it('throws on first error with throwOnError option', () => {
+      expect(() => {
+        const parser = new FHIRPathParser('Patient..name', { throwOnError: true });
+        parser.parse();
+      }).toThrow();
+      expect(() => {
+        const parser = new FHIRPathParser('5 +', { throwOnError: true });
+        parser.parse();
+      }).toThrow();
+      expect(() => {
+        const parser = new FHIRPathParser('Patient.name[', { throwOnError: true });
+        parser.parse();
+      }).toThrow();
     });
   });
   
-  describe('throwOnError flag matches current parser behavior', () => {
+  describe('throwOnError flag matches direct parser behavior', () => {
     const testExpressions = [
       'Patient.name.given',
       '5 + 3',
@@ -39,26 +50,28 @@ describe('Backward Compatibility', () => {
     
     testExpressions.forEach(expression => {
       it(`parses "${expression}" identically with throwOnError`, () => {
-        const oldResult = legacyParse(expression);
-        const newResult = parse(expression, { throwOnError: true });
+        const directParser = new FHIRPathParser(expression, { throwOnError: true });
+        const directResult = directParser.parse();
+        const apiResult = parse(expression, { throwOnError: true });
         
         // Compare AST structure
-        expect(newResult.ast).toEqual(oldResult);
+        expect(apiResult.ast).toEqual(directResult.ast);
       });
     });
   });
   
   describe('parseForEvaluation helper', () => {
-    it('returns AST directly like legacy parse', () => {
+    it('returns AST directly like direct parser with throwOnError', () => {
       const expression = 'Patient.name';
       
-      const legacyAst = legacyParse(expression);
+      const directParser = new FHIRPathParser(expression, { throwOnError: true });
+      const directAst = directParser.parse().ast;
       const helperAst = parseForEvaluation(expression);
       
-      expect(helperAst).toEqual(legacyAst);
+      expect(helperAst).toEqual(directAst);
     });
     
-    it('throws on errors like legacy parse', () => {
+    it('throws on errors like direct parser', () => {
       expect(() => parseForEvaluation('Patient..name')).toThrow();
     });
   });
@@ -76,8 +89,11 @@ describe('Backward Compatibility', () => {
       ];
       
       errorExpressions.forEach(expr => {
-        // Legacy behavior
-        expect(() => legacyParse(expr)).toThrow();
+        // Direct parser behavior
+        expect(() => {
+          const parser = new FHIRPathParser(expr, { throwOnError: true });
+          parser.parse();
+        }).toThrow();
         
         // throwOnError should match
         expect(() => parse(expr, { throwOnError: true })).toThrow();
@@ -88,13 +104,14 @@ describe('Backward Compatibility', () => {
     it('throws with same error messages', () => {
       const expression = 'Patient..name';
       
-      let legacyError: Error | undefined;
+      let directError: Error | undefined;
       let fastError: Error | undefined;
       
       try {
-        legacyParse(expression);
+        const parser = new FHIRPathParser(expression, { throwOnError: true });
+        parser.parse();
       } catch (e) {
-        legacyError = e as Error;
+        directError = e as Error;
       }
       
       try {
@@ -103,7 +120,7 @@ describe('Backward Compatibility', () => {
         fastError = e as Error;
       }
       
-      expect(legacyError).toBeDefined();
+      expect(directError).toBeDefined();
       expect(fastError).toBeDefined();
       
       // Error messages should be similar (may have slight formatting differences)
@@ -113,22 +130,24 @@ describe('Backward Compatibility', () => {
   });
   
   describe('Performance characteristics', () => {
-    it('Fast mode has similar performance to legacy parser', () => {
+    it('Fast mode has similar performance to direct parser', () => {
       const expression = 'Patient.name.where(use = \'official\').given.first()';
       const iterations = 100;
       
       // Warm up
       for (let i = 0; i < 10; i++) {
-        legacyParse(expression);
+        const parser1 = new FHIRPathParser(expression, { throwOnError: true });
+        parser1.parse();
         parseForEvaluation(expression);
       }
       
-      // Measure legacy
-      const legacyStart = performance.now();
+      // Measure direct parser
+      const directStart = performance.now();
       for (let i = 0; i < iterations; i++) {
-        legacyParse(expression);
+        const parser = new FHIRPathParser(expression, { throwOnError: true });
+        parser.parse();
       }
-      const legacyDuration = performance.now() - legacyStart;
+      const directDuration = performance.now() - directStart;
       
       // Measure Fast mode
       const fastStart = performance.now();
@@ -137,9 +156,9 @@ describe('Backward Compatibility', () => {
       }
       const fastDuration = performance.now() - fastStart;
       
-      // Fast mode should be within reasonable bounds of legacy performance
+      // Fast mode should be within reasonable bounds of direct parser performance
       // (can be faster or slightly slower)
-      const ratio = fastDuration / legacyDuration;
+      const ratio = fastDuration / directDuration;
       expect(ratio).toBeGreaterThan(0.5); // Not more than 2x slower
       expect(ratio).toBeLessThan(1.5); // Not more than 50% slower
     });
@@ -149,7 +168,7 @@ describe('Backward Compatibility', () => {
     it('supports token array input in backward compatible way', () => {
       const expression = 'Patient.name';
       
-      // First get tokens using legacy parse
+      // First get tokens using direct parser
       const tokens = [
         { type: 'IDENTIFIER', value: 'Patient', position: { line: 0, column: 0, offset: 0 } },
         { type: 'DOT', value: '.', position: { line: 0, column: 7, offset: 7 } },
@@ -157,13 +176,14 @@ describe('Backward Compatibility', () => {
         { type: 'EOF', value: '', position: { line: 0, column: 12, offset: 12 } }
       ];
       
-      // Legacy parse with tokens
-      const legacyAst = legacyParse(tokens as any);
+      // Direct parser with tokens
+      const directParser = new FHIRPathParser(tokens as any, { throwOnError: true });
+      const directAst = directParser.parse().ast;
       
       // New parse with tokens and throwOnError
       const newResult = parse(tokens as any, { throwOnError: true });
       
-      expect(newResult.ast.type).toBe(legacyAst.type);
+      expect(newResult.ast.type).toBe(directAst.type);
     });
   });
 });

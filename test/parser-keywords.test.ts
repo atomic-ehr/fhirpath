@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { parse } from '../src/parser';
+import { parseForEvaluation } from '../src/api';
 import { NodeType } from '../src/parser/ast';
 
 /**
@@ -18,19 +18,19 @@ describe('FHIRPath Parser - Keywords and Literals', () => {
   
   describe('Boolean literals vs identifiers', () => {
     it('parses true/false as boolean literals', () => {
-      const ast1 = parse('true');
+      const ast1 = parseForEvaluation('true');
       expect(ast1.type).toBe(NodeType.Literal);
       expect((ast1 as any).value).toBe(true);
       expect((ast1 as any).valueType).toBe('boolean');
       
-      const ast2 = parse('false');
+      const ast2 = parseForEvaluation('false');
       expect(ast2.type).toBe(NodeType.Literal);
       expect((ast2 as any).value).toBe(false);
       expect((ast2 as any).valueType).toBe('boolean');
     });
     
     it('parses true.not() as function call on boolean literal', () => {
-      const ast = parse('true.not()');
+      const ast = parseForEvaluation('true.not()');
       expect(ast.type).toBe(NodeType.Binary);
       expect((ast as any).operator).toBe('DOT');
       expect((ast as any).left.type).toBe(NodeType.Literal);
@@ -40,7 +40,7 @@ describe('FHIRPath Parser - Keywords and Literals', () => {
     });
     
     it('parses false.not() as function call on boolean literal', () => {
-      const ast = parse('false.not()');
+      const ast = parseForEvaluation('false.not()');
       expect(ast.type).toBe(NodeType.Binary);
       expect((ast as any).operator).toBe('DOT');
       expect((ast as any).left.type).toBe(NodeType.Literal);
@@ -52,7 +52,7 @@ describe('FHIRPath Parser - Keywords and Literals', () => {
     // TODO: The parser currently allows this, but according to the FHIRPath grammar,
     // true/false should be reserved keywords and not allowed as identifiers after a dot
     it('currently parses Patient.true (should fail as reserved keyword)', () => {
-      const ast = parse('Patient.true');
+      const ast = parseForEvaluation('Patient.true');
       expect(ast.type).toBe(NodeType.Binary);
       expect((ast as any).operator).toBe('DOT');
       expect((ast as any).left.name).toBe('Patient');
@@ -61,7 +61,7 @@ describe('FHIRPath Parser - Keywords and Literals', () => {
     });
     
     it('currently parses Patient.false (should fail as reserved keyword)', () => {
-      const ast = parse('Patient.false');
+      const ast = parseForEvaluation('Patient.false');
       expect(ast.type).toBe(NodeType.Binary);
       expect((ast as any).operator).toBe('DOT');
       expect((ast as any).left.name).toBe('Patient');
@@ -70,7 +70,7 @@ describe('FHIRPath Parser - Keywords and Literals', () => {
     });
     
     it('parses Patient.`true` as property access with delimited identifier', () => {
-      const ast = parse('Patient.`true`');
+      const ast = parseForEvaluation('Patient.`true`');
       expect(ast.type).toBe(NodeType.Binary);
       expect((ast as any).operator).toBe('DOT');
       expect((ast as any).left.type).toBe(NodeType.TypeOrIdentifier);
@@ -80,7 +80,7 @@ describe('FHIRPath Parser - Keywords and Literals', () => {
     });
     
     it('parses Patient.`false` as property access with delimited identifier', () => {
-      const ast = parse('Patient.`false`');
+      const ast = parseForEvaluation('Patient.`false`');
       expect(ast.type).toBe(NodeType.Binary);
       expect((ast as any).operator).toBe('DOT');
       expect((ast as any).right.type).toBe(NodeType.Identifier);
@@ -95,14 +95,14 @@ describe('FHIRPath Parser - Keywords and Literals', () => {
     operatorKeywords.forEach(keyword => {
       // TODO: These should fail but the parser currently allows them
       it(`currently parses Patient.${keyword} (should fail for operator keywords)`, () => {
-        const ast = parse(`Patient.${keyword}`);
+        const ast = parseForEvaluation(`Patient.${keyword}`);
         expect(ast.type).toBe(NodeType.Binary);
         expect((ast as any).operator).toBe('DOT');
         expect((ast as any).right.name).toBe(keyword);
       });
       
       it(`parses Patient.\`${keyword}\` with delimited identifier`, () => {
-        const ast = parse(`Patient.\`${keyword}\``);
+        const ast = parseForEvaluation(`Patient.\`${keyword}\``);
         expect(ast.type).toBe(NodeType.Binary);
         expect((ast as any).operator).toBe('DOT');
         expect((ast as any).right.type).toBe(NodeType.Identifier);
@@ -113,7 +113,7 @@ describe('FHIRPath Parser - Keywords and Literals', () => {
   
   describe('Complex expressions with keywords', () => {
     it('parses boolean operators correctly', () => {
-      const ast = parse('true and false');
+      const ast = parseForEvaluation('true and false');
       expect(ast.type).toBe(NodeType.Binary);
       expect((ast as any).operator).toBe('AND');
       expect((ast as any).left.value).toBe(true);
@@ -121,13 +121,13 @@ describe('FHIRPath Parser - Keywords and Literals', () => {
     });
     
     it('parses true or false', () => {
-      const ast = parse('true or false');
+      const ast = parseForEvaluation('true or false');
       expect(ast.type).toBe(NodeType.Binary);
       expect((ast as any).operator).toBe('OR');
     });
     
     it('parses {}.not() as function on empty collection', () => {
-      const ast = parse('{}.not()');
+      const ast = parseForEvaluation('{}.not()');
       expect(ast.type).toBe(NodeType.Binary);
       expect((ast as any).operator).toBe('DOT');
       expect((ast as any).left.type).toBe(NodeType.Collection);
@@ -138,32 +138,32 @@ describe('FHIRPath Parser - Keywords and Literals', () => {
   
   describe('Special variables', () => {
     it('parses $this as a special variable', () => {
-      const ast = parse('$this');
+      const ast = parseForEvaluation('$this');
       expect(ast.type).toBe(NodeType.Variable);
       expect((ast as any).name).toBe('$this');
     });
     
     it('parses $index as a special variable', () => {
-      const ast = parse('$index');
+      const ast = parseForEvaluation('$index');
       expect(ast.type).toBe(NodeType.Variable);
       expect((ast as any).name).toBe('$index');
     });
     
     it('parses $total as a special variable', () => {
-      const ast = parse('$total');
+      const ast = parseForEvaluation('$total');
       expect(ast.type).toBe(NodeType.Variable);
       expect((ast as any).name).toBe('$total');
     });
     
     it('parses environment variables with %', () => {
-      const ast = parse('%context');
+      const ast = parseForEvaluation('%context');
       expect(ast.type).toBe(NodeType.Variable);
       expect((ast as any).name).toBe('context');
     });
     
     // TODO: The parser currently allows these, but they should probably fail
     it('currently allows Patient.$this (questionable)', () => {
-      const ast = parse('Patient.$this');
+      const ast = parseForEvaluation('Patient.$this');
       expect(ast.type).toBe(NodeType.Binary);
       expect((ast as any).operator).toBe('DOT');
       expect((ast as any).right.type).toBe(NodeType.Variable);
@@ -174,61 +174,61 @@ describe('FHIRPath Parser - Keywords and Literals', () => {
   describe('Context-sensitive keywords (as, contains, in, is)', () => {
     // According to the grammar, these can be identifiers in certain contexts
     it('parses "as" as identifier at start of path', () => {
-      const ast = parse('as');
+      const ast = parseForEvaluation('as');
       expect(ast.type).toBe(NodeType.Identifier);
       expect((ast as any).name).toBe('as');
     });
     
     it('parses "contains" as identifier at start of path', () => {
-      const ast = parse('contains');
+      const ast = parseForEvaluation('contains');
       expect(ast.type).toBe(NodeType.Identifier);
       expect((ast as any).name).toBe('contains');
     });
     
     it('parses "in" as identifier at start of path', () => {
-      const ast = parse('in');
+      const ast = parseForEvaluation('in');
       expect(ast.type).toBe(NodeType.Identifier);
       expect((ast as any).name).toBe('in');
     });
     
     it('parses "is" as identifier at start of path', () => {
-      const ast = parse('is');
+      const ast = parseForEvaluation('is');
       expect(ast.type).toBe(NodeType.Identifier);
       expect((ast as any).name).toBe('is');
     });
     
     it('parses Patient.as as property access', () => {
-      const ast = parse('Patient.as');
+      const ast = parseForEvaluation('Patient.as');
       expect(ast.type).toBe(NodeType.Binary);
       expect((ast as any).operator).toBe('DOT');
       expect((ast as any).right.name).toBe('as');
     });
     
     it('parses Patient.contains as property access', () => {
-      const ast = parse('Patient.contains');
+      const ast = parseForEvaluation('Patient.contains');
       expect(ast.type).toBe(NodeType.Binary);
       expect((ast as any).operator).toBe('DOT');
       expect((ast as any).right.name).toBe('contains');
     });
     
     it('still parses "as" as operator in type expressions', () => {
-      const ast = parse('value as Patient');
+      const ast = parseForEvaluation('value as Patient');
       expect(ast.type).toBe(NodeType.TypeCast);
     });
     
     it('still parses "is" as operator in type expressions', () => {
-      const ast = parse('value is Patient');
+      const ast = parseForEvaluation('value is Patient');
       expect(ast.type).toBe(NodeType.MembershipTest);
     });
     
     it('still parses "contains" as operator in expressions', () => {
-      const ast = parse("'hello' contains 'ell'");
+      const ast = parseForEvaluation("'hello' contains 'ell'");
       expect(ast.type).toBe(NodeType.Binary);
       expect((ast as any).operator).toBe('CONTAINS');
     });
     
     it('still parses "in" as operator in expressions', () => {
-      const ast = parse("5 in (1 | 2 | 3 | 4 | 5)");
+      const ast = parseForEvaluation("5 in (1 | 2 | 3 | 4 | 5)");
       expect(ast.type).toBe(NodeType.Binary);
       expect((ast as any).operator).toBe('IN');
     });
@@ -237,30 +237,30 @@ describe('FHIRPath Parser - Keywords and Literals', () => {
   describe('Key takeaways', () => {
     it('demonstrates that true/false are literals when standalone', () => {
       // true and false are boolean literals
-      const trueAst = parse('true');
+      const trueAst = parseForEvaluation('true');
       expect(trueAst.type).toBe(NodeType.Literal);
       expect((trueAst as any).valueType).toBe('boolean');
     });
     
     it('demonstrates that true.not() treats true as a literal', () => {
       // In true.not(), 'true' is parsed as a boolean literal, not a property
-      const ast = parse('true.not()');
+      const ast = parseForEvaluation('true.not()');
       expect((ast as any).left.type).toBe(NodeType.Literal);
       expect((ast as any).left.value).toBe(true);
     });
     
     it('demonstrates delimited identifiers can use reserved words', () => {
       // Backticks allow using reserved words as property names
-      const ast = parse('Patient.`true`');
+      const ast = parseForEvaluation('Patient.`true`');
       expect((ast as any).right.name).toBe('true');
     });
     
     it('shows that certain keywords are context-sensitive', () => {
       // 'as', 'contains', 'in', 'is' can be identifiers in some contexts
-      const ast1 = parse('as'); // identifier
+      const ast1 = parseForEvaluation('as'); // identifier
       expect(ast1.type).toBe(NodeType.Identifier);
       
-      const ast2 = parse('value as Patient'); // operator
+      const ast2 = parseForEvaluation('value as Patient'); // operator
       expect(ast2.type).toBe(NodeType.TypeCast);
     });
   });

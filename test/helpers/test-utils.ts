@@ -2,7 +2,7 @@ import { expect } from 'bun:test';
 import { Interpreter } from '../../src/interpreter/interpreter';
 import { RuntimeContextManager } from '../../src/runtime/context';
 import type { RuntimeContext } from '../../src/runtime/context';
-import { parse } from '../../src/parser';
+import { parseForEvaluation } from '../../src/api';
 
 export function createTestInterpreter() {
   return new Interpreter();
@@ -16,7 +16,7 @@ export function createTestContext(rootContext?: any[]): RuntimeContext {
 export function evaluateExpression(expression: string, input: any[], context?: RuntimeContext) {
   const interpreter = createTestInterpreter();
   const ctx = context || createTestContext();
-  const ast = parse(expression);
+  const ast = parseForEvaluation(expression);
   return interpreter.evaluate(ast, input, ctx);
 }
 

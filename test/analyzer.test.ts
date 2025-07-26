@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { parse } from '../src/parser';
+import { parseForEvaluation } from '../src/api';
 import { TypeAnalyzer, analyzeFHIRPath } from '../src/analyzer/analyzer';
 import { ModelProvider } from '../src/analyzer/model-provider';
 import { StaticSchemaRegistry } from '../src/analyzer/schemas';

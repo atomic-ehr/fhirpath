@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'bun:test';
-import { evaluate, parseLegacy } from '../../src';
+import { evaluate, parseForEvaluation } from '../../src';
+import { FHIRPathExpression } from '../../src/api/expression';
 
 describe('API - evaluate', () => {
   it('should evaluate simple literals', () => {
@@ -28,7 +29,8 @@ describe('API - evaluate', () => {
   });
   
   it('should accept parsed expression', () => {
-    const expr = parseLegacy('5 + 3');
+    const ast = parseForEvaluation('5 + 3');
+    const expr = new FHIRPathExpression(ast, '5 + 3');
     expect(evaluate(expr)).toEqual([8]);
   });
   

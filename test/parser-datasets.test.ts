@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { parse } from '../src/parser';
+import { parseForEvaluation } from '../src/api';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
@@ -41,7 +41,7 @@ function testDatasetParsing(expressions: string[], datasetName: string): TestRes
   
   expressions.forEach((expression, index) => {
     try {
-      parse(expression);
+      parseForEvaluation(expression);
       results.passed++;
     } catch (error) {
       results.failed++;
@@ -93,7 +93,7 @@ function analyzePerformance(expressions: string[], datasetName: string): TimingR
   expressions.forEach((expression, index) => {
     try {
       const start = performance.now();
-      parse(expression);
+      parseForEvaluation(expression);
       const end = performance.now();
       timings.push({
         expression,

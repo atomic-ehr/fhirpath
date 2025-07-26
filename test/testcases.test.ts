@@ -4,7 +4,6 @@ import { join } from "path";
 import { Interpreter } from "../src/interpreter/interpreter";
 import { Compiler } from "../src/compiler";
 import { RuntimeContextManager } from "../src/runtime/context";
-import { parse as legacyParse } from "../src/parser/parser";
 import { parse, parseForEvaluation, isStandardResult, isDiagnosticResult, type ParseResult } from "../src/api";
 import type { RuntimeContext } from "../src/runtime/context";
 
@@ -189,7 +188,7 @@ describe("Unified FHIRPath Tests", () => {
     const startTime = performance.now();
 
     try {
-      const ast = legacyParse(test.expression);
+      const ast = parseForEvaluation(test.expression);
       // Convert input to array format if needed
       const inputArray = test.input === undefined ? [] : 
                         Array.isArray(test.input) ? test.input : [test.input];
@@ -219,7 +218,7 @@ describe("Unified FHIRPath Tests", () => {
     const startTime = performance.now();
 
     try {
-      const ast = legacyParse(test.expression);
+      const ast = parseForEvaluation(test.expression);
       const compiled = compiler.compile(ast);
 
       // Convert input to array format if needed

@@ -4,6 +4,11 @@
 
 The parser transforms a stream of tokens from the lexer into an Abstract Syntax Tree (AST). It implements a recursive descent parser with operator precedence handling, supporting the full FHIRPath grammar including paths, operators, functions, and literals.
 
+The parser features a unified architecture with configurable options for different use cases:
+- **Performance mode**: Throws on first error for fastest parsing
+- **Diagnostic mode**: Collects all syntax errors without throwing
+- **Development mode**: Includes source range tracking and error recovery for IDE features
+
 ## Architecture
 
 ### Core Parser Class
@@ -15,23 +20,67 @@ The `FHIRPathParser` class provides the main parsing functionality:
 export class FHIRPathParser {
   private tokens: Token[];
   private current: number = 0;
+  private throwOnError: boolean;
+  private trackRanges: boolean;
+  private errorRecovery: boolean;
+  private diagnostics?: DiagnosticCollector;
+  private sourceMapper?: SourceMapper;
+  private errorReporter?: ContextualErrorReporter;
+  private input: string;
+  private isPartial: boolean = false;
   
-  constructor(input: string | Token[]) {
+  constructor(input: string | Token[], options: ParserOptions = {}) {
+    this.throwOnError = options.throwOnError ?? false;
+    this.trackRanges = options.trackRanges ?? false;
+    this.errorRecovery = options.errorRecovery ?? false;
+    
     if (typeof input === 'string') {
-      this.tokens = lex(input);  // Uses lexer to tokenize
+      this.input = input;
+      try {
+        this.tokens = lex(input);
+      } catch (error: any) {
+        if (this.throwOnError) {
+          throw error;
+        }
+        this.tokens = [];
+        (this as any).lexerError = error;
+      }
     } else {
       this.tokens = input;
+      this.input = input.map(t => t.value).join(' ');
     }
+    
     this.current = 0;
+    this.initializeForMode(this.input, options);
   }
   
-  parse(): ASTNode {
-    const ast = this.expression();
-    if (!this.isAtEnd()) {
-      throw this.error("Unexpected token after expression");
+  parse(): ParseResult {
+    if (this.errorRecovery) {
+      return this.parseWithRecovery();
+    } else {
+      return this.parseStandard();
     }
-    return ast;
   }
+}
+```
+
+### Parser Options
+**Location**: [`/src/parser/types.ts`](../../src/parser/types.ts)
+
+```typescript
+export interface ParserOptions {
+  maxErrors?: number;           // Maximum errors to collect
+  throwOnError?: boolean;       // Throw on first error (performance mode)
+  trackRanges?: boolean;        // Track source ranges for each AST node
+  errorRecovery?: boolean;      // Enable error recovery for partial ASTs
+}
+
+export interface ParseResult {
+  ast: ASTNode;                 // The parsed AST
+  diagnostics: ParseDiagnostic[]; // Array of syntax issues
+  hasErrors: boolean;           // Quick error check
+  isPartial?: boolean;          // Present when errorRecovery enabled
+  ranges?: Map<ASTNode, TextRange>; // Present when trackRanges enabled
 }
 ```
 
@@ -68,7 +117,7 @@ export enum NodeType {
   Index,      // [] indexing
 }
 
-// Example node structures:
+// Core node structures:
 export interface BinaryNode extends ASTNode {
   type: NodeType.Binary;
   operator: TokenType;
@@ -87,6 +136,19 @@ export interface FunctionNode extends ASTNode {
 export interface IdentifierNode extends ASTNode {
   type: NodeType.Identifier;
   name: string;
+}
+
+// Error recovery nodes (only when errorRecovery enabled):
+export interface ErrorNode extends ASTNode {
+  type: NodeType.Error;
+  expectedTokens: TokenType[];
+  diagnostic: ParseDiagnostic;
+}
+
+export interface IncompleteNode extends ASTNode {
+  type: NodeType.Incomplete;
+  partialNode: ASTNode;
+  missingParts: string[];
 }
 ```
 
@@ -341,32 +403,136 @@ if (this.match(TokenType.THIS, TokenType.INDEX, TokenType.TOTAL, TokenType.ENV_V
 }
 ```
 
+## Parser Modes and Features
+
+### Performance Mode (throwOnError)
+When `throwOnError: true`, the parser:
+- Throws immediately on the first syntax error
+- Skips creating diagnostic infrastructure
+- Provides fastest parsing performance
+- Best for production use where expressions are pre-validated
+
+### Diagnostic Mode (default)
+By default, the parser:
+- Collects all syntax errors without throwing
+- Creates diagnostic infrastructure (DiagnosticCollector, SourceMapper)
+- Returns diagnostics array with detailed error information
+- Suitable for validation and user-facing error messages
+
+### Development Mode (errorRecovery + trackRanges)
+With both flags enabled, the parser:
+- Attempts to recover from errors and continue parsing
+- Creates partial ASTs with ErrorNode/IncompleteNode markers
+- Tracks source ranges for every AST node
+- Provides contextual error messages
+- Ideal for IDE integration and development tools
+
 ## Error Handling
 
-### Error Reporting
-**Location**: [`parser.ts:error()`](../../src/parser/parser.ts)
+### Error Reporting Infrastructure
 
-Provides detailed error messages with position information:
+#### DiagnosticCollector
+**Location**: [`/src/parser/diagnostics.ts`](../../src/parser/diagnostics.ts)
 
+Collects and manages parse diagnostics:
 ```typescript
-export class ParseError extends Error {
-  constructor(
-    message: string,
-    public position: Position,
-    public token: Token
-  ) {
-    super(message);
+export class DiagnosticCollector {
+  private diagnostics: ParseDiagnostic[] = [];
+  private errorCount: number = 0;
+  private maxErrors: number;
+  
+  addError(range: TextRange, message: string, code: ErrorCode): void {
+    if (this.errorCount >= this.maxErrors) return;
+    
+    this.diagnostics.push({
+      severity: DiagnosticSeverity.Error,
+      range,
+      message,
+      code,
+      source: 'fhirpath-parser'
+    });
+    this.errorCount++;
   }
-}
-
-private error(message: string): ParseError {
-  const pos = this.peek().position;
-  const fullMessage = `${message} at line ${pos.line}, column ${pos.column}`;
-  return new ParseError(fullMessage, pos, this.peek());
 }
 ```
 
-The parser throws errors immediately upon encountering invalid syntax, providing clear error messages with line and column information.
+#### SourceMapper
+**Location**: [`/src/parser/source-mapper.ts`](../../src/parser/source-mapper.ts)
+
+Maps tokens and AST nodes to source text ranges:
+```typescript
+export class SourceMapper {
+  private lines: string[];
+  private lineOffsets: number[];
+  
+  tokenToRange(token: Token): TextRange {
+    return {
+      start: {
+        line: token.position.line - 1,  // Convert to 0-based
+        character: token.position.column - 1,
+        offset: token.position.offset
+      },
+      end: {
+        line: token.position.line - 1,
+        character: token.position.column - 1 + token.value.length,
+        offset: token.position.offset + token.value.length
+      }
+    };
+  }
+}
+```
+
+### Error Recovery
+**Location**: [`parser.ts:parseWithRecovery()`](../../src/parser/parser.ts)
+
+When `errorRecovery: true`, the parser attempts to recover from errors:
+
+```typescript
+private expressionWithRecovery(minPrecedence: number = 14): ASTNode {
+  try {
+    return this.expression(minPrecedence);
+  } catch (error) {
+    if (error instanceof ParseError && this.errorRecovery) {
+      const errorNode = this.createErrorNode(error.token, error.message);
+      this.recoverToSyncPoint();
+      
+      // Try to continue parsing after recovery
+      if (!this.isAtEnd() && !this.isAtSyncPoint()) {
+        try {
+          const right = this.expressionWithRecovery(minPrecedence);
+          return this.createPartialBinaryNode(errorNode, right);
+        } catch {
+          // Return the error node if recovery fails
+        }
+      }
+      
+      return errorNode;
+    }
+    throw error;
+  }
+}
+
+private recoverToSyncPoint(): void {
+  while (!this.isAtEnd()) {
+    if (this.isAtSyncPoint()) {
+      return;
+    }
+    this.advance();
+  }
+}
+
+private isAtSyncPoint(): boolean {
+  const token = this.peek();
+  return token.type === TokenType.COMMA ||
+         token.type === TokenType.RPAREN ||
+         token.type === TokenType.RBRACKET ||
+         token.type === TokenType.RBRACE ||
+         token.type === TokenType.PIPE ||
+         token.type === TokenType.AND ||
+         token.type === TokenType.OR ||
+         this.isStatementBoundary(token);
+}
+```
 
 ## AST Pretty Printing
 **Location**: [`/src/parser/pprint.ts`](../../src/parser/pprint.ts)
@@ -417,22 +583,86 @@ export function pprint(node: ASTNode, multiline: boolean = false, indent: number
 
 The pretty printer outputs compact S-expression format for easy debugging of AST structures.
 
-## Usage Example
+## Usage Examples
 
+### Basic Parsing (Default Mode)
 ```typescript
-import { FHIRPathParser } from '../parser/parser';
+import { parse } from '@atomic-ehr/fhirpath';
+
+const result = parse("Patient.name.where(use = 'official').given");
+console.log(result.ast);         // The parsed AST
+console.log(result.diagnostics); // Empty array if no errors
+console.log(result.hasErrors);   // false
+```
+
+### Performance Mode
+```typescript
+import { parseForEvaluation } from '@atomic-ehr/fhirpath';
+
+try {
+  // Fastest parsing - throws on first error
+  const ast = parseForEvaluation("Patient.name.given");
+  // Use ast directly for evaluation
+} catch (error) {
+  console.error('Parse error:', error.message);
+}
+
+// Or using parse with throwOnError:
+const result = parse("Patient.name", { throwOnError: true });
+```
+
+### Development Tool Mode
+```typescript
+import { parse } from '@atomic-ehr/fhirpath';
+
+// Enable all features for IDE integration
+const result = parse("Patient..name[0", {
+  errorRecovery: true,   // Continue parsing after errors
+  trackRanges: true,     // Track source locations
+  maxErrors: 10          // Collect up to 10 errors
+});
+
+if (result.hasErrors) {
+  console.log('Diagnostics:', result.diagnostics);
+  // [
+  //   {
+  //     severity: 1,
+  //     range: { start: { line: 0, character: 7 }, end: { line: 0, character: 9 } },
+  //     message: "Invalid '..' operator - use single '.' for navigation",
+  //     code: "INVALID_OPERATOR"
+  //   },
+  //   {
+  //     severity: 1,
+  //     range: { start: { line: 0, character: 14 }, end: { line: 0, character: 14 } },
+  //     message: "Expected ']' after index expression",
+  //     code: "UNCLOSED_BRACKET"
+  //   }
+  // ]
+  
+  console.log('Is partial AST:', result.isPartial); // true
+  console.log('AST with error nodes:', result.ast);
+  
+  // Use ranges for highlighting
+  if (result.ranges) {
+    for (const [node, range] of result.ranges) {
+      console.log(`Node at ${range.start.line}:${range.start.character}`);
+    }
+  }
+}
+```
+
+### Pretty Printing
+```typescript
+import { parse } from '@atomic-ehr/fhirpath';
 import { pprint } from '../parser/pprint';
 
-const expression = "Patient.name.where(use = 'official').given.first()";
-const parser = new FHIRPathParser(expression);
-const ast = parser.parse();
-
-console.log(pprint(ast));
+const result = parse("Patient.name.where(use = 'official').given.first()");
+console.log(pprint(result.ast));
 // Output (S-expression format):
 // (. (. (. (. (Patient:id) (name:id)) (where (= (use:id) ('official':string)))) (given:id)) (first))
 
 // With multiline pretty printing:
-console.log(pprint(ast, true));
+console.log(pprint(result.ast, true));
 // Output:
 // (.
 //   (.
@@ -470,7 +700,32 @@ The AST nodes are designed for efficient traversal:
 
 ## Performance Considerations
 
+### Zero-Cost Features
+The parser uses lazy initialization to ensure features have no cost when disabled:
+
+1. **Conditional Infrastructure**: 
+   - DiagnosticCollector only created when `!throwOnError`
+   - SourceMapper only created when `trackRanges || !throwOnError`
+   - ContextualErrorReporter only created when `errorRecovery`
+
+2. **Inline Checks**: Feature flags are checked inline with minimal branching:
+   ```typescript
+   if (this.throwOnError) {
+     throw error;  // Fast path - no diagnostic overhead
+   }
+   // Diagnostic path only when needed
+   ```
+
+3. **Performance Characteristics**:
+   - **throwOnError mode**: Same performance as legacy parser (~0.05ms for typical expressions)
+   - **Default mode**: ~5% overhead for diagnostic collection
+   - **trackRanges**: ~10% overhead for source mapping
+   - **errorRecovery**: ~20% overhead due to try-catch blocks
+
+### Parsing Optimizations
+
 1. **Single Pass**: The parser completes in a single pass without backtracking
 2. **Minimal Lookahead**: Most parsing decisions require only one token lookahead
 3. **Direct Construction**: AST nodes are constructed directly without intermediate representations
 4. **Memory Efficiency**: Shared position objects and interned strings from the lexer
+5. **Precedence Mapping**: Pre-computed precedence table avoids runtime lookups

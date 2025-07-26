@@ -423,7 +423,7 @@ Examples:
   console.log(`Responses saved to: ${savedPath}\n`);
   
   // Also display formatted output
-  const output = formatResponses(responses, config.summarize);
+  const output = formatResponses(responses, config.summarize ?? true);
   console.log(output);
 }
 
