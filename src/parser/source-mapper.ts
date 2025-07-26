@@ -238,4 +238,11 @@ export class SourceMapper {
     
     return this.source.substring(start, end).replace(/[\r\n]+$/, '');
   }
+  
+  mergeRanges(range1: TextRange, range2: TextRange): TextRange {
+    return {
+      start: range1.start.offset <= range2.start.offset ? range1.start : range2.start,
+      end: range1.end.offset >= range2.end.offset ? range1.end : range2.end
+    };
+  }
 }

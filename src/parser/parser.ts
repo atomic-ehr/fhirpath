@@ -71,6 +71,7 @@ export class FHIRPathParser {
   private errorReporter?: ContextualErrorReporter;
   private input: string;
   private isPartial: boolean = false;
+  private currentContext: ParseContext = ParseContext.Expression;
   
   constructor(input: string | Token[], options: ParserOptions = {}) {
     this.mode = options.mode ?? ParserMode.Standard;
@@ -141,7 +142,7 @@ export class FHIRPathParser {
   private parseFast(): FastParseResult {
     const ast = this.expression();
     if (!this.isAtEnd()) {
-      throw this.error("Unexpected token after expression");
+      throw this.error("Unexpected token after expression", ErrorCode.UNEXPECTED_TOKEN);
     }
     return { ast };
   }
@@ -205,14 +206,8 @@ export class FHIRPathParser {
     } catch (error) {
       // In standard mode, try to recover and report diagnostic
       if (error instanceof ParseError) {
-        const range = this.sourceMapper!.tokenToRange(error.token);
-        this.diagnostics!.addError(
-          range,
-          error.message,
-          ErrorCode.PARSE_ERROR
-        );
-        
-        // Create a minimal error AST node
+        // Don't add the error again - it was already added in the error() method
+        // Just create a minimal error AST node
         ast = {
           type: NodeType.Literal,
           value: null,
@@ -271,7 +266,8 @@ export class FHIRPathParser {
           severity: 1,
           range,
           message: error.message,
-          code: errorCode
+          code: errorCode,
+          source: 'fhirpath-parser'
         }
       } as ErrorNode;
       
@@ -450,7 +446,7 @@ export class FHIRPathParser {
     // Handle grouping
     if (this.match(TokenType.LPAREN)) {
       const expr = this.expression();
-      this.consume(TokenType.RPAREN, "Expected ')' after expression");
+      this.consume(TokenType.RPAREN, "Expected ')' after expression", ErrorCode.UNCLOSED_PARENTHESIS);
       
       // Check for method calls after parentheses (e.g., (expr).method())
       let result = expr;
@@ -530,7 +526,21 @@ export class FHIRPathParser {
       const elements: ASTNode[] = [];
       
       if (!this.check(TokenType.RBRACE)) {
+        const previousContext = this.currentContext;
+        this.currentContext = ParseContext.CollectionLiteral;
+        
         do {
+          // Check for trailing comma before trying to parse expression
+          if (this.check(TokenType.RBRACE)) {
+            // We have a trailing comma
+            if (this.mode === ParserMode.Diagnostic || this.mode === ParserMode.Standard) {
+              const commaToken = this.previous(); // The comma we just consumed
+              const diagnostic = FHIRPathDiagnostics.trailingComma(commaToken, this.sourceMapper!);
+              this.diagnostics!.addError(diagnostic.range, diagnostic.message, diagnostic.code);
+            }
+            break;
+          }
+          
           try {
             elements.push(this.mode === ParserMode.Diagnostic ? this.expressionWithRecovery() : this.expression());
           } catch (error) {
@@ -551,13 +561,7 @@ export class FHIRPathParser {
           }
         } while (this.match(TokenType.COMMA));
         
-        // Check for trailing comma
-        if (this.previous().type === TokenType.COMMA && this.check(TokenType.RBRACE)) {
-          if (this.mode === ParserMode.Diagnostic || this.mode === ParserMode.Standard) {
-            const diagnostic = FHIRPathDiagnostics.trailingComma(this.previous(), this.sourceMapper!);
-            this.diagnostics!.addError(diagnostic.range, diagnostic.message, diagnostic.code);
-          }
-        }
+        this.currentContext = previousContext;
       }
       
       if (!this.match(TokenType.RBRACE)) {
@@ -570,8 +574,13 @@ export class FHIRPathParser {
             );
           this.isPartial = true;
         } else {
-          throw this.error("Expected '}' after collection elements");
+          throw this.error("Expected '}' after collection elements", ErrorCode.UNCLOSED_BRACE);
         }
+      }
+      
+      // Restore context if we set it earlier
+      if (!this.check(TokenType.RBRACE)) {
+        this.currentContext = ParseContext.Expression;
       }
       
       return {
@@ -598,14 +607,29 @@ export class FHIRPathParser {
       return identifier;
     }
     
-    throw this.error("Expected expression");
+    const token = this.peek();
+    let message = "Expected expression";
+    
+    // Add context-specific information
+    if (this.currentContext === ParseContext.CollectionLiteral) {
+      message = "Expected expression in collection";
+    } else if (this.currentContext === ParseContext.FunctionCall) {
+      message = "Expected expression in function call";
+    } else if (this.currentContext === ParseContext.IndexExpression) {
+      message = "Expected expression in index";
+    }
+    
+    if (token.type !== TokenType.EOF) {
+      message += `, found '${token.value}'`;
+    }
+    throw this.error(message, ErrorCode.EXPECTED_EXPRESSION);
   }
   
   // Parse binary operators with precedence
   private parseBinary(left: ASTNode, op: Token, precedence: number): ASTNode {
     const operation = op.operation || Registry.getByToken(op.type);
     if (!operation && op.type !== TokenType.DOT && op.type !== TokenType.IS && op.type !== TokenType.AS) {
-      throw this.error(`Unknown operator: ${op.value}`);
+      throw this.error(`Unknown operator: ${op.value}`, ErrorCode.INVALID_OPERATOR);
     }
     // Special handling for type operators
     if (op.type === TokenType.IS || op.type === TokenType.AS) {
@@ -616,30 +640,35 @@ export class FHIRPathParser {
       if (this.check(TokenType.LPAREN)) {
         // Handle is(TypeName) syntax
         this.advance(); // consume (
-        typeName = this.consume(TokenType.IDENTIFIER, "Expected type name").value;
-        this.consume(TokenType.RPAREN, "Expected ')' after type name");
+        typeName = this.consume(TokenType.IDENTIFIER, "Expected type name", ErrorCode.EXPECTED_IDENTIFIER).value;
+        this.consume(TokenType.RPAREN, "Expected ')' after type name", ErrorCode.UNCLOSED_PARENTHESIS);
       } else {
         // Regular is TypeName syntax
         const typeToken = this.peek();
         if (!this.match(TokenType.IDENTIFIER)) {
-          if (this.mode === ParserMode.Diagnostic || this.mode === ParserMode.Standard) {
+          if (this.mode === ParserMode.Diagnostic) {
             const context = op.type === TokenType.AS ? ParseContext.TypeCast : ParseContext.MembershipTest;
-            this.errorReporter?.reportExpectedToken(
+            this.errorReporter!.reportExpectedToken(
               [TokenType.IDENTIFIER],
               typeToken,
               context
-            ) || this.diagnostics!.addError(
-              this.sourceMapper!.tokenToRange(typeToken),
+            );
+            // Create incomplete node
+            return this.createIncompleteNode(left, ['type name']);
+          } else if (this.mode === ParserMode.Standard) {
+            // In standard mode, add error once and throw
+            const range = this.sourceMapper!.tokenToRange(typeToken);
+            this.diagnostics!.addError(
+              range,
               `Expected type name after '${op.value}'`,
               ErrorCode.EXPECTED_IDENTIFIER
             );
-            
-            if (this.mode === ParserMode.Diagnostic) {
-              // Create incomplete node
-              return this.createIncompleteNode(left, ['type name']);
-            }
+            // Throw without adding duplicate diagnostic
+            const pos = typeToken.position;
+            const fullMessage = `Expected type name at line ${pos.line}, column ${pos.column}`;
+            throw new ParseError(fullMessage, pos, typeToken);
           }
-          throw this.error("Expected type name");
+          throw this.error("Expected type name", ErrorCode.EXPECTED_IDENTIFIER);
         }
         typeName = this.previous().value;
       }
@@ -653,6 +682,26 @@ export class FHIRPathParser {
     }
     
     this.advance(); // consume operator
+    
+    // Check for common mistake: == instead of =
+    if (op.type === TokenType.EQ && this.check(TokenType.EQ)) {
+      const secondEq = this.peek();
+      if (this.mode === ParserMode.Diagnostic || this.mode === ParserMode.Standard) {
+        const range = this.sourceMapper!.mergeRanges(
+          this.sourceMapper!.tokenToRange(op),
+          this.sourceMapper!.tokenToRange(secondEq)
+        );
+        this.diagnostics!.addError(
+          range,
+          "'==' is not valid in FHIRPath, use '=' for equality",
+          ErrorCode.INVALID_OPERATOR
+        );
+        // Skip the extra = to avoid cascading errors
+        this.advance();
+      } else if (this.mode === ParserMode.Fast) {
+        throw this.error("'==' is not valid in FHIRPath, use '=' for equality", ErrorCode.INVALID_OPERATOR);
+      }
+    }
     
     // Special handling for union operator - can chain multiple
     if (op.type === TokenType.PIPE) {
@@ -690,7 +739,7 @@ export class FHIRPathParser {
         }
         
         if (this.mode === ParserMode.Fast) {
-          throw this.error("Invalid '..' operator - use single '.' for navigation");
+          throw this.error("Invalid '..' operator - use single '.' for navigation", ErrorCode.INVALID_OPERATOR);
         }
       }
       
@@ -734,7 +783,7 @@ export class FHIRPathParser {
               } as BinaryNode;
             }
           }
-          throw this.error("Expected property name after '.'");
+          throw this.error("Expected property name after '.'", ErrorCode.EXPECTED_IDENTIFIER);;
         }
         
         try {
@@ -814,12 +863,14 @@ export class FHIRPathParser {
         );
         return this.createIncompleteNode(func, ['function arguments']);
       }
-      throw this.error("Expected '(' after function");
+      throw this.error("Expected '(' after function", ErrorCode.MISSING_ARGUMENTS);
     }
     
     const args: ASTNode[] = [];
     
     if (!this.check(TokenType.RPAREN)) {
+      const previousContext = this.currentContext;
+      this.currentContext = ParseContext.FunctionCall;
       // Check for immediate unexpected tokens in function context
       if (this.check(TokenType.RBRACKET) || this.check(TokenType.RBRACE)) {
         if (this.mode === ParserMode.Diagnostic) {
@@ -861,6 +912,8 @@ export class FHIRPathParser {
           }
         }
       } while (this.match(TokenType.COMMA));
+      
+      this.currentContext = previousContext;
     }
     
     // Check for empty function that requires arguments
@@ -877,7 +930,7 @@ export class FHIRPathParser {
         this.errorReporter!.reportUnclosedDelimiter(lparen, ')');
         this.isPartial = true;
       } else {
-        throw this.error("Expected ')' after arguments");
+        throw this.error("Expected ')' after arguments", ErrorCode.UNCLOSED_PARENTHESIS);
       }
     }
     
@@ -939,7 +992,7 @@ export class FHIRPathParser {
     const lbracket = this.peek();
     
     if (!this.match(TokenType.LBRACKET)) {
-      throw this.error("Expected '['");
+      throw this.error("Expected '['", ErrorCode.UNEXPECTED_TOKEN);
     }
     
     // Check for empty brackets
@@ -949,7 +1002,7 @@ export class FHIRPathParser {
         this.diagnostics!.addError(diagnostic.range, diagnostic.message, diagnostic.code);
       }
       if (this.mode === ParserMode.Fast) {
-        throw this.error("Expected expression in index");
+        throw this.error("Expected expression in index", ErrorCode.EXPECTED_EXPRESSION);
       }
     }
     
@@ -974,7 +1027,7 @@ export class FHIRPathParser {
           );
         this.isPartial = true;
       } else {
-        throw this.error("Expected ']'");
+        throw this.error("Expected ']'", ErrorCode.UNCLOSED_BRACKET);
       }
     }
     
@@ -1021,8 +1074,8 @@ export class FHIRPathParser {
   }
   
   private parseOfType(): ASTNode {
-    this.consume(TokenType.LPAREN, "Expected '(' after ofType");
-    const typeName = this.consume(TokenType.IDENTIFIER, "Expected type name").value;
+    this.consume(TokenType.LPAREN, "Expected '(' after ofType", ErrorCode.MISSING_ARGUMENTS);
+    const typeName = this.consume(TokenType.IDENTIFIER, "Expected type name", ErrorCode.EXPECTED_IDENTIFIER).value;
     this.consume(TokenType.RPAREN, "Expected ')' after type name");
     
     return {
@@ -1134,19 +1187,20 @@ export class FHIRPathParser {
     return this.tokens[this.current - 1]!;
   }
   
-  private consume(type: TokenType, message: string): Token {
+  private consume(type: TokenType, message: string, code: ErrorCode = ErrorCode.UNEXPECTED_TOKEN): Token {
     if (this.check(type)) return this.advance();
-    throw this.error(message);
+    throw this.error(message, code);
   }
   
-  private error(message: string): ParseError {
+  private error(message: string, code: ErrorCode = ErrorCode.PARSE_ERROR): ParseError {
     const token = this.peek();
     const pos = token.position;
     
-    // In Standard mode, also add to diagnostics before throwing
-    if (this.mode === ParserMode.Standard && this.diagnostics && this.sourceMapper) {
+    // In Standard/Diagnostic modes, add to diagnostics before throwing
+    if ((this.mode === ParserMode.Standard || this.mode === ParserMode.Diagnostic) && 
+        this.diagnostics && this.sourceMapper) {
       const range = this.sourceMapper.tokenToRange(token);
-      this.diagnostics.addError(range, message, ErrorCode.PARSE_ERROR);
+      this.diagnostics.addError(range, message, code);
     }
     
     const fullMessage = `${message} at line ${pos.line}, column ${pos.column}`;
@@ -1185,9 +1239,10 @@ export class FHIRPathParser {
         this.recoverToSyncPoint();
         
         // Try to continue parsing after recovery
-        if (!this.isAtEnd()) {
+        if (!this.isAtEnd() && !this.isAtSyncPoint()) {
+          // Only try to recover if we're not already at a sync point
           try {
-            const recovered = this.expressionWithRecovery(minPrecedence);
+            const recovered = this.expression(minPrecedence); // Use regular expression, not recursive recovery
             // Create a binary node with error on left
             return {
               type: NodeType.Binary,
