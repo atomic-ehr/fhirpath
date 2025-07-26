@@ -41,7 +41,7 @@ describe('Parser Modes', () => {
       expect(result.diagnostics.length).toBeGreaterThan(0);
       expect(result.hasErrors).toBe(true);
       expect(result.diagnostics[0]!.severity).toBe(1); // Error
-      expect(result.diagnostics[0]!.code).toBe(ErrorCode.PARSE_ERROR);
+      expect(result.diagnostics[0]!.code).toBe(ErrorCode.INVALID_OPERATOR);
     }
   });
   
@@ -92,11 +92,17 @@ describe('Parser Modes', () => {
       expect(isValidationResult(result)).toBe(false);
     });
     
-    // Note: Diagnostic and Validate modes currently fall back to Standard
-    it('Diagnostic mode currently returns Standard result', () => {
+    // Diagnostic mode now returns DiagnosticParseResult
+    it('Diagnostic mode returns DiagnosticParseResult', () => {
       const result = parse('5 + 3', { mode: ParserMode.Diagnostic });
-      expect(isStandardResult(result)).toBe(true);
-      expect(isDiagnosticResult(result)).toBe(false);
+      expect(isDiagnosticResult(result)).toBe(true);
+      expect(isStandardResult(result)).toBe(true); // DiagnosticResult extends StandardResult
+      
+      // Check diagnostic-specific properties
+      if (isDiagnosticResult(result)) {
+        expect(result.isPartial).toBe(false);
+        expect(result.ranges).toBeDefined();
+      }
     });
     
     it('Validate mode currently returns Standard result', () => {

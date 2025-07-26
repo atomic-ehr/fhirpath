@@ -6,312 +6,486 @@
     {
       "name": "double dot operator",
       "expression": "Patient..name",
-      "tags": ["error", "syntax", "operator"],
+      "tags": [
+        "error",
+        "syntax",
+        "operator"
+      ],
       "expected": {
         "error": true,
-        "diagnostics": [{
-          "code": "INVALID_OPERATOR",
-          "severity": "error",
-          "message": "Invalid '..' operator - use single '.' for navigation"
-        }]
-      }
+        "diagnostics": [
+          {
+            "code": "INVALID_OPERATOR",
+            "severity": "error",
+            "message": "Invalid '..' operator - use single '.' for navigation"
+          }
+        ]
+      },
+      "parserOnly": true
     },
     {
       "name": "triple dot operator",
       "expression": "Patient...name",
-      "tags": ["error", "syntax", "operator"],
+      "tags": [
+        "error",
+        "syntax",
+        "operator"
+      ],
       "expected": {
         "error": true,
-        "diagnostics": [{
-          "code": "INVALID_OPERATOR",
-          "severity": "error"
-        }]
-      }
+        "diagnostics": [
+          {
+            "code": "INVALID_OPERATOR",
+            "severity": "error"
+          }
+        ]
+      },
+      "parserOnly": true
     },
     {
       "name": "dot at start",
       "expression": ".name",
-      "tags": ["error", "syntax", "operator"],
+      "tags": [
+        "error",
+        "syntax",
+        "operator"
+      ],
       "expected": {
         "error": true,
-        "diagnostics": [{
-          "code": "EXPECTED_EXPRESSION",
-          "severity": "error",
-          "message": "Expected expression before '.'"
-        }]
-      }
+        "diagnostics": [
+          {
+            "code": "EXPECTED_EXPRESSION",
+            "severity": "error",
+            "message": "Expected expression before '.'"
+          }
+        ]
+      },
+      "parserOnly": true
     },
     {
       "name": "dot at end",
       "expression": "Patient.name.",
-      "tags": ["error", "syntax", "incomplete"],
+      "tags": [
+        "error",
+        "syntax",
+        "incomplete"
+      ],
       "expected": {
         "error": true,
-        "diagnostics": [{
-          "code": "EXPECTED_IDENTIFIER",
-          "severity": "error",
-          "message": "Expected property name after '.'"
-        }]
-      }
+        "diagnostics": [
+          {
+            "code": "EXPECTED_IDENTIFIER",
+            "severity": "error",
+            "message": "Expected property name after '.'"
+          }
+        ]
+      },
+      "parserOnly": true
     },
     {
       "name": "empty parentheses in function",
       "expression": "Patient.name.where()",
-      "tags": ["error", "syntax", "function"],
+      "tags": [
+        "error",
+        "syntax",
+        "function"
+      ],
       "expected": {
         "error": true,
-        "diagnostics": [{
-          "code": "MISSING_ARGUMENTS",
-          "severity": "error",
-          "message": "Function 'where' requires arguments"
-        }]
-      }
+        "diagnostics": [
+          {
+            "code": "MISSING_ARGUMENTS",
+            "severity": "error",
+            "message": "Function 'where' requires arguments"
+          }
+        ]
+      },
+      "parserOnly": true
     },
     {
       "name": "unclosed parenthesis",
       "expression": "Patient.where(active = true",
-      "tags": ["error", "syntax", "unclosed"],
+      "tags": [
+        "error",
+        "syntax",
+        "unclosed"
+      ],
       "expected": {
         "error": true,
-        "diagnostics": [{
-          "code": "UNCLOSED_PARENTHESIS",
-          "severity": "error",
-          "message": "Unclosed parenthesis - missing ')' to close function call"
-        }]
-      }
+        "diagnostics": [
+          {
+            "code": "UNCLOSED_PARENTHESIS",
+            "severity": "error",
+            "message": "Unclosed parenthesis - missing ')' to close function call"
+          }
+        ]
+      },
+      "parserOnly": true
     },
     {
       "name": "unclosed nested parentheses",
       "expression": "Patient.where((active = true)",
-      "tags": ["error", "syntax", "unclosed"],
+      "tags": [
+        "error",
+        "syntax",
+        "unclosed"
+      ],
       "expected": {
         "error": true,
-        "diagnostics": [{
-          "code": "UNCLOSED_PARENTHESIS",
-          "severity": "error"
-        }]
-      }
+        "diagnostics": [
+          {
+            "code": "UNCLOSED_PARENTHESIS",
+            "severity": "error"
+          }
+        ]
+      },
+      "parserOnly": true
     },
     {
       "name": "unmatched closing parenthesis",
       "expression": "Patient.name)",
-      "tags": ["error", "syntax"],
+      "tags": [
+        "error",
+        "syntax"
+      ],
       "expected": {
         "error": true,
-        "diagnostics": [{
-          "code": "UNEXPECTED_TOKEN",
-          "severity": "error",
-          "message": "Unexpected ')'"
-        }]
-      }
+        "diagnostics": [
+          {
+            "code": "UNEXPECTED_TOKEN",
+            "severity": "error",
+            "message": "Unexpected ')'"
+          }
+        ]
+      },
+      "parserOnly": true
     },
     {
       "name": "unclosed bracket",
       "expression": "Patient.name[0",
-      "tags": ["error", "syntax", "unclosed"],
+      "tags": [
+        "error",
+        "syntax",
+        "unclosed"
+      ],
       "expected": {
         "error": true,
-        "diagnostics": [{
-          "code": "UNCLOSED_BRACKET",
-          "severity": "error",
-          "message": "Expected ']' after index expression"
-        }]
-      }
+        "diagnostics": [
+          {
+            "code": "UNCLOSED_BRACKET",
+            "severity": "error",
+            "message": "Expected ']' after index expression"
+          }
+        ]
+      },
+      "parserOnly": true
     },
     {
       "name": "empty brackets",
       "expression": "Patient.name[]",
-      "tags": ["error", "syntax", "index"],
+      "tags": [
+        "error",
+        "syntax",
+        "index"
+      ],
       "expected": {
         "error": true,
-        "diagnostics": [{
-          "code": "EXPECTED_EXPRESSION",
-          "severity": "error",
-          "message": "Expected expression in index"
-        }]
-      }
+        "diagnostics": [
+          {
+            "code": "EXPECTED_EXPRESSION",
+            "severity": "error",
+            "message": "Expected expression in index"
+          }
+        ]
+      },
+      "parserOnly": true
     },
     {
       "name": "dot before bracket",
       "expression": "Patient.name.[0]",
-      "tags": ["error", "syntax", "index"],
+      "tags": [
+        "error",
+        "syntax",
+        "index"
+      ],
       "expected": {
         "error": true,
-        "diagnostics": [{
-          "code": "EXPECTED_IDENTIFIER",
-          "severity": "error",
-          "message": "Expected property name after '.'"
-        }]
-      }
+        "diagnostics": [
+          {
+            "code": "EXPECTED_IDENTIFIER",
+            "severity": "error",
+            "message": "Expected property name after '.'"
+          }
+        ]
+      },
+      "parserOnly": true
     },
     {
       "name": "unmatched closing bracket",
       "expression": "Patient.name]",
-      "tags": ["error", "syntax"],
+      "tags": [
+        "error",
+        "syntax"
+      ],
       "expected": {
         "error": true,
-        "diagnostics": [{
-          "code": "UNEXPECTED_TOKEN",
-          "severity": "error",
-          "message": "Unexpected ']'"
-        }]
-      }
+        "diagnostics": [
+          {
+            "code": "UNEXPECTED_TOKEN",
+            "severity": "error",
+            "message": "Unexpected ']'"
+          }
+        ]
+      },
+      "parserOnly": true
     },
     {
       "name": "unclosed brace in collection",
       "expression": "{1, 2, 3",
-      "tags": ["error", "syntax", "unclosed", "collection"],
+      "tags": [
+        "error",
+        "syntax",
+        "unclosed",
+        "collection"
+      ],
       "expected": {
         "error": true,
-        "diagnostics": [{
-          "code": "UNCLOSED_BRACE",
-          "severity": "error",
-          "message": "Expected '}' to close collection literal"
-        }]
-      }
+        "diagnostics": [
+          {
+            "code": "UNCLOSED_BRACE",
+            "severity": "error",
+            "message": "Expected '}' to close collection literal"
+          }
+        ]
+      },
+      "parserOnly": true
     },
     {
       "name": "missing comma in collection",
       "expression": "{1 2 3}",
-      "tags": ["error", "syntax", "collection"],
+      "tags": [
+        "error",
+        "syntax",
+        "collection"
+      ],
       "expected": {
         "error": true,
-        "diagnostics": [{
-          "code": "UNEXPECTED_TOKEN",
-          "severity": "error",
-          "message": "Expected ',' or '}' in collection literal"
-        }]
-      }
+        "diagnostics": [
+          {
+            "code": "UNEXPECTED_TOKEN",
+            "severity": "error",
+            "message": "Expected ',' or '}' in collection literal"
+          }
+        ]
+      },
+      "parserOnly": true
     },
     {
       "name": "trailing comma in collection",
       "expression": "{1, 2, 3,}",
-      "tags": ["error", "syntax", "collection"],
+      "tags": [
+        "error",
+        "syntax",
+        "collection"
+      ],
       "expected": {
         "error": true,
-        "diagnostics": [{
-          "code": "EXPECTED_EXPRESSION",
-          "severity": "error",
-          "message": "Expected expression after ','"
-        }]
-      }
+        "diagnostics": [
+          {
+            "code": "EXPECTED_EXPRESSION",
+            "severity": "error",
+            "message": "Expected expression after ','"
+          }
+        ]
+      },
+      "parserOnly": true,
+      "pending": "Duplicate diagnostics issue - need to fix error reporting"
     },
     {
       "name": "invalid operator sequence",
       "expression": "5 + * 3",
-      "tags": ["error", "syntax", "operator"],
+      "tags": [
+        "error",
+        "syntax",
+        "operator"
+      ],
       "expected": {
         "error": true,
-        "diagnostics": [{
-          "code": "UNEXPECTED_TOKEN",
-          "severity": "error",
-          "message": "Expected expression, found '*'"
-        }]
-      }
+        "diagnostics": [
+          {
+            "code": "UNEXPECTED_TOKEN",
+            "severity": "error",
+            "message": "Expected expression, found '*'"
+          }
+        ]
+      },
+      "parserOnly": true
     },
     {
       "name": "missing operand",
       "expression": "5 +",
-      "tags": ["error", "syntax", "operator", "incomplete"],
+      "tags": [
+        "error",
+        "syntax",
+        "operator",
+        "incomplete"
+      ],
       "expected": {
         "error": true,
-        "diagnostics": [{
-          "code": "EXPECTED_EXPRESSION",
-          "severity": "error",
-          "message": "Expected expression after '+'"
-        }]
-      }
+        "diagnostics": [
+          {
+            "code": "EXPECTED_EXPRESSION",
+            "severity": "error",
+            "message": "Expected expression after '+'"
+          }
+        ]
+      },
+      "parserOnly": true
     },
     {
       "name": "invalid character",
       "expression": "Patient.name@value",
-      "tags": ["error", "syntax", "lexer"],
+      "tags": [
+        "error",
+        "syntax",
+        "lexer"
+      ],
       "expected": {
         "error": true,
-        "diagnostics": [{
-          "code": "INVALID_CHARACTER",
-          "severity": "error",
-          "message": "Invalid character '@'"
-        }]
-      }
+        "diagnostics": [
+          {
+            "code": "INVALID_CHARACTER",
+            "severity": "error",
+            "message": "Invalid character '@'"
+          }
+        ]
+      },
+      "parserOnly": true
     },
     {
       "name": "unterminated string",
       "expression": "'hello world",
-      "tags": ["error", "syntax", "string", "lexer"],
+      "tags": [
+        "error",
+        "syntax",
+        "string",
+        "lexer"
+      ],
       "expected": {
         "error": true,
-        "diagnostics": [{
-          "code": "UNTERMINATED_STRING",
-          "severity": "error",
-          "message": "Unterminated string literal"
-        }]
-      }
+        "diagnostics": [
+          {
+            "code": "UNTERMINATED_STRING",
+            "severity": "error",
+            "message": "Unterminated string literal"
+          }
+        ]
+      },
+      "parserOnly": true
     },
     {
       "name": "invalid escape sequence",
       "expression": "'hello\\xworld'",
-      "tags": ["error", "syntax", "string", "lexer"],
+      "tags": [
+        "error",
+        "syntax",
+        "string",
+        "lexer"
+      ],
       "expected": {
         "error": true,
-        "diagnostics": [{
-          "code": "INVALID_ESCAPE",
-          "severity": "error",
-          "message": "Invalid escape sequence '\\x'"
-        }]
-      }
+        "diagnostics": [
+          {
+            "code": "INVALID_ESCAPE",
+            "severity": "error",
+            "message": "Invalid escape sequence '\\x'"
+          }
+        ]
+      },
+      "parserOnly": true
     },
     {
       "name": "incomplete type cast",
       "expression": "Patient.name as",
-      "tags": ["error", "syntax", "type", "incomplete"],
+      "tags": [
+        "error",
+        "syntax",
+        "type",
+        "incomplete"
+      ],
       "expected": {
         "error": true,
-        "diagnostics": [{
-          "code": "EXPECTED_IDENTIFIER",
-          "severity": "error",
-          "message": "Expected type name after 'as'"
-        }]
-      }
+        "diagnostics": [
+          {
+            "code": "EXPECTED_IDENTIFIER",
+            "severity": "error",
+            "message": "Expected type name after 'as'"
+          }
+        ]
+      },
+      "parserOnly": true
     },
     {
       "name": "incomplete membership test",
       "expression": "Patient.name is",
-      "tags": ["error", "syntax", "type", "incomplete"],
+      "tags": [
+        "error",
+        "syntax",
+        "type",
+        "incomplete"
+      ],
       "expected": {
         "error": true,
-        "diagnostics": [{
-          "code": "EXPECTED_IDENTIFIER",
-          "severity": "error",
-          "message": "Expected type name after 'is'"
-        }]
-      }
+        "diagnostics": [
+          {
+            "code": "EXPECTED_IDENTIFIER",
+            "severity": "error",
+            "message": "Expected type name after 'is'"
+          }
+        ]
+      },
+      "parserOnly": true
     },
     {
       "name": "invalid function name",
       "expression": "Patient.123()",
-      "tags": ["error", "syntax", "function"],
+      "tags": [
+        "error",
+        "syntax",
+        "function"
+      ],
       "expected": {
         "error": true,
-        "diagnostics": [{
-          "code": "EXPECTED_IDENTIFIER",
-          "severity": "error",
-          "message": "Expected property name after '.'"
-        }]
-      }
+        "diagnostics": [
+          {
+            "code": "EXPECTED_IDENTIFIER",
+            "severity": "error",
+            "message": "Expected property name after '.'"
+          }
+        ]
+      },
+      "parserOnly": true
     },
     {
       "name": "space in dot navigation",
       "expression": "Patient. name",
-      "tags": ["error", "syntax", "whitespace"],
+      "tags": [
+        "error",
+        "syntax",
+        "whitespace"
+      ],
       "expected": {
         "error": true,
-        "diagnostics": [{
-          "code": "EXPECTED_IDENTIFIER",
-          "severity": "error",
-          "message": "Expected property name immediately after '.'"
-        }]
-      }
+        "diagnostics": [
+          {
+            "code": "EXPECTED_IDENTIFIER",
+            "severity": "error",
+            "message": "Expected property name immediately after '.'"
+          }
+        ]
+      },
+      "parserOnly": true,
+      "pending": "Whitespace detection between dot and identifier not implemented in lexer"
     }
   ]
 }

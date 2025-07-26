@@ -52,6 +52,8 @@ export class Interpreter implements IInterpreter {
     [NodeType.MembershipTest]: this.evaluateMembershipTest.bind(this),
     [NodeType.TypeCast]: this.evaluateTypeCast.bind(this),
     [NodeType.TypeReference]: this.evaluateTypeReference.bind(this),
+    [NodeType.Error]: this.evaluateError.bind(this),
+    [NodeType.Incomplete]: this.evaluateIncomplete.bind(this),
   };
 
   /**
@@ -428,6 +430,16 @@ export class Interpreter implements IInterpreter {
   private evaluateTypeReference(node: TypeReferenceNode, input: any[], context: RuntimeContext): EvaluationResult {
     // Type references don't evaluate to values directly
     throw new EvaluationError(`Type reference cannot be evaluated: ${node.typeName}`, node.position);
+  }
+  
+  private evaluateError(node: ASTNode, input: any[], context: RuntimeContext): EvaluationResult {
+    // Error nodes evaluate to empty collection
+    return { value: [], context };
+  }
+  
+  private evaluateIncomplete(node: ASTNode, input: any[], context: RuntimeContext): EvaluationResult {
+    // Incomplete nodes evaluate to empty collection
+    return { value: [], context };
   }
 }
 

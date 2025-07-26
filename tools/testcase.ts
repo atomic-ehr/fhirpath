@@ -300,8 +300,8 @@ if (args[0] === "--failing" || args[0] === "--failing-commands") {
       const suite = loadTestSuite(file);
 
       suite.tests.forEach((test: any) => {
-        // Skip tests that are marked as skip or pending
-        if ((test.skip?.interpreter && test.skip?.compiler) || test.pending) {
+        // Skip tests that are marked as skip, pending, or parser-only
+        if ((test.skip?.interpreter && test.skip?.compiler) || test.pending || test.parserOnly) {
           return;
         }
 

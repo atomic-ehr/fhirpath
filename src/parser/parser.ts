@@ -17,6 +17,8 @@ import {
   type TypeCastNode,
   type CollectionNode,
   type TypeReferenceNode,
+  type ErrorNode,
+  type IncompleteNode,
   NodeType
 } from './ast';
 import { Registry } from '../registry';
@@ -26,10 +28,13 @@ import {
   type ParseResult, 
   type FastParseResult, 
   type StandardParseResult,
+  type DiagnosticParseResult,
   type TextRange
 } from './types';
 import { DiagnosticCollector } from './diagnostics';
 import { SourceMapper } from './source-mapper';
+import { ContextualErrorReporter, ParseContext } from './error-reporter';
+import { FHIRPathDiagnostics } from './diagnostic-messages';
 import { ErrorCode } from '../api/errors';
 
 export class ParseError extends Error {
@@ -63,14 +68,27 @@ export class FHIRPathParser {
   private mode: ParserMode;
   private diagnostics?: DiagnosticCollector;
   private sourceMapper?: SourceMapper;
+  private errorReporter?: ContextualErrorReporter;
   private input: string;
+  private isPartial: boolean = false;
   
   constructor(input: string | Token[], options: ParserOptions = {}) {
     this.mode = options.mode ?? ParserMode.Standard;
     
     if (typeof input === 'string') {
       this.input = input;
-      this.tokens = lex(input);
+      try {
+        this.tokens = lex(input);
+      } catch (error: any) {
+        // In Fast mode, re-throw lexer errors
+        if (this.mode === ParserMode.Fast) {
+          throw error;
+        }
+        // For other modes, we'll handle lexer errors in parse()
+        this.tokens = [];
+        // Store the lexer error for later processing
+        (this as any).lexerError = error;
+      }
     } else {
       this.tokens = input;
       // For token array input, we'll construct a minimal input string
@@ -86,8 +104,18 @@ export class FHIRPathParser {
       case ParserMode.Fast:
         // No diagnostic infrastructure
         break;
+        
       case ParserMode.Standard:
+        this.diagnostics = new DiagnosticCollector(options.maxErrors);
+        this.sourceMapper = new SourceMapper(input);
+        break;
+        
       case ParserMode.Diagnostic:
+        this.diagnostics = new DiagnosticCollector(options.maxErrors);
+        this.sourceMapper = new SourceMapper(input);
+        this.errorReporter = new ContextualErrorReporter(this.sourceMapper, this.diagnostics);
+        break;
+        
       case ParserMode.Validate:
         this.diagnostics = new DiagnosticCollector(options.maxErrors);
         this.sourceMapper = new SourceMapper(input);
@@ -102,8 +130,10 @@ export class FHIRPathParser {
         return this.parseFast();
       case ParserMode.Standard:
         return this.parseStandard();
+      case ParserMode.Diagnostic:
+        return this.parseDiagnostic();
       default:
-        // For now, Diagnostic and Validate modes fall back to Standard
+        // Validate mode falls back to Standard for now
         return this.parseStandard();
     }
   }
@@ -118,6 +148,46 @@ export class FHIRPathParser {
   
   private parseStandard(): StandardParseResult {
     let ast: ASTNode;
+    
+    // Check for lexer errors first
+    if ((this as any).lexerError) {
+      const error = (this as any).lexerError;
+      // Map lexer error positions to our range format
+      const range: TextRange = {
+        start: { 
+          line: error.position.line - 1,  // Lexer uses 1-based lines, we use 0-based
+          character: error.position.column - 1,  // Lexer uses 1-based columns, we use 0-based
+          offset: error.position.offset 
+        },
+        end: { 
+          line: error.position.line - 1, 
+          character: error.position.column,  // One character after the error
+          offset: error.position.offset + 1 
+        }
+      };
+      
+      // Map specific lexer errors to appropriate error codes
+      let errorCode = ErrorCode.SYNTAX_ERROR;
+      if (error.message.includes('Invalid escape sequence')) {
+        errorCode = ErrorCode.INVALID_ESCAPE;
+      } else if (error.message.includes('Unterminated string')) {
+        errorCode = ErrorCode.UNTERMINATED_STRING;
+      }
+      
+      this.diagnostics!.addError(range, error.message, errorCode);
+      
+      // Return minimal AST with error
+      return {
+        ast: {
+          type: NodeType.Literal,
+          value: null,
+          valueType: 'null',
+          position: { line: 1, column: 1, offset: 0 }
+        } as LiteralNode,
+        diagnostics: this.diagnostics!.getDiagnostics(),
+        hasErrors: true
+      };
+    }
     
     try {
       ast = this.expression();
@@ -158,6 +228,95 @@ export class FHIRPathParser {
       ast,
       diagnostics: this.diagnostics!.getDiagnostics(),
       hasErrors: this.diagnostics!.hasErrors()
+    };
+  }
+  
+  private parseDiagnostic(): DiagnosticParseResult {
+    let ast: ASTNode;
+    const ranges = new Map<ASTNode, TextRange>();
+    
+    // Check for lexer errors first
+    if ((this as any).lexerError) {
+      const error = (this as any).lexerError;
+      // Map lexer error positions to our range format
+      const range: TextRange = {
+        start: { 
+          line: error.position.line - 1,  // Lexer uses 1-based lines, we use 0-based
+          character: error.position.column - 1,  // Lexer uses 1-based columns, we use 0-based
+          offset: error.position.offset 
+        },
+        end: { 
+          line: error.position.line - 1, 
+          character: error.position.column,  // One character after the error
+          offset: error.position.offset + 1 
+        }
+      };
+      
+      // Map specific lexer errors to appropriate error codes
+      let errorCode = ErrorCode.SYNTAX_ERROR;
+      if (error.message.includes('Invalid escape sequence')) {
+        errorCode = ErrorCode.INVALID_ESCAPE;
+      } else if (error.message.includes('Unterminated string')) {
+        errorCode = ErrorCode.UNTERMINATED_STRING;
+      }
+      
+      this.diagnostics!.addError(range, error.message, errorCode);
+      
+      // Create error node
+      ast = {
+        type: NodeType.Error,
+        position: { line: 1, column: 1, offset: 0 },
+        expectedTokens: [],
+        diagnostic: {
+          severity: 1,
+          range,
+          message: error.message,
+          code: errorCode
+        }
+      } as ErrorNode;
+      
+      return {
+        ast,
+        diagnostics: this.diagnostics!.getDiagnostics(),
+        hasErrors: true,
+        isPartial: true,
+        ranges
+      };
+    }
+    
+    try {
+      ast = this.expressionWithRecovery();
+      
+      if (!this.isAtEnd()) {
+        // In diagnostic mode, try to consume remaining tokens
+        const unexpectedToken = this.peek();
+        this.errorReporter!.reportExpectedToken(
+          [TokenType.EOF],
+          unexpectedToken,
+          ParseContext.Expression
+        );
+        
+        // Try to recover by consuming remaining tokens
+        while (!this.isAtEnd()) {
+          this.advance();
+        }
+      }
+    } catch (error) {
+      // In diagnostic mode, create error node and mark as partial
+      if (error instanceof ParseError) {
+        ast = this.createErrorNode(error.token, error.message);
+        this.isPartial = true;
+      } else {
+        throw error;
+      }
+    }
+    
+    return {
+      ast,
+      diagnostics: this.diagnostics!.getDiagnostics(),
+      hasErrors: this.diagnostics!.hasErrors(),
+      isPartial: this.isPartial,
+      ranges
     };
   }
   
@@ -366,16 +525,55 @@ export class FHIRPathParser {
     
     // Handle empty collection {} or collection literals {expr1, expr2, ...}
     if (this.match(TokenType.LBRACE)) {
-      const startPos = this.previous().position;
+      const lbrace = this.previous();
+      const startPos = lbrace.position;
       const elements: ASTNode[] = [];
       
       if (!this.check(TokenType.RBRACE)) {
         do {
-          elements.push(this.expression());
+          try {
+            elements.push(this.mode === ParserMode.Diagnostic ? this.expressionWithRecovery() : this.expression());
+          } catch (error) {
+            if (error instanceof ParseError && this.mode === ParserMode.Diagnostic) {
+              elements.push(this.createErrorNode(error.token, error.message));
+              // Skip to next comma or closing brace
+              while (!this.isAtEnd() && !this.check(TokenType.COMMA) && !this.check(TokenType.RBRACE)) {
+                this.advance();
+              }
+              if (this.check(TokenType.COMMA)) {
+                continue;
+              } else {
+                break;
+              }
+            } else {
+              throw error;
+            }
+          }
         } while (this.match(TokenType.COMMA));
+        
+        // Check for trailing comma
+        if (this.previous().type === TokenType.COMMA && this.check(TokenType.RBRACE)) {
+          if (this.mode === ParserMode.Diagnostic || this.mode === ParserMode.Standard) {
+            const diagnostic = FHIRPathDiagnostics.trailingComma(this.previous(), this.sourceMapper!);
+            this.diagnostics!.addError(diagnostic.range, diagnostic.message, diagnostic.code);
+          }
+        }
       }
       
-      this.consume(TokenType.RBRACE, "Expected '}' after collection elements");
+      if (!this.match(TokenType.RBRACE)) {
+        if (this.mode === ParserMode.Diagnostic || this.mode === ParserMode.Standard) {
+          this.errorReporter?.reportUnclosedDelimiter(lbrace, '}') ||
+            this.diagnostics!.addError(
+              this.sourceMapper!.tokenToRange(lbrace),
+              "Expected '}' to close collection literal",
+              ErrorCode.UNCLOSED_BRACE
+            );
+          this.isPartial = true;
+        } else {
+          throw this.error("Expected '}' after collection elements");
+        }
+      }
+      
       return {
         type: NodeType.Collection,
         elements: elements,
@@ -422,7 +620,28 @@ export class FHIRPathParser {
         this.consume(TokenType.RPAREN, "Expected ')' after type name");
       } else {
         // Regular is TypeName syntax
-        typeName = this.consume(TokenType.IDENTIFIER, "Expected type name").value;
+        const typeToken = this.peek();
+        if (!this.match(TokenType.IDENTIFIER)) {
+          if (this.mode === ParserMode.Diagnostic || this.mode === ParserMode.Standard) {
+            const context = op.type === TokenType.AS ? ParseContext.TypeCast : ParseContext.MembershipTest;
+            this.errorReporter?.reportExpectedToken(
+              [TokenType.IDENTIFIER],
+              typeToken,
+              context
+            ) || this.diagnostics!.addError(
+              this.sourceMapper!.tokenToRange(typeToken),
+              `Expected type name after '${op.value}'`,
+              ErrorCode.EXPECTED_IDENTIFIER
+            );
+            
+            if (this.mode === ParserMode.Diagnostic) {
+              // Create incomplete node
+              return this.createIncompleteNode(left, ['type name']);
+            }
+          }
+          throw this.error("Expected type name");
+        }
+        typeName = this.previous().value;
       }
       
       return {
@@ -455,6 +674,26 @@ export class FHIRPathParser {
     
     // Special handling for dot operator (left-associative, pipelines data)
     if (op.type === TokenType.DOT) {
+      // Check for double dot error
+      if (this.check(TokenType.DOT)) {
+        const secondDot = this.peek();
+        if (this.mode === ParserMode.Diagnostic || this.mode === ParserMode.Standard) {
+          const diagnostic = FHIRPathDiagnostics.doubleDotOperator(op, secondDot, this.sourceMapper!);
+          this.diagnostics!.addError(diagnostic.range, diagnostic.message, diagnostic.code);
+          
+          // Skip the extra dot to avoid cascading errors
+          this.advance();
+          
+          if (this.mode === ParserMode.Diagnostic) {
+            this.isPartial = true;
+          }
+        }
+        
+        if (this.mode === ParserMode.Fast) {
+          throw this.error("Invalid '..' operator - use single '.' for navigation");
+        }
+      }
+      
       // After a dot, we need to handle keywords that can be method names
       let right: ASTNode;
       
@@ -469,7 +708,45 @@ export class FHIRPathParser {
           position: next.position
         } as IdentifierNode;
       } else {
-        right = this.primary();
+        // Check for invalid syntax like .[ or .123
+        if (this.check(TokenType.LBRACKET) || this.check(TokenType.NUMBER)) {
+          if (this.mode === ParserMode.Diagnostic || this.mode === ParserMode.Standard) {
+            this.errorReporter?.reportExpectedToken(
+              [TokenType.IDENTIFIER],
+              this.peek(),
+              ParseContext.Expression
+            ) || this.diagnostics!.addError(
+              this.sourceMapper!.tokenToRange(this.peek()),
+              "Expected property name after '.'",
+              ErrorCode.EXPECTED_IDENTIFIER
+            );
+            
+            if (this.mode === ParserMode.Diagnostic) {
+              // Create error node and continue to parse the index
+              right = this.createErrorNode(this.peek(), "Expected identifier");
+              return {
+                type: NodeType.Binary,
+                operator: TokenType.DOT,
+                operation: operation,
+                left: left,
+                right: right,
+                position: op.position
+              } as BinaryNode;
+            }
+          }
+          throw this.error("Expected property name after '.'");
+        }
+        
+        try {
+          right = this.primary();
+        } catch (error) {
+          if (error instanceof ParseError && this.mode === ParserMode.Diagnostic) {
+            // Report missing identifier after dot
+            this.errorReporter!.reportMissingIdentifier(this.peek(), "after '.'");
+            return this.createIncompleteNode(left, ['property']);
+          }
+          throw error;
+        }
       }
       
       // Check for function call after dot
@@ -497,7 +774,22 @@ export class FHIRPathParser {
     
     // Right-associative operators (none in FHIRPath currently)
     const associativity = this.isRightAssociative(op) ? 0 : -1;
-    const right = this.expression(precedence + associativity);
+    
+    let right: ASTNode;
+    try {
+      right = this.expression(precedence + associativity);
+    } catch (error) {
+      if (error instanceof ParseError && (this.mode === ParserMode.Diagnostic || this.mode === ParserMode.Standard)) {
+        // Report missing operand
+        const diagnostic = FHIRPathDiagnostics.missingOperand(op, 'right', this.sourceMapper!);
+        this.diagnostics!.addError(diagnostic.range, diagnostic.message, diagnostic.code);
+        
+        if (this.mode === ParserMode.Diagnostic) {
+          return this.createIncompleteNode(left, ['right operand']);
+        }
+      }
+      throw error;
+    }
     
     return {
       type: NodeType.Binary,
@@ -511,17 +803,83 @@ export class FHIRPathParser {
   
   // Parse function calls
   private functionCall(func: ASTNode): ASTNode {
-    this.consume(TokenType.LPAREN, "Expected '(' after function");
+    const lparen = this.peek();
+    
+    if (!this.match(TokenType.LPAREN)) {
+      if (this.mode === ParserMode.Diagnostic) {
+        this.errorReporter!.reportExpectedToken(
+          [TokenType.LPAREN],
+          this.peek(),
+          ParseContext.FunctionCall
+        );
+        return this.createIncompleteNode(func, ['function arguments']);
+      }
+      throw this.error("Expected '(' after function");
+    }
     
     const args: ASTNode[] = [];
     
     if (!this.check(TokenType.RPAREN)) {
+      // Check for immediate unexpected tokens in function context
+      if (this.check(TokenType.RBRACKET) || this.check(TokenType.RBRACE)) {
+        if (this.mode === ParserMode.Diagnostic) {
+          this.errorReporter!.reportExpectedToken(
+            [TokenType.IDENTIFIER, TokenType.NUMBER, TokenType.STRING, TokenType.LPAREN, TokenType.LBRACE],
+            this.peek(),
+            ParseContext.FunctionCall
+          );
+          // Skip the unexpected token
+          this.advance();
+        }
+      }
+      
       do {
-        args.push(this.expression());
+        try {
+          args.push(this.mode === ParserMode.Diagnostic ? this.expressionWithRecovery() : this.expression());
+        } catch (error) {
+          if (error instanceof ParseError && this.mode === ParserMode.Diagnostic) {
+            // Report contextual error for function arguments
+            this.errorReporter!.reportExpectedToken(
+              [TokenType.IDENTIFIER, TokenType.NUMBER, TokenType.STRING, TokenType.LPAREN, TokenType.LBRACE],
+              error.token,
+              ParseContext.FunctionCall
+            );
+            args.push(this.createErrorNode(error.token, error.message));
+            
+            // Skip to next comma or closing paren
+            while (!this.isAtEnd() && !this.check(TokenType.COMMA) && !this.check(TokenType.RPAREN)) {
+              this.advance();
+            }
+            
+            if (this.check(TokenType.COMMA)) {
+              continue;
+            } else {
+              break;
+            }
+          } else {
+            throw error;
+          }
+        }
       } while (this.match(TokenType.COMMA));
     }
     
-    this.consume(TokenType.RPAREN, "Expected ')' after arguments");
+    // Check for empty function that requires arguments
+    const funcName = func.type === NodeType.Identifier ? (func as IdentifierNode).name : '';
+    if (args.length === 0 && funcName === 'where') {
+      if (this.mode === ParserMode.Diagnostic) {
+        this.errorReporter!.reportMissingArguments(funcName, lparen);
+      }
+    }
+    
+    if (!this.match(TokenType.RPAREN)) {
+      if (this.mode === ParserMode.Diagnostic) {
+        // Report unclosed parenthesis
+        this.errorReporter!.reportUnclosedDelimiter(lparen, ')');
+        this.isPartial = true;
+      } else {
+        throw this.error("Expected ')' after arguments");
+      }
+    }
     
     let result: ASTNode = {
       type: NodeType.Function,
@@ -578,9 +936,47 @@ export class FHIRPathParser {
   
   // Handle indexing
   private parseIndex(expr: ASTNode): ASTNode {
-    this.consume(TokenType.LBRACKET, "Expected '['");
-    const index = this.expression();
-    this.consume(TokenType.RBRACKET, "Expected ']'");
+    const lbracket = this.peek();
+    
+    if (!this.match(TokenType.LBRACKET)) {
+      throw this.error("Expected '['");
+    }
+    
+    // Check for empty brackets
+    if (this.check(TokenType.RBRACKET)) {
+      if (this.mode === ParserMode.Diagnostic || this.mode === ParserMode.Standard) {
+        const diagnostic = FHIRPathDiagnostics.emptyBrackets(lbracket, this.sourceMapper!);
+        this.diagnostics!.addError(diagnostic.range, diagnostic.message, diagnostic.code);
+      }
+      if (this.mode === ParserMode.Fast) {
+        throw this.error("Expected expression in index");
+      }
+    }
+    
+    let index: ASTNode;
+    try {
+      index = this.mode === ParserMode.Diagnostic ? this.expressionWithRecovery() : this.expression();
+    } catch (error) {
+      if (error instanceof ParseError && this.mode === ParserMode.Diagnostic) {
+        index = this.createErrorNode(error.token, error.message);
+      } else {
+        throw error;
+      }
+    }
+    
+    if (!this.match(TokenType.RBRACKET)) {
+      if (this.mode === ParserMode.Diagnostic || this.mode === ParserMode.Standard) {
+        this.errorReporter?.reportUnclosedDelimiter(lbracket, ']') ||
+          this.diagnostics!.addError(
+            this.sourceMapper!.tokenToRange(lbracket),
+            "Expected ']' after index expression",
+            ErrorCode.UNCLOSED_BRACKET
+          );
+        this.isPartial = true;
+      } else {
+        throw this.error("Expected ']'");
+      }
+    }
     
     return {
       type: NodeType.Index,
@@ -777,6 +1173,112 @@ export class FHIRPathParser {
            type === TokenType.NOT ||
            type === TokenType.TRUE ||
            type === TokenType.FALSE;
+  }
+  
+  // Error recovery methods
+  private expressionWithRecovery(minPrecedence: number = 14): ASTNode {
+    try {
+      return this.expression(minPrecedence);
+    } catch (error) {
+      if (error instanceof ParseError && this.mode === ParserMode.Diagnostic) {
+        const errorNode = this.createErrorNode(error.token, error.message);
+        this.recoverToSyncPoint();
+        
+        // Try to continue parsing after recovery
+        if (!this.isAtEnd()) {
+          try {
+            const recovered = this.expressionWithRecovery(minPrecedence);
+            // Create a binary node with error on left
+            return {
+              type: NodeType.Binary,
+              operator: TokenType.DOT,
+              left: errorNode,
+              right: recovered,
+              position: errorNode.position
+            } as BinaryNode;
+          } catch {
+            // If recovery fails, just return the error node
+            return errorNode;
+          }
+        }
+        
+        return errorNode;
+      }
+      throw error;
+    }
+  }
+  
+  private primaryWithRecovery(): ASTNode {
+    try {
+      return this.primary();
+    } catch (error) {
+      if (error instanceof ParseError && this.mode === ParserMode.Diagnostic) {
+        const errorNode = this.createErrorNode(error.token, error.message);
+        this.recoverToSyncPoint();
+        return errorNode;
+      }
+      throw error;
+    }
+  }
+  
+  private createErrorNode(token: Token, message: string): ErrorNode {
+    const range = this.sourceMapper!.tokenToRange(token);
+    const diagnostic = this.diagnostics!.getDiagnostics().slice(-1)[0];
+    
+    this.isPartial = true;
+    
+    return {
+      type: NodeType.Error,
+      position: token.position,
+      range,
+      expectedTokens: [], // Could be enhanced to track expected tokens
+      actualToken: token,
+      diagnostic: diagnostic || {
+        range,
+        severity: 1,
+        code: ErrorCode.PARSE_ERROR,
+        message,
+        source: 'fhirpath-parser'
+      }
+    };
+  }
+  
+  private createIncompleteNode(partialNode: ASTNode | undefined, missingParts: string[]): IncompleteNode {
+    const position = partialNode?.position || this.peek().position;
+    const range = partialNode?.range || this.sourceMapper!.tokenToRange(this.peek());
+    
+    this.isPartial = true;
+    
+    return {
+      type: NodeType.Incomplete,
+      position,
+      range,
+      partialNode,
+      missingParts
+    };
+  }
+  
+  private recoverToSyncPoint(): void {
+    while (!this.isAtEnd() && !this.isAtSyncPoint()) {
+      this.advance();
+    }
+  }
+  
+  private isAtSyncPoint(): boolean {
+    const token = this.peek();
+    return token.type === TokenType.COMMA ||
+           token.type === TokenType.RPAREN ||
+           token.type === TokenType.RBRACKET ||
+           token.type === TokenType.RBRACE ||
+           token.type === TokenType.PIPE ||
+           token.type === TokenType.AND ||
+           token.type === TokenType.OR ||
+           this.isStatementBoundary(token);
+  }
+  
+  private isStatementBoundary(token: Token): boolean {
+    // For future multi-statement support
+    return token.type === TokenType.EOF;
   }
   
   // Synchronization points for error recovery

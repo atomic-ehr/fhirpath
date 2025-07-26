@@ -1,9 +1,12 @@
-import type { TokenType } from '../lexer/token';
+import type { TokenType, Token } from '../lexer/token';
+import type { TextRange } from './types';
+import type { ParseDiagnostic } from './types';
 
 // Core AST Node Interface
 export interface ASTNode {
   type: NodeType;
   position: Position;
+  range?: TextRange;     // Full text range (populated in diagnostic modes)
   // Type analysis fields (optional - added by analyzer)
   resultType?: unknown;  // Opaque type reference
   isSingleton?: boolean; // Whether this expression returns a single value
@@ -41,6 +44,10 @@ export enum NodeType {
   
   // Special
   Index,      // [] indexing
+  
+  // Error recovery
+  Error = 'Error',           // Error recovery node
+  Incomplete = 'Incomplete'  // Incomplete expression node
 }
 
 // Specific node types
@@ -120,4 +127,18 @@ export interface CollectionNode extends ASTNode {
 export interface TypeReferenceNode extends ASTNode {
   type: NodeType.TypeReference;
   typeName: string;
+}
+
+// Error recovery nodes
+export interface ErrorNode extends ASTNode {
+  type: NodeType.Error;
+  expectedTokens?: TokenType[];
+  actualToken?: Token;
+  diagnostic: ParseDiagnostic;
+}
+
+export interface IncompleteNode extends ASTNode {
+  type: NodeType.Incomplete;
+  partialNode?: ASTNode;
+  missingParts: string[];
 }

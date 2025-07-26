@@ -58,6 +58,8 @@ export class TypeAnalyzer implements IAnalyzer {
     [NodeType.MembershipTest]: this.analyzeMembershipTest.bind(this),
     [NodeType.TypeCast]: this.analyzeTypeCast.bind(this),
     [NodeType.TypeReference]: this.analyzeTypeReference.bind(this),
+    [NodeType.Error]: this.analyzeError.bind(this),
+    [NodeType.Incomplete]: this.analyzeIncomplete.bind(this),
   };
   
   constructor(
@@ -455,6 +457,16 @@ export class TypeAnalyzer implements IAnalyzer {
     }
     
     return { type: typeRef, isSingleton: true };
+  }
+  
+  private analyzeError(node: ASTNode): AnalysisResult {
+    // Error nodes don't have meaningful types
+    return { type: this.modelProvider.resolveType('Any'), isSingleton: false };
+  }
+  
+  private analyzeIncomplete(node: ASTNode): AnalysisResult {
+    // Incomplete nodes don't have meaningful types
+    return { type: this.modelProvider.resolveType('Any'), isSingleton: false };
   }
   
   private addDiagnostic(

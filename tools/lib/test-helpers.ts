@@ -27,6 +27,8 @@ interface UnifiedTest {
     reason?: string;
   };
   specRef?: string;
+  parserOnly?: boolean;  // Flag to indicate this test should only test parser behavior
+  mode?: string; // Parser mode: 'fast', 'standard', 'diagnostic', 'validate'
 }
 
 interface TestSuite {
@@ -101,6 +103,18 @@ export function runSingleTest(test: UnifiedTest, mode: 'interpreter' | 'compiler
     return {
       interpreter: { success: true, pending: true },
       compiler: { success: true, pending: true }
+    };
+  }
+  
+  // Check if this is a parser-only test
+  if (test.parserOnly) {
+    console.log(`   ⚠️  PARSER-ONLY TEST: This test is designed to test parser behavior only`);
+    console.log(`   Expression: ${test.expression}`);
+    console.log(`   Parser Mode: ${test.mode || 'standard'}`);
+    console.log(`   This test should be run through the main test suite, not the testcase tool`);
+    return {
+      interpreter: { success: true, skipped: true, reason: 'Parser-only test' },
+      compiler: { success: true, skipped: true, reason: 'Parser-only test' }
     };
   }
   
