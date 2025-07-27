@@ -450,34 +450,34 @@ describe('Lexer', () => {
       const tokens = lexer.tokenize();
       
       expect(tokens.length).toBe(6); // a, whitespace, comment, whitespace, b, EOF
-      expect(tokens[0].type).toBe(TokenType.IDENTIFIER);
-      expect(tokens[0].channel).toBeUndefined(); // Regular tokens don't have channel
+      expect(tokens[0]!.type).toBe(TokenType.IDENTIFIER);
+      expect(tokens[0]!.channel).toBeUndefined(); // Regular tokens don't have channel
       
-      expect(tokens[1].type).toBe(TokenType.WHITESPACE);
-      expect(tokens[1].channel).toBe(Channel.HIDDEN);
+      expect(tokens[1]!.type).toBe(TokenType.WHITESPACE);
+      expect(tokens[1]!.channel).toBe(Channel.HIDDEN);
       
-      expect(tokens[2].type).toBe(TokenType.COMMENT);
-      expect(tokens[2].channel).toBe(Channel.HIDDEN);
+      expect(tokens[2]!.type).toBe(TokenType.COMMENT);
+      expect(tokens[2]!.channel).toBe(Channel.HIDDEN);
       
-      expect(tokens[3].type).toBe(TokenType.WHITESPACE);
-      expect(tokens[3].channel).toBe(Channel.HIDDEN);
+      expect(tokens[3]!.type).toBe(TokenType.WHITESPACE);
+      expect(tokens[3]!.channel).toBe(Channel.HIDDEN);
       
-      expect(tokens[4].type).toBe(TokenType.IDENTIFIER);
-      expect(tokens[4].channel).toBeUndefined();
+      expect(tokens[4]!.type).toBe(TokenType.IDENTIFIER);
+      expect(tokens[4]!.channel).toBeUndefined();
     });
     
     it('preserves line comments with channel information', () => {
       const lexer = new Lexer('a // comment\nb', { preserveTrivia: true });
       const tokens = lexer.tokenize();
       
-      expect(tokens[0].type).toBe(TokenType.IDENTIFIER);
-      expect(tokens[1].type).toBe(TokenType.WHITESPACE);
-      expect(tokens[1].channel).toBe(Channel.HIDDEN);
-      expect(tokens[2].type).toBe(TokenType.LINE_COMMENT);
-      expect(tokens[2].channel).toBe(Channel.HIDDEN);
-      expect(tokens[3].type).toBe(TokenType.WHITESPACE); // newline
-      expect(tokens[3].channel).toBe(Channel.HIDDEN);
-      expect(tokens[4].type).toBe(TokenType.IDENTIFIER);
+      expect(tokens[0]!.type).toBe(TokenType.IDENTIFIER);
+      expect(tokens[1]!.type).toBe(TokenType.WHITESPACE);
+      expect(tokens[1]!.channel).toBe(Channel.HIDDEN);
+      expect(tokens[2]!.type).toBe(TokenType.LINE_COMMENT);
+      expect(tokens[2]!.channel).toBe(Channel.HIDDEN);
+      expect(tokens[3]!.type).toBe(TokenType.WHITESPACE); // newline
+      expect(tokens[3]!.channel).toBe(Channel.HIDDEN);
+      expect(tokens[4]!.type).toBe(TokenType.IDENTIFIER);
     });
     
     it('can filter tokens by channel', () => {
