@@ -670,6 +670,47 @@ const triviaTokens = tokens.filter(t => t.channel === Channel.HIDDEN);
 - **Total improvement: ~85%** (real-world) to **313%** (simple)
 - With trivia enabled: ~1,738K expressions/second (36.4% overhead)
 
+## 19. Performance Comparison with ANTLR
+
+### What was tested:
+- Compared hand-optimized Lexer2 with ANTLR-generated lexer
+- Used same test suite: 1,539 real-world FHIRPath expressions
+- 10,000 iterations per expression (~15.4 million tokens)
+- ANTLR lexer generated from official FHIRPath grammar (spec/fhirpath.g4)
+
+### Performance Results:
+- **Lexer2**: 2,820,268 expressions/second
+- **ANTLR**: 725,684 expressions/second
+- **Performance advantage: 3.89x faster**
+
+### Why Lexer2 Outperforms ANTLR:
+
+#### Lexer2 Optimizations:
+1. **Lookup tables** - O(1) character classification
+2. **CharCode dispatch** - Integer switches instead of string comparisons
+3. **Inlined hot paths** - Reduced function call overhead
+4. **Optimized keywords** - Switch by length then value
+5. **Minimal allocations** - Simple object literals
+
+#### ANTLR Overhead:
+1. **Generic DFA/NFA** - Flexible but less optimized
+2. **Heavy tokens** - Complex Token class with many properties
+3. **Stream abstractions** - Multiple indirection layers
+4. **Error recovery** - Built-in but adds overhead
+5. **Memory usage** - Larger token objects and buffering
+
+### Trade-offs:
+- **Lexer2**: Maximum performance, requires manual maintenance
+- **ANTLR**: Grammar-based, easier to modify, good tooling
+
+### Conclusion:
+The hand-optimized approach provides substantial performance benefits (3.89x) for performance-critical applications like FHIRPath evaluation. ANTLR remains valuable for prototyping and when 725K expr/sec is sufficient.
+
+### Final Performance Summary:
+- **vs Original implementation**: ~85% improvement (real-world)
+- **vs ANTLR-generated lexer**: ~289% improvement (3.89x faster)
+- **Absolute performance**: 2.82M expressions/second
+
 ### Remaining Optimization Opportunities:
 1. **Optimize readDateTime/readTimeFormat** - Reduce redundant charCode lookups
 2. **Consider selective inlining** - Apply only where measurable benefit exists
