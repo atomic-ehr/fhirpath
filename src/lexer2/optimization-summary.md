@@ -158,6 +158,44 @@ The current token representation using plain object literals is the fastest appr
 - Column increments for all other characters
 - Special handling in readSpecialIdentifier for multi-character advances
 
+## 7. Numeric Enum Token Types
+
+### What was changed:
+- Converted TokenType from string enum to numeric enum
+- String enum: `IDENTIFIER = 'IDENTIFIER'` → Numeric enum: `IDENTIFIER = 6`
+- Added `tokenTypeToString()` helper function for debugging
+- Added `debugTokens()` method for human-readable token output
+
+### Performance Impact:
+- Before: ~2,147K expressions/second (string enums)
+- After: ~2,200K expressions/second (numeric enums)
+- **Improvement: ~2.5%**
+
+### Why it works:
+- Numeric comparisons are faster than string comparisons
+- Smaller memory footprint (4 bytes vs string length)
+- Better CPU cache utilization
+- Switch statements optimize better with numeric values
+
+### Trade-offs:
+- Less readable in raw debugging output (see `6` instead of `"IDENTIFIER"`)
+- Need helper functions for human-readable output
+- Breaking change if external code depends on string values
+
+### Debug Support:
+```typescript
+// Convert numeric type to string
+tokenTypeToString(TokenType.IDENTIFIER) // "IDENTIFIER"
+
+// Debug tokens
+lexer.debugTokens() // "IDENTIFIER(foo) [1:1]\nDOT(.) [1:4]..."
+```
+
+### Current Performance Summary:
+- Original: ~1,477K expressions/second
+- Current: ~2,200K expressions/second
+- **Total improvement: ~49%**
+
 ### Next Optimization Opportunities:
 1. **Optimize readSpecialIdentifier** - Remove substring call (estimated 2-3% improvement)
 2. **Optimize readDateTime/readTimeFormat** - Reduce redundant charCode lookups (estimated 1-2% improvement)

@@ -1,84 +1,159 @@
 export enum TokenType {
   // Literals
-  NULL = 'NULL',
-  BOOLEAN = 'BOOLEAN',
-  STRING = 'STRING',
-  NUMBER = 'NUMBER',
-  DATETIME = 'DATETIME',
-  TIME = 'TIME',
+  NULL,
+  BOOLEAN,
+  STRING,
+  NUMBER,
+  DATETIME,
+  TIME,
   
   // Identifiers
-  IDENTIFIER = 'IDENTIFIER',
-  DELIMITED_IDENTIFIER = 'DELIMITED_IDENTIFIER',
+  IDENTIFIER,
+  DELIMITED_IDENTIFIER,
   
   // Keywords
-  TRUE = 'TRUE',
-  FALSE = 'FALSE',
-  AS = 'AS',
-  CONTAINS = 'CONTAINS',
-  IN = 'IN',
-  IS = 'IS',
-  DIV = 'DIV',
-  MOD = 'MOD',
-  AND = 'AND',
-  OR = 'OR',
-  XOR = 'XOR',
-  IMPLIES = 'IMPLIES',
+  TRUE,
+  FALSE,
+  AS,
+  CONTAINS,
+  IN,
+  IS,
+  DIV,
+  MOD,
+  AND,
+  OR,
+  XOR,
+  IMPLIES,
   
   // Special identifiers
-  THIS = 'THIS',
-  INDEX = 'INDEX',
-  TOTAL = 'TOTAL',
+  THIS,
+  INDEX,
+  TOTAL,
   
   // Operators
-  DOT = 'DOT',
-  LPAREN = 'LPAREN',
-  RPAREN = 'RPAREN',
-  LBRACKET = 'LBRACKET',
-  RBRACKET = 'RBRACKET',
-  LBRACE = 'LBRACE',
-  RBRACE = 'RBRACE',
-  PLUS = 'PLUS',
-  MINUS = 'MINUS',
-  MULTIPLY = 'MULTIPLY',
-  DIVIDE = 'DIVIDE',
-  AMPERSAND = 'AMPERSAND',
-  PIPE = 'PIPE',
-  LTE = 'LTE',
-  LT = 'LT',
-  GT = 'GT',
-  GTE = 'GTE',
-  EQ = 'EQ',
-  NEQ = 'NEQ',
-  SIMILAR = 'SIMILAR',
-  NOT_SIMILAR = 'NOT_SIMILAR',
-  COMMA = 'COMMA',
-  PERCENT = 'PERCENT',
-  AT = 'AT',
+  DOT,
+  LPAREN,
+  RPAREN,
+  LBRACKET,
+  RBRACKET,
+  LBRACE,
+  RBRACE,
+  PLUS,
+  MINUS,
+  MULTIPLY,
+  DIVIDE,
+  AMPERSAND,
+  PIPE,
+  LTE,
+  LT,
+  GT,
+  GTE,
+  EQ,
+  NEQ,
+  SIMILAR,
+  NOT_SIMILAR,
+  COMMA,
+  PERCENT,
+  AT,
   
   // Date/time units
-  YEAR = 'YEAR',
-  MONTH = 'MONTH',
-  WEEK = 'WEEK',
-  DAY = 'DAY',
-  HOUR = 'HOUR',
-  MINUTE = 'MINUTE',
-  SECOND = 'SECOND',
-  MILLISECOND = 'MILLISECOND',
-  YEARS = 'YEARS',
-  MONTHS = 'MONTHS',
-  WEEKS = 'WEEKS',
-  DAYS = 'DAYS',
-  HOURS = 'HOURS',
-  MINUTES = 'MINUTES',
-  SECONDS = 'SECONDS',
-  MILLISECONDS = 'MILLISECONDS',
+  YEAR,
+  MONTH,
+  WEEK,
+  DAY,
+  HOUR,
+  MINUTE,
+  SECOND,
+  MILLISECOND,
+  YEARS,
+  MONTHS,
+  WEEKS,
+  DAYS,
+  HOURS,
+  MINUTES,
+  SECONDS,
+  MILLISECONDS,
   
   // Special
-  EOF = 'EOF',
-  WHITESPACE = 'WHITESPACE',
-  COMMENT = 'COMMENT',
-  LINE_COMMENT = 'LINE_COMMENT',
+  EOF,
+  WHITESPACE,
+  COMMENT,
+  LINE_COMMENT,
+}
+
+// Helper to convert numeric token type to string for debugging
+const TOKEN_TYPE_NAMES: { [key: number]: string } = {
+  [TokenType.NULL]: 'NULL',
+  [TokenType.BOOLEAN]: 'BOOLEAN',
+  [TokenType.STRING]: 'STRING',
+  [TokenType.NUMBER]: 'NUMBER',
+  [TokenType.DATETIME]: 'DATETIME',
+  [TokenType.TIME]: 'TIME',
+  [TokenType.IDENTIFIER]: 'IDENTIFIER',
+  [TokenType.DELIMITED_IDENTIFIER]: 'DELIMITED_IDENTIFIER',
+  [TokenType.TRUE]: 'TRUE',
+  [TokenType.FALSE]: 'FALSE',
+  [TokenType.AS]: 'AS',
+  [TokenType.CONTAINS]: 'CONTAINS',
+  [TokenType.IN]: 'IN',
+  [TokenType.IS]: 'IS',
+  [TokenType.DIV]: 'DIV',
+  [TokenType.MOD]: 'MOD',
+  [TokenType.AND]: 'AND',
+  [TokenType.OR]: 'OR',
+  [TokenType.XOR]: 'XOR',
+  [TokenType.IMPLIES]: 'IMPLIES',
+  [TokenType.THIS]: 'THIS',
+  [TokenType.INDEX]: 'INDEX',
+  [TokenType.TOTAL]: 'TOTAL',
+  [TokenType.DOT]: 'DOT',
+  [TokenType.LPAREN]: 'LPAREN',
+  [TokenType.RPAREN]: 'RPAREN',
+  [TokenType.LBRACKET]: 'LBRACKET',
+  [TokenType.RBRACKET]: 'RBRACKET',
+  [TokenType.LBRACE]: 'LBRACE',
+  [TokenType.RBRACE]: 'RBRACE',
+  [TokenType.PLUS]: 'PLUS',
+  [TokenType.MINUS]: 'MINUS',
+  [TokenType.MULTIPLY]: 'MULTIPLY',
+  [TokenType.DIVIDE]: 'DIVIDE',
+  [TokenType.AMPERSAND]: 'AMPERSAND',
+  [TokenType.PIPE]: 'PIPE',
+  [TokenType.LTE]: 'LTE',
+  [TokenType.LT]: 'LT',
+  [TokenType.GT]: 'GT',
+  [TokenType.GTE]: 'GTE',
+  [TokenType.EQ]: 'EQ',
+  [TokenType.NEQ]: 'NEQ',
+  [TokenType.SIMILAR]: 'SIMILAR',
+  [TokenType.NOT_SIMILAR]: 'NOT_SIMILAR',
+  [TokenType.COMMA]: 'COMMA',
+  [TokenType.PERCENT]: 'PERCENT',
+  [TokenType.AT]: 'AT',
+  [TokenType.YEAR]: 'YEAR',
+  [TokenType.MONTH]: 'MONTH',
+  [TokenType.WEEK]: 'WEEK',
+  [TokenType.DAY]: 'DAY',
+  [TokenType.HOUR]: 'HOUR',
+  [TokenType.MINUTE]: 'MINUTE',
+  [TokenType.SECOND]: 'SECOND',
+  [TokenType.MILLISECOND]: 'MILLISECOND',
+  [TokenType.YEARS]: 'YEARS',
+  [TokenType.MONTHS]: 'MONTHS',
+  [TokenType.WEEKS]: 'WEEKS',
+  [TokenType.DAYS]: 'DAYS',
+  [TokenType.HOURS]: 'HOURS',
+  [TokenType.MINUTES]: 'MINUTES',
+  [TokenType.SECONDS]: 'SECONDS',
+  [TokenType.MILLISECONDS]: 'MILLISECONDS',
+  [TokenType.EOF]: 'EOF',
+  [TokenType.WHITESPACE]: 'WHITESPACE',
+  [TokenType.COMMENT]: 'COMMENT',
+  [TokenType.LINE_COMMENT]: 'LINE_COMMENT',
+};
+
+export function tokenTypeToString(type: TokenType): string {
+  return TOKEN_TYPE_NAMES[type] || `UNKNOWN(${type})`;
 }
 
 export interface Token {
@@ -847,5 +922,31 @@ export class Lexer {
   
   public getTokenValue(token: Token): string {
     return this.input.substring(token.start, token.end);
+  }
+  
+  // Debug helper to print tokens in human-readable format
+  public debugTokens(tokens?: Token[]): string {
+    if (!tokens) {
+      // Save current position and reset
+      const savedPosition = this.position;
+      const savedLine = this.line;
+      const savedColumn = this.column;
+      this.position = 0;
+      this.line = 1;
+      this.column = 1;
+      
+      tokens = this.tokenize();
+      
+      // Restore position
+      this.position = savedPosition;
+      this.line = savedLine;
+      this.column = savedColumn;
+    }
+    
+    return tokens.map(token => {
+      const value = this.getTokenValue(token);
+      const type = tokenTypeToString(token.type);
+      return `${type}(${value}) [${token.line}:${token.column}]`;
+    }).join('\n');
   }
 }
