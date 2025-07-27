@@ -204,6 +204,7 @@ export interface LexerOptions {
   skipWhitespace?: boolean;
   skipComments?: boolean;
   preserveTrivia?: boolean;  // When true, whitespace/comments get Channel.HIDDEN
+  trackPosition?: boolean;   // When false, skip line/column tracking for performance
 }
 
 // Character code constants
@@ -252,6 +253,7 @@ export class Lexer {
       skipWhitespace: options.skipWhitespace ?? true,
       skipComments: options.skipComments ?? true,
       preserveTrivia: options.preserveTrivia ?? false,
+      trackPosition: options.trackPosition ?? true,
     };
   }
     
@@ -287,15 +289,27 @@ export class Lexer {
     const char = this.input[this.position] || '';
     this.position++;
     
-    // Update line and column
-    if (char === '\n') {
-      this.line++;
-      this.column = 1;
-    } else {
-      this.column++;
+    // Update line and column only if tracking position
+    if (this.options.trackPosition) {
+      if (char === '\n') {
+        this.line++;
+        this.column = 1;
+      } else {
+        this.column++;
+      }
     }
     
     return char;
+  }
+  
+  private createToken(type: TokenType, start: number, end: number, startLine: number, startColumn: number): Token {
+    return {
+      type,
+      start,
+      end,
+      line: this.options.trackPosition ? startLine : 0,
+      column: this.options.trackPosition ? startColumn : 0
+    };
   }
   
   private readWhitespace(): Token | null {
@@ -311,7 +325,9 @@ export class Lexer {
         case 32:  // ' ' (space)
         case 9:   // '\t' (tab)
           this.position++;
-          this.column++;
+          if (this.options.trackPosition) {
+            this.column++;
+          }
           break;
         case 13:  // '\r' (carriage return)
           this.position++;
@@ -319,13 +335,15 @@ export class Lexer {
           break;
         case 10:  // '\n' (line feed)
           this.position++;
-          this.line++;
-          this.column = 1;
+          if (this.options.trackPosition) {
+            this.line++;
+            this.column = 1;
+          }
           break;
         default:
           // Not whitespace, exit loop
           if (this.position > start) {
-            const token: Token = { type: TokenType.WHITESPACE, start, end: this.position, line: startLine, column: startColumn };
+            const token = this.createToken(TokenType.WHITESPACE, start, this.position, startLine, startColumn);
             if (this.options.preserveTrivia) {
               token.channel = Channel.HIDDEN;
             }
@@ -337,7 +355,7 @@ export class Lexer {
     
     // Reached end of input
     if (this.position > start) {
-      const token: Token = { type: TokenType.WHITESPACE, start, end: this.position, line: startLine, column: startColumn };
+      const token = this.createToken(TokenType.WHITESPACE, start, this.position, startLine, startColumn);
       if (this.options.preserveTrivia) {
         token.channel = Channel.HIDDEN;
       }

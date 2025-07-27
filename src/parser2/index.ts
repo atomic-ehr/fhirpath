@@ -10,7 +10,7 @@ export type { Position } from './base';
 // AST Types specific to parser2
 export interface ASTNode {
   type: NodeType;
-  position: Position;
+  position?: Position;
 }
 
 export interface IdentifierNode extends ASTNode {
@@ -84,8 +84,8 @@ export interface TypeReferenceNode extends ASTNode {
 
 export class Parser extends BaseParser<ASTNode> {
   constructor(input: string) {
-    // Use same lexer options as before for performance
-    super(input, { skipWhitespace: true, skipComments: true });
+    // Use same lexer options as before for performance, but disable position tracking
+    super(input, { skipWhitespace: true, skipComments: true, trackPosition: false });
   }
 
   parse(): ASTNode {
@@ -98,21 +98,17 @@ export class Parser extends BaseParser<ASTNode> {
 
   // Implement abstract methods for node creation
   protected createIdentifierNode(name: string, token: Token): ASTNode {
-    const position = this.getPosition(token);
-    
     // Check if it's a type (starts with uppercase)
     if (name[0] && name[0] >= 'A' && name[0] <= 'Z') {
       return {
         type: NodeType.TypeOrIdentifier,
-        name,
-        position
+        name
       } as TypeOrIdentifierNode;
     }
     
     return {
       type: NodeType.Identifier,
-      name,
-      position
+      name
     } as IdentifierNode;
   }
 
@@ -120,8 +116,7 @@ export class Parser extends BaseParser<ASTNode> {
     return {
       type: NodeType.Literal,
       value,
-      valueType,
-      position: this.getPosition(token)
+      valueType
     };
   }
 
@@ -130,8 +125,7 @@ export class Parser extends BaseParser<ASTNode> {
       type: NodeType.Binary,
       operator: token.type,
       left,
-      right,
-      position: this.getPosition(token)
+      right
     };
   }
 
@@ -139,8 +133,7 @@ export class Parser extends BaseParser<ASTNode> {
     return {
       type: NodeType.Unary,
       operator: token.type,
-      operand,
-      position: this.getPosition(token)
+      operand
     };
   }
 
@@ -148,16 +141,14 @@ export class Parser extends BaseParser<ASTNode> {
     return {
       type: NodeType.Function,
       name,
-      arguments: args,
-      position
+      arguments: args
     };
   }
 
   protected createVariableNode(name: string, token: Token): VariableNode {
     return {
       type: NodeType.Variable,
-      name,
-      position: this.getPosition(token)
+      name
     };
   }
 
@@ -165,8 +156,7 @@ export class Parser extends BaseParser<ASTNode> {
     return {
       type: NodeType.Index,
       expression,
-      index,
-      position
+      index
     };
   }
 
@@ -175,8 +165,7 @@ export class Parser extends BaseParser<ASTNode> {
     return {
       type: NodeType.MembershipTest,
       expression,
-      targetType,
-      position
+      targetType
     };
   }
 
@@ -184,16 +173,14 @@ export class Parser extends BaseParser<ASTNode> {
     return {
       type: NodeType.TypeCast,
       expression,
-      targetType,
-      position
+      targetType
     };
   }
 
   protected createCollectionNode(elements: ASTNode[], position: Position): CollectionNode {
     return {
       type: NodeType.Collection,
-      elements,
-      position
+      elements
     };
   }
 
