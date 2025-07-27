@@ -344,39 +344,39 @@ export class Lexer {
     const start = this.position;
     const startLine = this.line;
     const startColumn = this.column;
-    const firstChar = this.peek();
+    const firstCharCode = this.peekCharCode();
     
-    if (firstChar !== "'" && firstChar !== '"') {
+    if (firstCharCode !== 39 && firstCharCode !== 34) { // ' and "
       return null;
     }
     
-    const quoteChar = firstChar;
+    const quoteCharCode = firstCharCode;
     this.advance(); // consume opening quote
     
     while (this.position < this.input.length) {
-      const char = this.peek();
+      const charCode = this.peekCharCode();
       
-      if (char === quoteChar) {
+      if (charCode === quoteCharCode) {
         this.advance();
         return { type: TokenType.STRING, start, end: this.position, line: startLine, column: startColumn };
       }
       
-      if (char === '\\') {
+      if (charCode === 92) { // \
         this.advance();
-        const escaped = this.peek();
-        switch (escaped) {
-          case '`':
-          case "'":
-          case '"':
-          case '\\':
-          case '/':
-          case 'f':
-          case 'n':
-          case 'r':
-          case 't':
+        const escapedCode = this.peekCharCode();
+        switch (escapedCode) {
+          case 96:  // `
+          case 39:  // '
+          case 34:  // "
+          case 92:  // \
+          case 47:  // /
+          case 102: // f
+          case 110: // n
+          case 114: // r
+          case 116: // t
             this.advance();
             break;
-          case 'u':
+          case 117: // u
             this.advance();
             for (let i = 0; i < 4; i++) {
               const hexCode = this.peekCharCode();
@@ -388,6 +388,7 @@ export class Lexer {
             }
             break;
           default:
+            const escaped = escapedCode === -1 ? '' : String.fromCharCode(escapedCode);
             throw new Error(`Invalid escape sequence \\${escaped} at position ${this.position}`);
         }
       } else {
@@ -402,24 +403,24 @@ export class Lexer {
     const start = this.position;
     const startLine = this.line;
     const startColumn = this.column;    
-    if (this.peek() !== '`') {
+    if (this.peekCharCode() !== 96) { // `
       return null;
     }
     
     this.advance(); // `
     
     while (this.position < this.input.length) {
-      const char = this.peek();
+      const charCode = this.peekCharCode();
       
-      if (char === '`') {
+      if (charCode === 96) { // `
         this.advance();
         return { type: TokenType.DELIMITED_IDENTIFIER, start, end: this.position, line: startLine, column: startColumn };
       }
       
-      if (char === '\\') {
+      if (charCode === 92) { // \
         this.advance();
-        const escaped = this.peek();
-        if (escaped === '`' || escaped === '\\') {
+        const escapedCode = this.peekCharCode();
+        if (escapedCode === 96 || escapedCode === 92) { // ` or \
           this.advance();
         }
       } else {
@@ -840,41 +841,41 @@ export class Lexer {
     const startLine = this.line;
     const startColumn = this.column;
     
-    if (this.peek() !== '%') {
+    if (this.peekCharCode() !== 37) { // %
       return null;
     }
     
     this.advance(); // %
     
     // Check what follows the %
-    const nextChar = this.peek();
+    const nextCharCode = this.peekCharCode();
     
-    if (nextChar === "'") {
+    if (nextCharCode === 39) { // '
       // String form: %'string'
       this.advance(); // '
       
       while (this.position < this.input.length) {
-        const char = this.peek();
+        const charCode = this.peekCharCode();
         
-        if (char === "'") {
+        if (charCode === 39) { // '
           this.advance();
           return { type: TokenType.ENV_VAR, start, end: this.position, line: startLine, column: startColumn };
         }
         
-        if (char === '\\') {
+        if (charCode === 92) { // \
           this.advance();
-          const escaped = this.peek();
-          switch (escaped) {
-            case "'":
-            case '\\':
-            case '/':
-            case 'f':
-            case 'n':
-            case 'r':
-            case 't':
+          const escapedCode = this.peekCharCode();
+          switch (escapedCode) {
+            case 39:  // '
+            case 92:  // \
+            case 47:  // /
+            case 102: // f
+            case 110: // n
+            case 114: // r
+            case 116: // t
               this.advance();
               break;
-            case 'u':
+            case 117: // u
               this.advance();
               for (let i = 0; i < 4; i++) {
                 const hexCode = this.peekCharCode();
@@ -886,6 +887,7 @@ export class Lexer {
               }
               break;
             default:
+              const escaped = escapedCode === -1 ? '' : String.fromCharCode(escapedCode);
               throw new Error(`Invalid escape sequence \\${escaped} in environment variable at position ${this.position}`);
           }
         } else {
@@ -895,22 +897,22 @@ export class Lexer {
       
       throw new Error(`Unterminated environment variable string at position ${start}`);
       
-    } else if (nextChar === '`') {
+    } else if (nextCharCode === 96) { // `
       // Delimited form: %`delimited`
       this.advance(); // `
       
       while (this.position < this.input.length) {
-        const char = this.peek();
+        const charCode = this.peekCharCode();
         
-        if (char === '`') {
+        if (charCode === 96) { // `
           this.advance();
           return { type: TokenType.ENV_VAR, start, end: this.position, line: startLine, column: startColumn };
         }
         
-        if (char === '\\') {
+        if (charCode === 92) { // \
           this.advance();
-          const escaped = this.peek();
-          if (escaped === '`' || escaped === '\\') {
+          const escapedCode = this.peekCharCode();
+          if (escapedCode === 96 || escapedCode === 92) { // ` or \
             this.advance();
           }
         } else {

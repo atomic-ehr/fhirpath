@@ -498,10 +498,47 @@ if (c0_4 === 116 && // 't'
 - Harder to maintain if line/column tracking logic changes
 - Must remember to handle newlines separately where needed
 
+## 16. Use CharCode Instead of Char in String/Delimiter Reading
+
+### What was changed:
+- Replaced string comparisons with character code comparisons in string reading methods
+- Applied to: `readString()`, `readDelimitedIdentifier()`, `readEnvVar()`
+- Changed `char === "'"` to `charCode === 39` etc.
+
+### Implementation:
+```typescript
+// Before:
+if (char === quoteChar) { ... }
+if (char === '\\') { ... }
+switch (escaped) {
+  case "'": ...
+  case "n": ...
+}
+
+// After:
+if (charCode === quoteCharCode) { ... }
+if (charCode === 92) { // \\
+switch (escapedCode) {
+  case 39:  // '
+  case 110: // n
+}
+```
+
+### Performance Impact:
+- Before: ~6,042K expressions/second
+- After: ~6,093K expressions/second
+- **Improvement: ~1%**
+
+### Why it works:
+- Integer comparisons faster than string comparisons
+- Consistent with the optimization pattern used in nextToken()
+- Avoids string allocation for single character comparisons
+- Better for hot paths that process many characters
+
 ### Current Performance Summary:
 - Original: ~1,477K expressions/second
-- Current: ~6,042K expressions/second
-- **Total improvement: ~309%** (4.1x faster than original)
+- Current: ~6,093K expressions/second
+- **Total improvement: ~313%** (4.1x faster than original)
 
 ### Remaining Optimization Opportunities:
 1. **Complete advance() inlining** - String/comment parsing still uses advance() heavily
