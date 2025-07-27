@@ -1,5 +1,5 @@
 import { describe, it } from 'bun:test';
-import { Parser } from './index';
+import { Parser } from './prod';
 import * as fs from 'fs';
 import * as path from 'path';
 

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'bun:test';
-import { parse, NodeType } from './index';
+import { parse, NodeType } from './prod';
 import { TokenType } from '../lexer2';
-import type { IdentifierNode, BinaryNode } from './index';
+import type { IdentifierNode, BinaryNode } from './prod';
 
 describe('Parser2', () => {
   describe('literals', () => {

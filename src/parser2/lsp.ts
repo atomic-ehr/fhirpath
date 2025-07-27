@@ -139,7 +139,10 @@ export interface PartialParseResult extends LSPParseResult {
   };
 }
 
-export class LSPParser extends BaseParser<LSPASTNode> {
+// Create a type that satisfies the BaseParser constraint
+type LSPNode = LSPASTNode & { type: NodeType };
+
+export class LSPParser extends BaseParser<LSPNode> {
   private nodeIdCounter = 0;
   private errors: ParseError[] = [];
   private currentParent: LSPASTNode | null = null;
@@ -166,6 +169,7 @@ export class LSPParser extends BaseParser<LSPASTNode> {
   }
   
   parse(): LSPParseResult {
+    // Cast is safe because we handle Error nodes separately
     this.errors = [];
     this.nodeIndex.clear();
     this.nodesByType.clear();
@@ -184,14 +188,14 @@ export class LSPParser extends BaseParser<LSPASTNode> {
         const token = this.peek();
         this.addError(`Unexpected token: ${this.lexer.getTokenValue(token)}`, token);
       }
-      return this.createParseResult(ast);
+      return this.createParseResult(ast as LSPASTNode);
     } catch (error) {
       // Even on fatal error, return partial results
       const errorNode = this.createErrorNode(
         error instanceof Error ? error.message : 'Parse failed',
         this.peek()
       );
-      return this.createParseResult(errorNode);
+      return this.createParseResult(errorNode as LSPASTNode);
     }
   }
   
@@ -215,7 +219,7 @@ export class LSPParser extends BaseParser<LSPASTNode> {
   }
   
   // Implement abstract methods for node creation
-  protected createIdentifierNode(name: string, token: Token): LSPASTNode {
+  protected createIdentifierNode(name: string, token: Token): LSPNode {
     const isType = name[0] && name[0] >= 'A' && name[0] <= 'Z';
     const node = this.createNode(
       isType ? NodeType.TypeOrIdentifier : NodeType.Identifier,
@@ -230,7 +234,7 @@ export class LSPParser extends BaseParser<LSPASTNode> {
     return node;
   }
   
-  protected createLiteralNode(value: any, valueType: LiteralNode['valueType'], token: Token): LSPASTNode {
+  protected createLiteralNode(value: any, valueType: LiteralNode['valueType'], token: Token): LSPNode {
     return this.createNode(
       NodeType.Literal,
       { value, valueType },
@@ -239,7 +243,7 @@ export class LSPParser extends BaseParser<LSPASTNode> {
     ) as LiteralNode;
   }
   
-  protected createBinaryNode(token: Token, left: LSPASTNode, right: LSPASTNode): LSPASTNode {
+  protected createBinaryNode(token: Token, left: LSPNode, right: LSPNode): LSPNode {
     const startToken = this.findFirstToken(left);
     const endToken = this.findLastToken(right);
     const node = this.createNode(
@@ -259,7 +263,7 @@ export class LSPParser extends BaseParser<LSPASTNode> {
     return node;
   }
   
-  protected createUnaryNode(token: Token, operand: LSPASTNode): LSPASTNode {
+  protected createUnaryNode(token: Token, operand: LSPNode): LSPNode {
     const endToken = this.findLastToken(operand);
     const node = this.createNode(
       NodeType.Unary,
@@ -274,9 +278,9 @@ export class LSPParser extends BaseParser<LSPASTNode> {
     return node;
   }
   
-  protected createFunctionNode(name: LSPASTNode, args: LSPASTNode[], position: Position): LSPASTNode {
+  protected createFunctionNode(name: LSPNode, args: LSPNode[], position: Position): LSPNode {
     const startToken = this.findFirstToken(name);
-    const endToken = args.length > 0 ? this.findLastToken(args[args.length - 1]) : this.previous();
+    const endToken = args.length > 0 ? this.findLastToken(args[args.length - 1]!) : this.previous();
     const node = this.createNode(
       NodeType.Function,
       { name, arguments: args },
@@ -299,7 +303,7 @@ export class LSPParser extends BaseParser<LSPASTNode> {
     return node;
   }
   
-  protected createVariableNode(name: string, token: Token): LSPASTNode {
+  protected createVariableNode(name: string, token: Token): LSPNode {
     return this.createNode(
       NodeType.Variable,
       { name },
@@ -308,7 +312,7 @@ export class LSPParser extends BaseParser<LSPASTNode> {
     ) as VariableNode;
   }
   
-  protected createIndexNode(expression: LSPASTNode, index: LSPASTNode, position: Position): LSPASTNode {
+  protected createIndexNode(expression: LSPNode, index: LSPNode, position: Position): LSPNode {
     const startToken = this.findFirstToken(expression);
     const endToken = this.previous(); // Should be RBRACKET
     const node = this.createNode(
@@ -328,7 +332,7 @@ export class LSPParser extends BaseParser<LSPASTNode> {
   }
   
   
-  protected createMembershipTestNode(expression: LSPASTNode, targetType: string, position: Position): LSPASTNode {
+  protected createMembershipTestNode(expression: LSPNode, targetType: string, position: Position): LSPNode {
     const startToken = this.findFirstToken(expression);
     const endToken = this.previous(); // Should be type identifier
     const node = this.createNode(
@@ -344,7 +348,7 @@ export class LSPParser extends BaseParser<LSPASTNode> {
     return node;
   }
   
-  protected createTypeCastNode(expression: LSPASTNode, targetType: string, position: Position): LSPASTNode {
+  protected createTypeCastNode(expression: LSPNode, targetType: string, position: Position): LSPNode {
     const startToken = this.findFirstToken(expression);
     const endToken = this.previous(); // Should be type identifier
     const node = this.createNode(
@@ -360,7 +364,7 @@ export class LSPParser extends BaseParser<LSPASTNode> {
     return node;
   }
   
-  protected createCollectionNode(elements: LSPASTNode[], position: Position): LSPASTNode {
+  protected createCollectionNode(elements: LSPNode[], position: Position): LSPNode {
     const startToken = this.tokens[this.current - elements.length - 1] || this.previous();
     const endToken = this.previous(); // Should be RBRACE
     const node = this.createNode(
@@ -372,38 +376,38 @@ export class LSPParser extends BaseParser<LSPASTNode> {
     
     node.children = elements;
     for (let i = 0; i < elements.length; i++) {
-      this.setParent(elements[i], node);
-      if (i > 0) {
-        elements[i].previousSibling = elements[i - 1];
-        elements[i - 1].nextSibling = elements[i];
+      this.setParent(elements[i]!, node);
+      if (i > 0 && elements[i] && elements[i - 1]) {
+        elements[i]!.previousSibling = elements[i - 1]!;
+        elements[i - 1]!.nextSibling = elements[i]!;
       }
     }
     
     return node;
   }
   
-  protected handleError(message: string, token?: Token): LSPASTNode {
+  protected handleError(message: string, token?: Token): LSPNode {
     this.addError(message, token);
     
     // Try to recover
     if (this.partialMode) {
       // In partial mode, create error node and continue
-      return this.createErrorNode(message, token);
+      return this.createErrorNode(message, token) as unknown as LSPNode;
     }
     
     // Synchronize to next valid token
     this.synchronize();
     
-    return this.createErrorNode(message, token);
+    return this.createErrorNode(message, token) as unknown as LSPNode;
   }
   
   // Override base parser methods to handle trivia
-  protected expression(): LSPASTNode {
+  protected override expression(): LSPNode {
     this.skipTrivia();
     return this.parseExpressionWithPrecedence(0);
   }
   
-  protected parseExpressionWithPrecedence(minPrecedence: number): LSPASTNode {
+  protected override parseExpressionWithPrecedence(minPrecedence: number): LSPNode {
     let left = this.parsePrimary();
 
     while (this.current < this.tokens.length) {
@@ -463,44 +467,44 @@ export class LSPParser extends BaseParser<LSPASTNode> {
     return left;
   }
   
-  protected parsePrimary(): LSPASTNode {
+  protected override parsePrimary(): LSPNode {
     this.skipTrivia();
     return super.parsePrimary();
   }
   
-  protected parseInvocation(): LSPASTNode {
+  protected override parseInvocation(): LSPNode {
     this.skipTrivia();
     return super.parseInvocation();
   }
   
-  protected parseArgumentList(): LSPASTNode[] {
+  protected override parseArgumentList(): LSPNode[] {
     this.skipTrivia();
     return super.parseArgumentList();
   }
   
-  protected peek(): Token {
+  protected override peek(): Token {
     this.skipTrivia();
     return super.peek();
   }
   
-  protected advance(): Token {
+  protected override advance(): Token {
     this.skipTrivia();
     const token = super.advance();
     this.skipTrivia();
     return token;
   }
   
-  protected check(type: TokenType): boolean {
+  protected override check(type: TokenType): boolean {
     this.skipTrivia();
     return super.check(type);
   }
   
-  protected match(...types: TokenType[]): boolean {
+  protected override match(...types: TokenType[]): boolean {
     this.skipTrivia();
     return super.match(...types);
   }
   
-  protected consume(type: TokenType, message: string): Token {
+  protected override consume(type: TokenType, message: string): Token {
     this.skipTrivia();
     return super.consume(type, message);
   }
@@ -524,7 +528,7 @@ export class LSPParser extends BaseParser<LSPASTNode> {
     props: any,
     startToken: Token,
     endToken: Token
-  ): LSPASTNode {
+  ): LSPNode {
     const id = `node_${this.nodeIdCounter++}`;
     const range: Range = {
       start: this.getPosition(startToken),
@@ -549,7 +553,7 @@ export class LSPParser extends BaseParser<LSPASTNode> {
       }
     };
     
-    const node: LSPASTNode = {
+    const node = {
       id,
       type,
       range,
@@ -565,7 +569,7 @@ export class LSPParser extends BaseParser<LSPASTNode> {
       path: this.buildPath(id),
       depth: this.currentParent ? this.currentParent.depth + 1 : 0,
       ...props
-    };
+    } as LSPASTNode;
     
     // Index the node
     this.nodeIndex.set(id, node);
@@ -580,7 +584,7 @@ export class LSPParser extends BaseParser<LSPASTNode> {
       this.identifierIndex.set(props.name, identifiers);
     }
     
-    return node;
+    return node as LSPNode;
   }
   
   private createErrorNode(message: string, token?: Token): ErrorNode {
@@ -594,23 +598,23 @@ export class LSPParser extends BaseParser<LSPASTNode> {
       },
       startToken,
       startToken
-    ) as ErrorNode;
+    ) as unknown as ErrorNode;
     
     return node;
   }
   
-  private setParent(child: LSPASTNode, parent: LSPASTNode): void {
+  private setParent(child: LSPNode, parent: LSPNode): void {
     child.parent = parent;
     child.path = this.buildPath(child.id);
     child.depth = parent.depth + 1;
     
     // Recursively update depth for all descendants
-    const updateDepth = (node: LSPASTNode, depth: number) => {
+    const updateDepth = (node: LSPNode, depth: number) => {
       node.depth = depth;
-      node.children.forEach(c => updateDepth(c, depth + 1));
+      node.children.forEach(c => updateDepth(c as LSPNode, depth + 1));
     };
     
-    child.children.forEach(c => updateDepth(c, child.depth + 1));
+    child.children.forEach(c => updateDepth(c as LSPNode, child.depth + 1));
   }
   
   private buildPath(nodeId: string): string {
@@ -618,13 +622,13 @@ export class LSPParser extends BaseParser<LSPASTNode> {
     return `${this.currentParent.path}.${nodeId}`;
   }
   
-  private findFirstToken(node: LSPASTNode): Token {
+  private findFirstToken(node: LSPNode): Token {
     // For now, use the node's start position to find the token
     // In a real implementation, we'd track this during parsing
     return this.tokens.find(t => t.start === node.range.start.offset) || this.previous();
   }
   
-  private findLastToken(node: LSPASTNode): Token {
+  private findLastToken(node: LSPNode): Token {
     // For now, use the node's end position to find the token
     return this.tokens.find(t => t.end === node.range.end.offset) || this.previous();
   }

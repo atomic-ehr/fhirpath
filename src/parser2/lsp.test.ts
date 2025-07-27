@@ -117,12 +117,12 @@ describe('LSP Parser', () => {
       expect(args).toHaveLength(3);
       
       // Check sibling links
-      expect(args[0].previousSibling).toBe(func.name);
-      expect(args[0].nextSibling).toBe(args[1]);
-      expect(args[1].previousSibling).toBe(args[0]);
-      expect(args[1].nextSibling).toBe(args[2]);
-      expect(args[2].previousSibling).toBe(args[1]);
-      expect(args[2].nextSibling).toBeNull();
+      expect(args[0]?.previousSibling).toBe(func.name);
+      expect(args[0]?.nextSibling).toBe(args[1] || null);
+      expect(args[1]?.previousSibling).toBe(args[0] || null);
+      expect(args[1]?.nextSibling).toBe(args[2] || null);
+      expect(args[2]?.previousSibling).toBe(args[1] || null);
+      expect(args[2]?.nextSibling).toBeNull();
     });
     
     it('should calculate depth correctly', () => {
@@ -133,10 +133,10 @@ describe('LSP Parser', () => {
       
       const left = ast.left as BinaryNode;
       expect(left.depth).toBe(1);
-      expect(left.left.depth).toBe(2);
-      expect(left.right.depth).toBe(2);
+      expect(left.left?.depth).toBe(2);
+      expect(left.right?.depth).toBe(2);
       
-      expect(ast.right.depth).toBe(1);
+      expect(ast.right?.depth).toBe(1);
     });
     
     it('should assign unique IDs to nodes', () => {
@@ -200,13 +200,13 @@ describe('LSP Parser', () => {
       const result = parseLSP('Patient.');
       
       expect(result.errors).toHaveLength(1);
-      expect(result.errors[0].message).toContain('Expected identifier');
+      expect(result.errors[0]?.message).toContain('Expected identifier');
       
       // Should still create a partial AST
       expect(result.ast.type).toBe(NodeType.Binary);
       const binary = result.ast as BinaryNode;
       expect((binary.left as IdentifierNode).name).toBe('Patient');
-      expect(binary.right.type).toBe('Error');
+      expect(binary.right?.type).toBe('Error');
     });
     
     it('should recover from double dots', () => {
@@ -222,7 +222,7 @@ describe('LSP Parser', () => {
       const result = parseLSP('func(a, b');
       
       expect(result.errors).toHaveLength(1);
-      expect(result.errors[0].message).toContain("Expected ')'");
+      expect(result.errors[0]?.message).toContain("Expected ')'");
       
       // Should still parse the function and arguments
       const func = result.ast as FunctionNode;
@@ -250,7 +250,7 @@ describe('LSP Parser', () => {
       
       // The right side should be an error node
       const binary = result.ast as BinaryNode;
-      expect(binary.right.type).toBe('Error');
+      expect(binary.right?.type).toBe('Error');
     });
   });
   

@@ -37,14 +37,14 @@ export enum NodeType {
 // Base node interface - subclasses can extend this
 export interface BaseASTNode {
   type: NodeType;
-  position: Position;
+  position?: Position; // Make position optional for flexibility
 }
 
 /**
  * Abstract base parser with shared parsing logic
  * Subclasses must implement node creation and error handling
  */
-export abstract class BaseParser<TNode extends BaseASTNode = BaseASTNode> {
+export abstract class BaseParser<TNode extends { type: NodeType; position?: Position; offset?: number } = BaseASTNode> {
   protected lexer: Lexer;
   protected tokens: Token[] = [];
   protected current = 0;
@@ -112,7 +112,7 @@ export abstract class BaseParser<TNode extends BaseASTNode = BaseASTNode> {
         this.current++; // inline advance()
         const args = this.parseArgumentList();
         this.consume(TokenType.RPAREN, "Expected ')'");
-        left = this.createFunctionNode(left, args, left.position);
+        left = this.createFunctionNode(left, args, this.getPositionFromNode(left));
       } else {
         break;
       }
@@ -216,7 +216,7 @@ export abstract class BaseParser<TNode extends BaseASTNode = BaseASTNode> {
         this.advance();
         const args = this.parseArgumentList();
         this.consume(TokenType.RPAREN, "Expected ')'");
-        return this.createFunctionNode(node, args, node.position);
+        return this.createFunctionNode(node, args, this.getPositionFromNode(node));
       }
       
       return node;
@@ -298,6 +298,16 @@ export abstract class BaseParser<TNode extends BaseASTNode = BaseASTNode> {
       return raw.slice(1, -1).replace(/\\(.)/g, '$1');
     }
     return raw;
+  }
+  
+  protected getPositionFromNode(node: TNode): Position {
+    if ('position' in node && node.position) {
+      return node.position;
+    }
+    if ('offset' in node && typeof node.offset === 'number') {
+      return { line: 0, column: 0, offset: node.offset };
+    }
+    return { line: 0, column: 0, offset: 0 };
   }
   
   // Shared utility methods
