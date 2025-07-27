@@ -5,6 +5,11 @@ import * as path from 'path';
 
 describe('Lexer Performance', () => {
   it('measures lexer performance on fixture expressions', () => {
+    runPerformanceTest(false);
+  });
+});
+
+function runPerformanceTest(preserveTrivia: boolean) {
     const fixturesPath = path.join(process.cwd(), 'test', 'fixtures');
     const iterations = 10000;
     
@@ -16,7 +21,8 @@ describe('Lexer Performance', () => {
         path: path.join(fixturesPath, file)
       }));
     
-    console.log(`\nRunning lexer performance tests with ${iterations} iterations per expression\n`);
+    console.log(`\nRunning lexer performance tests with ${iterations} iterations per expression`);
+    console.log(`Trivia preservation: ${preserveTrivia ? 'ENABLED' : 'DISABLED'}\n`);
     
     let totalExpressions = 0;
     let totalIterations = 0;
@@ -32,13 +38,13 @@ describe('Lexer Performance', () => {
         if (!expression) continue;
         
         // Warm up run
-        const warmupLexer = new Lexer(expression);
+        const warmupLexer = new Lexer(expression, { preserveTrivia });
         warmupLexer.tokenize();
         
         // Measure total time for all iterations
         const start = performance.now();
         for (let j = 0; j < iterations; j++) {
-          const lexer = new Lexer(expression);
+          const lexer = new Lexer(expression, { preserveTrivia });
           lexer.tokenize();
         }
         const end = performance.now();
@@ -59,5 +65,4 @@ describe('Lexer Performance', () => {
     console.log(`Total time: ${(totalTime / 1000).toFixed(2)}s`);
     console.log(`Time per expression: ${avgTimePerExpression.toFixed(4)}ms`);
     console.log(`Expressions per second: ${(1000 / avgTimePerExpression).toFixed(0)}`);
-  });
-});
+}

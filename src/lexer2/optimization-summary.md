@@ -604,7 +604,74 @@ The peek/advance inlining in readString provides essential performance for strin
 - Current: ~6,093K expressions/second
 - **Total improvement: ~313%** (4.1x faster than original)
 
+## 18. Added Optional Trivia/Channel Support
+
+### What was changed:
+- Added `Channel` enum with `REGULAR` and `HIDDEN` values
+- Added optional `channel` property to Token interface
+- Added `preserveTrivia` option to LexerOptions
+- Modified whitespace and comment tokens to include `Channel.HIDDEN` when `preserveTrivia` is true
+- Updated `nextToken` to return trivia tokens when `preserveTrivia` is enabled
+
+### Implementation:
+```typescript
+export enum Channel {
+  REGULAR = 0,
+  HIDDEN = 1,
+}
+
+export interface Token {
+  // ... existing properties
+  channel?: Channel;
+}
+
+export interface LexerOptions {
+  skipWhitespace?: boolean;
+  skipComments?: boolean;
+  preserveTrivia?: boolean;  // New option
+}
+```
+
+### Performance Impact:
+- **Without preserveTrivia**: 2,730,350 expressions/second (default)
+- **With preserveTrivia**: 1,737,645 expressions/second
+- **Overhead**: 36.4% slower when enabled
+- Channel assignment only happens when explicitly requested
+- No performance penalty for users who don't need trivia
+
+The overhead is expected because:
+1. Whitespace and comment tokens are returned instead of skipped
+2. Each trivia token requires channel assignment
+3. More tokens are created and added to the result array
+4. Typical expressions have 30-50% trivia tokens
+
+### Why it's important:
+1. **Code Formatters** - Need to preserve whitespace and comments
+2. **Refactoring Tools** - Must maintain original formatting
+3. **Documentation Generators** - Extract comments for API docs
+4. **Round-trip Parsing** - Parse → Modify → Serialize preserves formatting
+5. **Compatibility** - Matches original lexer's channel support
+
+### Usage:
+```typescript
+// Preserve all trivia
+const lexer = new Lexer(code, { preserveTrivia: true });
+const tokens = lexer.tokenize();
+
+// Filter by channel
+const regularTokens = tokens.filter(t => t.channel !== Channel.HIDDEN);
+const triviaTokens = tokens.filter(t => t.channel === Channel.HIDDEN);
+```
+
+### Current Performance Summary:
+- Original: ~1,477K expressions/second
+- Current: ~2,730K expressions/second (real-world expressions)
+- Current: ~6,093K expressions/second (simple benchmark)
+- **Total improvement: ~85%** (real-world) to **313%** (simple)
+- With trivia enabled: ~1,738K expressions/second (36.4% overhead)
+
 ### Remaining Optimization Opportunities:
 1. **Optimize readDateTime/readTimeFormat** - Reduce redundant charCode lookups
 2. **Consider selective inlining** - Apply only where measurable benefit exists
 3. **Profile-guided optimization** - Focus on actual hot paths in real usage
+4. **Add offset property** - For complete position tracking compatibility

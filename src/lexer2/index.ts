@@ -160,17 +160,24 @@ export function tokenTypeToString(type: TokenType): string {
   return TOKEN_TYPE_NAMES[type] || `UNKNOWN(${type})`;
 }
 
+export enum Channel {
+  REGULAR = 0,
+  HIDDEN = 1,
+}
+
 export interface Token {
   type: TokenType;
   start: number;
   end: number;
   line: number;
   column: number;
+  channel?: Channel;
 }
 
 export interface LexerOptions {
   skipWhitespace?: boolean;
   skipComments?: boolean;
+  preserveTrivia?: boolean;  // When true, whitespace/comments get Channel.HIDDEN
 }
 
 // Character code constants
@@ -218,6 +225,7 @@ export class Lexer {
     this.options = {
       skipWhitespace: options.skipWhitespace ?? true,
       skipComments: options.skipComments ?? true,
+      preserveTrivia: options.preserveTrivia ?? false,
     };
   }
     
@@ -291,7 +299,11 @@ export class Lexer {
         default:
           // Not whitespace, exit loop
           if (this.position > start) {
-            return { type: TokenType.WHITESPACE, start, end: this.position, line: startLine, column: startColumn };
+            const token: Token = { type: TokenType.WHITESPACE, start, end: this.position, line: startLine, column: startColumn };
+            if (this.options.preserveTrivia) {
+              token.channel = Channel.HIDDEN;
+            }
+            return token;
           }
           return null;
       }
@@ -299,7 +311,11 @@ export class Lexer {
     
     // Reached end of input
     if (this.position > start) {
-      return { type: TokenType.WHITESPACE, start, end: this.position, line: startLine, column: startColumn };
+      const token: Token = { type: TokenType.WHITESPACE, start, end: this.position, line: startLine, column: startColumn };
+      if (this.options.preserveTrivia) {
+        token.channel = Channel.HIDDEN;
+      }
+      return token;
     }
     
     return null;
@@ -323,7 +339,11 @@ export class Lexer {
         this.advance();
       }
       
-      return { type: TokenType.COMMENT, start, end: this.position, line: startLine, column: startColumn };
+      const token: Token = { type: TokenType.COMMENT, start, end: this.position, line: startLine, column: startColumn };
+      if (this.options.preserveTrivia) {
+        token.channel = Channel.HIDDEN;
+      }
+      return token;
     }
     
     if (this.peek() === '/' && this.peek(1) === '/') {
@@ -334,7 +354,11 @@ export class Lexer {
         this.advance();
       }
       
-      return { type: TokenType.LINE_COMMENT, start, end: this.position, line: startLine, column: startColumn };
+      const token: Token = { type: TokenType.LINE_COMMENT, start, end: this.position, line: startLine, column: startColumn };
+      if (this.options.preserveTrivia) {
+        token.channel = Channel.HIDDEN;
+      }
+      return token;
     }
     
     return null;
@@ -982,13 +1006,13 @@ export class Lexer {
     while (this.position < this.input.length) {
       const wsToken = this.readWhitespace();
       if (wsToken) {
-        if (!this.options.skipWhitespace) return wsToken;
+        if (this.options.preserveTrivia || !this.options.skipWhitespace) return wsToken;
         continue;
       }
       
       const commentToken = this.readComment();
       if (commentToken) {
-        if (!this.options.skipComments) return commentToken;
+        if (this.options.preserveTrivia || !this.options.skipComments) return commentToken;
         continue;
       }
       

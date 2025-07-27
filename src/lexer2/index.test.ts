@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { Lexer, TokenType } from './index';
+import { Lexer, TokenType, Channel } from './index';
 
 describe('Lexer', () => {
   function getTokenTypes(expression: string): TokenType[] {
@@ -441,6 +441,109 @@ describe('Lexer', () => {
       expect(() => new Lexer('café').tokenize()).toThrow('Unexpected character');
       expect(() => new Lexer('münchen').tokenize()).toThrow('Unexpected character');
       expect(() => new Lexer('日本語').tokenize()).toThrow('Unexpected character');
+    });
+  });
+  
+  describe('trivia and channels', () => {
+    it('preserves whitespace and comments with channel information', () => {
+      const lexer = new Lexer('a /* comment */ b', { preserveTrivia: true });
+      const tokens = lexer.tokenize();
+      
+      expect(tokens.length).toBe(6); // a, whitespace, comment, whitespace, b, EOF
+      expect(tokens[0].type).toBe(TokenType.IDENTIFIER);
+      expect(tokens[0].channel).toBeUndefined(); // Regular tokens don't have channel
+      
+      expect(tokens[1].type).toBe(TokenType.WHITESPACE);
+      expect(tokens[1].channel).toBe(Channel.HIDDEN);
+      
+      expect(tokens[2].type).toBe(TokenType.COMMENT);
+      expect(tokens[2].channel).toBe(Channel.HIDDEN);
+      
+      expect(tokens[3].type).toBe(TokenType.WHITESPACE);
+      expect(tokens[3].channel).toBe(Channel.HIDDEN);
+      
+      expect(tokens[4].type).toBe(TokenType.IDENTIFIER);
+      expect(tokens[4].channel).toBeUndefined();
+    });
+    
+    it('preserves line comments with channel information', () => {
+      const lexer = new Lexer('a // comment\nb', { preserveTrivia: true });
+      const tokens = lexer.tokenize();
+      
+      expect(tokens[0].type).toBe(TokenType.IDENTIFIER);
+      expect(tokens[1].type).toBe(TokenType.WHITESPACE);
+      expect(tokens[1].channel).toBe(Channel.HIDDEN);
+      expect(tokens[2].type).toBe(TokenType.LINE_COMMENT);
+      expect(tokens[2].channel).toBe(Channel.HIDDEN);
+      expect(tokens[3].type).toBe(TokenType.WHITESPACE); // newline
+      expect(tokens[3].channel).toBe(Channel.HIDDEN);
+      expect(tokens[4].type).toBe(TokenType.IDENTIFIER);
+    });
+    
+    it('can filter tokens by channel', () => {
+      const lexer = new Lexer('Patient . name // comment', { preserveTrivia: true });
+      const allTokens = lexer.tokenize();
+      
+      // Filter regular tokens
+      const regularTokens = allTokens.filter(t => t.channel !== Channel.HIDDEN);
+      expect(regularTokens.map(t => t.type)).toEqual([
+        TokenType.IDENTIFIER,
+        TokenType.DOT,
+        TokenType.IDENTIFIER,
+        TokenType.EOF
+      ]);
+      
+      // Filter hidden tokens
+      const hiddenTokens = allTokens.filter(t => t.channel === Channel.HIDDEN);
+      expect(hiddenTokens.map(t => t.type)).toEqual([
+        TokenType.WHITESPACE,
+        TokenType.WHITESPACE,
+        TokenType.WHITESPACE,
+        TokenType.LINE_COMMENT
+      ]);
+    });
+    
+    it('preserveTrivia overrides skipWhitespace and skipComments', () => {
+      const lexer = new Lexer('a /* c */ b', { 
+        preserveTrivia: true,
+        skipWhitespace: true,  // Should be overridden
+        skipComments: true     // Should be overridden
+      });
+      const tokens = lexer.tokenize();
+      
+      // Should include whitespace and comments despite skip flags
+      expect(tokens.map(t => t.type)).toEqual([
+        TokenType.IDENTIFIER,
+        TokenType.WHITESPACE,
+        TokenType.COMMENT,
+        TokenType.WHITESPACE,
+        TokenType.IDENTIFIER,
+        TokenType.EOF
+      ]);
+    });
+    
+    it('performance is minimally impacted by channel assignment', () => {
+      const expression = 'Patient.name.given.where(use = "official")';
+      const iterations = 10000;
+      
+      // Test without preserveTrivia
+      const start1 = performance.now();
+      for (let i = 0; i < iterations; i++) {
+        new Lexer(expression).tokenize();
+      }
+      const timeWithout = performance.now() - start1;
+      
+      // Test with preserveTrivia
+      const start2 = performance.now();
+      for (let i = 0; i < iterations; i++) {
+        new Lexer(expression, { preserveTrivia: true }).tokenize();
+      }
+      const timeWith = performance.now() - start2;
+      
+      // Should be less than 10% performance impact
+      const overhead = ((timeWith - timeWithout) / timeWithout) * 100;
+      console.log(`Trivia overhead: ${overhead.toFixed(1)}%`);
+      expect(overhead).toBeLessThan(10);
     });
   });
 });
