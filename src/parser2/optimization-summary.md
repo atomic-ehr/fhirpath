@@ -144,10 +144,23 @@ Attempted to inline frequently used node creation functions (`createBinaryNode`,
 ### 3. Lookup Tables for Token Type Checking (Abandoned)
 Attempted to use Uint8Array lookup tables for binary operator and keyword checking, but abandoned due to bit-packed token values exceeding array bounds (values > 256).
 
+### 4. Position Tracking Impact Analysis
+Temporarily disabled position tracking to measure its performance cost.
+
+**Results**:
+- With position tracking: 1,226,319 expressions/sec
+- Without position tracking: 1,212,703 expressions/sec (-1.1%)
+
+**Surprising finding**: Removing position tracking actually decreased performance slightly, likely due to:
+- Position tracking overhead is minimal (simple object property assignment)
+- Code changes disrupted JIT compiler optimizations
+- Modern JS engines optimize object creation very well
+
 ### Key Findings:
 - Simple method inlining in hot paths provides consistent gains
 - Over-optimization (excessive inlining) can hurt performance
 - JIT compiler already optimizes method calls effectively
+- Position tracking has negligible performance impact
 - Bit-packed TokenType with getPrecedence bit shift remains the best optimization
 - Current optimized performance: **1,223,027 expressions/sec** (1.6% improvement)
 
@@ -158,5 +171,6 @@ The parser2 performance is exceptional:
 - Processing over **1.2 million expressions per second**
 - Consistent **linear O(n) scaling** with token count
 - Sub-microsecond parsing times for typical expressions
+
 
 The combination of recursive-descent parsing with Pratt operator precedence, enhanced with bit-packed precedence lookup, provides an optimal balance of simplicity, maintainability, and performance. Even with already excellent baseline performance, targeted optimizations like bit-packed precedence can provide measurable improvements while simplifying the codebase.
