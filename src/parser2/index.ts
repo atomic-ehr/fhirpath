@@ -10,7 +10,7 @@ export type { Position } from './base';
 // AST Types specific to parser2
 export interface ASTNode {
   type: NodeType;
-  position?: Position;
+  offset?: number;  // Just the start offset for basic error reporting
 }
 
 export interface IdentifierNode extends ASTNode {
@@ -102,13 +102,15 @@ export class Parser extends BaseParser<ASTNode> {
     if (name[0] && name[0] >= 'A' && name[0] <= 'Z') {
       return {
         type: NodeType.TypeOrIdentifier,
-        name
+        name,
+        offset: token.start
       } as TypeOrIdentifierNode;
     }
     
     return {
       type: NodeType.Identifier,
-      name
+      name,
+      offset: token.start
     } as IdentifierNode;
   }
 
@@ -116,7 +118,8 @@ export class Parser extends BaseParser<ASTNode> {
     return {
       type: NodeType.Literal,
       value,
-      valueType
+      valueType,
+      offset: token.start
     };
   }
 
@@ -125,7 +128,8 @@ export class Parser extends BaseParser<ASTNode> {
       type: NodeType.Binary,
       operator: token.type,
       left,
-      right
+      right,
+      offset: token.start
     };
   }
 
@@ -133,7 +137,8 @@ export class Parser extends BaseParser<ASTNode> {
     return {
       type: NodeType.Unary,
       operator: token.type,
-      operand
+      operand,
+      offset: token.start
     };
   }
 
@@ -141,14 +146,16 @@ export class Parser extends BaseParser<ASTNode> {
     return {
       type: NodeType.Function,
       name,
-      arguments: args
+      arguments: args,
+      offset: name.offset
     };
   }
 
   protected createVariableNode(name: string, token: Token): VariableNode {
     return {
       type: NodeType.Variable,
-      name
+      name,
+      offset: token.start
     };
   }
 
@@ -156,7 +163,8 @@ export class Parser extends BaseParser<ASTNode> {
     return {
       type: NodeType.Index,
       expression,
-      index
+      index,
+      offset: expression.offset
     };
   }
 
@@ -165,7 +173,8 @@ export class Parser extends BaseParser<ASTNode> {
     return {
       type: NodeType.MembershipTest,
       expression,
-      targetType
+      targetType,
+      offset: expression.offset
     };
   }
 
@@ -173,14 +182,16 @@ export class Parser extends BaseParser<ASTNode> {
     return {
       type: NodeType.TypeCast,
       expression,
-      targetType
+      targetType,
+      offset: expression.offset
     };
   }
 
   protected createCollectionNode(elements: ASTNode[], position: Position): CollectionNode {
     return {
       type: NodeType.Collection,
-      elements
+      elements,
+      offset: elements.length > 0 ? elements[0].offset : undefined
     };
   }
 
