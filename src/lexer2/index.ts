@@ -852,7 +852,7 @@ export class Lexer {
       throw new Error(`Unterminated environment variable delimiter at position ${start}`);
       
     } else {
-      // Identifier form: %identifier
+      // Identifier form: %identifier (ASCII only per spec)
       const firstCharCode = this.peekCharCode();
       if (firstCharCode >= 0 && firstCharCode < 256 && IS_LETTER[firstCharCode]) {
         // Read identifier
@@ -1032,7 +1032,8 @@ export class Lexer {
         }
         
         // Unknown character
-        throw new Error(`Unexpected character '${String.fromCharCode(firstCharCode)}' at position ${this.position}`);
+        const unknownChar = firstCharCode < 256 ? String.fromCharCode(firstCharCode) : this.peek();
+        throw new Error(`Unexpected character '${unknownChar}' at position ${this.position}`);
     }
   }
   

@@ -301,6 +301,50 @@ if (tokenType !== null) {
 ### Conclusion:
 The current switch-based implementation with charCode dispatch represents the optimal approach for the nextToken() method. Further optimization efforts should focus on other areas of the lexer.
 
+## 10. Unicode Support (Added then Removed)
+
+### What was attempted:
+- Added full Unicode support for identifiers using regex patterns `/\p{L}|\p{Nl}/u` and `/\p{L}|\p{N}|\p{M}|\p{Pc}/u`
+- Allowed Unicode characters in regular identifiers (e.g., `café`, `日本語`)
+- Extended support to environment variable identifiers
+
+### Performance Impact:
+- Before Unicode: ~2,305K expressions/second
+- With Unicode: ~1,908K expressions/second
+- **Result: 17% performance degradation**
+
+### Why it was removed:
+1. **Not spec compliant** - FHIRPath grammar explicitly defines identifiers as `[A-Za-z_][A-Za-z0-9_]*`
+2. **Unicode is only allowed in**:
+   - String literals: `'café'`, `'日本語'`
+   - Delimited identifiers: `` `café` ``, `` `日本語` ``
+   - Environment variable strings: `%'café'`, `%`日本語``
+3. **Performance cost** - Regex checks with Unicode property escapes are expensive
+
+### Implementation Details:
+The original implementation used regex for every character:
+```typescript
+function isUnicodeIdentifierStart(char: string): boolean {
+  return /\p{L}|\p{Nl}/u.test(char);  // Expensive!
+}
+```
+
+### Final Resolution:
+- Removed all Unicode support from regular identifiers
+- Kept ASCII-only lookup tables for maximum performance
+- Unicode remains supported in strings and delimited identifiers as per spec
+- Performance restored to ~2,303K expressions/second
+
+### Lesson learned:
+- Always verify spec compliance before implementing features
+- Unicode regex operations have significant performance overhead
+- Following the spec can lead to better performance
+
+### Current Performance Summary:
+- Original: ~1,477K expressions/second
+- Current: ~2,303K expressions/second
+- **Total improvement: ~56%**
+
 ### Remaining Optimization Opportunities:
 1. **Optimize readSpecialIdentifier** - Remove substring call (estimated 2-3% improvement)
 2. **Optimize readDateTime/readTimeFormat** - Reduce redundant charCode lookups (estimated 1-2% improvement)

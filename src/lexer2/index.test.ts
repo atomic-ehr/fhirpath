@@ -111,6 +111,34 @@ describe('Lexer', () => {
       ]);
     });
     
+    it('tokenizes delimited identifiers with Unicode', () => {
+      // Unicode must be in delimited identifiers per spec
+      expect(getTokenTypes('`café` `münchen` `Σ` `λ`')).toEqual([
+        TokenType.DELIMITED_IDENTIFIER,
+        TokenType.DELIMITED_IDENTIFIER,
+        TokenType.DELIMITED_IDENTIFIER,
+        TokenType.DELIMITED_IDENTIFIER,
+        TokenType.EOF
+      ]);
+      
+      // Mixed ASCII and Unicode in delimited identifiers
+      expect(getTokenTypes('`test_café` `value_π` `x²`')).toEqual([
+        TokenType.DELIMITED_IDENTIFIER,
+        TokenType.DELIMITED_IDENTIFIER,
+        TokenType.DELIMITED_IDENTIFIER,
+        TokenType.EOF
+      ]);
+      
+      // Various Unicode categories in delimited identifiers
+      expect(getTokenTypes('`日本語` `中文` `한글` `العربية`')).toEqual([
+        TokenType.DELIMITED_IDENTIFIER,
+        TokenType.DELIMITED_IDENTIFIER,
+        TokenType.DELIMITED_IDENTIFIER,
+        TokenType.DELIMITED_IDENTIFIER,
+        TokenType.EOF
+      ]);
+    });
+    
     it('tokenizes delimited identifiers', () => {
       expect(getTokenTypes('`foo bar` `with\\`backtick`')).toEqual([
         TokenType.DELIMITED_IDENTIFIER,
@@ -158,6 +186,14 @@ describe('Lexer', () => {
         TokenType.IDENTIFIER,
         TokenType.PERCENT,
         TokenType.NUMBER,
+        TokenType.ENV_VAR,
+        TokenType.EOF
+      ]);
+      
+      // Unicode in delimited form
+      expect(getTokenTypes('%`café` %`münchen` %`日本語`')).toEqual([
+        TokenType.ENV_VAR,
+        TokenType.ENV_VAR,
         TokenType.ENV_VAR,
         TokenType.EOF
       ]);
@@ -398,6 +434,13 @@ describe('Lexer', () => {
     it('throws on invalid escape in environment variables', () => {
       expect(() => new Lexer("%'\\q'").tokenize()).toThrow('Invalid escape sequence');
       expect(() => new Lexer("%'\\uXYZ'").tokenize()).toThrow('Invalid unicode escape');
+    });
+    
+    it('throws on Unicode in regular identifiers', () => {
+      // Unicode is not allowed in regular identifiers per spec
+      expect(() => new Lexer('café').tokenize()).toThrow('Unexpected character');
+      expect(() => new Lexer('münchen').tokenize()).toThrow('Unexpected character');
+      expect(() => new Lexer('日本語').tokenize()).toThrow('Unexpected character');
     });
   });
 });
