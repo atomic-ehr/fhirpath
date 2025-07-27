@@ -239,12 +239,69 @@ In isolated benchmarks, charCode dispatch showed 25% improvement over char dispa
 - Real-world expressions include various token types, not just operators
 - Position tracking, token creation, and other overhead
 
+## 9. Lookup Table for nextToken() Dispatch (Attempted)
+
+### What was tried:
+- Created a lookup table mapping character codes to token types for single-character tokens
+- Used array indexing instead of switch statement for dispatch
+- Aimed to reduce branching and improve performance
+
+### Implementation approach:
+```typescript
+// Lookup table initialization
+private static readonly CHAR_TOKEN_TABLE: (TokenType | null)[] = new Array(256).fill(null);
+static {
+  this.CHAR_TOKEN_TABLE[46] = TokenType.DOT;        // .
+  this.CHAR_TOKEN_TABLE[40] = TokenType.LPAREN;     // (
+  // ... etc
+}
+
+// Dispatch logic
+const tokenType = CHAR_TOKEN_TABLE[firstCharCode];
+if (tokenType !== null) {
+  this.advance();
+  return { type: tokenType, ... };
+}
+// Fall back to switch for complex cases
+```
+
+### Performance Impact:
+- Switch-based: ~7,164K expressions/second
+- Lookup table: ~3,990K expressions/second
+- **Result: 79.5% SLOWER**
+
+### Why it failed:
+1. **V8 Optimization** - Modern JavaScript engines compile numeric switches into highly optimized jump tables
+2. **Array Access Overhead**:
+   - Array bounds checking on every access
+   - Memory indirection (fetch from array)
+   - Potential cache misses
+   - Additional null check required
+3. **Two-Stage Dispatch** - Still need switch/if-else fallback for complex tokens
+4. **CPU Branch Prediction** - Modern CPUs predict switch branches very well
+5. **Inline Optimization** - V8 can inline entire switch statement, but not array lookups
+
+### Detailed Test Results:
+- **Regular expressions test**: 79.5% slower with lookup table
+- **Operator-heavy expressions**: 43.9% slower with lookup table
+- The more operators (which benefit most from lookup), the less severe the penalty
+- But still significantly slower in all cases
+
+### Lesson learned:
+- Not all traditional C/C++ optimizations translate to JavaScript
+- V8's switch statement optimization is extremely efficient for numeric cases
+- Array lookups in hot paths can be slower than well-optimized switches
+- The current switch-based implementation is already optimal
+
 ### Current Performance Summary:
 - Original: ~1,477K expressions/second
 - Current: ~2,305K expressions/second
 - **Total improvement: ~56%**
 
-### Next Optimization Opportunities:
+### Conclusion:
+The current switch-based implementation with charCode dispatch represents the optimal approach for the nextToken() method. Further optimization efforts should focus on other areas of the lexer.
+
+### Remaining Optimization Opportunities:
 1. **Optimize readSpecialIdentifier** - Remove substring call (estimated 2-3% improvement)
 2. **Optimize readDateTime/readTimeFormat** - Reduce redundant charCode lookups (estimated 1-2% improvement)
-3. **Whitespace lookup table** - Use lookup table instead of switch (estimated 0.5-1% improvement)
+3. **Inline small token readers** - Reduce function call overhead (estimated 1-2% improvement)
