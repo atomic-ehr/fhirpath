@@ -442,11 +442,12 @@ export class Lexer {
       return null;
     }
     
-    // Inline digit reading loop
+    // Inline digit reading loop with inlined advance
     while (this.position < this.input.length) {
       const charCode = this.input.charCodeAt(this.position);
       if (IS_DIGIT[charCode]) {
         this.position++;
+        this.column++;
       } else {
         break;
       }
@@ -459,11 +460,12 @@ export class Lexer {
         const nextCharCode = this.input.charCodeAt(nextPos);
         if (IS_DIGIT[nextCharCode]) {
           this.position++; // consume '.'
-          // Inline decimal digit reading
+          // Inline decimal digit reading with inlined advance
           while (this.position < this.input.length) {
             const charCode = this.input.charCodeAt(this.position);
             if (IS_DIGIT[charCode]) {
               this.position++;
+              this.column++;
             } else {
               break;
             }
@@ -655,11 +657,12 @@ export class Lexer {
       return null;
     }
     
-    // Inline letter/digit reading loop
+    // Inline letter/digit reading loop with inlined advance
     while (this.position < this.input.length) {
       const charCode = this.input.charCodeAt(this.position);
       if (IS_LETTER_OR_DIGIT[charCode]) {
         this.position++;
+        this.column++;
       } else {
         break;
       }
@@ -997,18 +1000,22 @@ export class Lexer {
         const envVar = this.readEnvVar();
         if (envVar) return envVar;
         // If not an env var, it's just a percent operator
-        this.advance();
+        this.position++;
+        this.column++;
         return { type: TokenType.PERCENT, start, end: this.position, line: startLine, column: startColumn };
         
       // Single-character operators
       case 46: // .
-        this.advance();
+        this.position++;
+        this.column++;
         return { type: TokenType.DOT, start, end: this.position, line: startLine, column: startColumn };
       case 40: // (
-        this.advance();
+        this.position++;
+        this.column++;
         return { type: TokenType.LPAREN, start, end: this.position, line: startLine, column: startColumn };
       case 41: // )
-        this.advance();
+        this.position++;
+        this.column++;
         return { type: TokenType.RPAREN, start, end: this.position, line: startLine, column: startColumn };
       case 91: // [
         this.advance();
@@ -1023,22 +1030,28 @@ export class Lexer {
         this.advance();
         return { type: TokenType.RBRACE, start, end: this.position, line: startLine, column: startColumn };
       case 43: // +
-        this.advance();
+        this.position++;
+        this.column++;
         return { type: TokenType.PLUS, start, end: this.position, line: startLine, column: startColumn };
       case 45: // -
-        this.advance();
+        this.position++;
+        this.column++;
         return { type: TokenType.MINUS, start, end: this.position, line: startLine, column: startColumn };
       case 42: // *
-        this.advance();
+        this.position++;
+        this.column++;
         return { type: TokenType.MULTIPLY, start, end: this.position, line: startLine, column: startColumn };
       case 47: // /
-        this.advance();
+        this.position++;
+        this.column++;
         return { type: TokenType.DIVIDE, start, end: this.position, line: startLine, column: startColumn };
       case 38: // &
-        this.advance();
+        this.position++;
+        this.column++;
         return { type: TokenType.AMPERSAND, start, end: this.position, line: startLine, column: startColumn };
       case 124: // |
-        this.advance();
+        this.position++;
+        this.column++;
         return { type: TokenType.PIPE, start, end: this.position, line: startLine, column: startColumn };
       case 126: // ~
         this.advance();
@@ -1047,36 +1060,44 @@ export class Lexer {
         this.advance();
         return { type: TokenType.COMMA, start, end: this.position, line: startLine, column: startColumn };
       case 61: // =
-        this.advance();
+        this.position++;
+        this.column++;
         return { type: TokenType.EQ, start, end: this.position, line: startLine, column: startColumn };
         
       // Two-character operators starting with <
       case 60: // <
-        this.advance();
+        this.position++;
+        this.column++;
         if (this.peekCharCode() === 61) { // =
-          this.advance();
+          this.position++;
+          this.column++;
           return { type: TokenType.LTE, start, end: this.position, line: startLine, column: startColumn };
         }
         return { type: TokenType.LT, start, end: this.position, line: startLine, column: startColumn };
         
       // Two-character operators starting with >
       case 62: // >
-        this.advance();
+        this.position++;
+        this.column++;
         if (this.peekCharCode() === 61) { // =
-          this.advance();
+          this.position++;
+          this.column++;
           return { type: TokenType.GTE, start, end: this.position, line: startLine, column: startColumn };
         }
         return { type: TokenType.GT, start, end: this.position, line: startLine, column: startColumn };
         
       // Two-character operators starting with !
       case 33: // !
-        this.advance();
+        this.position++;
+        this.column++;
         const nextCharCode = this.peekCharCode();
         if (nextCharCode === 61) { // =
-          this.advance();
+          this.position++;
+          this.column++;
           return { type: TokenType.NEQ, start, end: this.position, line: startLine, column: startColumn };
         } else if (nextCharCode === 126) { // ~
-          this.advance();
+          this.position++;
+          this.column++;
           return { type: TokenType.NOT_SIMILAR, start, end: this.position, line: startLine, column: startColumn };
         }
         throw new Error(`Unexpected character '!' at position ${this.position - 1}`);

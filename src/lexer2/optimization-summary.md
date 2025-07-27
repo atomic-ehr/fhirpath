@@ -470,12 +470,40 @@ if (c0_4 === 116 && // 't'
 - Larger code size due to unrolled comparisons
 - Best for hot paths with frequent keyword checking
 
+## 15. Inline advance() Method in Hot Paths
+
+### What was changed:
+- Inlined `advance()` method in the most frequently called code paths
+- Replaced `this.advance()` with direct `this.position++; this.column++` 
+- Applied to: single-character tokens, two-character operators, identifier/number reading loops
+
+### Where inlined:
+1. **nextToken() switch cases** - All single-character tokens (., (, ), +, -, *, =, etc.)
+2. **Two-character operators** - <, >, !, and their combinations (<=, >=, !=, !~)
+3. **Tight loops** - readIdentifierOrKeyword, readNumber digit scanning
+
+### Performance Impact:
+- Before: ~5,656K expressions/second
+- After: ~6,042K expressions/second
+- **Improvement: ~7%**
+
+### Why it works:
+1. **Eliminates function call overhead** - No stack frame allocation/deallocation
+2. **Better inlining by JIT** - Compiler can optimize the inlined code better
+3. **Removes unused work** - advance() returns a value that's rarely used
+4. **Hot path optimization** - These paths are executed millions of times
+
+### Trade-offs:
+- Code duplication (position++ and column++ repeated)
+- Harder to maintain if line/column tracking logic changes
+- Must remember to handle newlines separately where needed
+
 ### Current Performance Summary:
 - Original: ~1,477K expressions/second
-- Current: ~5,656K expressions/second
-- **Total improvement: ~283%** (3.8x faster than original)
+- Current: ~6,042K expressions/second
+- **Total improvement: ~309%** (4.1x faster than original)
 
 ### Remaining Optimization Opportunities:
-1. **Optimize advance() method** - Remove unused return value and streamline (estimated 5-10% improvement)
-2. **Optimize readDateTime/readTimeFormat** - Reduce redundant charCode lookups (estimated 1-2% improvement)
-3. **Consider inlining small methods** - Reduce function call overhead (estimated 2-3% improvement)
+1. **Complete advance() inlining** - String/comment parsing still uses advance() heavily
+2. **Optimize readDateTime/readTimeFormat** - Reduce redundant charCode lookups
+3. **Consider more aggressive inlining** - peek(), peekCharCode() in hot paths
