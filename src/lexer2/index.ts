@@ -1,87 +1,113 @@
 export enum TokenType {
+  // Non-operators (no precedence)
   // Literals
-  NULL,
-  BOOLEAN,
-  STRING,
-  NUMBER,
-  DATETIME,
-  TIME,
+  NULL = 0x0001,
+  BOOLEAN = 0x0002,
+  STRING = 0x0003,
+  NUMBER = 0x0004,
+  DATETIME = 0x0005,
+  TIME = 0x0006,
   
   // Identifiers
-  IDENTIFIER,
-  DELIMITED_IDENTIFIER,
+  IDENTIFIER = 0x0007,
+  DELIMITED_IDENTIFIER = 0x0008,
   
-  // Keywords
-  TRUE,
-  FALSE,
-  AS,
-  CONTAINS,
-  IN,
-  IS,
-  DIV,
-  MOD,
-  AND,
-  OR,
-  XOR,
-  IMPLIES,
+  // Keywords (some used as operators with precedence)
+  TRUE = 0x0009,
+  FALSE = 0x000A,
   
   // Special identifiers
-  THIS,
-  INDEX,
-  TOTAL,
-  
-  // Operators
-  DOT,
-  LPAREN,
-  RPAREN,
-  LBRACKET,
-  RBRACKET,
-  LBRACE,
-  RBRACE,
-  PLUS,
-  MINUS,
-  MULTIPLY,
-  DIVIDE,
-  AMPERSAND,
-  PIPE,
-  LTE,
-  LT,
-  GT,
-  GTE,
-  EQ,
-  NEQ,
-  SIMILAR,
-  NOT_SIMILAR,
-  COMMA,
-  PERCENT,
-  AT,
+  THIS = 0x000B,
+  INDEX = 0x000C,
+  TOTAL = 0x000D,
   
   // Environment variable
-  ENV_VAR,
+  ENV_VAR = 0x000E,
   
   // Date/time units
-  YEAR,
-  MONTH,
-  WEEK,
-  DAY,
-  HOUR,
-  MINUTE,
-  SECOND,
-  MILLISECOND,
-  YEARS,
-  MONTHS,
-  WEEKS,
-  DAYS,
-  HOURS,
-  MINUTES,
-  SECONDS,
-  MILLISECONDS,
+  YEAR = 0x000F,
+  MONTH = 0x0010,
+  WEEK = 0x0011,
+  DAY = 0x0012,
+  HOUR = 0x0013,
+  MINUTE = 0x0014,
+  SECOND = 0x0015,
+  MILLISECOND = 0x0016,
+  YEARS = 0x0017,
+  MONTHS = 0x0018,
+  WEEKS = 0x0019,
+  DAYS = 0x001A,
+  HOURS = 0x001B,
+  MINUTES = 0x001C,
+  SECONDS = 0x001D,
+  MILLISECONDS = 0x001E,
   
   // Special
-  EOF,
-  WHITESPACE,
-  COMMENT,
-  LINE_COMMENT,
+  EOF = 0x001F,
+  WHITESPACE = 0x0020,
+  COMMENT = 0x0021,
+  LINE_COMMENT = 0x0022,
+  
+  // Operators with precedence (0xPPXX where PP is precedence in hex)
+  // Precedence 5
+  PIPE = 0x0501,           // precedence 5
+  
+  // Precedence 10
+  IMPLIES = 0x0A01,        // precedence 10
+  
+  // Precedence 20
+  OR = 0x1401,             // precedence 20
+  XOR = 0x1402,            // precedence 20
+  
+  // Precedence 30
+  AND = 0x1E01,            // precedence 30
+  
+  // Precedence 35
+  IN = 0x2301,             // precedence 35
+  CONTAINS = 0x2302,       // precedence 35
+  
+  // Precedence 40
+  EQ = 0x2801,             // precedence 40
+  NEQ = 0x2802,            // precedence 40
+  SIMILAR = 0x2803,        // precedence 40
+  NOT_SIMILAR = 0x2804,    // precedence 40
+  
+  // Precedence 50
+  LT = 0x3201,             // precedence 50
+  GT = 0x3202,             // precedence 50
+  LTE = 0x3203,            // precedence 50
+  GTE = 0x3204,            // precedence 50
+  
+  // Precedence 60
+  AMPERSAND = 0x3C01,      // precedence 60
+  
+  // Precedence 70
+  PLUS = 0x4601,           // precedence 70
+  MINUS = 0x4602,          // precedence 70
+  
+  // Precedence 80
+  MULTIPLY = 0x5001,       // precedence 80
+  DIVIDE = 0x5002,         // precedence 80
+  DIV = 0x5003,            // precedence 80
+  MOD = 0x5004,            // precedence 80
+  
+  // Precedence 90
+  AS = 0x5A01,             // precedence 90
+  IS = 0x5A02,             // precedence 90
+  
+  // Precedence 100
+  DOT = 0x6401,            // precedence 100
+  LBRACKET = 0x6402,       // precedence 100
+  LPAREN = 0x6403,         // precedence 100
+  
+  // Non-operator tokens (no precedence)
+  RPAREN = 0x0023,
+  RBRACKET = 0x0024,
+  LBRACE = 0x0025,
+  RBRACE = 0x0026,
+  COMMA = 0x0027,
+  PERCENT = 0x0028,
+  AT = 0x0029,
 }
 
 // Helper to convert numeric token type to string for debugging

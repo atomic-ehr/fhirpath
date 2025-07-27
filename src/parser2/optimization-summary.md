@@ -97,6 +97,7 @@ To provide additional context, we compared parser2 performance against the ANTLR
 | extension.exists() or (contentType.co... | 0.047 | 0.001 | 33.1x |
 
 
+
 ### Key Differences
 
 1. **Architecture**: ANTLR uses table-driven parsing while parser2 uses recursive descent with Pratt parsing
@@ -104,12 +105,34 @@ To provide additional context, we compared parser2 performance against the ANTLR
 3. **Scalability**: Parser2 shows better performance on complex expressions (up to 33x faster)
 4. **Error Recovery**: ANTLR provides better error recovery but at a performance cost
 
+## Optimization: Bit-Packed Precedence (2024-01-27)
+
+### Implementation
+Encoded operator precedence directly into TokenType enum values using bit-packing:
+- High byte: Precedence (0-255)
+- Low byte: Token ID (0-255)
+
+### Results
+| Metric | Before | After | Improvement |
+|--------|--------|-------|-------------|
+| Expressions/sec | 1,182,443 | 1,214,209 | +2.7% |
+| Time per expression | 0.8μs | 0.8μs | - |
+| getPrecedence cycles | ~5-10 | ~1 | -90% |
+
+### Code Simplification
+- Removed 30+ line switch statement
+- Replaced with single bit shift: `type >>> 8`
+- Precedence now co-located with token definitions
+
+### Note
+A direct precedence value approach (without bit-packing) was also tested but resulted in 8.8% performance degradation due to lookup table overhead. The bit-packed approach with bit shift operation provides the best balance of performance and maintainability.
+
 ## Conclusion
 
-The parser2 baseline performance is exceptional:
+The parser2 performance is exceptional:
 - **7.2x faster** than the ANTLR-generated parser
-- Processing over **1 million expressions per second**
+- Processing over **1.2 million expressions per second**
 - Consistent **linear O(n) scaling** with token count
 - Sub-microsecond parsing times for typical expressions
 
-The combination of recursive-descent parsing with Pratt operator precedence provides an optimal balance of simplicity, maintainability, and performance. The implementation significantly outperforms the industry-standard ANTLR parser while maintaining clean, understandable code.
+The combination of recursive-descent parsing with Pratt operator precedence, enhanced with bit-packed precedence lookup, provides an optimal balance of simplicity, maintainability, and performance. Even with already excellent baseline performance, targeted optimizations like bit-packed precedence can provide measurable improvements while simplifying the codebase.

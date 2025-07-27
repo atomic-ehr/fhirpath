@@ -404,36 +404,8 @@ export class Parser {
   }
 
   private getPrecedence(type: TokenType): number {
-    switch (type) {
-      case TokenType.DOT: return 100;
-      case TokenType.LBRACKET: return 100;
-      case TokenType.LPAREN: return 100;
-      case TokenType.IS: return 90;
-      case TokenType.AS: return 90;
-      case TokenType.MULTIPLY:
-      case TokenType.DIVIDE:
-      case TokenType.DIV:
-      case TokenType.MOD: return 80;
-      case TokenType.PLUS:
-      case TokenType.MINUS: return 70;
-      case TokenType.AMPERSAND: return 60;
-      case TokenType.LT:
-      case TokenType.GT:
-      case TokenType.LTE:
-      case TokenType.GTE: return 50;
-      case TokenType.EQ:
-      case TokenType.NEQ:
-      case TokenType.SIMILAR:
-      case TokenType.NOT_SIMILAR: return 40;
-      case TokenType.IN:
-      case TokenType.CONTAINS: return 35;
-      case TokenType.AND: return 30;
-      case TokenType.OR:
-      case TokenType.XOR: return 20;
-      case TokenType.IMPLIES: return 10;
-      case TokenType.PIPE: return 5;
-      default: return 0;
-    }
+    // Extract precedence from high byte using bit shift
+    return type >>> 8;
   }
 
   private getAssociativity(type: TokenType): 'left' | 'right' {
