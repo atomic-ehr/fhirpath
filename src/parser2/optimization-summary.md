@@ -127,6 +127,30 @@ Encoded operator precedence directly into TokenType enum values using bit-packin
 ### Note
 A direct precedence value approach (without bit-packing) was also tested but resulted in 8.8% performance degradation due to lookup table overhead. The bit-packed approach with bit shift operation provides the best balance of performance and maintainability.
 
+## Additional Optimizations (2024-01-27)
+
+### 1. Method Inlining
+Inlined hot path methods (`peek()`, `advance()`, `isAtEnd()`) to reduce function call overhead in `parseExpressionWithPrecedence()` and `parsePrimary()`.
+
+**Results**: 
+- Baseline: 1,203,640 expressions/sec
+- After inlining: 1,223,027 expressions/sec (+1.6%)
+
+### 2. Node Creation Inlining (Reverted)
+Attempted to inline frequently used node creation functions (`createBinaryNode`, `createLiteralNode`, `createIdentifierNode`) but observed performance regression due to increased code size affecting CPU cache and JIT optimization.
+
+**Results**: Performance decreased to 1,184,463 expressions/sec - optimization was reverted.
+
+### 3. Lookup Tables for Token Type Checking (Abandoned)
+Attempted to use Uint8Array lookup tables for binary operator and keyword checking, but abandoned due to bit-packed token values exceeding array bounds (values > 256).
+
+### Key Findings:
+- Simple method inlining in hot paths provides consistent gains
+- Over-optimization (excessive inlining) can hurt performance
+- JIT compiler already optimizes method calls effectively
+- Bit-packed TokenType with getPrecedence bit shift remains the best optimization
+- Current optimized performance: **1,223,027 expressions/sec** (1.6% improvement)
+
 ## Conclusion
 
 The parser2 performance is exceptional:

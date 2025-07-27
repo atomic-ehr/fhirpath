@@ -138,18 +138,21 @@ export class Parser {
   private parseExpressionWithPrecedence(minPrecedence: number): ASTNode {
     let left = this.parsePrimary();
 
-    while (!this.isAtEnd()) {
-      const token = this.peek();
+    // Inline isAtEnd() and peek() for hot path
+    while (this.current < this.tokens.length) {
+      const token = this.tokens[this.current];
+      if (!token || token.type === TokenType.EOF) break;
+      
       const precedence = this.getPrecedence(token.type);
       
       if (precedence < minPrecedence) break;
 
       if (token.type === TokenType.DOT) {
-        this.advance();
+        this.current++; // inline advance()
         const right = this.parseInvocation();
         left = this.createBinaryNode(token, left, right);
       } else if (this.isBinaryOperator(token.type)) {
-        this.advance();
+        this.current++; // inline advance()
         const associativity = this.getAssociativity(token.type);
         const nextMinPrecedence = associativity === 'left' ? precedence + 1 : precedence;
         const right = this.parseExpressionWithPrecedence(nextMinPrecedence);
@@ -162,21 +165,21 @@ export class Parser {
           left = this.createBinaryNode(token, left, right);
         }
       } else if (token.type === TokenType.IS) {
-        this.advance();
+        this.current++; // inline advance()
         const typeName = this.parseTypeName();
         left = this.createMembershipTestNode(left, typeName, this.getPosition(token));
       } else if (token.type === TokenType.AS) {
-        this.advance();
+        this.current++; // inline advance()
         const typeName = this.parseTypeName();
         left = this.createTypeCastNode(left, typeName, this.getPosition(token));
       } else if (token.type === TokenType.LBRACKET) {
-        this.advance();
+        this.current++; // inline advance()
         const index = this.expression();
         this.consume(TokenType.RBRACKET, "Expected ']'");
         left = this.createIndexNode(left, index, this.getPosition(token));
       } else if (token.type === TokenType.LPAREN && this.isFunctionCall(left)) {
         const parenToken = token;
-        this.advance();
+        this.current++; // inline advance()
         const args = this.parseArgumentList();
         this.consume(TokenType.RPAREN, "Expected ')'");
         left = this.createFunctionNode(left, args, left.position);
@@ -189,15 +192,16 @@ export class Parser {
   }
 
   private parsePrimary(): ASTNode {
-    const token = this.peek();
+    // Inline peek() for hot path
+    const token = this.current < this.tokens.length ? this.tokens[this.current] : { type: TokenType.EOF, start: 0, end: 0, line: 1, column: 1 };
 
     if (token.type === TokenType.NUMBER) {
-      this.advance();
+      this.current++; // inline advance()
       return this.createLiteralNode(parseFloat(this.lexer.getTokenValue(token)), 'number', token);
     }
 
     if (token.type === TokenType.STRING) {
-      this.advance();
+      this.current++; // inline advance()
       const value = this.parseStringValue(this.lexer.getTokenValue(token));
       return this.createLiteralNode(value, 'string', token);
     }
