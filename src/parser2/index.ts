@@ -193,7 +193,7 @@ export class Parser {
 
   private parsePrimary(): ASTNode {
     // Inline peek() for hot path
-    const token = this.current < this.tokens.length ? this.tokens[this.current] : { type: TokenType.EOF, start: 0, end: 0, line: 1, column: 1 };
+    const token = this.current < this.tokens.length ? this.tokens[this.current]! : { type: TokenType.EOF, start: 0, end: 0, line: 1, column: 1 };
 
     if (token.type === TokenType.NUMBER) {
       this.current++; // inline advance()

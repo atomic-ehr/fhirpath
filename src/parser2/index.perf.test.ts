@@ -95,6 +95,7 @@ function runPerformanceTest() {
     
     for (let i = 0; i < Math.min(10, expressionStats.length); i++) {
       const stat = expressionStats[i];
+      if (!stat) continue;
       const expr = stat.expression.length > 40 
         ? stat.expression.substring(0, 37) + '...' 
         : stat.expression;

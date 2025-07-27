@@ -297,9 +297,9 @@ describe('Parser2', () => {
       expect(ast.type).toBe(NodeType.Binary);
       // Further assertions on the structure...
     });
-    it('parses complex arithmetic', () => {
+    it('parses complex arithmetic', async () => {
       const ast = parse('Patient.name.given.where(use = "official").given');
-      console.log(JSON.stringify(ast, null, 2));
+      await Bun.write('./tmp/out.json', JSON.stringify(ast, null, 2));
     });
   });
 });
