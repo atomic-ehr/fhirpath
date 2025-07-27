@@ -26,6 +26,7 @@ describe('Lexer', () => {
     });
     
     it('tokenizes string literals', () => {
+      // Single-quoted strings
       expect(getTokenTypes("'hello world'")).toEqual([
         TokenType.STRING,
         TokenType.EOF
@@ -37,6 +38,33 @@ describe('Lexer', () => {
       ]);
       
       expect(getTokenTypes("'\\u0048\\u0065\\u006C\\u006C\\u006F'")).toEqual([
+        TokenType.STRING,
+        TokenType.EOF
+      ]);
+      
+      // Double-quoted strings
+      expect(getTokenTypes('"hello world"')).toEqual([
+        TokenType.STRING,
+        TokenType.EOF
+      ]);
+      
+      expect(getTokenTypes('"hello\\nworld\\t\\r\\\\\\""')).toEqual([
+        TokenType.STRING,
+        TokenType.EOF
+      ]);
+      
+      expect(getTokenTypes('"\\u0048\\u0065\\u006C\\u006C\\u006F"')).toEqual([
+        TokenType.STRING,
+        TokenType.EOF
+      ]);
+      
+      // Mixed quotes
+      expect(getTokenTypes(`"single ' quote inside"`)).toEqual([
+        TokenType.STRING,
+        TokenType.EOF
+      ]);
+      
+      expect(getTokenTypes(`'double " quote inside'`)).toEqual([
         TokenType.STRING,
         TokenType.EOF
       ]);
@@ -281,7 +309,30 @@ describe('Lexer', () => {
       const lexer = new Lexer("Patient.name.where(given = 'John')");
       const tokens = lexer.tokenize();
       console.log(tokens);
-    })
+    });
+    
+    it('tokenizes expressions with double-quoted strings', () => {
+      expect(getTokenTypes(`"Hello" + " " + "World"`)).toEqual([
+        TokenType.STRING,
+        TokenType.PLUS,
+        TokenType.STRING,
+        TokenType.PLUS,
+        TokenType.STRING,
+        TokenType.EOF
+      ]);
+      
+      expect(getTokenTypes(`name.where(use = "official")`)).toEqual([
+        TokenType.IDENTIFIER,
+        TokenType.DOT,
+        TokenType.IDENTIFIER,
+        TokenType.LPAREN,
+        TokenType.IDENTIFIER,
+        TokenType.EQ,
+        TokenType.STRING,
+        TokenType.RPAREN,
+        TokenType.EOF
+      ]);
+    });
   });
   
   describe('error handling', () => {
@@ -291,14 +342,17 @@ describe('Lexer', () => {
     
     it('throws on unterminated string', () => {
       expect(() => new Lexer("'unterminated").tokenize()).toThrow('Unterminated string');
+      expect(() => new Lexer('"unterminated').tokenize()).toThrow('Unterminated string');
     });
     
     it('throws on invalid escape sequence', () => {
       expect(() => new Lexer("'\\q'").tokenize()).toThrow('Invalid escape sequence');
+      expect(() => new Lexer('"\\q"').tokenize()).toThrow('Invalid escape sequence');
     });
     
     it('throws on invalid unicode escape', () => {
       expect(() => new Lexer("'\\uXYZ'").tokenize()).toThrow('Invalid unicode escape');
+      expect(() => new Lexer('"\\uXYZ"').tokenize()).toThrow('Invalid unicode escape');
     });
   });
 });

@@ -339,17 +339,20 @@ export class Lexer {
   private readString(): Token | null {
     const start = this.position;
     const startLine = this.line;
-    const startColumn = this.column;    
-    if (this.peek() !== "'") {
+    const startColumn = this.column;
+    const firstChar = this.peek();
+    
+    if (firstChar !== "'" && firstChar !== '"') {
       return null;
     }
     
-    this.advance(); // '
+    const quoteChar = firstChar;
+    this.advance(); // consume opening quote
     
     while (this.position < this.input.length) {
       const char = this.peek();
       
-      if (char === "'") {
+      if (char === quoteChar) {
         this.advance();
         return { type: TokenType.STRING, start, end: this.position, line: startLine, column: startColumn };
       }
@@ -360,6 +363,7 @@ export class Lexer {
         switch (escaped) {
           case '`':
           case "'":
+          case '"':
           case '\\':
           case '/':
           case 'f':
@@ -787,8 +791,9 @@ export class Lexer {
     
     // Switch on character code for faster dispatch
     switch (firstCharCode) {
-      // String literal
+      // String literals
       case 39: // '
+      case 34: // "
         return this.readString() || this.throwUnexpectedChar(String.fromCharCode(firstCharCode));
         
       // Delimited identifier
