@@ -76,6 +76,40 @@ While the baseline performance is already excellent, potential optimizations inc
 4. **Precedence Table**: Replace switch statement with lookup table for operator precedence
 5. **String Interning**: Intern common identifier strings to reduce memory and comparison costs
 
+## ANTLR Parser Comparison
+
+To provide additional context, we compared parser2 performance against the ANTLR-generated parser:
+
+### Overall Performance Comparison
+
+| Parser | Expressions/sec | Time per Expression | Relative Performance |
+|--------|----------------|-------------------|---------------------|
+| ANTLR | 143,965 | 0.0069ms | 1.0x (baseline) |
+| Parser2 | 1,030,046 | 0.0010ms | **7.2x faster** |
+
+### Complex Expression Performance
+
+| Expression | ANTLR (ms) | Parser2 (ms) | Speedup |
+|------------|------------|--------------|---------|
+| Patient.name.where(use = 'official').given | 0.009 | 0.001 | 7.7x |
+| (ActivityDefinition.useContext.value... | 0.009 | 0.001 | 7.1x |
+| ($this is Range) implies ((low.empty()... | 0.027 | 0.002 | 11.2x |
+| extension.exists() or (contentType.co... | 0.047 | 0.001 | 33.1x |
+
+
+### Key Differences
+
+1. **Architecture**: ANTLR uses table-driven parsing while parser2 uses recursive descent with Pratt parsing
+2. **Overhead**: ANTLR has more runtime overhead due to its generic parsing framework
+3. **Scalability**: Parser2 shows better performance on complex expressions (up to 33x faster)
+4. **Error Recovery**: ANTLR provides better error recovery but at a performance cost
+
 ## Conclusion
 
-The parser2 baseline performance is strong, processing over 1 million real-world FHIRPath expressions per second with consistent linear scaling. The implementation is already well-optimized with Pratt parsing and efficient token handling. Any further optimizations would yield marginal gains given the already sub-microsecond parsing times for typical expressions.
+The parser2 baseline performance is exceptional:
+- **7.2x faster** than the ANTLR-generated parser
+- Processing over **1 million expressions per second**
+- Consistent **linear O(n) scaling** with token count
+- Sub-microsecond parsing times for typical expressions
+
+The combination of recursive-descent parsing with Pratt operator precedence provides an optimal balance of simplicity, maintainability, and performance. The implementation significantly outperforms the industry-standard ANTLR parser while maintaining clean, understandable code.
