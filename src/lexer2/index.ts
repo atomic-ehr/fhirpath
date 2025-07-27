@@ -344,26 +344,40 @@ export class Lexer {
     const start = this.position;
     const startLine = this.line;
     const startColumn = this.column;
-    const firstCharCode = this.peekCharCode();
+    
+    // Inline peekCharCode
+    if (this.position >= this.input.length) return null;
+    const firstCharCode = this.input.charCodeAt(this.position);
     
     if (firstCharCode !== 39 && firstCharCode !== 34) { // ' and "
       return null;
     }
     
     const quoteCharCode = firstCharCode;
-    this.advance(); // consume opening quote
+    // Inline advance
+    this.position++;
+    this.column++;
     
     while (this.position < this.input.length) {
-      const charCode = this.peekCharCode();
+      const charCode = this.input.charCodeAt(this.position);
       
       if (charCode === quoteCharCode) {
-        this.advance();
+        // Inline advance
+        this.position++;
+        this.column++;
         return { type: TokenType.STRING, start, end: this.position, line: startLine, column: startColumn };
       }
       
       if (charCode === 92) { // \
-        this.advance();
-        const escapedCode = this.peekCharCode();
+        // Inline advance
+        this.position++;
+        this.column++;
+        
+        if (this.position >= this.input.length) {
+          throw new Error(`Invalid escape sequence at position ${this.position}`);
+        }
+        const escapedCode = this.input.charCodeAt(this.position);
+        
         switch (escapedCode) {
           case 96:  // `
           case 39:  // '
@@ -374,25 +388,41 @@ export class Lexer {
           case 110: // n
           case 114: // r
           case 116: // t
-            this.advance();
+            // Inline advance
+            this.position++;
+            this.column++;
             break;
           case 117: // u
-            this.advance();
+            // Inline advance
+            this.position++;
+            this.column++;
+            // Read 4 hex digits
             for (let i = 0; i < 4; i++) {
-              const hexCode = this.peekCharCode();
-              if (hexCode !== -1 && IS_HEX_DIGIT[hexCode]) {
-                this.advance();
+              if (this.position >= this.input.length) {
+                throw new Error(`Invalid unicode escape at position ${this.position}`);
+              }
+              const hexCode = this.input.charCodeAt(this.position);
+              if (IS_HEX_DIGIT[hexCode]) {
+                this.position++;
+                this.column++;
               } else {
                 throw new Error(`Invalid unicode escape at position ${this.position}`);
               }
             }
             break;
           default:
-            const escaped = escapedCode === -1 ? '' : String.fromCharCode(escapedCode);
+            const escaped = String.fromCharCode(escapedCode);
             throw new Error(`Invalid escape sequence \\${escaped} at position ${this.position}`);
         }
+      } else if (charCode === 10) { // \n
+        // Handle newline
+        this.position++;
+        this.line++;
+        this.column = 1;
       } else {
-        this.advance();
+        // Regular character - inline advance
+        this.position++;
+        this.column++;
       }
     }
     

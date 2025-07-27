@@ -535,12 +535,54 @@ switch (escapedCode) {
 - Avoids string allocation for single character comparisons
 - Better for hot paths that process many characters
 
+## 17. Inline peek() and advance() in readString
+
+### What was changed:
+- Inlined `peekCharCode()` and `advance()` calls in the `readString()` method
+- Replaced method calls with direct buffer access and position/column updates
+- Applied specifically to string parsing which is a hot path for string-heavy expressions
+
+### Implementation:
+```typescript
+// Before:
+const charCode = this.peekCharCode();
+if (charCode === quoteCharCode) {
+  this.advance();
+  return { type: TokenType.STRING, ... };
+}
+
+// After:
+const charCode = this.input.charCodeAt(this.position);
+if (charCode === quoteCharCode) {
+  this.position++;
+  this.column++;
+  return { type: TokenType.STRING, ... };
+}
+```
+
+### Performance Impact:
+- **String-heavy expressions**: ~31% improvement (3.0M → 4.0M expressions/second)
+- **Overall benchmark**: Mixed results (slight decrease in some tests)
+- Decision: Applied to `readString()` only, not to other methods
+
+### Why it works for strings:
+1. **String parsing is advance-heavy** - Each character requires an advance() call
+2. **Eliminates method call overhead** - Direct buffer access is faster
+3. **Better locality** - All operations on adjacent memory
+4. **Escape sequence handling** - Multiple advance() calls for escape sequences benefit greatly
+
+### Trade-offs:
+- **Code size increase** - Method becomes larger and more complex
+- **Maintenance burden** - Must handle line/column tracking manually
+- **Mixed performance impact** - Benefits string-heavy code but may hurt instruction cache
+- **JIT optimization** - Very large methods may be harder for JIT to optimize
+
 ### Current Performance Summary:
 - Original: ~1,477K expressions/second
 - Current: ~6,093K expressions/second
 - **Total improvement: ~313%** (4.1x faster than original)
 
 ### Remaining Optimization Opportunities:
-1. **Complete advance() inlining** - String/comment parsing still uses advance() heavily
-2. **Optimize readDateTime/readTimeFormat** - Reduce redundant charCode lookups
-3. **Consider more aggressive inlining** - peek(), peekCharCode() in hot paths
+1. **Optimize readDateTime/readTimeFormat** - Reduce redundant charCode lookups
+2. **Consider selective inlining** - Apply only where measurable benefit exists
+3. **Profile-guided optimization** - Focus on actual hot paths in real usage
