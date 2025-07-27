@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'bun:test';
 import { parse, NodeType } from './index';
+import { TokenType } from '../lexer2';
+import type { IdentifierNode, BinaryNode } from './index';
 
 describe('Parser2', () => {
   describe('literals', () => {
@@ -247,20 +249,25 @@ describe('Parser2', () => {
 
   describe('union operator', () => {
     it('parses union operator', () => {
-      const ast = parse('a | b');
-      expect(ast.type).toBe(NodeType.Union);
-      expect((ast as any).operands).toHaveLength(2);
-      expect((ast as any).operands[0].name).toBe('a');
-      expect((ast as any).operands[1].name).toBe('b');
+      const ast = parse('a | b') as BinaryNode;
+      expect(ast.type).toBe(NodeType.Binary);
+      expect(ast.operator).toBe(TokenType.PIPE);
+      expect((ast.left as IdentifierNode).name).toBe('a');
+      expect((ast.right as IdentifierNode).name).toBe('b');
     });
 
     it('parses multiple unions', () => {
-      const ast = parse('a | b | c');
-      expect(ast.type).toBe(NodeType.Union);
-      expect((ast as any).operands).toHaveLength(3);
-      expect((ast as any).operands[0].name).toBe('a');
-      expect((ast as any).operands[1].name).toBe('b');
-      expect((ast as any).operands[2].name).toBe('c');
+      const ast = parse('a | b | c') as BinaryNode;
+      expect(ast.type).toBe(NodeType.Binary);
+      expect(ast.operator).toBe(TokenType.PIPE);
+      // Union is left-associative: (a | b) | c
+      expect(ast.left.type).toBe(NodeType.Binary);
+      expect((ast.right as IdentifierNode).name).toBe('c');
+      
+      const leftBinary = ast.left as BinaryNode;
+      expect(leftBinary.operator).toBe(TokenType.PIPE);
+      expect((leftBinary.left as IdentifierNode).name).toBe('a');
+      expect((leftBinary.right as IdentifierNode).name).toBe('b');
     });
   });
 

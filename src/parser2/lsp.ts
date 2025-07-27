@@ -84,10 +84,6 @@ export interface IndexNode extends LSPASTNode {
   index: LSPASTNode;
 }
 
-export interface UnionNode extends LSPASTNode {
-  type: NodeType.Union;
-  operands: LSPASTNode[];
-}
 
 export interface MembershipTestNode extends LSPASTNode {
   type: NodeType.MembershipTest;
@@ -331,27 +327,6 @@ export class LSPParser extends BaseParser<LSPASTNode> {
     return node;
   }
   
-  protected createUnionNode(operands: LSPASTNode[], position: Position): LSPASTNode {
-    const startToken = this.findFirstToken(operands[0]);
-    const endToken = this.findLastToken(operands[operands.length - 1]);
-    const node = this.createNode(
-      NodeType.Union,
-      { operands },
-      startToken,
-      endToken
-    ) as UnionNode;
-    
-    node.children = operands;
-    for (let i = 0; i < operands.length; i++) {
-      this.setParent(operands[i], node);
-      if (i > 0) {
-        operands[i].previousSibling = operands[i - 1];
-        operands[i - 1].nextSibling = operands[i];
-      }
-    }
-    
-    return node;
-  }
   
   protected createMembershipTestNode(expression: LSPASTNode, targetType: string, position: Position): LSPASTNode {
     const startToken = this.findFirstToken(expression);

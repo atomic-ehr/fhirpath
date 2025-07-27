@@ -16,7 +16,6 @@ export enum NodeType {
   // Operators
   Binary,
   Unary,
-  Union,
   
   // Functions
   Function,
@@ -63,7 +62,6 @@ export abstract class BaseParser<TNode extends BaseASTNode = BaseASTNode> {
   protected abstract createFunctionNode(name: TNode, args: TNode[], position: Position): TNode;
   protected abstract createVariableNode(name: string, token: Token): TNode;
   protected abstract createIndexNode(expression: TNode, index: TNode, position: Position): TNode;
-  protected abstract createUnionNode(operands: TNode[], position: Position): TNode;
   protected abstract createMembershipTestNode(expression: TNode, targetType: string, position: Position): TNode;
   protected abstract createTypeCastNode(expression: TNode, targetType: string, position: Position): TNode;
   protected abstract createCollectionNode(elements: TNode[], position: Position): TNode;
@@ -96,13 +94,7 @@ export abstract class BaseParser<TNode extends BaseASTNode = BaseASTNode> {
         const nextMinPrecedence = associativity === 'left' ? precedence + 1 : precedence;
         const right = this.parseExpressionWithPrecedence(nextMinPrecedence);
         
-        if (token.type === TokenType.PIPE && (left as any).type === NodeType.Union) {
-          ((left as any) as {operands: TNode[]}).operands.push(right);
-        } else if (token.type === TokenType.PIPE) {
-          left = this.createUnionNode([left, right], this.getPosition(token));
-        } else {
-          left = this.createBinaryNode(token, left, right);
-        }
+        left = this.createBinaryNode(token, left, right);
       } else if (token.type === TokenType.IS) {
         this.current++; // inline advance()
         const typeName = this.parseTypeName();

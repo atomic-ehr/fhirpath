@@ -59,10 +59,6 @@ export interface IndexNode extends ASTNode {
   index: ASTNode;
 }
 
-export interface UnionNode extends ASTNode {
-  type: NodeType.Union;
-  operands: ASTNode[];
-}
 
 export interface MembershipTestNode extends ASTNode {
   type: NodeType.MembershipTest;
@@ -174,13 +170,6 @@ export class Parser extends BaseParser<ASTNode> {
     };
   }
 
-  protected createUnionNode(operands: ASTNode[], position: Position): UnionNode {
-    return {
-      type: NodeType.Union,
-      operands,
-      position
-    };
-  }
 
   protected createMembershipTestNode(expression: ASTNode, targetType: string, position: Position): MembershipTestNode {
     return {
