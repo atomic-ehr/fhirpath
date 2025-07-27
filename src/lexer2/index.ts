@@ -238,6 +238,10 @@ export class Lexer {
     throw new Error(`Unexpected character '${char}' at position ${this.position}`);
   }
   
+  private throwUnexpectedCharCode(charCode: number): never {
+    throw new Error(`Unexpected character '${String.fromCharCode(charCode)}' at position ${this.position}`);
+  }
+  
   private advance(): string {
     if (this.position >= this.input.length) {
       return '';
@@ -779,21 +783,20 @@ export class Lexer {
     const start = this.position;
     const startLine = this.line;
     const startColumn = this.column;
-    const firstChar = this.peek();
     const firstCharCode = this.peekCharCode();
     
-    // Switch on first character for faster dispatch
-    switch (firstChar) {
+    // Switch on character code for faster dispatch
+    switch (firstCharCode) {
       // String literal
-      case "'":
-        return this.readString() || this.throwUnexpectedChar(firstChar);
+      case 39: // '
+        return this.readString() || this.throwUnexpectedChar(String.fromCharCode(firstCharCode));
         
       // Delimited identifier
-      case '`':
-        return this.readDelimitedIdentifier() || this.throwUnexpectedChar(firstChar);
+      case 96: // `
+        return this.readDelimitedIdentifier() || this.throwUnexpectedChar(String.fromCharCode(firstCharCode));
         
       // DateTime/Time or AT operator
-      case '@':
+      case 64: // @
         const dt = this.readDateTime();
         if (dt) return dt;
         // If not datetime, it's AT operator
@@ -801,108 +804,113 @@ export class Lexer {
         return { type: TokenType.AT, start, end: this.position, line: startLine, column: startColumn };
         
       // Special identifiers
-      case '$':
-        return this.readSpecialIdentifier() || this.throwUnexpectedChar(firstChar);
+      case 36: // $
+        return this.readSpecialIdentifier() || this.throwUnexpectedChar(String.fromCharCode(firstCharCode));
         
       // External constant
-      case '%':
+      case 37: // %
         this.advance();
         return { type: TokenType.PERCENT, start, end: this.position, line: startLine, column: startColumn };
         
       // Single-character operators
-      case '.':
+      case 46: // .
         this.advance();
         return { type: TokenType.DOT, start, end: this.position, line: startLine, column: startColumn };
-      case '(':
+      case 40: // (
         this.advance();
         return { type: TokenType.LPAREN, start, end: this.position, line: startLine, column: startColumn };
-      case ')':
+      case 41: // )
         this.advance();
         return { type: TokenType.RPAREN, start, end: this.position, line: startLine, column: startColumn };
-      case '[':
+      case 91: // [
         this.advance();
         return { type: TokenType.LBRACKET, start, end: this.position, line: startLine, column: startColumn };
-      case ']':
+      case 93: // ]
         this.advance();
         return { type: TokenType.RBRACKET, start, end: this.position, line: startLine, column: startColumn };
-      case '{':
+      case 123: // {
         this.advance();
         return { type: TokenType.LBRACE, start, end: this.position, line: startLine, column: startColumn };
-      case '}':
+      case 125: // }
         this.advance();
         return { type: TokenType.RBRACE, start, end: this.position, line: startLine, column: startColumn };
-      case '+':
+      case 43: // +
         this.advance();
         return { type: TokenType.PLUS, start, end: this.position, line: startLine, column: startColumn };
-      case '-':
+      case 45: // -
         this.advance();
         return { type: TokenType.MINUS, start, end: this.position, line: startLine, column: startColumn };
-      case '*':
+      case 42: // *
         this.advance();
         return { type: TokenType.MULTIPLY, start, end: this.position, line: startLine, column: startColumn };
-      case '/':
+      case 47: // /
         this.advance();
         return { type: TokenType.DIVIDE, start, end: this.position, line: startLine, column: startColumn };
-      case '&':
+      case 38: // &
         this.advance();
         return { type: TokenType.AMPERSAND, start, end: this.position, line: startLine, column: startColumn };
-      case '|':
+      case 124: // |
         this.advance();
         return { type: TokenType.PIPE, start, end: this.position, line: startLine, column: startColumn };
-      case '~':
+      case 126: // ~
         this.advance();
         return { type: TokenType.SIMILAR, start, end: this.position, line: startLine, column: startColumn };
-      case ',':
+      case 44: // ,
         this.advance();
         return { type: TokenType.COMMA, start, end: this.position, line: startLine, column: startColumn };
-      case '=':
+      case 61: // =
         this.advance();
         return { type: TokenType.EQ, start, end: this.position, line: startLine, column: startColumn };
         
       // Two-character operators starting with <
-      case '<':
+      case 60: // <
         this.advance();
-        if (this.peek() === '=') {
+        if (this.peekCharCode() === 61) { // =
           this.advance();
           return { type: TokenType.LTE, start, end: this.position, line: startLine, column: startColumn };
         }
         return { type: TokenType.LT, start, end: this.position, line: startLine, column: startColumn };
         
       // Two-character operators starting with >
-      case '>':
+      case 62: // >
         this.advance();
-        if (this.peek() === '=') {
+        if (this.peekCharCode() === 61) { // =
           this.advance();
           return { type: TokenType.GTE, start, end: this.position, line: startLine, column: startColumn };
         }
         return { type: TokenType.GT, start, end: this.position, line: startLine, column: startColumn };
         
       // Two-character operators starting with !
-      case '!':
+      case 33: // !
         this.advance();
-        const nextChar = this.peek();
-        if (nextChar === '=') {
+        const nextCharCode = this.peekCharCode();
+        if (nextCharCode === 61) { // =
           this.advance();
           return { type: TokenType.NEQ, start, end: this.position, line: startLine, column: startColumn };
-        } else if (nextChar === '~') {
+        } else if (nextCharCode === 126) { // ~
           this.advance();
           return { type: TokenType.NOT_SIMILAR, start, end: this.position, line: startLine, column: startColumn };
         }
-        throw new Error(`Unexpected character '${firstChar}' at position ${this.position - 1}`);
+        throw new Error(`Unexpected character '!' at position ${this.position - 1}`);
         
       default:
         // Inline digit check
-        if (firstCharCode < 256 && IS_DIGIT[firstCharCode]) {
-          return this.readNumber() || this.throwUnexpectedChar(firstChar);
+        if (firstCharCode >= 0 && firstCharCode < 256 && IS_DIGIT[firstCharCode]) {
+          return this.readNumber() || this.throwUnexpectedChar(String.fromCharCode(firstCharCode));
         }
         
         // Inline letter check
-        if (firstCharCode < 256 && IS_LETTER[firstCharCode]) {
-          return this.readIdentifierOrKeyword() || this.throwUnexpectedChar(firstChar);
+        if (firstCharCode >= 0 && firstCharCode < 256 && IS_LETTER[firstCharCode]) {
+          return this.readIdentifierOrKeyword() || this.throwUnexpectedChar(String.fromCharCode(firstCharCode));
+        }
+        
+        // EOF check
+        if (firstCharCode === -1) {
+          return { type: TokenType.EOF, start: this.position, end: this.position, line: this.line, column: this.column };
         }
         
         // Unknown character
-        throw new Error(`Unexpected character '${firstChar}' at position ${this.position}`);
+        throw new Error(`Unexpected character '${String.fromCharCode(firstCharCode)}' at position ${this.position}`);
     }
   }
   

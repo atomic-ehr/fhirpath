@@ -191,10 +191,58 @@ tokenTypeToString(TokenType.IDENTIFIER) // "IDENTIFIER"
 lexer.debugTokens() // "IDENTIFIER(foo) [1:1]\nDOT(.) [1:4]..."
 ```
 
+## 8. CharCode-based Dispatch in nextToken()
+
+### What was changed:
+- Replaced char-based switch (`switch (firstChar)`) with charCode-based switch (`switch (firstCharCode)`)
+- Use numeric character codes instead of string literals (e.g., `case 39:` instead of `case "'"`)
+- Updated all case statements to use ASCII codes with comments showing the character
+- Modified error handling to convert charCode back to string when needed
+
+### Performance Impact:
+- Before: ~2,212K expressions/second (char-based dispatch)
+- After: ~2,305K expressions/second (charCode-based dispatch)  
+- **Improvement: ~4.2%** (93,132 more expressions/sec)
+
+### Why it works:
+- Integer comparison is faster than string comparison in switch statements
+- JavaScript engines optimize numeric switches into jump tables more efficiently
+- Avoids string indexing overhead when accessing characters
+- Better CPU branch prediction with numeric values
+- Single charCodeAt() call is more efficient than charAt() or string indexing
+
+### Implementation Details:
+```typescript
+// Before
+switch (firstChar) {
+  case "'": return this.readString();
+  case ".": return { type: TokenType.DOT, ... };
+}
+
+// After  
+switch (firstCharCode) {
+  case 39:  // '
+    return this.readString();
+  case 46:  // .
+    return { type: TokenType.DOT, ... };
+}
+```
+
+### Trade-offs:
+- Less readable code (need ASCII code comments)
+- Need to convert charCode back to string for error messages
+- Slightly more complex error handling
+
+### Isolated Test Results:
+In isolated benchmarks, charCode dispatch showed 25% improvement over char dispatch. The smaller gain in the real lexer (4.2%) is due to:
+- Other operations diluting the pure dispatch improvement
+- Real-world expressions include various token types, not just operators
+- Position tracking, token creation, and other overhead
+
 ### Current Performance Summary:
 - Original: ~1,477K expressions/second
-- Current: ~2,200K expressions/second
-- **Total improvement: ~49%**
+- Current: ~2,305K expressions/second
+- **Total improvement: ~56%**
 
 ### Next Optimization Opportunities:
 1. **Optimize readSpecialIdentifier** - Remove substring call (estimated 2-3% improvement)
