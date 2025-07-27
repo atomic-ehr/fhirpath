@@ -32,16 +32,18 @@ import { SourceMapper } from './source-mapper';
 import { ContextualErrorReporter, ParseContext } from './error-reporter';
 import { FHIRPathDiagnostics } from './diagnostic-messages';
 import { ErrorCode } from '../api/errors';
+import { TokenNavigator } from './token-navigator';
+import { ASTFactory } from './ast-factory';
+import { ParserErrorFactory } from './parser-error-factory';
+import { ParserState } from './parser-state';
+import { PrecedenceManager } from './precedence-manager';
+import { ParseError } from './parse-error';
+import { LiteralParser } from './literal-parser';
+import { CollectionParser } from './collection-parser';
+import { SpecialConstructs } from './special-constructs';
 
-export class ParseError extends Error {
-  constructor(
-    message: string,
-    public position: Position,
-    public token: Token
-  ) {
-    super(message);
-  }
-}
+// Re-export ParseError for backward compatibility
+export { ParseError } from './parse-error';
 
 // Precedence levels for reference (from spec)
 // Parser uses standard precedence (higher number = higher precedence)
@@ -60,17 +62,17 @@ export class ParseError extends Error {
 // INVOCATION: 13,     // . (dot), function calls - highest precedence
 
 export class FHIRPathParser {
-  private tokens: Token[];
-  private current: number = 0;
+  private navigator: TokenNavigator;
   private throwOnError: boolean;
   private trackRanges: boolean;
   private errorRecovery: boolean;
   private diagnostics?: DiagnosticCollector;
   private sourceMapper?: SourceMapper;
   private errorReporter?: ContextualErrorReporter;
+  private errorFactory: ParserErrorFactory;
+  private state: ParserState;
   private input: string;
-  private isPartial: boolean = false;
-  private currentContext: ParseContext = ParseContext.Expression;
+  private tokens: Token[];
   
   constructor(input: string | Token[], options: ParserOptions = {}) {
     this.throwOnError = options.throwOnError ?? false;
@@ -97,8 +99,11 @@ export class FHIRPathParser {
       this.input = input.map(t => t.value).join(' ');
     }
     
-    this.current = 0;
+    this.navigator = new TokenNavigator(this.tokens);
+    this.state = new ParserState();
     this.initializeForMode(this.input, options);
+    // Create error factory after diagnostics and sourceMapper are initialized
+    this.errorFactory = new ParserErrorFactory(this.throwOnError, this.diagnostics, this.sourceMapper);
   }
   
   private initializeForMode(input: string, options: ParserOptions): void {
@@ -304,7 +309,7 @@ export class FHIRPathParser {
       // In diagnostic mode, create error node and mark as partial
       if (error instanceof ParseError) {
         ast = this.createErrorNode(error.token, error.message);
-        this.isPartial = true;
+        this.state.markPartial();
       } else {
         throw error;
       }
@@ -317,7 +322,7 @@ export class FHIRPathParser {
     };
     
     if (this.errorRecovery) {
-      result.isPartial = this.isPartial;
+      result.isPartial = this.state.getIsPartial();
     }
     
     if (this.trackRanges && this.sourceMapper) {
@@ -342,7 +347,7 @@ export class FHIRPathParser {
       // This allows for chained method calls like exists().not()
       if (this.check(TokenType.DOT) && minPrecedence <= 13) { // INVOCATION precedence
         const dotToken = this.peek();
-        const precedence = this.getPrecedence(dotToken);
+        const precedence = PrecedenceManager.getPrecedence(dotToken);
         if (precedence < minPrecedence) break;
         
         left = this.parseBinary(left, dotToken, precedence);
@@ -350,7 +355,7 @@ export class FHIRPathParser {
       }
       
       const token = this.peek();
-      const precedence = this.getPrecedence(token);
+      const precedence = PrecedenceManager.getPrecedence(token);
       
       if (precedence === 0 || precedence < minPrecedence) break;
       
@@ -362,97 +367,13 @@ export class FHIRPathParser {
   
   // Parse primary expressions (recursive descent)
   private primary(): ASTNode {
-    // Handle registry-based literals
-    if (this.match(TokenType.LITERAL)) {
-      const token = this.previous();
-      return {
-        type: NodeType.Literal,
-        value: token.literalValue ?? token.value,
-        valueType: this.inferLiteralType(token.literalValue ?? token.value),
-        raw: token.value,
-        operation: token.operation,
-        position: token.position
-      } as LiteralNode;
-    }
+    // Try parsing literals
+    const literal = LiteralParser.parseLiteral(this.navigator);
+    if (literal) return literal;
     
-    // Handle legacy literals
-    if (this.match(TokenType.NUMBER)) {
-      const token = this.previous();
-      return {
-        type: NodeType.Literal,
-        value: parseFloat(token.value),
-        valueType: 'number',
-        position: token.position
-      } as LiteralNode;
-    }
-    if (this.match(TokenType.STRING)) {
-      const token = this.previous();
-      return {
-        type: NodeType.Literal,
-        value: token.value,
-        valueType: 'string',
-        position: token.position
-      } as LiteralNode;
-    }
-    if (this.match(TokenType.TRUE, TokenType.FALSE)) {
-      const token = this.previous();
-      return {
-        type: NodeType.Literal,
-        value: token.type === TokenType.TRUE,
-        valueType: 'boolean',
-        position: token.position
-      } as LiteralNode;
-    }
-    if (this.match(TokenType.NULL)) {
-      return {
-        type: NodeType.Literal,
-        value: null,
-        valueType: 'null',
-        position: this.previous().position
-      } as LiteralNode;
-    }
-    
-    // Handle variables
-    if (this.match(TokenType.THIS)) {
-      return {
-        type: NodeType.Variable,
-        name: '$this',
-        position: this.previous().position
-      } as VariableNode;
-    }
-    if (this.match(TokenType.INDEX)) {
-      return {
-        type: NodeType.Variable,
-        name: '$index',
-        position: this.previous().position
-      } as VariableNode;
-    }
-    if (this.match(TokenType.TOTAL)) {
-      return {
-        type: NodeType.Variable,
-        name: '$total',
-        position: this.previous().position
-      } as VariableNode;
-    }
-    if (this.match(TokenType.ENV_VAR)) {
-      return {
-        type: NodeType.Variable,
-        name: this.previous().value,
-        position: this.previous().position
-      } as VariableNode;
-    }
-    
-    // Handle dates/times
-    if (this.match(TokenType.DATE, TokenType.DATETIME, TokenType.TIME)) {
-      const token = this.previous();
-      return {
-        type: NodeType.Literal,
-        value: token.value,
-        valueType: token.type === TokenType.DATE ? 'date' : 
-                   token.type === TokenType.TIME ? 'time' : 'datetime',
-        position: token.position
-      } as LiteralNode;
-    }
+    // Try parsing variables
+    const variable = LiteralParser.parseVariable(this.navigator);
+    if (variable) return variable;
     
     // Handle grouping
     if (this.match(TokenType.LPAREN)) {
@@ -537,8 +458,8 @@ export class FHIRPathParser {
       const elements: ASTNode[] = [];
       
       if (!this.check(TokenType.RBRACE)) {
-        const previousContext = this.currentContext;
-        this.currentContext = ParseContext.CollectionLiteral;
+        const previousContext = this.state.getContext();
+        this.state.setContext('CollectionLiteral');
         
         do {
           // Check for trailing comma before trying to parse expression
@@ -572,7 +493,7 @@ export class FHIRPathParser {
           }
         } while (this.match(TokenType.COMMA));
         
-        this.currentContext = previousContext;
+        this.state.setContext(previousContext);
       }
       
       if (!this.match(TokenType.RBRACE)) {
@@ -583,7 +504,7 @@ export class FHIRPathParser {
               "Expected '}' to close collection literal",
               ErrorCode.UNCLOSED_BRACE
             );
-          this.isPartial = true;
+          this.state.markPartial();
         } else {
           throw this.error("Expected '}' after collection elements", ErrorCode.UNCLOSED_BRACE);
         }
@@ -591,7 +512,7 @@ export class FHIRPathParser {
       
       // Restore context if we set it earlier
       if (!this.check(TokenType.RBRACE)) {
-        this.currentContext = ParseContext.Expression;
+        this.state.setContext('Expression');
       }
       
       return {
@@ -622,11 +543,12 @@ export class FHIRPathParser {
     let message = "Expected expression";
     
     // Add context-specific information
-    if (this.currentContext === ParseContext.CollectionLiteral) {
+    const context = this.state.getContext();
+    if (context === 'CollectionLiteral') {
       message = "Expected expression in collection";
-    } else if (this.currentContext === ParseContext.FunctionCall) {
+    } else if (context === 'FunctionCall') {
       message = "Expected expression in function call";
-    } else if (this.currentContext === ParseContext.IndexExpression) {
+    } else if (context === 'IndexExpression') {
       message = "Expected expression in index";
     }
     
@@ -745,7 +667,7 @@ export class FHIRPathParser {
           this.advance();
           
           if (this.errorRecovery) {
-            this.isPartial = true;
+            this.state.markPartial();
           }
         }
         
@@ -882,8 +804,8 @@ export class FHIRPathParser {
     const args: ASTNode[] = [];
     
     if (!this.check(TokenType.RPAREN)) {
-      const previousContext = this.currentContext;
-      this.currentContext = ParseContext.FunctionCall;
+      const previousContext = this.state.getContext();
+      this.state.setContext('FunctionCall');
       // Check for immediate unexpected tokens in function context
       if (this.check(TokenType.RBRACKET) || this.check(TokenType.RBRACE)) {
         if (this.errorRecovery) {
@@ -926,7 +848,7 @@ export class FHIRPathParser {
         }
       } while (this.match(TokenType.COMMA));
       
-      this.currentContext = previousContext;
+      this.state.setContext(previousContext);
     }
     
     // Check for empty function that requires arguments
@@ -941,7 +863,7 @@ export class FHIRPathParser {
       if (this.errorRecovery) {
         // Report unclosed parenthesis
         this.errorReporter!.reportUnclosedDelimiter(lparen, ')');
-        this.isPartial = true;
+        this.state.markPartial();
       } else {
         throw this.error("Expected ')' after arguments", ErrorCode.UNCLOSED_PARENTHESIS);
       }
@@ -1038,7 +960,7 @@ export class FHIRPathParser {
             "Expected ']' after index expression",
             ErrorCode.UNCLOSED_BRACKET
           );
-        this.isPartial = true;
+        this.state.markPartial();
       } else {
         throw this.error("Expected ']'", ErrorCode.UNCLOSED_BRACKET);
       }
@@ -1107,62 +1029,33 @@ export class FHIRPathParser {
     } as FunctionNode;
   }
   
-  // Precedence lookup (higher number = higher precedence)
-  private getPrecedence(token: Token): number {
-    // Special case for DOT which might not be in registry yet
-    if (token.type === TokenType.DOT) return 13;
-    
-    // Use registry directly - both now use standard convention
-    return Registry.getPrecedence(token.type);
-  }
+  // Precedence lookup is now handled by PrecedenceManager
   
-  // Helper to infer literal type from value
-  private inferLiteralType(value: any): 'string' | 'number' | 'boolean' | 'date' | 'time' | 'datetime' | 'null' {
-    if (value === null) return 'null';
-    if (typeof value === 'boolean') return 'boolean';
-    if (typeof value === 'number') return 'number';
-    if (typeof value === 'string') return 'string';
-    if (value instanceof Date) {
-      // Check if it has time component
-      const hasTime = value.getHours() !== 0 || value.getMinutes() !== 0 || value.getSeconds() !== 0;
-      return hasTime ? 'datetime' : 'date';
-    }
-    // Check for time-only values (stored as strings like "14:30:00")
-    if (typeof value === 'object' && value.type === 'time') return 'time';
-    return 'string'; // default
-  }
+  // Type inference is now handled by ASTFactory.inferLiteralType
   
   // Helper methods
   private match(...types: TokenType[]): boolean {
-    for (const type of types) {
-      if (this.check(type)) {
-        this.advance();
-        return true;
-      }
-    }
-    return false;
+    return this.navigator.match(...types);
   }
   
   private check(type: TokenType): boolean {
-    if (this.isAtEnd()) return false;
-    return this.peek().type === type;
+    return this.navigator.check(type);
   }
   
   private advance(): Token {
-    if (!this.isAtEnd()) this.current++;
-    return this.previous();
+    return this.navigator.advance();
   }
   
   private isAtEnd(): boolean {
-    return this.peek().type === TokenType.EOF;
+    return this.navigator.isAtEnd();
   }
   
   private peek(): Token {
-    return this.tokens[this.current]!;
+    return this.navigator.peek();
   }
   
   private previous(): Token {
-    return this.tokens[this.current - 1]!;
+    return this.navigator.previous();
   }
   
   private consume(type: TokenType, message: string, code: ErrorCode = ErrorCode.UNEXPECTED_TOKEN): Token {
@@ -1172,16 +1065,7 @@ export class FHIRPathParser {
   
   private error(message: string, code: ErrorCode = ErrorCode.PARSE_ERROR): ParseError {
     const token = this.peek();
-    const pos = token.position;
-    
-    // If not throwOnError, add to diagnostics
-    if (!this.throwOnError && this.diagnostics && this.sourceMapper) {
-      const range = this.sourceMapper.tokenToRange(token);
-      this.diagnostics.addError(range, message, code);
-    }
-    
-    const fullMessage = `${message} at line ${pos.line}, column ${pos.column}`;
-    return new ParseError(fullMessage, pos, token);
+    return this.errorFactory.createError(message, token, code);
   }
   
   private isRightAssociative(op: Token): boolean {
@@ -1257,7 +1141,7 @@ export class FHIRPathParser {
     const range = this.sourceMapper!.tokenToRange(token);
     const diagnostic = this.diagnostics!.getDiagnostics().slice(-1)[0];
     
-    this.isPartial = true;
+    this.state.markPartial();
     
     return {
       type: NodeType.Error,
@@ -1279,7 +1163,7 @@ export class FHIRPathParser {
     const position = partialNode?.position || this.peek().position;
     const range = partialNode?.range || this.sourceMapper!.tokenToRange(this.peek());
     
-    this.isPartial = true;
+    this.state.markPartial();
     
     return {
       type: NodeType.Incomplete,
