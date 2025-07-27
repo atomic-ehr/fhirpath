@@ -127,6 +127,41 @@ describe('Lexer', () => {
         TokenType.EOF
       ]);
     });
+    
+    it('tokenizes environment variables', () => {
+      // Identifier form
+      expect(getTokenTypes('%context %sct %vs')).toEqual([
+        TokenType.ENV_VAR,
+        TokenType.ENV_VAR,
+        TokenType.ENV_VAR,
+        TokenType.EOF
+      ]);
+      
+      // String form
+      expect(getTokenTypes(`%'simple string' %'with\\nescapes' %'unicode\\u0048'`)).toEqual([
+        TokenType.ENV_VAR,
+        TokenType.ENV_VAR,
+        TokenType.ENV_VAR,
+        TokenType.EOF
+      ]);
+      
+      // Delimited form
+      expect(getTokenTypes('%`any string name` %`with\\`backtick` %`complex-name_123`')).toEqual([
+        TokenType.ENV_VAR,
+        TokenType.ENV_VAR,
+        TokenType.ENV_VAR,
+        TokenType.EOF
+      ]);
+      
+      // Mixed with percent operator
+      expect(getTokenTypes('value % 10 %context')).toEqual([
+        TokenType.IDENTIFIER,
+        TokenType.PERCENT,
+        TokenType.NUMBER,
+        TokenType.ENV_VAR,
+        TokenType.EOF
+      ]);
+    });
   });
   
   describe('keywords', () => {
@@ -353,6 +388,16 @@ describe('Lexer', () => {
     it('throws on invalid unicode escape', () => {
       expect(() => new Lexer("'\\uXYZ'").tokenize()).toThrow('Invalid unicode escape');
       expect(() => new Lexer('"\\uXYZ"').tokenize()).toThrow('Invalid unicode escape');
+    });
+    
+    it('throws on unterminated environment variables', () => {
+      expect(() => new Lexer("%'unterminated").tokenize()).toThrow('Unterminated environment variable string');
+      expect(() => new Lexer("%`unterminated").tokenize()).toThrow('Unterminated environment variable delimiter');
+    });
+    
+    it('throws on invalid escape in environment variables', () => {
+      expect(() => new Lexer("%'\\q'").tokenize()).toThrow('Invalid escape sequence');
+      expect(() => new Lexer("%'\\uXYZ'").tokenize()).toThrow('Invalid unicode escape');
     });
   });
 });

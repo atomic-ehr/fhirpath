@@ -56,6 +56,9 @@ export enum TokenType {
   PERCENT,
   AT,
   
+  // Environment variable
+  ENV_VAR,
+  
   // Date/time units
   YEAR,
   MONTH,
@@ -130,6 +133,7 @@ const TOKEN_TYPE_NAMES: { [key: number]: string } = {
   [TokenType.COMMA]: 'COMMA',
   [TokenType.PERCENT]: 'PERCENT',
   [TokenType.AT]: 'AT',
+  [TokenType.ENV_VAR]: 'ENV_VAR',
   [TokenType.YEAR]: 'YEAR',
   [TokenType.MONTH]: 'MONTH',
   [TokenType.WEEK]: 'WEEK',
@@ -762,6 +766,116 @@ export class Lexer {
     return null;
   }
   
+  private readEnvVar(): Token | null {
+    const start = this.position;
+    const startLine = this.line;
+    const startColumn = this.column;
+    
+    if (this.peek() !== '%') {
+      return null;
+    }
+    
+    this.advance(); // %
+    
+    // Check what follows the %
+    const nextChar = this.peek();
+    
+    if (nextChar === "'") {
+      // String form: %'string'
+      this.advance(); // '
+      
+      while (this.position < this.input.length) {
+        const char = this.peek();
+        
+        if (char === "'") {
+          this.advance();
+          return { type: TokenType.ENV_VAR, start, end: this.position, line: startLine, column: startColumn };
+        }
+        
+        if (char === '\\') {
+          this.advance();
+          const escaped = this.peek();
+          switch (escaped) {
+            case "'":
+            case '\\':
+            case '/':
+            case 'f':
+            case 'n':
+            case 'r':
+            case 't':
+              this.advance();
+              break;
+            case 'u':
+              this.advance();
+              for (let i = 0; i < 4; i++) {
+                const hexCode = this.peekCharCode();
+                if (hexCode >= 0 && hexCode < 256 && IS_HEX_DIGIT[hexCode]) {
+                  this.advance();
+                } else {
+                  throw new Error(`Invalid unicode escape in environment variable at position ${this.position}`);
+                }
+              }
+              break;
+            default:
+              throw new Error(`Invalid escape sequence \\${escaped} in environment variable at position ${this.position}`);
+          }
+        } else {
+          this.advance();
+        }
+      }
+      
+      throw new Error(`Unterminated environment variable string at position ${start}`);
+      
+    } else if (nextChar === '`') {
+      // Delimited form: %`delimited`
+      this.advance(); // `
+      
+      while (this.position < this.input.length) {
+        const char = this.peek();
+        
+        if (char === '`') {
+          this.advance();
+          return { type: TokenType.ENV_VAR, start, end: this.position, line: startLine, column: startColumn };
+        }
+        
+        if (char === '\\') {
+          this.advance();
+          const escaped = this.peek();
+          if (escaped === '`' || escaped === '\\') {
+            this.advance();
+          }
+        } else {
+          this.advance();
+        }
+      }
+      
+      throw new Error(`Unterminated environment variable delimiter at position ${start}`);
+      
+    } else {
+      // Identifier form: %identifier
+      const firstCharCode = this.peekCharCode();
+      if (firstCharCode >= 0 && firstCharCode < 256 && IS_LETTER[firstCharCode]) {
+        // Read identifier
+        while (this.position < this.input.length) {
+          const charCode = this.peekCharCode();
+          if (charCode >= 0 && charCode < 256 && IS_LETTER_OR_DIGIT[charCode]) {
+            this.advance();
+          } else {
+            break;
+          }
+        }
+        
+        return { type: TokenType.ENV_VAR, start, end: this.position, line: startLine, column: startColumn };
+      } else {
+        // Just a percent sign, not an env var
+        this.position = start;
+        this.line = startLine;
+        this.column = startColumn;
+        return null;
+      }
+    }
+  }
+  
   public nextToken(): Token {
     // Skip whitespace and comments
     while (this.position < this.input.length) {
@@ -812,8 +926,11 @@ export class Lexer {
       case 36: // $
         return this.readSpecialIdentifier() || this.throwUnexpectedChar(String.fromCharCode(firstCharCode));
         
-      // External constant
+      // Environment variable or percent
       case 37: // %
+        const envVar = this.readEnvVar();
+        if (envVar) return envVar;
+        // If not an env var, it's just a percent operator
         this.advance();
         return { type: TokenType.PERCENT, start, end: this.position, line: startLine, column: startColumn };
         
