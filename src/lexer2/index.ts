@@ -666,69 +666,117 @@ export class Lexer {
     }
     
     const length = this.position - start;
-    const value = this.input.substring(start, this.position);
     
-    // Check for keywords based on length
+    // Check for keywords directly from input buffer without substring
     let type: TokenType = TokenType.IDENTIFIER;
+    const input = this.input;
     
     switch (length) {
       case 2:
-        switch (value) {
-          case 'as': type = TokenType.AS; break;
-          case 'in': type = TokenType.IN; break;
-          case 'is': type = TokenType.IS; break;
-          case 'or': type = TokenType.OR; break;
-        }
+        const c0_2 = input.charCodeAt(start);
+        const c1_2 = input.charCodeAt(start + 1);
+        if (c0_2 === 97 && c1_2 === 115) type = TokenType.AS; // 'as'
+        else if (c0_2 === 105 && c1_2 === 110) type = TokenType.IN; // 'in'
+        else if (c0_2 === 105 && c1_2 === 115) type = TokenType.IS; // 'is'
+        else if (c0_2 === 111 && c1_2 === 114) type = TokenType.OR; // 'or'
         break;
       case 3:
-        switch (value) {
-          case 'div': type = TokenType.DIV; break;
-          case 'mod': type = TokenType.MOD; break;
-          case 'and': type = TokenType.AND; break;
-          case 'xor': type = TokenType.XOR; break;
-          case 'day': type = TokenType.DAY; break;
-        }
+        const c0_3 = input.charCodeAt(start);
+        const c1_3 = input.charCodeAt(start + 1);
+        const c2_3 = input.charCodeAt(start + 2);
+        if (c0_3 === 100 && c1_3 === 105 && c2_3 === 118) type = TokenType.DIV; // 'div'
+        else if (c0_3 === 109 && c1_3 === 111 && c2_3 === 100) type = TokenType.MOD; // 'mod'
+        else if (c0_3 === 97 && c1_3 === 110 && c2_3 === 100) type = TokenType.AND; // 'and'
+        else if (c0_3 === 120 && c1_3 === 111 && c2_3 === 114) type = TokenType.XOR; // 'xor'
+        else if (c0_3 === 100 && c1_3 === 97 && c2_3 === 121) type = TokenType.DAY; // 'day'
         break;
       case 4:
-        switch (value) {
-          case 'true': type = TokenType.TRUE; break;
-          case 'year': type = TokenType.YEAR; break;
-          case 'week': type = TokenType.WEEK; break;
-          case 'hour': type = TokenType.HOUR; break;
-          case 'days': type = TokenType.DAYS; break;
+        const c0_4 = input.charCodeAt(start);
+        if (c0_4 === 116 && // 't'
+            input.charCodeAt(start + 1) === 114 && // 'r'
+            input.charCodeAt(start + 2) === 117 && // 'u'
+            input.charCodeAt(start + 3) === 101) { // 'e'
+          type = TokenType.TRUE;
+        } else if (c0_4 === 121 && // 'y'
+                   input.charCodeAt(start + 1) === 101 && // 'e'
+                   input.charCodeAt(start + 2) === 97 && // 'a'
+                   input.charCodeAt(start + 3) === 114) { // 'r'
+          type = TokenType.YEAR;
+        } else if (c0_4 === 119 && // 'w'
+                   input.charCodeAt(start + 1) === 101 && // 'e'
+                   input.charCodeAt(start + 2) === 101 && // 'e'
+                   input.charCodeAt(start + 3) === 107) { // 'k'
+          type = TokenType.WEEK;
+        } else if (c0_4 === 104 && // 'h'
+                   input.charCodeAt(start + 1) === 111 && // 'o'
+                   input.charCodeAt(start + 2) === 117 && // 'u'
+                   input.charCodeAt(start + 3) === 114) { // 'r'
+          type = TokenType.HOUR;
+        } else if (c0_4 === 100 && // 'd'
+                   input.charCodeAt(start + 1) === 97 && // 'a'
+                   input.charCodeAt(start + 2) === 121 && // 'y'
+                   input.charCodeAt(start + 3) === 115) { // 's'
+          type = TokenType.DAYS;
         }
         break;
       case 5:
-        switch (value) {
-          case 'false': type = TokenType.FALSE; break;
-          case 'month': type = TokenType.MONTH; break;
-          case 'weeks': type = TokenType.WEEKS; break;
-          case 'years': type = TokenType.YEARS; break;
-          case 'hours': type = TokenType.HOURS; break;
+        const c0_5 = input.charCodeAt(start);
+        if (c0_5 === 102 && // 'f'
+            input.charCodeAt(start + 1) === 97 && // 'a'
+            input.charCodeAt(start + 2) === 108 && // 'l'
+            input.charCodeAt(start + 3) === 115 && // 's'
+            input.charCodeAt(start + 4) === 101) { // 'e'
+          type = TokenType.FALSE;
+        } else if (c0_5 === 109 && // 'm'
+                   input.charCodeAt(start + 1) === 111 && // 'o'
+                   input.charCodeAt(start + 2) === 110 && // 'n'
+                   input.charCodeAt(start + 3) === 116 && // 't'
+                   input.charCodeAt(start + 4) === 104) { // 'h'
+          type = TokenType.MONTH;
+        } else if (c0_5 === 119 && // 'w'
+                   input.charCodeAt(start + 1) === 101 && // 'e'
+                   input.charCodeAt(start + 2) === 101 && // 'e'
+                   input.charCodeAt(start + 3) === 107 && // 'k'
+                   input.charCodeAt(start + 4) === 115) { // 's'
+          type = TokenType.WEEKS;
+        } else if (c0_5 === 121 && // 'y'
+                   input.charCodeAt(start + 1) === 101 && // 'e'
+                   input.charCodeAt(start + 2) === 97 && // 'a'
+                   input.charCodeAt(start + 3) === 114 && // 'r'
+                   input.charCodeAt(start + 4) === 115) { // 's'
+          type = TokenType.YEARS;
+        } else if (c0_5 === 104 && // 'h'
+                   input.charCodeAt(start + 1) === 111 && // 'o'
+                   input.charCodeAt(start + 2) === 117 && // 'u'
+                   input.charCodeAt(start + 3) === 114 && // 'r'
+                   input.charCodeAt(start + 4) === 115) { // 's'
+          type = TokenType.HOURS;
         }
         break;
-      case 6:
-        switch (value) {
-          case 'minute': type = TokenType.MINUTE; break;
-          case 'second': type = TokenType.SECOND; break;
-          case 'months': type = TokenType.MONTHS; break;
+      default:
+        // For longer keywords, fall back to substring
+        const value = input.substring(start, this.position);
+        switch (length) {
+          case 6:
+            if (value === 'minute') type = TokenType.MINUTE;
+            else if (value === 'second') type = TokenType.SECOND;
+            else if (value === 'months') type = TokenType.MONTHS;
+            break;
+          case 7:
+            if (value === 'implies') type = TokenType.IMPLIES;
+            else if (value === 'minutes') type = TokenType.MINUTES;
+            else if (value === 'seconds') type = TokenType.SECONDS;
+            break;
+          case 8:
+            if (value === 'contains') type = TokenType.CONTAINS;
+            break;
+          case 11:
+            if (value === 'millisecond') type = TokenType.MILLISECOND;
+            break;
+          case 12:
+            if (value === 'milliseconds') type = TokenType.MILLISECONDS;
+            break;
         }
-        break;
-      case 7:
-        switch (value) {
-          case 'implies': type = TokenType.IMPLIES; break;
-          case 'minutes': type = TokenType.MINUTES; break;
-          case 'seconds': type = TokenType.SECONDS; break;
-        }
-        break;
-      case 8:
-        if (value === 'contains') type = TokenType.CONTAINS;
-        break;
-      case 11:
-        if (value === 'millisecond') type = TokenType.MILLISECOND;
-        break;
-      case 12:
-        if (value === 'milliseconds') type = TokenType.MILLISECONDS;
         break;
     }
     

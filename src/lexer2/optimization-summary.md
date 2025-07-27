@@ -427,12 +427,55 @@ default:
 - Switch statement handles EOF directly without falling through
 - Cleaner code path for the common case
 
+## 14. Avoid Substring Allocation in readIdentifierOrKeyword
+
+### What was changed:
+- Replaced `substring()` call with direct character code comparisons for common keywords
+- Check keywords directly from the input buffer using charCodeAt()
+- Only use substring for longer, less common keywords (6+ characters)
+
+### Implementation:
+```typescript
+// Before: 
+const value = this.input.substring(start, this.position);
+switch (value) {
+  case 'true': type = TokenType.TRUE; break;
+  // ... many string comparisons
+}
+
+// After:
+// For length 4 example:
+const c0_4 = input.charCodeAt(start);
+if (c0_4 === 116 && // 't'
+    input.charCodeAt(start + 1) === 114 && // 'r'
+    input.charCodeAt(start + 2) === 117 && // 'u'
+    input.charCodeAt(start + 3) === 101) { // 'e'
+  type = TokenType.TRUE;
+}
+```
+
+### Performance Impact:
+- Before: ~4,497K expressions/second
+- After: ~5,656K expressions/second
+- **Improvement: ~26%**
+
+### Why it works:
+1. **Avoids string allocation** - No substring object created for most keywords
+2. **Direct integer comparisons** - Faster than string equality checks
+3. **Optimized for common cases** - Most keywords are 2-5 characters
+4. **Falls back gracefully** - Still uses substring for rare long keywords
+
+### Trade-offs:
+- More verbose code (but still maintainable with comments)
+- Larger code size due to unrolled comparisons
+- Best for hot paths with frequent keyword checking
+
 ### Current Performance Summary:
 - Original: ~1,477K expressions/second
-- Current: ~4,497K expressions/second
-- **Total improvement: ~204%** (3x faster than original)
+- Current: ~5,656K expressions/second
+- **Total improvement: ~283%** (3.8x faster than original)
 
 ### Remaining Optimization Opportunities:
-1. **Optimize readDateTime/readTimeFormat** - Reduce redundant charCode lookups (estimated 1-2% improvement)
-2. **Inline small token readers** - Reduce function call overhead (estimated 1-2% improvement)
-3. **Consider explicit digit cases (48-57)** - Could eliminate lookup table access for digits
+1. **Optimize advance() method** - Remove unused return value and streamline (estimated 5-10% improvement)
+2. **Optimize readDateTime/readTimeFormat** - Reduce redundant charCode lookups (estimated 1-2% improvement)
+3. **Consider inlining small methods** - Reduce function call overhead (estimated 2-3% improvement)
