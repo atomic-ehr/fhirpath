@@ -380,7 +380,7 @@ export class Lexer {
             this.advance();
             for (let i = 0; i < 4; i++) {
               const hexCode = this.peekCharCode();
-              if (hexCode >= 0 && hexCode < 256 && IS_HEX_DIGIT[hexCode]) {
+              if (hexCode !== -1 && IS_HEX_DIGIT[hexCode]) {
                 this.advance();
               } else {
                 throw new Error(`Invalid unicode escape at position ${this.position}`);
@@ -505,7 +505,7 @@ export class Lexer {
     // Year (4 digits)
     for (let i = 0; i < 4; i++) {
       const charCode = this.peekCharCode();
-      if (charCode < 0 || charCode >= 256 || !IS_DIGIT[charCode]) {
+      if (charCode === -1 || !IS_DIGIT[charCode]) {
         this.position = savedPosition;
       this.line = savedLine;
       this.column = savedColumn;
@@ -520,8 +520,8 @@ export class Lexer {
       // Month
       const monthChar0 = this.peekCharCode();
       const monthChar1 = this.peekCharCode(1);
-      if (monthChar0 < 0 || monthChar0 >= 256 || !IS_DIGIT[monthChar0] || 
-          monthChar1 < 0 || monthChar1 >= 256 || !IS_DIGIT[monthChar1]) {
+      if (monthChar0 === -1 || !IS_DIGIT[monthChar0] || 
+          monthChar1 === -1 || !IS_DIGIT[monthChar1]) {
         this.position = savedPosition;
       this.line = savedLine;
       this.column = savedColumn;
@@ -535,8 +535,8 @@ export class Lexer {
         this.advance();
         const dayChar0 = this.peekCharCode();
         const dayChar1 = this.peekCharCode(1);
-        if (dayChar0 < 0 || dayChar0 >= 256 || !IS_DIGIT[dayChar0] || 
-            dayChar1 < 0 || dayChar1 >= 256 || !IS_DIGIT[dayChar1]) {
+        if (dayChar0 === -1 || !IS_DIGIT[dayChar0] || 
+            dayChar1 === -1 || !IS_DIGIT[dayChar1]) {
           this.position = savedPosition;
       this.line = savedLine;
       this.column = savedColumn;
@@ -564,8 +564,8 @@ export class Lexer {
       this.advance();
       const tzChar0 = this.peekCharCode();
       const tzChar1 = this.peekCharCode(1);
-      if (tzChar0 < 0 || tzChar0 >= 256 || !IS_DIGIT[tzChar0] || 
-          tzChar1 < 0 || tzChar1 >= 256 || !IS_DIGIT[tzChar1]) {
+      if (tzChar0 === -1 || !IS_DIGIT[tzChar0] || 
+          tzChar1 === -1 || !IS_DIGIT[tzChar1]) {
         // Invalid timezone offset
       } else {
         this.advance();
@@ -574,8 +574,8 @@ export class Lexer {
           this.advance();
           const tzMinChar0 = this.peekCharCode();
           const tzMinChar1 = this.peekCharCode(1);
-          if (tzMinChar0 >= 0 && tzMinChar0 < 256 && IS_DIGIT[tzMinChar0] && 
-              tzMinChar1 >= 0 && tzMinChar1 < 256 && IS_DIGIT[tzMinChar1]) {
+          if (tzMinChar0 !== -1 && IS_DIGIT[tzMinChar0] && 
+              tzMinChar1 !== -1 && IS_DIGIT[tzMinChar1]) {
             this.advance();
             this.advance();
           }
@@ -590,8 +590,8 @@ export class Lexer {
     // HH
     const hhChar0 = this.peekCharCode();
     const hhChar1 = this.peekCharCode(1);
-    if (hhChar0 < 0 || hhChar0 >= 256 || !IS_DIGIT[hhChar0] || 
-        hhChar1 < 0 || hhChar1 >= 256 || !IS_DIGIT[hhChar1]) {
+    if (hhChar0 === -1 || !IS_DIGIT[hhChar0] || 
+        hhChar1 === -1 || !IS_DIGIT[hhChar1]) {
       return false;
     }
     this.advance();
@@ -602,8 +602,8 @@ export class Lexer {
       this.advance();
       const mmChar0 = this.peekCharCode();
       const mmChar1 = this.peekCharCode(1);
-      if (mmChar0 < 0 || mmChar0 >= 256 || !IS_DIGIT[mmChar0] || 
-          mmChar1 < 0 || mmChar1 >= 256 || !IS_DIGIT[mmChar1]) {
+      if (mmChar0 === -1 || !IS_DIGIT[mmChar0] || 
+          mmChar1 === -1 || !IS_DIGIT[mmChar1]) {
         return false;
       }
       this.advance();
@@ -614,8 +614,8 @@ export class Lexer {
         this.advance();
         const ssChar0 = this.peekCharCode();
         const ssChar1 = this.peekCharCode(1);
-        if (ssChar0 < 0 || ssChar0 >= 256 || !IS_DIGIT[ssChar0] || 
-            ssChar1 < 0 || ssChar1 >= 256 || !IS_DIGIT[ssChar1]) {
+        if (ssChar0 === -1 || !IS_DIGIT[ssChar0] || 
+            ssChar1 === -1 || !IS_DIGIT[ssChar1]) {
           return false;
         }
         this.advance();
@@ -625,12 +625,12 @@ export class Lexer {
         if (this.peek() === '.') {
           this.advance();
           const fracChar = this.peekCharCode();
-          if (fracChar < 0 || fracChar >= 256 || !IS_DIGIT[fracChar]) {
+          if (fracChar === -1 || !IS_DIGIT[fracChar]) {
             return false;
           }
           while (this.position < this.input.length) {
             const charCode = this.peekCharCode();
-            if (charCode >= 0 && charCode < 256 && IS_DIGIT[charCode]) {
+            if (charCode !== -1 && IS_DIGIT[charCode]) {
               this.advance();
             } else {
               break;
@@ -827,7 +827,7 @@ export class Lexer {
               this.advance();
               for (let i = 0; i < 4; i++) {
                 const hexCode = this.peekCharCode();
-                if (hexCode >= 0 && hexCode < 256 && IS_HEX_DIGIT[hexCode]) {
+                if (hexCode !== -1 && IS_HEX_DIGIT[hexCode]) {
                   this.advance();
                 } else {
                   throw new Error(`Invalid unicode escape in environment variable at position ${this.position}`);
@@ -872,11 +872,11 @@ export class Lexer {
     } else {
       // Identifier form: %identifier (ASCII only per spec)
       const firstCharCode = this.peekCharCode();
-      if (firstCharCode >= 0 && firstCharCode < 256 && IS_LETTER[firstCharCode]) {
+      if (firstCharCode !== -1 && IS_LETTER[firstCharCode]) {
         // Read identifier
         while (this.position < this.input.length) {
           const charCode = this.peekCharCode();
-          if (charCode >= 0 && charCode < 256 && IS_LETTER_OR_DIGIT[charCode]) {
+          if (charCode !== -1 && IS_LETTER_OR_DIGIT[charCode]) {
             this.advance();
           } else {
             break;
@@ -1035,12 +1035,12 @@ export class Lexer {
         
       default:
         // Inline digit check
-        if (firstCharCode >= 0 && firstCharCode < 256 && IS_DIGIT[firstCharCode]) {
+        if (firstCharCode !== -1 && IS_DIGIT[firstCharCode]) {
           return this.readNumber() || this.throwUnexpectedChar(String.fromCharCode(firstCharCode));
         }
         
         // Inline letter check
-        if (firstCharCode >= 0 && firstCharCode < 256 && IS_LETTER[firstCharCode]) {
+        if (firstCharCode !== -1 && IS_LETTER[firstCharCode]) {
           return this.readIdentifierOrKeyword() || this.throwUnexpectedChar(String.fromCharCode(firstCharCode));
         }
         

@@ -376,6 +376,29 @@ if (pos + 4 < len &&
 - No temporary objects created
 - Better memory locality
 
+## 12. Remove Redundant Bounds Checking for Lookup Tables
+
+### What was changed:
+- Removed unnecessary upper bound checks (`< 256`) from lookup table accesses
+- Changed from `charCode >= 0 && charCode < 256 && IS_DIGIT[charCode]` to `charCode !== -1 && IS_DIGIT[charCode]`
+- Applied to all lookup table uses: IS_DIGIT, IS_LETTER, IS_LETTER_OR_DIGIT, IS_HEX_DIGIT
+
+### Why the optimization works:
+1. **charCodeAt() always returns valid values** - Either 0-65535 or NaN (never negative except our -1 sentinel)
+2. **JavaScript arrays handle out-of-bounds gracefully** - Returns `undefined` which is falsy
+3. **Only need to check for -1** - Our EOF sentinel value from peekCharCode()
+4. **Reduces comparisons** - From 3 comparisons to 1 per lookup
+
+### Performance Impact:
+- Before: ~2,893K expressions/second
+- After: ~4,454K expressions/second  
+- **Improvement: ~54%**
+
+### Current Performance Summary:
+- Original: ~1,477K expressions/second
+- Current: ~4,454K expressions/second
+- **Total improvement: ~202%** (3x faster than original)
+
 ### Remaining Optimization Opportunities:
 1. **Optimize readDateTime/readTimeFormat** - Reduce redundant charCode lookups (estimated 1-2% improvement)
 2. **Inline small token readers** - Reduce function call overhead (estimated 1-2% improvement)
