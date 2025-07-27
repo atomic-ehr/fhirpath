@@ -1033,24 +1033,23 @@ export class Lexer {
         }
         throw new Error(`Unexpected character '!' at position ${this.position - 1}`);
         
+      // EOF
+      case -1:
+        return { type: TokenType.EOF, start: this.position, end: this.position, line: this.line, column: this.column };
+        
       default:
-        // Inline digit check
-        if (firstCharCode !== -1 && IS_DIGIT[firstCharCode]) {
+        // Check if it's a digit (0-9)
+        if (IS_DIGIT[firstCharCode]) {
           return this.readNumber() || this.throwUnexpectedChar(String.fromCharCode(firstCharCode));
         }
         
-        // Inline letter check
-        if (firstCharCode !== -1 && IS_LETTER[firstCharCode]) {
+        // Check if it's a letter (A-Z, a-z, _)
+        if (IS_LETTER[firstCharCode]) {
           return this.readIdentifierOrKeyword() || this.throwUnexpectedChar(String.fromCharCode(firstCharCode));
         }
         
-        // EOF check
-        if (firstCharCode === -1) {
-          return { type: TokenType.EOF, start: this.position, end: this.position, line: this.line, column: this.column };
-        }
-        
         // Unknown character
-        const unknownChar = firstCharCode < 256 ? String.fromCharCode(firstCharCode) : this.peek();
+        const unknownChar = String.fromCharCode(firstCharCode);
         throw new Error(`Unexpected character '${unknownChar}' at position ${this.position}`);
     }
   }

@@ -394,11 +394,45 @@ if (pos + 4 < len &&
 - After: ~4,454K expressions/second  
 - **Improvement: ~54%**
 
+## 13. Add Dedicated EOF Case to Switch Statement
+
+### What was changed:
+- Added explicit `case -1:` for EOF in the main switch statement
+- Removed redundant EOF check from the default case
+- Simplified default case by removing `firstCharCode !== -1` checks
+
+### Implementation:
+```typescript
+// Before: 
+default:
+  if (firstCharCode !== -1 && IS_DIGIT[firstCharCode]) { ... }
+  if (firstCharCode !== -1 && IS_LETTER[firstCharCode]) { ... }
+  if (firstCharCode === -1) { return EOF; }
+
+// After:
+case -1:
+  return { type: TokenType.EOF, ... };
+default:
+  if (IS_DIGIT[firstCharCode]) { ... }
+  if (IS_LETTER[firstCharCode]) { ... }
+```
+
+### Performance Impact:
+- Before: ~4,454K expressions/second
+- After: ~4,497K expressions/second
+- **Improvement: ~1%**
+
+### Why it works:
+- Eliminates redundant EOF checks in the default case
+- Switch statement handles EOF directly without falling through
+- Cleaner code path for the common case
+
 ### Current Performance Summary:
 - Original: ~1,477K expressions/second
-- Current: ~4,454K expressions/second
-- **Total improvement: ~202%** (3x faster than original)
+- Current: ~4,497K expressions/second
+- **Total improvement: ~204%** (3x faster than original)
 
 ### Remaining Optimization Opportunities:
 1. **Optimize readDateTime/readTimeFormat** - Reduce redundant charCode lookups (estimated 1-2% improvement)
 2. **Inline small token readers** - Reduce function call overhead (estimated 1-2% improvement)
+3. **Consider explicit digit cases (48-57)** - Could eliminate lookup table access for digits
