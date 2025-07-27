@@ -1,40 +1,13 @@
-import { Lexer, TokenType } from '../lexer2';
+import { TokenType } from '../lexer2';
 import type { Token } from '../lexer2';
+import { BaseParser, NodeType } from './base';
+import type { Position } from './base';
 
-// AST Types
-export interface Position {
-  line: number;
-  column: number;
-  offset: number;
-}
+// Re-export types from base
+export { NodeType } from './base';
+export type { Position } from './base';
 
-export enum NodeType {
-  // Navigation
-  Identifier,
-  TypeOrIdentifier,
-  
-  // Operators
-  Binary,
-  Unary,
-  Union,
-  
-  // Functions
-  Function,
-  
-  // Literals
-  Literal,
-  Variable,
-  Collection,
-  
-  // Type operations
-  MembershipTest,
-  TypeCast,
-  TypeReference,
-  
-  // Special
-  Index,
-}
-
+// AST Types specific to parser2
 export interface ASTNode {
   type: NodeType;
   position: Position;
@@ -113,14 +86,10 @@ export interface TypeReferenceNode extends ASTNode {
   typeName: string;
 }
 
-export class Parser {
-  private lexer: Lexer;
-  private tokens: Token[] = [];
-  private current = 0;
-
+export class Parser extends BaseParser<ASTNode> {
   constructor(input: string) {
-    this.lexer = new Lexer(input);
-    this.tokens = this.lexer.tokenize();
+    // Use same lexer options as before for performance
+    super(input, { skipWhitespace: true, skipComments: true });
   }
 
   parse(): ASTNode {
@@ -131,302 +100,8 @@ export class Parser {
     return expr;
   }
 
-  private expression(): ASTNode {
-    return this.parseExpressionWithPrecedence(0);
-  }
-
-  private parseExpressionWithPrecedence(minPrecedence: number): ASTNode {
-    let left = this.parsePrimary();
-
-    // Inline isAtEnd() and peek() for hot path
-    while (this.current < this.tokens.length) {
-      const token = this.tokens[this.current];
-      if (!token || token.type === TokenType.EOF) break;
-      
-      const precedence = this.getPrecedence(token.type);
-      
-      if (precedence < minPrecedence) break;
-
-      if (token.type === TokenType.DOT) {
-        this.current++; // inline advance()
-        const right = this.parseInvocation();
-        left = this.createBinaryNode(token, left, right);
-      } else if (this.isBinaryOperator(token.type)) {
-        this.current++; // inline advance()
-        const associativity = this.getAssociativity(token.type);
-        const nextMinPrecedence = associativity === 'left' ? precedence + 1 : precedence;
-        const right = this.parseExpressionWithPrecedence(nextMinPrecedence);
-        
-        if (token.type === TokenType.PIPE && left.type === NodeType.Union) {
-          (left as UnionNode).operands.push(right);
-        } else if (token.type === TokenType.PIPE) {
-          left = this.createUnionNode([left, right], this.getPosition(token));
-        } else {
-          left = this.createBinaryNode(token, left, right);
-        }
-      } else if (token.type === TokenType.IS) {
-        this.current++; // inline advance()
-        const typeName = this.parseTypeName();
-        left = this.createMembershipTestNode(left, typeName, this.getPosition(token));
-      } else if (token.type === TokenType.AS) {
-        this.current++; // inline advance()
-        const typeName = this.parseTypeName();
-        left = this.createTypeCastNode(left, typeName, this.getPosition(token));
-      } else if (token.type === TokenType.LBRACKET) {
-        this.current++; // inline advance()
-        const index = this.expression();
-        this.consume(TokenType.RBRACKET, "Expected ']'");
-        left = this.createIndexNode(left, index, this.getPosition(token));
-      } else if (token.type === TokenType.LPAREN && this.isFunctionCall(left)) {
-        const parenToken = token;
-        this.current++; // inline advance()
-        const args = this.parseArgumentList();
-        this.consume(TokenType.RPAREN, "Expected ')'");
-        left = this.createFunctionNode(left, args, left.position);
-      } else {
-        break;
-      }
-    }
-
-    return left;
-  }
-
-  private parsePrimary(): ASTNode {
-    // Inline peek() for hot path
-    const token = this.current < this.tokens.length ? this.tokens[this.current]! : { type: TokenType.EOF, start: 0, end: 0, line: 1, column: 1 };
-
-    if (token.type === TokenType.NUMBER) {
-      this.current++; // inline advance()
-      return this.createLiteralNode(parseFloat(this.lexer.getTokenValue(token)), 'number', token);
-    }
-
-    if (token.type === TokenType.STRING) {
-      this.current++; // inline advance()
-      const value = this.parseStringValue(this.lexer.getTokenValue(token));
-      return this.createLiteralNode(value, 'string', token);
-    }
-
-    if (token.type === TokenType.TRUE || token.type === TokenType.FALSE) {
-      this.advance();
-      return this.createLiteralNode(token.type === TokenType.TRUE, 'boolean', token);
-    }
-
-    if (token.type === TokenType.NULL || (token.type === TokenType.IDENTIFIER && this.lexer.getTokenValue(token) === 'null')) {
-      this.advance();
-      return this.createLiteralNode(null, 'null', token);
-    }
-
-    if (token.type === TokenType.DATETIME) {
-      this.advance();
-      const value = this.lexer.getTokenValue(token).substring(1); // Remove @
-      return this.createLiteralNode(value, 'datetime', token);
-    }
-
-    if (token.type === TokenType.TIME) {
-      this.advance();
-      const value = this.lexer.getTokenValue(token).substring(1); // Remove @
-      return this.createLiteralNode(value, 'time', token);
-    }
-
-    if (token.type === TokenType.THIS || token.type === TokenType.INDEX || token.type === TokenType.TOTAL) {
-      this.advance();
-      return this.createVariableNode(this.lexer.getTokenValue(token), token);
-    }
-
-    if (token.type === TokenType.ENV_VAR) {
-      this.advance();
-      const value = this.lexer.getTokenValue(token);
-      return this.createVariableNode(value, token);
-    }
-
-    if (token.type === TokenType.IDENTIFIER || 
-        token.type === TokenType.DELIMITED_IDENTIFIER ||
-        this.isKeywordAllowedAsIdentifier(token.type)) {
-      this.advance();
-      const name = this.parseIdentifierValue(this.lexer.getTokenValue(token));
-      return this.createIdentifierNode(name, token);
-    }
-
-    if (token.type === TokenType.LPAREN) {
-      this.advance();
-      const expr = this.expression();
-      this.consume(TokenType.RPAREN, "Expected ')'");
-      return expr;
-    }
-
-    if (token.type === TokenType.LBRACE) {
-      this.advance();
-      const elements = this.parseCollectionElements();
-      this.consume(TokenType.RBRACE, "Expected '}'");
-      return this.createCollectionNode(elements, this.getPosition(token));
-    }
-
-    if (token.type === TokenType.PLUS || token.type === TokenType.MINUS) {
-      this.advance();
-      const operand = this.parseExpressionWithPrecedence(this.getPrecedence(TokenType.MULTIPLY));
-      return this.createUnaryNode(token, operand);
-    }
-
-    throw new Error(`Unexpected token: ${this.lexer.getTokenValue(token)}`);
-  }
-
-  private parseInvocation(): ASTNode {
-    const token = this.peek();
-    
-    // Allow identifiers and keywords that can be used as member names
-    if (token.type === TokenType.IDENTIFIER || 
-        token.type === TokenType.DELIMITED_IDENTIFIER ||
-        this.isKeywordAllowedAsMember(token.type)) {
-      this.advance();
-      const name = this.parseIdentifierValue(this.lexer.getTokenValue(token));
-      const node = this.createIdentifierNode(name, token);
-      
-      // Check if this is a function call
-      if (this.check(TokenType.LPAREN)) {
-        this.advance();
-        const args = this.parseArgumentList();
-        this.consume(TokenType.RPAREN, "Expected ')'");
-        return this.createFunctionNode(node, args, node.position);
-      }
-      
-      return node;
-    }
-    
-    // Allow environment variables after dot (like .%resource)
-    if (token.type === TokenType.ENV_VAR) {
-      this.advance();
-      const value = this.lexer.getTokenValue(token);
-      return this.createVariableNode(value, token);
-    }
-
-    throw new Error(`Expected identifier after '.', got: ${this.lexer.getTokenValue(token)}`);
-  }
-  
-  private isKeywordAllowedAsMember(type: TokenType): boolean {
-    // Keywords that can be used as member names
-    return [
-      TokenType.CONTAINS,
-      TokenType.AND,
-      TokenType.OR,
-      TokenType.XOR,
-      TokenType.IMPLIES,
-      TokenType.AS,
-      TokenType.IS,
-      TokenType.DIV,
-      TokenType.MOD,
-      TokenType.IN,
-      TokenType.TRUE,
-      TokenType.FALSE
-    ].includes(type);
-  }
-  
-  private isKeywordAllowedAsIdentifier(type: TokenType): boolean {
-    // Keywords that can be used as identifiers in certain contexts
-    return this.isKeywordAllowedAsMember(type);
-  }
-
-  private parseArgumentList(): ASTNode[] {
-    const args: ASTNode[] = [];
-    
-    if (this.peek().type === TokenType.RPAREN) {
-      return args;
-    }
-
-    args.push(this.expression());
-    
-    while (this.match(TokenType.COMMA)) {
-      args.push(this.expression());
-    }
-
-    return args;
-  }
-
-  private parseCollectionElements(): ASTNode[] {
-    const elements: ASTNode[] = [];
-    
-    if (this.peek().type === TokenType.RBRACE) {
-      return elements;
-    }
-
-    elements.push(this.expression());
-    
-    while (this.match(TokenType.COMMA)) {
-      elements.push(this.expression());
-    }
-
-    return elements;
-  }
-
-  private parseTypeName(): string {
-    const token = this.advance();
-    if (token.type !== TokenType.IDENTIFIER && token.type !== TokenType.DELIMITED_IDENTIFIER) {
-      throw new Error(`Expected type name, got: ${this.lexer.getTokenValue(token)}`);
-    }
-    return this.parseIdentifierValue(this.lexer.getTokenValue(token));
-  }
-
-  private parseStringValue(raw: string): string {
-    // Remove quotes and handle escape sequences
-    const content = raw.slice(1, -1);
-    return content.replace(/\\(.)/g, (_, char) => {
-      switch (char) {
-        case 'n': return '\n';
-        case 'r': return '\r';
-        case 't': return '\t';
-        case 'f': return '\f';
-        case '\\': return '\\';
-        case "'": return "'";
-        case '"': return '"';
-        case '`': return '`';
-        case '/': return '/';
-        default: return char;
-      }
-    });
-  }
-
-  private parseIdentifierValue(raw: string): string {
-    if (raw.startsWith('`')) {
-      // Delimited identifier - remove backticks and handle escapes
-      return raw.slice(1, -1).replace(/\\(.)/g, '$1');
-    }
-    return raw;
-  }
-
-  private isFunctionCall(node: ASTNode): boolean {
-    return node.type === NodeType.Identifier || node.type === NodeType.TypeOrIdentifier;
-  }
-
-  private isBinaryOperator(type: TokenType): boolean {
-    return [
-      TokenType.PLUS, TokenType.MINUS, TokenType.MULTIPLY, TokenType.DIVIDE,
-      TokenType.DIV, TokenType.MOD, TokenType.AMPERSAND, TokenType.PIPE,
-      TokenType.LT, TokenType.GT, TokenType.LTE, TokenType.GTE,
-      TokenType.EQ, TokenType.NEQ, TokenType.SIMILAR, TokenType.NOT_SIMILAR,
-      TokenType.AND, TokenType.OR, TokenType.XOR, TokenType.IMPLIES,
-      TokenType.IN, TokenType.CONTAINS
-    ].includes(type);
-  }
-
-  private getPrecedence(type: TokenType): number {
-    // Extract precedence from high byte using bit shift
-    return type >>> 8;
-  }
-
-  private getAssociativity(type: TokenType): 'left' | 'right' {
-    // Most operators are left associative
-    // Only implies is right associative
-    return type === TokenType.IMPLIES ? 'right' : 'left';
-  }
-
-  private getPosition(token: Token): Position {
-    return {
-      line: token.line,
-      column: token.column,
-      offset: token.start
-    };
-  }
-
-  private createIdentifierNode(name: string, token: Token): ASTNode {
+  // Implement abstract methods for node creation
+  protected createIdentifierNode(name: string, token: Token): ASTNode {
     const position = this.getPosition(token);
     
     // Check if it's a type (starts with uppercase)
@@ -445,7 +120,7 @@ export class Parser {
     } as IdentifierNode;
   }
 
-  private createLiteralNode(value: any, valueType: LiteralNode['valueType'], token: Token): LiteralNode {
+  protected createLiteralNode(value: any, valueType: LiteralNode['valueType'], token: Token): LiteralNode {
     return {
       type: NodeType.Literal,
       value,
@@ -454,7 +129,7 @@ export class Parser {
     };
   }
 
-  private createBinaryNode(token: Token, left: ASTNode, right: ASTNode): BinaryNode {
+  protected createBinaryNode(token: Token, left: ASTNode, right: ASTNode): BinaryNode {
     return {
       type: NodeType.Binary,
       operator: token.type,
@@ -464,7 +139,7 @@ export class Parser {
     };
   }
 
-  private createUnaryNode(token: Token, operand: ASTNode): UnaryNode {
+  protected createUnaryNode(token: Token, operand: ASTNode): UnaryNode {
     return {
       type: NodeType.Unary,
       operator: token.type,
@@ -473,7 +148,7 @@ export class Parser {
     };
   }
 
-  private createFunctionNode(name: ASTNode, args: ASTNode[], position: Position): FunctionNode {
+  protected createFunctionNode(name: ASTNode, args: ASTNode[], position: Position): FunctionNode {
     return {
       type: NodeType.Function,
       name,
@@ -482,7 +157,7 @@ export class Parser {
     };
   }
 
-  private createVariableNode(name: string, token: Token): VariableNode {
+  protected createVariableNode(name: string, token: Token): VariableNode {
     return {
       type: NodeType.Variable,
       name,
@@ -490,7 +165,7 @@ export class Parser {
     };
   }
 
-  private createIndexNode(expression: ASTNode, index: ASTNode, position: Position): IndexNode {
+  protected createIndexNode(expression: ASTNode, index: ASTNode, position: Position): IndexNode {
     return {
       type: NodeType.Index,
       expression,
@@ -499,7 +174,7 @@ export class Parser {
     };
   }
 
-  private createUnionNode(operands: ASTNode[], position: Position): UnionNode {
+  protected createUnionNode(operands: ASTNode[], position: Position): UnionNode {
     return {
       type: NodeType.Union,
       operands,
@@ -507,7 +182,7 @@ export class Parser {
     };
   }
 
-  private createMembershipTestNode(expression: ASTNode, targetType: string, position: Position): MembershipTestNode {
+  protected createMembershipTestNode(expression: ASTNode, targetType: string, position: Position): MembershipTestNode {
     return {
       type: NodeType.MembershipTest,
       expression,
@@ -516,7 +191,7 @@ export class Parser {
     };
   }
 
-  private createTypeCastNode(expression: ASTNode, targetType: string, position: Position): TypeCastNode {
+  protected createTypeCastNode(expression: ASTNode, targetType: string, position: Position): TypeCastNode {
     return {
       type: NodeType.TypeCast,
       expression,
@@ -525,7 +200,7 @@ export class Parser {
     };
   }
 
-  private createCollectionNode(elements: ASTNode[], position: Position): CollectionNode {
+  protected createCollectionNode(elements: ASTNode[], position: Position): CollectionNode {
     return {
       type: NodeType.Collection,
       elements,
@@ -533,42 +208,8 @@ export class Parser {
     };
   }
 
-  // Helper methods
-  private peek(): Token {
-    return this.tokens[this.current] || { type: TokenType.EOF, start: 0, end: 0, line: 1, column: 1 };
-  }
-
-  private previous(): Token {
-    return this.tokens[this.current - 1] || { type: TokenType.EOF, start: 0, end: 0, line: 1, column: 1 };
-  }
-
-  private isAtEnd(): boolean {
-    return this.current >= this.tokens.length || this.peek().type === TokenType.EOF;
-  }
-
-  private advance(): Token {
-    if (!this.isAtEnd()) this.current++;
-    return this.previous();
-  }
-
-  private check(type: TokenType): boolean {
-    if (this.isAtEnd()) return false;
-    return this.peek().type === type;
-  }
-
-  private match(...types: TokenType[]): boolean {
-    for (const type of types) {
-      if (this.check(type)) {
-        this.advance();
-        return true;
-      }
-    }
-    return false;
-  }
-
-  private consume(type: TokenType, message: string): Token {
-    if (this.check(type)) return this.advance();
-    throw new Error(message + ` at token: ${this.lexer.getTokenValue(this.peek())}`);
+  protected handleError(message: string, token?: Token): never {
+    throw new Error(message);
   }
 }
 
