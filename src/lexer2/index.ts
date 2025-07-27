@@ -739,25 +739,43 @@ export class Lexer {
     const start = this.position;
     const startLine = this.line;
     const startColumn = this.column;    
-    if (this.peek() !== '$') {
+    if (this.position >= this.input.length || this.input.charCodeAt(this.position) !== 36) { // $
       return null;
     }
     
-    const ahead = this.input.substring(this.position, this.position + 6);
+    const len = this.input.length;
+    const pos = this.position;
     
-    if (ahead.startsWith('$this')) {
+    // Check for $this (5 chars)
+    if (pos + 4 < len &&
+        this.input.charCodeAt(pos + 1) === 116 && // t
+        this.input.charCodeAt(pos + 2) === 104 && // h
+        this.input.charCodeAt(pos + 3) === 105 && // i
+        this.input.charCodeAt(pos + 4) === 115) { // s
       this.position += 5;
       this.column += 5;
       return { type: TokenType.THIS, start, end: this.position, line: startLine, column: startColumn };
     }
     
-    if (ahead.startsWith('$index')) {
+    // Check for $index (6 chars)
+    if (pos + 5 < len &&
+        this.input.charCodeAt(pos + 1) === 105 && // i
+        this.input.charCodeAt(pos + 2) === 110 && // n
+        this.input.charCodeAt(pos + 3) === 100 && // d
+        this.input.charCodeAt(pos + 4) === 101 && // e
+        this.input.charCodeAt(pos + 5) === 120) { // x
       this.position += 6;
       this.column += 6;
       return { type: TokenType.INDEX, start, end: this.position, line: startLine, column: startColumn };
     }
     
-    if (ahead.startsWith('$total')) {
+    // Check for $total (6 chars)
+    if (pos + 5 < len &&
+        this.input.charCodeAt(pos + 1) === 116 && // t
+        this.input.charCodeAt(pos + 2) === 111 && // o
+        this.input.charCodeAt(pos + 3) === 116 && // t
+        this.input.charCodeAt(pos + 4) === 97 &&  // a
+        this.input.charCodeAt(pos + 5) === 108) { // l
       this.position += 6;
       this.column += 6;
       return { type: TokenType.TOTAL, start, end: this.position, line: startLine, column: startColumn };

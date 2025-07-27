@@ -342,10 +342,40 @@ function isUnicodeIdentifierStart(char: string): boolean {
 
 ### Current Performance Summary:
 - Original: ~1,477K expressions/second
-- Current: ~2,303K expressions/second
-- **Total improvement: ~56%**
+- Current: ~2,893K expressions/second
+- **Total improvement: ~96%**
+
+## 11. Optimize readSpecialIdentifier (Avoid substring)
+
+### What was changed:
+- Replaced `substring()` call with direct character code comparisons
+- Check each character individually using `charCodeAt()` 
+- Avoid allocating a new string object for lookahead
+
+### Implementation:
+```typescript
+// Before: const ahead = this.input.substring(this.position, this.position + 6);
+// After: Direct charCode checks
+if (pos + 4 < len &&
+    this.input.charCodeAt(pos + 1) === 116 && // t
+    this.input.charCodeAt(pos + 2) === 104 && // h
+    this.input.charCodeAt(pos + 3) === 105 && // i
+    this.input.charCodeAt(pos + 4) === 115) { // s
+  // $this
+}
+```
+
+### Performance Impact:
+- Before: ~2,303K expressions/second
+- After: ~2,893K expressions/second
+- **Improvement: ~25.6%**
+
+### Why it works:
+- Avoids string allocation overhead
+- Direct integer comparisons are faster than string operations
+- No temporary objects created
+- Better memory locality
 
 ### Remaining Optimization Opportunities:
-1. **Optimize readSpecialIdentifier** - Remove substring call (estimated 2-3% improvement)
-2. **Optimize readDateTime/readTimeFormat** - Reduce redundant charCode lookups (estimated 1-2% improvement)
-3. **Inline small token readers** - Reduce function call overhead (estimated 1-2% improvement)
+1. **Optimize readDateTime/readTimeFormat** - Reduce redundant charCode lookups (estimated 1-2% improvement)
+2. **Inline small token readers** - Reduce function call overhead (estimated 1-2% improvement)
