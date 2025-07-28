@@ -1,549 +1,393 @@
 import { describe, it, expect } from 'bun:test';
-import { Lexer, TokenType, Channel } from '../src/lexer';
+import { Lexer, TokenType, Token } from '../src/lexer';
 
-describe('Lexer', () => {
-  function getTokenTypes(expression: string): TokenType[] {
-    const lexer = new Lexer(expression);
-    const tokens = lexer.tokenize();
-    return tokens.map(t => t.type);
+describe('New Simplified Lexer', () => {
+  function tokenize(input: string): Token[] {
+    const lexer = new Lexer(input);
+    return lexer.tokenize();
   }
   
-  describe('literals', () => {
-    it('tokenizes null literal', () => {
-      expect(getTokenTypes('{}')).toEqual([
-        TokenType.LBRACE,
-        TokenType.RBRACE,
-        TokenType.EOF
-      ]);
+  function tokenValues(input: string): string[] {
+    return tokenize(input).map(t => t.value);
+  }
+  
+  function tokenTypesAndValues(input: string): string[] {
+    return tokenize(input).map(t => {
+      const typeName = TokenType[t.type];
+      if (t.type === TokenType.IDENTIFIER) {
+        return `ID:${t.value}`;
+      } else if (t.type === TokenType.SPECIAL_IDENTIFIER) {
+        return `$:${t.value.substring(1)}`; // Show without the $ prefix for clarity
+      } else if (t.type === TokenType.OPERATOR) {
+        return `OP:${t.value}`;
+      } else if (t.type === TokenType.ENVIRONMENT_VARIABLE) {
+        return `ENV:${t.value}`;
+      } else {
+        return typeName;
+      }
     });
-    
-    it('tokenizes boolean literals', () => {
-      expect(getTokenTypes('true false')).toEqual([
-        TokenType.TRUE,
-        TokenType.FALSE,
-        TokenType.EOF
-      ]);
+  }
+
+  describe('Identifiers and Keywords', () => {
+    it('should tokenize all keywords as identifiers', () => {
+      const keywords = ['and', 'or', 'xor', 'implies', 'div', 'mod', 'in', 'contains', 'is', 'as', 
+                       'true', 'false', 'where', 'select', 'year', 'month', 'day'];
+      
+      for (const keyword of keywords) {
+        const tokens = tokenize(keyword);
+        expect(tokens[0].type).toBe(TokenType.IDENTIFIER);
+        expect(tokens[0].value).toBe(keyword);
+      }
     });
-    
-    it('tokenizes string literals', () => {
-      // Single-quoted strings
-      expect(getTokenTypes("'hello world'")).toEqual([
-        TokenType.STRING,
-        TokenType.EOF
-      ]);
-      
-      expect(getTokenTypes("'hello\\nworld\\t\\r\\\\'")).toEqual([
-        TokenType.STRING,
-        TokenType.EOF
-      ]);
-      
-      expect(getTokenTypes("'\\u0048\\u0065\\u006C\\u006C\\u006F'")).toEqual([
-        TokenType.STRING,
-        TokenType.EOF
-      ]);
-      
-      // Double-quoted strings
-      expect(getTokenTypes('"hello world"')).toEqual([
-        TokenType.STRING,
-        TokenType.EOF
-      ]);
-      
-      expect(getTokenTypes('"hello\\nworld\\t\\r\\\\\\""')).toEqual([
-        TokenType.STRING,
-        TokenType.EOF
-      ]);
-      
-      expect(getTokenTypes('"\\u0048\\u0065\\u006C\\u006C\\u006F"')).toEqual([
-        TokenType.STRING,
-        TokenType.EOF
-      ]);
-      
-      // Mixed quotes
-      expect(getTokenTypes(`"single ' quote inside"`)).toEqual([
-        TokenType.STRING,
-        TokenType.EOF
-      ]);
-      
-      expect(getTokenTypes(`'double " quote inside'`)).toEqual([
-        TokenType.STRING,
-        TokenType.EOF
-      ]);
+
+    it('should allow keywords in property access', () => {
+      const result = tokenTypesAndValues('Patient.where.contains.true');
+      expect(result).toEqual(['ID:Patient', 'DOT', 'ID:where', 'DOT', 'ID:contains', 'DOT', 'ID:true', 'EOF']);
     });
-    
-    it('tokenizes numbers', () => {
-      expect(getTokenTypes('42 3.14 0.5 123.456')).toEqual([
-        TokenType.NUMBER,
-        TokenType.NUMBER,
-        TokenType.NUMBER,
-        TokenType.NUMBER,
-        TokenType.EOF
-      ]);
-    });
-    
-    it('tokenizes datetime literals', () => {
-      expect(getTokenTypes('@2023 @2023-12 @2023-12-25 @2023-12-25T10:30:45.123Z')).toEqual([
-        TokenType.DATETIME,
-        TokenType.DATETIME,
-        TokenType.DATETIME,
-        TokenType.DATETIME,
-        TokenType.EOF
-      ]);
-    });
-    
-    it('tokenizes time literals', () => {
-      expect(getTokenTypes('@T10:30 @T10:30:45 @T10:30:45.123')).toEqual([
-        TokenType.TIME,
-        TokenType.TIME,
-        TokenType.TIME,
-        TokenType.EOF
-      ]);
+
+    it('should parse complex expressions with keyword operators', () => {
+      const result = tokenTypesAndValues('a and b or c implies d');
+      expect(result).toEqual(['ID:a', 'ID:and', 'ID:b', 'ID:or', 'ID:c', 'ID:implies', 'ID:d', 'EOF']);
     });
   });
-  
-  describe('identifiers', () => {
-    it('tokenizes simple identifiers', () => {
-      expect(getTokenTypes('foo bar_baz _test Test123')).toEqual([
-        TokenType.IDENTIFIER,
-        TokenType.IDENTIFIER,
-        TokenType.IDENTIFIER,
-        TokenType.IDENTIFIER,
-        TokenType.EOF
-      ]);
+
+  describe('Symbol Operators', () => {
+    it('should tokenize arithmetic operators', () => {
+      const result = tokenTypesAndValues('1 + 2 - 3 * 4 / 5');
+      expect(result).toEqual(['NUMBER', 'OP:+', 'NUMBER', 'OP:-', 'NUMBER', 'OP:*', 'NUMBER', 'OP:/', 'NUMBER', 'EOF']);
     });
-    
-    it('tokenizes delimited identifiers with Unicode', () => {
-      // Unicode must be in delimited identifiers per spec
-      expect(getTokenTypes('`café` `münchen` `Σ` `λ`')).toEqual([
-        TokenType.DELIMITED_IDENTIFIER,
-        TokenType.DELIMITED_IDENTIFIER,
-        TokenType.DELIMITED_IDENTIFIER,
-        TokenType.DELIMITED_IDENTIFIER,
-        TokenType.EOF
-      ]);
-      
-      // Mixed ASCII and Unicode in delimited identifiers
-      expect(getTokenTypes('`test_café` `value_π` `x²`')).toEqual([
-        TokenType.DELIMITED_IDENTIFIER,
-        TokenType.DELIMITED_IDENTIFIER,
-        TokenType.DELIMITED_IDENTIFIER,
-        TokenType.EOF
-      ]);
-      
-      // Various Unicode categories in delimited identifiers
-      expect(getTokenTypes('`日本語` `中文` `한글` `العربية`')).toEqual([
-        TokenType.DELIMITED_IDENTIFIER,
-        TokenType.DELIMITED_IDENTIFIER,
-        TokenType.DELIMITED_IDENTIFIER,
-        TokenType.DELIMITED_IDENTIFIER,
-        TokenType.EOF
-      ]);
+
+    it('should tokenize comparison operators', () => {
+      const result = tokenTypesAndValues('a < b > c <= d >= e');
+      expect(result).toEqual(['ID:a', 'OP:<', 'ID:b', 'OP:>', 'ID:c', 'OP:<=', 'ID:d', 'OP:>=', 'ID:e', 'EOF']);
     });
-    
-    it('tokenizes delimited identifiers', () => {
-      expect(getTokenTypes('`foo bar` `with\\`backtick`')).toEqual([
-        TokenType.DELIMITED_IDENTIFIER,
-        TokenType.DELIMITED_IDENTIFIER,
-        TokenType.EOF
-      ]);
+
+    it('should tokenize equality operators', () => {
+      const result = tokenTypesAndValues('a = b != c ~ d !~ e');
+      expect(result).toEqual(['ID:a', 'OP:=', 'ID:b', 'OP:!=', 'ID:c', 'OP:~', 'ID:d', 'OP:!~', 'ID:e', 'EOF']);
     });
-    
-    it('tokenizes special identifiers', () => {
-      expect(getTokenTypes('$this $index $total')).toEqual([
-        TokenType.THIS,
-        TokenType.INDEX,
-        TokenType.TOTAL,
-        TokenType.EOF
-      ]);
+
+    it('should tokenize other operators', () => {
+      const result = tokenTypesAndValues('a | b & c');
+      expect(result).toEqual(['ID:a', 'OP:|', 'ID:b', 'OP:&', 'ID:c', 'EOF']);
     });
-    
-    it('tokenizes environment variables', () => {
-      // Identifier form
-      expect(getTokenTypes('%context %sct %vs')).toEqual([
-        TokenType.ENV_VAR,
-        TokenType.ENV_VAR,
-        TokenType.ENV_VAR,
-        TokenType.EOF
-      ]);
-      
-      // String form
-      expect(getTokenTypes(`%'simple string' %'with\\nescapes' %'unicode\\u0048'`)).toEqual([
-        TokenType.ENV_VAR,
-        TokenType.ENV_VAR,
-        TokenType.ENV_VAR,
-        TokenType.EOF
-      ]);
-      
-      // Delimited form
-      expect(getTokenTypes('%`any string name` %`with\\`backtick` %`complex-name_123`')).toEqual([
-        TokenType.ENV_VAR,
-        TokenType.ENV_VAR,
-        TokenType.ENV_VAR,
-        TokenType.EOF
-      ]);
-      
-      // Mixed with percent operator
-      expect(getTokenTypes('value % 10 %context')).toEqual([
-        TokenType.IDENTIFIER,
-        TokenType.PERCENT,
-        TokenType.NUMBER,
-        TokenType.ENV_VAR,
-        TokenType.EOF
-      ]);
-      
-      // Unicode in delimited form
-      expect(getTokenTypes('%`café` %`münchen` %`日本語`')).toEqual([
-        TokenType.ENV_VAR,
-        TokenType.ENV_VAR,
-        TokenType.ENV_VAR,
-        TokenType.EOF
-      ]);
+
+    it('should preserve operator values in tokens', () => {
+      const tokens = tokenize('+ - * / < > <= >= = != ~ !~ | &');
+      const operators = tokens.filter(t => t.type === TokenType.OPERATOR);
+      const values = operators.map(t => t.value);
+      expect(values).toEqual(['+', '-', '*', '/', '<', '>', '<=', '>=', '=', '!=', '~', '!~', '|', '&']);
     });
   });
-  
-  describe('keywords', () => {
-    it('tokenizes keywords', () => {
-      expect(getTokenTypes('as contains in is div mod and or xor implies')).toEqual([
-        TokenType.AS,
-        TokenType.CONTAINS,
-        TokenType.IN,
-        TokenType.IS,
-        TokenType.DIV,
-        TokenType.MOD,
-        TokenType.AND,
-        TokenType.OR,
-        TokenType.XOR,
-        TokenType.IMPLIES,
-        TokenType.EOF
-      ]);
+
+  describe('Literals', () => {
+    it('should tokenize numbers', () => {
+      const tokens = tokenize('42 3.14 0.001');
+      expect(tokens[0].type).toBe(TokenType.NUMBER);
+      expect(tokens[0].value).toBe('42');
+      expect(tokens[1].type).toBe(TokenType.NUMBER);
+      expect(tokens[1].value).toBe('3.14');
+      expect(tokens[2].type).toBe(TokenType.NUMBER);
+      expect(tokens[2].value).toBe('0.001');
     });
-    
-    it('tokenizes time units', () => {
-      expect(getTokenTypes('year month week day hour minute second millisecond')).toEqual([
-        TokenType.YEAR,
-        TokenType.MONTH,
-        TokenType.WEEK,
-        TokenType.DAY,
-        TokenType.HOUR,
-        TokenType.MINUTE,
-        TokenType.SECOND,
-        TokenType.MILLISECOND,
-        TokenType.EOF
-      ]);
+
+    it('should tokenize strings with single quotes', () => {
+      const tokens = tokenize("'hello' 'world'");
+      expect(tokens[0].type).toBe(TokenType.STRING);
+      expect(tokens[0].value).toBe("'hello'");
+      expect(tokens[1].value).toBe("'world'");
     });
-    
-    it('tokenizes plural time units', () => {
-      expect(getTokenTypes('years months weeks days hours minutes seconds milliseconds')).toEqual([
-        TokenType.YEARS,
-        TokenType.MONTHS,
-        TokenType.WEEKS,
-        TokenType.DAYS,
-        TokenType.HOURS,
-        TokenType.MINUTES,
-        TokenType.SECONDS,
-        TokenType.MILLISECONDS,
-        TokenType.EOF
-      ]);
+
+    it('should tokenize strings with double quotes', () => {
+      const tokens = tokenize('"hello" "world"');
+      expect(tokens[0].type).toBe(TokenType.STRING);
+      expect(tokens[0].value).toBe('"hello"');
     });
-  });
-  
-  describe('operators', () => {
-    it('tokenizes single-character operators', () => {
-      expect(getTokenTypes('. ( ) [ ] { } + - * / & | < > = ~ , % @')).toEqual([
-        TokenType.DOT,
-        TokenType.LPAREN,
-        TokenType.RPAREN,
-        TokenType.LBRACKET,
-        TokenType.RBRACKET,
-        TokenType.LBRACE,
-        TokenType.RBRACE,
-        TokenType.PLUS,
-        TokenType.MINUS,
-        TokenType.MULTIPLY,
-        TokenType.DIVIDE,
-        TokenType.AMPERSAND,
-        TokenType.PIPE,
-        TokenType.LT,
-        TokenType.GT,
-        TokenType.EQ,
-        TokenType.SIMILAR,
-        TokenType.COMMA,
-        TokenType.PERCENT,
-        TokenType.AT,
-        TokenType.EOF
-      ]);
+
+    it('should handle escaped characters in strings', () => {
+      const tokens = tokenize("'hello\\'world' 'line1\\nline2'");
+      expect(tokens[0].type).toBe(TokenType.STRING);
+      expect(tokens[0].value).toBe("'hello\\'world'");
     });
-    
-    it('tokenizes two-character operators', () => {
-      expect(getTokenTypes('<= >= != !~')).toEqual([
-        TokenType.LTE,
-        TokenType.GTE,
-        TokenType.NEQ,
-        TokenType.NOT_SIMILAR,
-        TokenType.EOF
-      ]);
+
+    it('should tokenize datetime literals', () => {
+      const datetimes = [
+        '@2023',
+        '@2023-12',
+        '@2023-12-25',
+        '@2023-12-25T10:30:00',
+        '@2023-12-25T10:30:00Z',
+        '@2023-12-25T10:30:00+05:30'
+      ];
+      
+      for (const dt of datetimes) {
+        const tokens = tokenize(dt);
+        expect(tokens[0].type).toBe(TokenType.DATETIME);
+        expect(tokens[0].value).toBe(dt);
+      }
+    });
+
+    it('should tokenize time literals', () => {
+      const times = ['@T10:30', '@T10:30:45', '@T10:30:45.123'];
+      
+      for (const time of times) {
+        const tokens = tokenize(time);
+        expect(tokens[0].type).toBe(TokenType.TIME);
+        expect(tokens[0].value).toBe(time);
+      }
     });
   });
-  
-  describe('whitespace and comments', () => {
-    it('skips whitespace by default', () => {
-      expect(getTokenTypes('a   b\t\tc\r\nd')).toEqual([
-        TokenType.IDENTIFIER,
-        TokenType.IDENTIFIER,
-        TokenType.IDENTIFIER,
-        TokenType.IDENTIFIER,
-        TokenType.EOF
-      ]);
+
+  describe('Environment Variables', () => {
+    it('should tokenize simple environment variables', () => {
+      const result = tokenTypesAndValues('%ucum %context');
+      expect(result).toEqual(['ENV:%ucum', 'ENV:%context', 'EOF']);
     });
-    
-    it('includes whitespace when configured', () => {
-      const lexer = new Lexer('a b', { skipWhitespace: false });
-      const types = lexer.tokenize().map(t => t.type);
-      expect(types).toEqual([
-        TokenType.IDENTIFIER,
-        TokenType.WHITESPACE,
-        TokenType.IDENTIFIER,
-        TokenType.EOF
-      ]);
+
+    it('should tokenize delimited environment variables', () => {
+      const result = tokenTypesAndValues('%`us-zip` %`my-var`');
+      expect(result).toEqual(['ENV:%`us-zip`', 'ENV:%`my-var`', 'EOF']);
     });
-    
-    it('skips comments by default', () => {
-      expect(getTokenTypes('a /* comment */ b // line comment\nc')).toEqual([
-        TokenType.IDENTIFIER,
-        TokenType.IDENTIFIER,
-        TokenType.IDENTIFIER,
-        TokenType.EOF
-      ]);
+
+    it('should tokenize string-style environment variables (backwards compatibility)', () => {
+      const result = tokenTypesAndValues("%'us-zip' %'my-var'");
+      expect(result).toEqual(["ENV:%'us-zip'", "ENV:%'my-var'", 'EOF']);
     });
-    
-    it('includes comments when configured', () => {
-      const lexer = new Lexer('a /* comment */ b', { skipComments: false, skipWhitespace: false });
-      const types = lexer.tokenize().map(t => t.type);
-      expect(types).toEqual([
-        TokenType.IDENTIFIER,
-        TokenType.WHITESPACE,
-        TokenType.COMMENT,
-        TokenType.WHITESPACE,
-        TokenType.IDENTIFIER,
-        TokenType.EOF
-      ]);
+
+    it('should preserve the full value of environment variables', () => {
+      const tokens = tokenize('%ucum %`us-zip` %\'test\'');
+      expect(tokens[0].type).toBe(TokenType.ENVIRONMENT_VARIABLE);
+      expect(tokens[0].value).toBe('%ucum');
+      expect(tokens[1].type).toBe(TokenType.ENVIRONMENT_VARIABLE);
+      expect(tokens[1].value).toBe('%`us-zip`');
+      expect(tokens[2].type).toBe(TokenType.ENVIRONMENT_VARIABLE);
+      expect(tokens[2].value).toBe("%'test'");
+    });
+
+    it('should handle escaped characters in delimited environment variables', () => {
+      const tokens = tokenize('%`with\\`backtick`');
+      expect(tokens[0].type).toBe(TokenType.ENVIRONMENT_VARIABLE);
+      expect(tokens[0].value).toBe('%`with\\`backtick`');
+    });
+
+    it('should throw error for invalid environment variable names', () => {
+      expect(() => tokenize('%')).toThrow('Invalid environment variable name');
+      expect(() => tokenize('% ')).toThrow('Invalid environment variable name');
+      expect(() => tokenize('%123')).toThrow('Invalid environment variable name');
+    });
+
+    it('should throw error for unterminated environment variables', () => {
+      expect(() => tokenize('%`unterminated')).toThrow('Unterminated environment variable');
+      expect(() => tokenize("%'unterminated")).toThrow('Unterminated environment variable');
     });
   });
-  
-  describe('complex expressions', () => {
-    it('tokenizes property access', () => {
-      expect(getTokenTypes('Patient.name.given')).toEqual([
-        TokenType.IDENTIFIER,
-        TokenType.DOT,
-        TokenType.IDENTIFIER,
-        TokenType.DOT,
-        TokenType.IDENTIFIER,
-        TokenType.EOF
-      ]);
+
+  describe('Special Identifiers', () => {
+    it('should tokenize all $... as SPECIAL_IDENTIFIER', () => {
+      const result = tokenTypesAndValues('$this $index $total $custom $var123');
+      expect(result).toEqual(['$:this', '$:index', '$:total', '$:custom', '$:var123', 'EOF']);
     });
-    
-    it('tokenizes function calls', () => {
-      expect(getTokenTypes('where(active = true)')).toEqual([
-        TokenType.IDENTIFIER,
-        TokenType.LPAREN,
-        TokenType.IDENTIFIER,
-        TokenType.EQ,
-        TokenType.TRUE,
-        TokenType.RPAREN,
-        TokenType.EOF
-      ]);
+
+    it('should preserve the full value of special identifiers', () => {
+      const tokens = tokenize('$this $custom_var $test123');
+      expect(tokens[0].type).toBe(TokenType.SPECIAL_IDENTIFIER);
+      expect(tokens[0].value).toBe('$this');
+      expect(tokens[1].type).toBe(TokenType.SPECIAL_IDENTIFIER);
+      expect(tokens[1].value).toBe('$custom_var');
+      expect(tokens[2].type).toBe(TokenType.SPECIAL_IDENTIFIER);
+      expect(tokens[2].value).toBe('$test123');
     });
-    
-    it('tokenizes arithmetic expressions', () => {
-      expect(getTokenTypes('5 + 3 * 2 - 1')).toEqual([
-        TokenType.NUMBER,
-        TokenType.PLUS,
-        TokenType.NUMBER,
-        TokenType.MULTIPLY,
-        TokenType.NUMBER,
-        TokenType.MINUS,
-        TokenType.NUMBER,
-        TokenType.EOF
-      ]);
+
+    it('should handle $ without following identifier', () => {
+      const tokens = tokenize('$ $');
+      expect(tokens[0].type).toBe(TokenType.SPECIAL_IDENTIFIER);
+      expect(tokens[0].value).toBe('$');
+      expect(tokens[1].type).toBe(TokenType.SPECIAL_IDENTIFIER);
+      expect(tokens[1].value).toBe('$');
     });
-    
-    it('tokenizes quantity with units', () => {
-      expect(getTokenTypes("5 years 3.5 'mg'")).toEqual([
-        TokenType.NUMBER,
-        TokenType.YEARS,
-        TokenType.NUMBER,
-        TokenType.STRING,
-        TokenType.EOF
+
+    it('should tokenize delimited identifiers', () => {
+      const tokens = tokenize('`special identifier` `with spaces`');
+      expect(tokens[0].type).toBe(TokenType.IDENTIFIER);
+      expect(tokens[0].value).toBe('`special identifier`');
+      expect(tokens[1].value).toBe('`with spaces`');
+    });
+
+    it('should handle escaped backticks in delimited identifiers', () => {
+      const tokens = tokenize('`with\\`backtick`');
+      expect(tokens[0].type).toBe(TokenType.IDENTIFIER);
+      expect(tokens[0].value).toBe('`with\\`backtick`');
+    });
+  });
+
+  describe('Structural Tokens', () => {
+    it('should tokenize parentheses', () => {
+      const result = tokenTypesAndValues('(a + b)');
+      expect(result).toEqual(['LPAREN', 'ID:a', 'OP:+', 'ID:b', 'RPAREN', 'EOF']);
+    });
+
+    it('should tokenize brackets', () => {
+      const result = tokenTypesAndValues('a[0]');
+      expect(result).toEqual(['ID:a', 'LBRACKET', 'NUMBER', 'RBRACKET', 'EOF']);
+    });
+
+    it('should tokenize braces', () => {
+      const result = tokenTypesAndValues('{}');
+      expect(result).toEqual(['LBRACE', 'RBRACE', 'EOF']);
+    });
+
+    it('should tokenize dots', () => {
+      const result = tokenTypesAndValues('a.b.c');
+      expect(result).toEqual(['ID:a', 'DOT', 'ID:b', 'DOT', 'ID:c', 'EOF']);
+    });
+
+    it('should tokenize commas', () => {
+      const result = tokenTypesAndValues('a, b, c');
+      expect(result).toEqual(['ID:a', 'COMMA', 'ID:b', 'COMMA', 'ID:c', 'EOF']);
+    });
+  });
+
+  describe('Comments', () => {
+    it('should skip line comments', () => {
+      const result = tokenTypesAndValues('a + b // this is a comment\n+ c');
+      expect(result).toEqual(['ID:a', 'OP:+', 'ID:b', 'OP:+', 'ID:c', 'EOF']);
+    });
+
+    it('should skip block comments', () => {
+      const result = tokenTypesAndValues('a /* comment */ + /* another */ b');
+      expect(result).toEqual(['ID:a', 'OP:+', 'ID:b', 'EOF']);
+    });
+
+    it('should handle multi-line block comments', () => {
+      const result = tokenTypesAndValues('a /* line1\nline2\nline3 */ + b');
+      expect(result).toEqual(['ID:a', 'OP:+', 'ID:b', 'EOF']);
+    });
+  });
+
+  describe('Complex Expressions', () => {
+    it('should tokenize FHIRPath navigation', () => {
+      const result = tokenTypesAndValues('Patient.name.given.first()');
+      expect(result).toEqual(['ID:Patient', 'DOT', 'ID:name', 'DOT', 'ID:given', 'DOT', 'ID:first', 'LPAREN', 'RPAREN', 'EOF']);
+    });
+
+    it('should tokenize expressions with mixed operators', () => {
+      const result = tokenTypesAndValues('age >= 18 and status = "active"');
+      expect(result).toEqual(['ID:age', 'OP:>=', 'NUMBER', 'ID:and', 'ID:status', 'OP:=', 'STRING', 'EOF']);
+    });
+
+    it('should tokenize function calls with arguments', () => {
+      const result = tokenTypesAndValues('where(use = "official").given');
+      expect(result).toEqual([
+        'ID:where', 'LPAREN', 'ID:use', 'OP:=', 'STRING', 'RPAREN', 'DOT', 'ID:given', 'EOF'
       ]);
     });
 
-    it("human readable", () => {    
-      const lexer = new Lexer("Patient.name.where(given = 'John')");
-      const tokens = lexer.tokenize();
-      console.log(tokens);
-    });
-    
-    it('tokenizes expressions with double-quoted strings', () => {
-      expect(getTokenTypes(`"Hello" + " " + "World"`)).toEqual([
-        TokenType.STRING,
-        TokenType.PLUS,
-        TokenType.STRING,
-        TokenType.PLUS,
-        TokenType.STRING,
-        TokenType.EOF
-      ]);
-      
-      expect(getTokenTypes(`name.where(use = "official")`)).toEqual([
-        TokenType.IDENTIFIER,
-        TokenType.DOT,
-        TokenType.IDENTIFIER,
-        TokenType.LPAREN,
-        TokenType.IDENTIFIER,
-        TokenType.EQ,
-        TokenType.STRING,
-        TokenType.RPAREN,
-        TokenType.EOF
-      ]);
+    it('should tokenize complex boolean expressions', () => {
+      const result = tokenTypesAndValues('a or b and c implies d');
+      expect(result).toEqual(['ID:a', 'ID:or', 'ID:b', 'ID:and', 'ID:c', 'ID:implies', 'ID:d', 'EOF']);
     });
   });
-  
-  describe('error handling', () => {
-    it('throws on unexpected character', () => {
-      expect(() => new Lexer('a $ b').tokenize()).toThrow('Unexpected character');
+
+  describe('Position Tracking', () => {
+    it('should track token positions', () => {
+      const tokens = tokenize('a + b');
+      
+      expect(tokens[0].start).toBe(0);
+      expect(tokens[0].end).toBe(1);
+      expect(tokens[0].line).toBe(1);
+      expect(tokens[0].column).toBe(1);
+      
+      expect(tokens[1].start).toBe(2);
+      expect(tokens[1].end).toBe(3);
+      expect(tokens[1].line).toBe(1);
+      expect(tokens[1].column).toBe(3);
+      
+      expect(tokens[2].start).toBe(4);
+      expect(tokens[2].end).toBe(5);
+      expect(tokens[2].line).toBe(1);
+      expect(tokens[2].column).toBe(5);
     });
-    
-    it('throws on unterminated string', () => {
-      expect(() => new Lexer("'unterminated").tokenize()).toThrow('Unterminated string');
-      expect(() => new Lexer('"unterminated').tokenize()).toThrow('Unterminated string');
+
+    it('should track line numbers', () => {
+      const tokens = tokenize('a\n+\nb');
+      
+      expect(tokens[0].line).toBe(1);
+      expect(tokens[1].line).toBe(2);
+      expect(tokens[2].line).toBe(3);
     });
-    
-    it('throws on invalid escape sequence', () => {
-      expect(() => new Lexer("'\\q'").tokenize()).toThrow('Invalid escape sequence');
-      expect(() => new Lexer('"\\q"').tokenize()).toThrow('Invalid escape sequence');
-    });
-    
-    it('throws on invalid unicode escape', () => {
-      expect(() => new Lexer("'\\uXYZ'").tokenize()).toThrow('Invalid unicode escape');
-      expect(() => new Lexer('"\\uXYZ"').tokenize()).toThrow('Invalid unicode escape');
-    });
-    
-    it('throws on unterminated environment variables', () => {
-      expect(() => new Lexer("%'unterminated").tokenize()).toThrow('Unterminated environment variable string');
-      expect(() => new Lexer("%`unterminated").tokenize()).toThrow('Unterminated environment variable delimiter');
-    });
-    
-    it('throws on invalid escape in environment variables', () => {
-      expect(() => new Lexer("%'\\q'").tokenize()).toThrow('Invalid escape sequence');
-      expect(() => new Lexer("%'\\uXYZ'").tokenize()).toThrow('Invalid unicode escape');
-    });
-    
-    it('throws on Unicode in regular identifiers', () => {
-      // Unicode is not allowed in regular identifiers per spec
-      expect(() => new Lexer('café').tokenize()).toThrow('Unexpected character');
-      expect(() => new Lexer('münchen').tokenize()).toThrow('Unexpected character');
-      expect(() => new Lexer('日本語').tokenize()).toThrow('Unexpected character');
+
+    it('should handle position tracking option', () => {
+      const lexer = new Lexer('a + b', { trackPosition: false });
+      const tokens = lexer.tokenize();
+      
+      expect(tokens[0].line).toBe(0);
+      expect(tokens[0].column).toBe(0);
     });
   });
-  
-  describe('trivia and channels', () => {
-    it('preserves whitespace and comments with channel information', () => {
-      const lexer = new Lexer('a /* comment */ b', { preserveTrivia: true });
-      const tokens = lexer.tokenize();
-      
-      expect(tokens.length).toBe(6); // a, whitespace, comment, whitespace, b, EOF
-      expect(tokens[0]!.type).toBe(TokenType.IDENTIFIER);
-      expect(tokens[0]!.channel).toBeUndefined(); // Regular tokens don't have channel
-      
-      expect(tokens[1]!.type).toBe(TokenType.WHITESPACE);
-      expect(tokens[1]!.channel).toBe(Channel.HIDDEN);
-      
-      expect(tokens[2]!.type).toBe(TokenType.COMMENT);
-      expect(tokens[2]!.channel).toBe(Channel.HIDDEN);
-      
-      expect(tokens[3]!.type).toBe(TokenType.WHITESPACE);
-      expect(tokens[3]!.channel).toBe(Channel.HIDDEN);
-      
-      expect(tokens[4]!.type).toBe(TokenType.IDENTIFIER);
-      expect(tokens[4]!.channel).toBeUndefined();
+
+  describe('Edge Cases', () => {
+    it('should handle empty input', () => {
+      const result = tokenTypesAndValues('');
+      expect(result).toEqual(['EOF']);
     });
-    
-    it('preserves line comments with channel information', () => {
-      const lexer = new Lexer('a // comment\nb', { preserveTrivia: true });
-      const tokens = lexer.tokenize();
-      
-      expect(tokens[0]!.type).toBe(TokenType.IDENTIFIER);
-      expect(tokens[1]!.type).toBe(TokenType.WHITESPACE);
-      expect(tokens[1]!.channel).toBe(Channel.HIDDEN);
-      expect(tokens[2]!.type).toBe(TokenType.LINE_COMMENT);
-      expect(tokens[2]!.channel).toBe(Channel.HIDDEN);
-      expect(tokens[3]!.type).toBe(TokenType.WHITESPACE); // newline
-      expect(tokens[3]!.channel).toBe(Channel.HIDDEN);
-      expect(tokens[4]!.type).toBe(TokenType.IDENTIFIER);
+
+    it('should handle whitespace-only input', () => {
+      const result = tokenTypesAndValues('   \n\t  ');
+      expect(result).toEqual(['EOF']);
     });
-    
-    it('can filter tokens by channel', () => {
-      const lexer = new Lexer('Patient . name // comment', { preserveTrivia: true });
-      const allTokens = lexer.tokenize();
-      
-      // Filter regular tokens
-      const regularTokens = allTokens.filter(t => t.channel !== Channel.HIDDEN);
-      expect(regularTokens.map(t => t.type)).toEqual([
-        TokenType.IDENTIFIER,
-        TokenType.DOT,
-        TokenType.IDENTIFIER,
-        TokenType.EOF
-      ]);
-      
-      // Filter hidden tokens
-      const hiddenTokens = allTokens.filter(t => t.channel === Channel.HIDDEN);
-      expect(hiddenTokens.map(t => t.type)).toEqual([
-        TokenType.WHITESPACE,
-        TokenType.WHITESPACE,
-        TokenType.WHITESPACE,
-        TokenType.LINE_COMMENT
+
+    it('should handle invalid characters', () => {
+      expect(() => tokenize('#')).toThrow("Unexpected character '#'");
+    });
+
+    it('should handle unterminated strings', () => {
+      expect(() => tokenize("'unterminated")).toThrow('Unterminated string');
+    });
+
+    it('should handle unterminated delimited identifiers', () => {
+      expect(() => tokenize('`unterminated')).toThrow('Unterminated delimited identifier');
+    });
+
+    it('should handle invalid datetime formats', () => {
+      expect(() => tokenize('@20')).toThrow('Invalid datetime format');
+      expect(() => tokenize('@2023-1')).toThrow('Invalid datetime format');
+    });
+
+    it('should handle single exclamation mark', () => {
+      expect(() => tokenize('a ! b')).toThrow("Unexpected character '!'");
+    });
+  });
+
+  describe('Real-world Examples', () => {
+    it('should tokenize FHIR resource paths', () => {
+      const result = tokenTypesAndValues('Patient.identifier.where(system = "http://example.org").value');
+      expect(result).toEqual([
+        'ID:Patient', 'DOT', 'ID:identifier', 'DOT', 'ID:where', 'LPAREN',
+        'ID:system', 'OP:=', 'STRING', 'RPAREN', 'DOT', 'ID:value', 'EOF'
       ]);
     });
-    
-    it('preserveTrivia overrides skipWhitespace and skipComments', () => {
-      const lexer = new Lexer('a /* c */ b', { 
-        preserveTrivia: true,
-        skipWhitespace: true,  // Should be overridden
-        skipComments: true     // Should be overridden
-      });
-      const tokens = lexer.tokenize();
-      
-      // Should include whitespace and comments despite skip flags
-      expect(tokens.map(t => t.type)).toEqual([
-        TokenType.IDENTIFIER,
-        TokenType.WHITESPACE,
-        TokenType.COMMENT,
-        TokenType.WHITESPACE,
-        TokenType.IDENTIFIER,
-        TokenType.EOF
+
+    it('should tokenize complex filter expressions', () => {
+      const result = tokenTypesAndValues('Observation.where(code.coding.exists(system = "LOINC" and code = "1234-5"))');
+      expect(result).toEqual([
+        'ID:Observation', 'DOT', 'ID:where', 'LPAREN',
+        'ID:code', 'DOT', 'ID:coding', 'DOT', 'ID:exists', 'LPAREN',
+        'ID:system', 'OP:=', 'STRING', 'ID:and', 'ID:code', 'OP:=', 'STRING',
+        'RPAREN', 'RPAREN', 'EOF'
       ]);
     });
-    
-    it('performance is minimally impacted by channel assignment', () => {
-      const expression = 'Patient.name.given.where(use = "official")';
-      const iterations = 10000;
-      
-      // Test without preserveTrivia
-      const start1 = performance.now();
-      for (let i = 0; i < iterations; i++) {
-        new Lexer(expression).tokenize();
-      }
-      const timeWithout = performance.now() - start1;
-      
-      // Test with preserveTrivia
-      const start2 = performance.now();
-      for (let i = 0; i < iterations; i++) {
-        new Lexer(expression, { preserveTrivia: true }).tokenize();
-      }
-      const timeWith = performance.now() - start2;
-      
-      // Should be less than 10% performance impact
-      const overhead = ((timeWith - timeWithout) / timeWithout) * 100;
-      console.log(`Trivia overhead: ${overhead.toFixed(1)}%`);
-      expect(overhead).toBeLessThan(10);
+
+    it('should handle quantity literals (as separate tokens)', () => {
+      const result = tokenTypesAndValues('5 days');
+      expect(result).toEqual(['NUMBER', 'ID:days', 'EOF']);
+    });
+
+    it('should tokenize expressions with environment variables', () => {
+      const result = tokenTypesAndValues('value.matches(%`us-zip`) and system = %ucum');
+      expect(result).toEqual([
+        'ID:value', 'DOT', 'ID:matches', 'LPAREN', 'ENV:%`us-zip`', 'RPAREN', 
+        'ID:and', 'ID:system', 'OP:=', 'ENV:%ucum', 'EOF'
+      ]);
     });
   });
 });
