@@ -33,12 +33,18 @@ export class Registry {
   }
   
   private registerDefaultOperators(): void {
-    // Register all operators from the operations module
+    // Register all operators and functions from the operations module
     const allOperations = Object.values(operations);
     
     for (const operation of allOperations) {
-      if (typeof operation === 'object' && 'symbol' in operation) {
-        this.registerOperator(operation);
+      if (typeof operation === 'object') {
+        if ('symbol' in operation) {
+          // It's an operator
+          this.registerOperator(operation);
+        } else if ('signature' in operation && !('symbol' in operation)) {
+          // It's a function (has signature but no symbol)
+          this.registerFunction(operation as FunctionDefinition);
+        }
       }
     }
   }

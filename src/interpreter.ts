@@ -185,14 +185,24 @@ export type NodeEvaluator = (node: ASTNode, input: any[], context: RuntimeContex
 // Operation evaluator function type  
 export type OperationEvaluator = (input: any[], context: RuntimeContext, ...args: any[]) => EvaluationResult;
 
+// Function evaluator function type
+export type FunctionEvaluator = (
+  input: any[], 
+  context: RuntimeContext, 
+  args: ASTNode[], 
+  evaluator: (node: ASTNode, input: any[], context: RuntimeContext) => EvaluationResult
+) => EvaluationResult;
+
 export class Interpreter {
   private registry: Registry;
   private nodeEvaluators: Record<NodeType, NodeEvaluator>;
   private operationEvaluators: Map<string, OperationEvaluator>;
+  private functionEvaluators: Map<string, FunctionEvaluator>;
 
   constructor(registry?: Registry) {
     this.registry = registry || new Registry();
     this.operationEvaluators = new Map();
+    this.functionEvaluators = new Map();
     
     // Initialize node evaluators using object dispatch pattern
     this.nodeEvaluators = {
@@ -219,7 +229,17 @@ export class Interpreter {
     // Register evaluators from operations modules
     for (const [name, operation] of Object.entries(operations)) {
       if (typeof operation === 'object' && 'evaluate' in operation) {
-        this.operationEvaluators.set(operation.symbol || operation.name, operation.evaluate);
+        if ('symbol' in operation) {
+          // It's an operator
+          // Skip unary operators here - they're handled differently
+          if (name === 'unaryMinusOperator' || name === 'unaryPlusOperator') {
+            continue;
+          }
+          this.operationEvaluators.set(operation.symbol, operation.evaluate);
+        } else if ('signature' in operation && !('symbol' in operation)) {
+          // It's a function
+          this.functionEvaluators.set(operation.name, operation.evaluate);
+        }
       }
     }
   }
@@ -335,43 +355,8 @@ export class Interpreter {
       return evaluator(input, context, leftResult.value, rightResult.value);
     }
 
-    // For other operators, check if we need sequential evaluation
-    // Some operators may need to pass context from left to right
-    const leftResult = this.evaluate(binary.left, input, context);
-    
-    // For operators that might modify context, use the left's context
-    const rightContext = leftResult.context.variables.size > context.variables.size ? leftResult.context : context;
-    const rightResult = this.evaluate(binary.right, input, rightContext);
-
-    // Basic implementations for common operators
-    switch (operator) {
-      case '+':
-        return this.evaluatePlus(leftResult.value, rightResult.value, context);
-      case '-':
-        return this.evaluateMinus(leftResult.value, rightResult.value, context);
-      case '*':
-        return this.evaluateMultiply(leftResult.value, rightResult.value, context);
-      case '/':
-        return this.evaluateDivide(leftResult.value, rightResult.value, context);
-      case '=':
-        return this.evaluateEqual(leftResult.value, rightResult.value, context);
-      case '!=':
-        return this.evaluateNotEqual(leftResult.value, rightResult.value, context);
-      case '<':
-        return this.evaluateLessThan(leftResult.value, rightResult.value, context);
-      case '>':
-        return this.evaluateGreaterThan(leftResult.value, rightResult.value, context);
-      case '<=':
-        return this.evaluateLessOrEqual(leftResult.value, rightResult.value, context);
-      case '>=':
-        return this.evaluateGreaterOrEqual(leftResult.value, rightResult.value, context);
-      case 'and':
-        return this.evaluateAnd(leftResult.value, rightResult.value, context);
-      case 'or':
-        return this.evaluateOr(leftResult.value, rightResult.value, context);
-      default:
-        throw new Error(`Unknown binary operator: ${operator}`);
-    }
+    // If no evaluator found, throw error
+    throw new Error(`No evaluator found for binary operator: ${operator}`);
   }
 
   // Unary operator evaluator
@@ -381,22 +366,22 @@ export class Interpreter {
     
     const operandResult = this.evaluate(unary.operand, input, context);
 
-    switch (operator) {
-      case '-':
-        return {
-          value: operandResult.value.map(v => -v),
-          context
-        };
-      case '+':
-        return {
-          value: operandResult.value,
-          context
-        };
-      case 'not':
-        return this.evaluateNot(operandResult.value, context);
-      default:
-        throw new Error(`Unknown unary operator: ${operator}`);
+    // Check for unary operation evaluators
+    let evaluator: OperationEvaluator | undefined;
+    if (operator === '-' && operations.unaryMinusOperator?.evaluate) {
+      evaluator = operations.unaryMinusOperator.evaluate;
+    } else if (operator === '+' && operations.unaryPlusOperator?.evaluate) {
+      evaluator = operations.unaryPlusOperator.evaluate;
+    } else if (operator === 'not' && operations.notOperator?.evaluate) {
+      evaluator = operations.notOperator.evaluate;
     }
+
+    if (evaluator) {
+      return evaluator(input, context, operandResult.value);
+    }
+
+    // If no evaluator found, throw error
+    throw new Error(`No evaluator found for unary operator: ${operator}`);
   }
 
   // Variable evaluator
@@ -434,34 +419,14 @@ export class Interpreter {
     const func = node as FunctionNode;
     const funcName = (func.name as IdentifierNode).name;
 
-    // Handle common functions
-    switch (funcName) {
-      case 'where':
-        return this.evaluateWhere(func, input, context);
-      case 'select':
-        return this.evaluateSelect(func, input, context);
-      case 'first':
-        return { value: input.length > 0 ? [input[0]] : [], context };
-      case 'last':
-        return { value: input.length > 0 ? [input[input.length - 1]] : [], context };
-      case 'count':
-        return { value: [input.length], context };
-      case 'exists':
-        if (func.arguments.length === 0) {
-          return { value: [input.length > 0], context };
-        }
-        return this.evaluateExists(func, input, context);
-      case 'empty':
-        return { value: [input.length === 0], context };
-      case 'distinct':
-        return { value: [...new Set(input)], context };
-      case 'iif':
-        return this.evaluateIif(func, input, context);
-      case 'defineVariable':
-        return this.evaluateDefineVariable(func, input, context);
-      default:
-        throw new Error(`Unknown function: ${funcName}`);
+    // Check if function is registered with an evaluator
+    const functionEvaluator = this.functionEvaluators.get(funcName);
+    if (functionEvaluator) {
+      return functionEvaluator(input, context, func.arguments, this.evaluate.bind(this));
     }
+
+    // No function found in registry
+    throw new Error(`Unknown function: ${funcName}`);
   }
 
   // Index evaluator
@@ -511,256 +476,5 @@ export class Interpreter {
     return { value: exprResult.value, context };
   }
 
-  // Iterator function: where
-  private evaluateWhere(func: FunctionNode, input: any[], context: RuntimeContext): EvaluationResult {
-    if (func.arguments.length === 0) {
-      return { value: input, context };
-    }
 
-    const condition = func.arguments[0];
-    const results: any[] = [];
-
-    // Process each item with modified context
-    for (let i = 0; i < input.length; i++) {
-      const item = input[i];
-      
-      // Create iterator context with $this and $index
-      let tempContext = RuntimeContextManager.withIterator(context, item, i);
-      tempContext = RuntimeContextManager.setSpecialVariable(tempContext, 'total', input.length);
-
-      // Evaluate condition with temporary context
-      const condResult = this.evaluate(condition!, [item], tempContext);
-      
-      // Include item if condition is true
-      if (condResult.value.length > 0 && condResult.value[0] === true) {
-        results.push(item);
-      }
-    }
-
-    return { value: results, context };  // Original context restored
-  }
-
-  // Iterator function: select
-  private evaluateSelect(func: FunctionNode, input: any[], context: RuntimeContext): EvaluationResult {
-    if (func.arguments.length === 0) {
-      return { value: input, context };
-    }
-
-    const expression = func.arguments[0]!;
-    const results: any[] = [];
-
-    // Process each item with modified context
-    for (let i = 0; i < input.length; i++) {
-      const item = input[i];
-      
-      // Create iterator context with $this and $index
-      let tempContext = RuntimeContextManager.withIterator(context, item, i);
-      tempContext = RuntimeContextManager.setSpecialVariable(tempContext, 'total', input.length);
-
-      // Evaluate expression with temporary context
-      const exprResult = this.evaluate(expression, [item], tempContext);
-      results.push(...exprResult.value);
-    }
-
-    return { value: results, context };  // Original context restored
-  }
-
-  // Iterator function: exists
-  private evaluateExists(func: FunctionNode, input: any[], context: RuntimeContext): EvaluationResult {
-    const condition = func.arguments[0]!;
-
-    // Process each item with modified context
-    for (let i = 0; i < input.length; i++) {
-      const item = input[i];
-      
-      // Create iterator context with $this and $index
-      let tempContext = RuntimeContextManager.withIterator(context, item, i);
-      tempContext = RuntimeContextManager.setSpecialVariable(tempContext, 'total', input.length);
-
-      // Evaluate condition with temporary context
-      const condResult = this.evaluate(condition, [item], tempContext);
-      
-      // Return true if any item matches
-      if (condResult.value.length > 0 && condResult.value[0] === true) {
-        return { value: [true], context };
-      }
-    }
-
-    return { value: [false], context };
-  }
-
-  // Control flow: iif
-  private evaluateIif(func: FunctionNode, input: any[], context: RuntimeContext): EvaluationResult {
-    if (func.arguments.length < 3) {
-      throw new Error('iif requires 3 arguments');
-    }
-
-    // Always evaluate condition
-    const condResult = this.evaluate(func.arguments[0]!, input, context);
-    
-    if (condResult.value.length === 0) {
-      // Empty condition - return empty
-      return { value: [], context };
-    }
-
-    const condition = condResult.value[0];
-    
-    // Evaluate only the needed branch
-    if (condition === true) {
-      return this.evaluate(func.arguments[1]!, input, context);
-    } else {
-      return this.evaluate(func.arguments[2]!, input, context);
-    }
-  }
-
-  // Context modifier: defineVariable
-  private evaluateDefineVariable(func: FunctionNode, input: any[], context: RuntimeContext): EvaluationResult {
-    if (func.arguments.length < 2) {
-      throw new Error('defineVariable requires 2 arguments');
-    }
-
-    const nameNode = func.arguments[0]! as LiteralNode;
-    if (nameNode.valueType !== 'string') {
-      throw new Error('Variable name must be a string');
-    }
-
-    const varName = nameNode.value as string;
-    
-    // Evaluate the value expression with $this set to input
-    const tempContext = RuntimeContextManager.setSpecialVariable(context, 'this', input);
-    const valueResult = this.evaluate(func.arguments[1]!, input, tempContext);
-
-    // Set the variable using RuntimeContextManager (handles prefixes and checks)
-    const newContext = RuntimeContextManager.setVariable(context, varName, valueResult.value);
-    
-    // If newContext is same as context, variable already existed - return empty
-    if (newContext === context) {
-      return { value: [], context };
-    }
-
-    // Pass through input unchanged
-    return { value: input, context: newContext };
-  }
-
-  // Basic operator implementations
-  private evaluatePlus(left: any[], right: any[], context: RuntimeContext): EvaluationResult {
-    if (left.length === 0 || right.length === 0) {
-      return { value: [], context };
-    }
-    
-    const l = left[0];
-    const r = right[0];
-    
-    if (typeof l === 'string' || typeof r === 'string') {
-      return { value: [String(l) + String(r)], context };
-    }
-    
-    if (typeof l === 'number' && typeof r === 'number') {
-      return { value: [l + r], context };
-    }
-    
-    // For other types, convert to string
-    return { value: [String(l) + String(r)], context };
-  }
-
-  private evaluateMinus(left: any[], right: any[], context: RuntimeContext): EvaluationResult {
-    if (left.length === 0 || right.length === 0) {
-      return { value: [], context };
-    }
-    return { value: [left[0] - right[0]], context };
-  }
-
-  private evaluateMultiply(left: any[], right: any[], context: RuntimeContext): EvaluationResult {
-    if (left.length === 0 || right.length === 0) {
-      return { value: [], context };
-    }
-    return { value: [left[0] * right[0]], context };
-  }
-
-  private evaluateDivide(left: any[], right: any[], context: RuntimeContext): EvaluationResult {
-    if (left.length === 0 || right.length === 0) {
-      return { value: [], context };
-    }
-    if (right[0] === 0) {
-      return { value: [], context };
-    }
-    return { value: [left[0] / right[0]], context };
-  }
-
-  private evaluateEqual(left: any[], right: any[], context: RuntimeContext): EvaluationResult {
-    if (left.length === 0 || right.length === 0) {
-      return { value: [], context };
-    }
-    return { value: [left[0] === right[0]], context };
-  }
-
-  private evaluateNotEqual(left: any[], right: any[], context: RuntimeContext): EvaluationResult {
-    if (left.length === 0 || right.length === 0) {
-      return { value: [], context };
-    }
-    return { value: [left[0] !== right[0]], context };
-  }
-
-  private evaluateLessThan(left: any[], right: any[], context: RuntimeContext): EvaluationResult {
-    if (left.length === 0 || right.length === 0) {
-      return { value: [], context };
-    }
-    return { value: [left[0] < right[0]], context };
-  }
-
-  private evaluateGreaterThan(left: any[], right: any[], context: RuntimeContext): EvaluationResult {
-    if (left.length === 0 || right.length === 0) {
-      return { value: [], context };
-    }
-    return { value: [left[0] > right[0]], context };
-  }
-
-  private evaluateLessOrEqual(left: any[], right: any[], context: RuntimeContext): EvaluationResult {
-    if (left.length === 0 || right.length === 0) {
-      return { value: [], context };
-    }
-    return { value: [left[0] <= right[0]], context };
-  }
-
-  private evaluateGreaterOrEqual(left: any[], right: any[], context: RuntimeContext): EvaluationResult {
-    if (left.length === 0 || right.length === 0) {
-      return { value: [], context };
-    }
-    return { value: [left[0] >= right[0]], context };
-  }
-
-  private evaluateAnd(left: any[], right: any[], context: RuntimeContext): EvaluationResult {
-    // Three-valued logic
-    if (left.length === 0 || right.length === 0) {
-      if (left.length > 0 && left[0] === false) {
-        return { value: [false], context };
-      }
-      if (right.length > 0 && right[0] === false) {
-        return { value: [false], context };
-      }
-      return { value: [], context };  // Unknown
-    }
-    return { value: [left[0] && right[0]], context };
-  }
-
-  private evaluateOr(left: any[], right: any[], context: RuntimeContext): EvaluationResult {
-    // Three-valued logic
-    if (left.length === 0 || right.length === 0) {
-      if (left.length > 0 && left[0] === true) {
-        return { value: [true], context };
-      }
-      if (right.length > 0 && right[0] === true) {
-        return { value: [true], context };
-      }
-      return { value: [], context };  // Unknown
-    }
-    return { value: [left[0] || right[0]], context };
-  }
-
-  private evaluateNot(operand: any[], context: RuntimeContext): EvaluationResult {
-    if (operand.length === 0) {
-      return { value: [], context };  // not({}) = {}
-    }
-    return { value: [!operand[0]], context };
-  }
 }

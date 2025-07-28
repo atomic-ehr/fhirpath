@@ -39,3 +39,15 @@ export { asOperator } from './as-operator';
 export { unionOperator } from './union-operator';
 export { combineOperator } from './combine-operator';
 export { dotOperator } from './dot-operator';
+
+// Functions
+export { whereFunction } from './where-function';
+export { selectFunction } from './select-function';
+export { firstFunction } from './first-function';
+export { lastFunction } from './last-function';
+export { countFunction } from './count-function';
+export { existsFunction } from './exists-function';
+export { emptyFunction } from './empty-function';
+export { distinctFunction } from './distinct-function';
+export { iifFunction } from './iif-function';
+export { defineVariableFunction } from './defineVariable-function';

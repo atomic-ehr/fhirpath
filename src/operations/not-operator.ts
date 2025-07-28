@@ -1,7 +1,16 @@
 import type { OperatorDefinition } from '../types';
 import { PRECEDENCE } from '../types';
+import type { OperationEvaluator } from '../interpreter';
 
-export const notOperator: OperatorDefinition = {
+// Note: 'not' is a unary operator, so it only uses the first argument
+export const evaluate: OperationEvaluator = (input, context, operand) => {
+  if (operand.length === 0) {
+    return { value: [], context };  // not({}) = {}
+  }
+  return { value: [!operand[0]], context };
+};
+
+export const notOperator: OperatorDefinition & { evaluate: OperationEvaluator } = {
   symbol: 'not',
   name: 'not',
   category: ['logical'],
@@ -9,5 +18,6 @@ export const notOperator: OperatorDefinition = {
   associativity: 'right',
   description: 'Logical NOT operator',
   examples: ['not active'],
-  signatures: []
+  signatures: [],
+  evaluate
 };

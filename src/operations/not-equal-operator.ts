@@ -1,7 +1,15 @@
 import type { OperatorDefinition } from '../types';
 import { PRECEDENCE } from '../types';
+import type { OperationEvaluator } from '../interpreter';
 
-export const notEqualOperator: OperatorDefinition = {
+export const evaluate: OperationEvaluator = (input, context, left, right) => {
+  if (left.length === 0 || right.length === 0) {
+    return { value: [], context };
+  }
+  return { value: [left[0] !== right[0]], context };
+};
+
+export const notEqualOperator: OperatorDefinition & { evaluate: OperationEvaluator } = {
   symbol: '!=',
   name: 'notEqual',
   category: ['equality'],
@@ -9,5 +17,6 @@ export const notEqualOperator: OperatorDefinition = {
   associativity: 'left',
   description: 'Not equal operator',
   examples: ['name != "John"'],
-  signatures: []
+  signatures: [],
+  evaluate
 };

@@ -1,7 +1,13 @@
 import type { OperatorDefinition } from '../types';
 import { PRECEDENCE } from '../types';
+import type { OperationEvaluator } from '../interpreter';
 
-export const unaryPlusOperator: OperatorDefinition = {
+export const evaluate: OperationEvaluator = (input, context, operand) => {
+  // Unary plus returns the operand as-is
+  return { value: operand, context };
+};
+
+export const unaryPlusOperator: OperatorDefinition & { evaluate: OperationEvaluator } = {
   symbol: '+',
   name: 'unaryPlus',
   category: ['arithmetic'],
@@ -9,5 +15,6 @@ export const unaryPlusOperator: OperatorDefinition = {
   associativity: 'right',
   description: 'Unary plus operator',
   examples: ['+5'],
-  signatures: []
+  signatures: [],
+  evaluate
 };
