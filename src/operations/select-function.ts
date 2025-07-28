@@ -9,6 +9,10 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   }
 
   const expression = args[0];
+  if (!expression) {
+    throw new Error('select function requires an expression argument');
+  }
+  
   const results: any[] = [];
 
   // Process each item with modified context

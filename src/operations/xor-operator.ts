@@ -21,8 +21,13 @@ export const xorOperator: OperatorDefinition & { evaluate: OperationEvaluator } 
   category: ['logical'],
   precedence: PRECEDENCE.XOR,
   associativity: 'left',
-  description: 'Logical XOR operator',
-  examples: ['a xor b'],
-  signatures: [],
+  description: 'Returns true if exactly one of the operands evaluates to true, false if either both operands evaluate to true or both operands evaluate to false, and empty ({ }) otherwise',
+  examples: ['true xor false', 'Patient.active xor Patient.deceased.exists()'],
+  signatures: [{
+    name: 'xor',
+    left: { type: 'Boolean', singleton: true },
+    right: { type: 'Boolean', singleton: true },
+    result: { type: 'Boolean', singleton: true },
+  }],
   evaluate
 };

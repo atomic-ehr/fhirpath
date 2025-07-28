@@ -16,7 +16,11 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   
   // Evaluate the value expression with $this set to input
   const tempContext = RuntimeContextManager.setSpecialVariable(context, 'this', input);
-  const valueResult = evaluator(args[1], input, tempContext);
+  const valueExpr = args[1];
+  if (!valueExpr) {
+    throw new Error('defineVariable requires a value expression');
+  }
+  const valueResult = evaluator(valueExpr, input, tempContext);
 
   // Set the variable using RuntimeContextManager (handles prefixes and checks)
   const newContext = RuntimeContextManager.setVariable(context, varName, valueResult.value);

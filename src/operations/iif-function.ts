@@ -7,7 +7,15 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   }
 
   // Always evaluate condition
-  const condResult = evaluator(args[0], input, context);
+  const condExpr = args[0];
+  const thenExpr = args[1];
+  const elseExpr = args[2];
+  
+  if (!condExpr || !thenExpr || !elseExpr) {
+    throw new Error('iif requires all 3 arguments to be present');
+  }
+  
+  const condResult = evaluator(condExpr, input, context);
   
   if (condResult.value.length === 0) {
     // Empty condition - return empty
@@ -18,9 +26,9 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   
   // Evaluate only the needed branch
   if (condition === true) {
-    return evaluator(args[1], input, context);
+    return evaluator(thenExpr, input, context);
   } else {
-    return evaluator(args[2], input, context);
+    return evaluator(elseExpr, input, context);
   }
 };
 

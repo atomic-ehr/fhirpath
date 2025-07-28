@@ -24,8 +24,15 @@ export const andOperator: OperatorDefinition & { evaluate: OperationEvaluator } 
   category: ['logical'],
   precedence: PRECEDENCE.AND,
   associativity: 'left',
-  description: 'Logical AND operator',
-  examples: ['active and verified'],
-  signatures: [],
+  description: 'Returns true if both operands evaluate to true, false if either operand evaluates to false, and the empty collection ({ }) otherwise',
+  examples: ['active and verified', 'Patient.active and Patient.gender = "male"'],
+  signatures: [
+    {
+      name: 'and',
+      left: { type: 'Boolean', singleton: true },
+      right: { type: 'Boolean', singleton: true },
+      result: { type: 'Boolean', singleton: true }
+    }
+  ],
   evaluate
 };

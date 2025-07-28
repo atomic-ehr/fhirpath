@@ -18,8 +18,21 @@ export const modOperator: OperatorDefinition & { evaluate: OperationEvaluator } 
   category: ['arithmetic'],
   precedence: PRECEDENCE.MULTIPLICATIVE,
   associativity: 'left',
-  description: 'Modulo operator',
-  examples: ['10 mod 3'],
-  signatures: [],
+  description: 'Computes the remainder of the truncated division of its arguments. Supported for Integer and Decimal types. Division by zero returns empty.',
+  examples: ['5 mod 2', '5.5 mod 0.7', '5 mod 0'],
+  signatures: [
+    {
+      name: 'integer-mod',
+      left: { type: 'Integer', singleton: true },
+      right: { type: 'Integer', singleton: true },
+      result: { type: 'Integer', singleton: true },
+    },
+    {
+      name: 'decimal-mod',
+      left: { type: 'Decimal', singleton: true },
+      right: { type: 'Decimal', singleton: true },
+      result: { type: 'Decimal', singleton: true },
+    }
+  ],
   evaluate
 };

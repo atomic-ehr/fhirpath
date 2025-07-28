@@ -24,10 +24,10 @@ export const orOperator: OperatorDefinition & { evaluate: OperationEvaluator } =
   category: ['logical'],
   precedence: PRECEDENCE.OR,
   associativity: 'left',
-  description: 'Logical OR operator',
+  description: 'Returns false if both operands evaluate to false, true if either operand evaluates to true, and empty ({ }) otherwise',
   examples: ['true or false', 'Patient.active or Patient.gender = "female"'],
   signatures: [{
-    name: 'logical-or',
+    name: 'or',
     left: { type: 'Boolean', singleton: true },
     right: { type: 'Boolean', singleton: true },
     result: { type: 'Boolean', singleton: true },

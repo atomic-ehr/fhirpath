@@ -9,6 +9,9 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   }
 
   const condition = args[0];
+  if (!condition) {
+    throw new Error('exists function requires a condition argument');
+  }
 
   // Process each item with modified context
   for (let i = 0; i < input.length; i++) {

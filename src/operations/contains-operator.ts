@@ -3,27 +3,30 @@ import { PRECEDENCE } from '../types';
 import type { OperationEvaluator } from '../types';
 
 export const evaluate: OperationEvaluator = (input, context, left, right) => {
-  // 'contains' is the inverse of 'in'
+  // If right is empty, result is empty
   if (right.length === 0) {
-    return { value: [true], context }; // collection contains {} = true
+    return { value: [], context };
   }
+  
+  // Right must have single item
+  if (right.length > 1) {
+    throw new Error('contains operator: right operand must be a single item');
+  }
+  
+  // If left is empty, result is false
   if (left.length === 0) {
-    return { value: [false], context }; // {} contains value = false
+    return { value: [false], context };
   }
-  // Check if all elements of right are in left
-  for (const rightItem of right) {
-    let found = false;
-    for (const leftItem of left) {
-      if (leftItem === rightItem) {
-        found = true;
-        break;
-      }
-    }
-    if (!found) {
-      return { value: [false], context };
+  
+  // Check if the single right item is in left using equality
+  const rightItem = right[0];
+  for (const leftItem of left) {
+    if (leftItem === rightItem) {
+      return { value: [true], context };
     }
   }
-  return { value: [true], context };
+  
+  return { value: [false], context };
 };
 
 export const containsOperator: OperatorDefinition & { evaluate: OperationEvaluator } = {
@@ -32,8 +35,15 @@ export const containsOperator: OperatorDefinition & { evaluate: OperationEvaluat
   category: ['membership'],
   precedence: PRECEDENCE.IN_CONTAINS,
   associativity: 'left',
-  description: 'Contains operator',
-  examples: ['list contains 5'],
-  signatures: [],
+  description: 'If the right operand is a collection with a single item, returns true if the item is in the left operand using equality semantics. If the right is empty, the result is empty. If the left is empty, the result is false',
+  examples: ['Patient.name.given contains \'Joe\'', '(1 | 2 | 3 | 4 | 5) contains 5', 'valueset.code contains code'],
+  signatures: [
+    {
+      name: 'contains',
+      left: { type: 'Any', singleton: false },
+      right: { type: 'Any', singleton: true },
+      result: { type: 'Boolean', singleton: true },
+    }
+  ],
   evaluate
 };

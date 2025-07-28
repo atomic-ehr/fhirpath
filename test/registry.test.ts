@@ -227,14 +227,14 @@ describe('FHIRPath Registry', () => {
         expect(plusOp!.symbol).toBe('+');
         expect(plusOp!.name).toBe('plus');
         expect(plusOp!.category).toContain('arithmetic');
-        expect(plusOp!.description).toBe('Addition operator');
+        expect(plusOp!.description).toBe('For Integer, Decimal, and Quantity, adds the operands. For strings, concatenates the right operand to the left operand. For Date/DateTime/Time, increments by time-valued quantity.');
         
         const andOp = registry.getOperatorDefinition('and');
         expect(andOp).toBeDefined();
         expect(andOp!.symbol).toBe('and');
         expect(andOp!.name).toBe('and');
         expect(andOp!.category).toContain('logical');
-        expect(andOp!.description).toBe('Logical AND operator');
+        expect(andOp!.description).toBe('Returns true if both operands evaluate to true, false if either operand evaluates to false, and the empty collection ({ }) otherwise');
       });
 
       it('should handle case-insensitive keyword operators', () => {
@@ -286,7 +286,8 @@ describe('FHIRPath Registry', () => {
             type: { type: 'Boolean', singleton: true }
           }],
           result: { type: 'Any', singleton: false }
-        }
+        },
+        evaluate: () => { throw new Error('Not implemented'); }
       };
       
       testRegistry.registerFunction(whereFunction);
@@ -312,7 +313,8 @@ describe('FHIRPath Registry', () => {
           input: { type: 'Any', singleton: true },
           parameters: [],
           result: { type: 'Any', singleton: true }
-        }
+        },
+        evaluate: () => { throw new Error('Not implemented'); }
       };
       
       testRegistry.registerFunction(testFunc);

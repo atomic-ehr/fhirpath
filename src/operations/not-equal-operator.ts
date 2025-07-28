@@ -15,8 +15,13 @@ export const notEqualOperator: OperatorDefinition & { evaluate: OperationEvaluat
   category: ['equality'],
   precedence: PRECEDENCE.EQUALITY,
   associativity: 'left',
-  description: 'Not equal operator',
-  examples: ['name != "John"'],
-  signatures: [],
+  description: 'The converse of the equals operator, returning true if equal returns false; false if equal returns true; and empty ({ }) if equal returns empty',
+  examples: ['name != "John"', 'Patient.gender != "male"', '5 != 3'],
+  signatures: [{
+    name: 'not-equal',
+    left: { type: 'Any', singleton: true },
+    right: { type: 'Any', singleton: true },
+    result: { type: 'Boolean', singleton: true },
+  }],
   evaluate
 };

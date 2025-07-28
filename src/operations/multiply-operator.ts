@@ -15,13 +15,27 @@ export const multiplyOperator: OperatorDefinition & { evaluate: OperationEvaluat
   category: ['arithmetic'],
   precedence: PRECEDENCE.MULTIPLICATIVE,
   associativity: 'left',
-  description: 'Multiplication operator',
-  examples: ['2 * 3', '5.5 * 2'],
-  signatures: [{
-    name: 'numeric-multiply',
-    left: { type: 'Decimal', singleton: true },
-    right: { type: 'Decimal', singleton: true },
-    result: { type: 'Decimal', singleton: true },
-  }],
+  description: 'Multiplies both arguments (supported for Integer, Decimal, and Quantity). For multiplication involving quantities, the resulting quantity will have the appropriate unit',
+  examples: ['2 * 3', '5.5 * 2', '12 \'cm\' * 3 \'cm\'', '3 \'cm\' * 12 \'cm2\''],
+  signatures: [
+    {
+      name: 'integer-multiply',
+      left: { type: 'Integer', singleton: true },
+      right: { type: 'Integer', singleton: true },
+      result: { type: 'Integer', singleton: true },
+    },
+    {
+      name: 'decimal-multiply',
+      left: { type: 'Decimal', singleton: true },
+      right: { type: 'Decimal', singleton: true },
+      result: { type: 'Decimal', singleton: true },
+    },
+    {
+      name: 'quantity-multiply',
+      left: { type: 'Quantity', singleton: true },
+      right: { type: 'Quantity', singleton: true },
+      result: { type: 'Quantity', singleton: true },
+    }
+  ],
   evaluate
 };

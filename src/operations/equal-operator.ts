@@ -15,8 +15,8 @@ export const equalOperator: OperatorDefinition & { evaluate: OperationEvaluator 
   category: ['equality'],
   precedence: PRECEDENCE.EQUALITY,
   associativity: 'left',
-  description: 'Equality operator',
-  examples: ['name = "John"','Patient.name = "John"', '5 = 5'],
+  description: 'Returns true if the left collection is equal to the right collection. For single items, comparison is type-specific. For collections, comparison is order-dependent.',
+  examples: ['name = "John"', 'Patient.name.given = "John"', '5 = 5', '@2018-03-01 = @2018-03-01'],
   signatures: [{
     name: 'equal',
     left: { type: 'Any', singleton: true },

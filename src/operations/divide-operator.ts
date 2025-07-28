@@ -18,13 +18,27 @@ export const divideOperator: OperatorDefinition & { evaluate: OperationEvaluator
   category: ['arithmetic'],
   precedence: PRECEDENCE.MULTIPLICATIVE,
   associativity: 'left',
-  description: 'Division operator',
-  examples: ['10 / 2', '7.5 / 1.5'],
-  signatures: [{
-    name: 'numeric-divide',
-    left: { type: 'Decimal', singleton: true },
-    right: { type: 'Decimal', singleton: true },
-    result: { type: 'Decimal', singleton: true },
-  }],
+  description: 'Divides the left operand by the right operand (supported for Integer, Decimal, and Quantity). The result is always Decimal, even if inputs are both Integer. Division by zero returns empty.',
+  examples: ['10 / 2', '7.5 / 1.5', '12 \'cm2\' / 3 \'cm\'', '12 / 0'],
+  signatures: [
+    {
+      name: 'integer-divide',
+      left: { type: 'Integer', singleton: true },
+      right: { type: 'Integer', singleton: true },
+      result: { type: 'Decimal', singleton: true },
+    },
+    {
+      name: 'decimal-divide',
+      left: { type: 'Decimal', singleton: true },
+      right: { type: 'Decimal', singleton: true },
+      result: { type: 'Decimal', singleton: true },
+    },
+    {
+      name: 'quantity-divide',
+      left: { type: 'Quantity', singleton: true },
+      right: { type: 'Quantity', singleton: true },
+      result: { type: 'Quantity', singleton: true },
+    }
+  ],
   evaluate
 };
