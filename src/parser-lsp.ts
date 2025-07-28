@@ -2,6 +2,7 @@ import { TokenType } from './lexer';
 import type { Token } from './lexer';
 import { BaseParser, NodeType } from './parser-base';
 import type { Position } from './parser-base';
+import { operatorRegistry } from './operator-registry';
 
 // LSP-specific types
 export interface Range {
@@ -163,8 +164,8 @@ export class LSPParser extends BaseParser<LSPNode> {
   ]);
   
   constructor(input: string) {
-    // Don't skip whitespace/comments - we need them for trivia
-    super(input, { skipWhitespace: false, skipComments: false });
+    // Enable trivia preservation for LSP features
+    super(input, { preserveTrivia: true });
     this.input = input;
   }
   
@@ -248,7 +249,7 @@ export class LSPParser extends BaseParser<LSPNode> {
     const endToken = this.findLastToken(right);
     const node = this.createNode(
       NodeType.Binary,
-      { operator: token.type, left, right },
+      { operator: token.value, left, right },
       startToken,
       endToken
     ) as BinaryNode;
@@ -267,7 +268,7 @@ export class LSPParser extends BaseParser<LSPNode> {
     const endToken = this.findLastToken(operand);
     const node = this.createNode(
       NodeType.Unary,
-      { operator: token.type, operand },
+      { operator: token.value, operand },
       token,
       endToken
     ) as UnaryNode;
@@ -415,7 +416,23 @@ export class LSPParser extends BaseParser<LSPNode> {
       const token = this.tokens[this.current];
       if (!token || token.type === TokenType.EOF) break;
       
-      const precedence = this.getPrecedence(token.type);
+      // Get operator value for precedence check
+      let operator: string | undefined;
+      let precedence = 0;
+      
+      if (token.type === TokenType.DOT) {
+        operator = '.';
+        precedence = operatorRegistry.getPrecedence(operator);
+      } else if (token.type === TokenType.OPERATOR) {
+        operator = token.value;
+        precedence = operatorRegistry.getPrecedence(operator);
+      } else if (token.type === TokenType.IDENTIFIER) {
+        // Check if it's a keyword operator
+        if (operatorRegistry.isKeywordOperator(token.value)) {
+          operator = token.value;
+          precedence = operatorRegistry.getPrecedence(operator);
+        }
+      }
       
       if (precedence < minPrecedence) break;
 
@@ -424,29 +441,24 @@ export class LSPParser extends BaseParser<LSPNode> {
         this.skipTrivia();
         const right = this.parseInvocation();
         left = this.createBinaryNode(token, left, right);
-      } else if (this.isBinaryOperator(token.type)) {
-        this.current++;
-        this.skipTrivia();
-        const associativity = this.getAssociativity(token.type);
-        const nextMinPrecedence = associativity === 'left' ? precedence + 1 : precedence;
-        const right = this.parseExpressionWithPrecedence(nextMinPrecedence);
-        
-        if (token.type === TokenType.PIPE) {
-          // Treat union as binary operation
-          left = this.createBinaryNode(token, left, right);
-        } else {
-          left = this.createBinaryNode(token, left, right);
-        }
-      } else if (token.type === TokenType.IS) {
+      } else if (token.type === TokenType.IDENTIFIER && token.value === 'is') {
         this.current++;
         this.skipTrivia();
         const typeName = this.parseTypeName();
         left = this.createMembershipTestNode(left, typeName, this.getPosition(token));
-      } else if (token.type === TokenType.AS) {
+      } else if (token.type === TokenType.IDENTIFIER && token.value === 'as') {
         this.current++;
         this.skipTrivia();
         const typeName = this.parseTypeName();
         left = this.createTypeCastNode(left, typeName, this.getPosition(token));
+      } else if (operator && operatorRegistry.isBinaryOperator(operator)) {
+        this.current++;
+        this.skipTrivia();
+        const associativity = operatorRegistry.getAssociativity(operator);
+        const nextMinPrecedence = associativity === 'left' ? precedence + 1 : precedence;
+        const right = this.parseExpressionWithPrecedence(nextMinPrecedence);
+        
+        left = this.createBinaryNode(token, left, right);
       } else if (token.type === TokenType.LBRACKET) {
         this.current++;
         this.skipTrivia();
@@ -513,13 +525,36 @@ export class LSPParser extends BaseParser<LSPNode> {
     while (this.current < this.tokens.length) {
       const token = this.tokens[this.current];
       if (token && (token.type === TokenType.WHITESPACE || 
-                   token.type === TokenType.COMMENT || 
-                   token.type === TokenType.LINE_COMMENT)) {
+                   token.type === TokenType.LINE_COMMENT || 
+                   token.type === TokenType.BLOCK_COMMENT)) {
         this.current++;
       } else {
         break;
       }
     }
+  }
+  
+  private collectTrivia(start: number, end: number): Trivia[] {
+    const trivia: Trivia[] = [];
+    
+    for (let i = start; i < end && i < this.tokens.length; i++) {
+      const token = this.tokens[i];
+      if (token && (token.type === TokenType.WHITESPACE || 
+                   token.type === TokenType.LINE_COMMENT || 
+                   token.type === TokenType.BLOCK_COMMENT)) {
+        trivia.push({
+          type: token.type === TokenType.WHITESPACE ? 'whitespace' :
+                token.type === TokenType.LINE_COMMENT ? 'lineComment' : 'comment',
+          value: token.value,
+          range: {
+            start: { line: token.line, column: token.column, offset: token.start },
+            end: { line: token.line, column: token.column + token.value.length, offset: token.end }
+          }
+        });
+      }
+    }
+    
+    return trivia;
   }
   
   // Helper methods
@@ -690,10 +725,8 @@ export class LSPParser extends BaseParser<LSPNode> {
       TokenType.DOT,
       TokenType.LBRACKET,
       TokenType.LPAREN,
-      TokenType.PLUS,
-      TokenType.MINUS,
-      TokenType.MULTIPLY,
-      TokenType.DIVIDE
+      TokenType.OPERATOR,  // All operators now use OPERATOR token
+      TokenType.IDENTIFIER // Keyword operators
     );
     
     return expected;
@@ -734,7 +767,7 @@ export class LSPParser extends BaseParser<LSPNode> {
     const completions: string[] = [];
     
     // Add all identifiers seen so far
-    for (const [name] of this.identifierIndex) {
+    for (const name of this.identifierIndex.keys()) {
       completions.push(name);
     }
     

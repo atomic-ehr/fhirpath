@@ -1,5 +1,6 @@
-import { Lexer, TokenType } from './lexer';
+import { Lexer, TokenType, Channel, isOperator, isOperatorValue } from './lexer';
 import type { Token, LexerOptions } from './lexer';
+import { operatorRegistry } from './operator-registry';
 
 // Re-export AST types that are shared
 export interface Position {
@@ -52,6 +53,13 @@ export abstract class BaseParser<TNode extends { type: NodeType; position?: Posi
   constructor(input: string, lexerOptions?: LexerOptions) {
     this.lexer = new Lexer(input, lexerOptions);
     this.tokens = this.lexer.tokenize();
+    
+    // Filter out trivia tokens if they exist (tokens on hidden channel)
+    if (lexerOptions?.preserveTrivia) {
+      this.tokens = this.tokens.filter(token => 
+        token.channel === undefined || token.channel === Channel.DEFAULT
+      );
+    }
   }
   
   // Abstract methods that subclasses must implement
@@ -80,7 +88,23 @@ export abstract class BaseParser<TNode extends { type: NodeType; position?: Posi
       const token = this.tokens[this.current];
       if (!token || token.type === TokenType.EOF) break;
       
-      const precedence = this.getPrecedence(token.type);
+      // Get operator value for precedence check
+      let operator: string | undefined;
+      let precedence = 0;
+      
+      if (token.type === TokenType.DOT) {
+        operator = '.';
+        precedence = operatorRegistry.getPrecedence(operator);
+      } else if (token.type === TokenType.OPERATOR) {
+        operator = token.value;
+        precedence = operatorRegistry.getPrecedence(operator);
+      } else if (token.type === TokenType.IDENTIFIER) {
+        // Check if it's a keyword operator
+        if (operatorRegistry.isKeywordOperator(token.value)) {
+          operator = token.value;
+          precedence = operatorRegistry.getPrecedence(operator);
+        }
+      }
       
       if (precedence < minPrecedence) break;
 
@@ -88,21 +112,21 @@ export abstract class BaseParser<TNode extends { type: NodeType; position?: Posi
         this.current++; // inline advance()
         const right = this.parseInvocation();
         left = this.createBinaryNode(token, left, right);
-      } else if (this.isBinaryOperator(token.type)) {
+      } else if (token.type === TokenType.IDENTIFIER && token.value === 'is') {
         this.current++; // inline advance()
-        const associativity = this.getAssociativity(token.type);
+        const typeName = this.parseTypeName();
+        left = this.createMembershipTestNode(left, typeName, this.getPosition(token));
+      } else if (token.type === TokenType.IDENTIFIER && token.value === 'as') {
+        this.current++; // inline advance()
+        const typeName = this.parseTypeName();
+        left = this.createTypeCastNode(left, typeName, this.getPosition(token));
+      } else if (operator && operatorRegistry.isBinaryOperator(operator)) {
+        this.current++; // inline advance()
+        const associativity = operatorRegistry.getAssociativity(operator);
         const nextMinPrecedence = associativity === 'left' ? precedence + 1 : precedence;
         const right = this.parseExpressionWithPrecedence(nextMinPrecedence);
         
         left = this.createBinaryNode(token, left, right);
-      } else if (token.type === TokenType.IS) {
-        this.current++; // inline advance()
-        const typeName = this.parseTypeName();
-        left = this.createMembershipTestNode(left, typeName, this.getPosition(token));
-      } else if (token.type === TokenType.AS) {
-        this.current++; // inline advance()
-        const typeName = this.parseTypeName();
-        left = this.createTypeCastNode(left, typeName, this.getPosition(token));
       } else if (token.type === TokenType.LBRACKET) {
         this.current++; // inline advance()
         const index = this.expression();
@@ -123,57 +147,60 @@ export abstract class BaseParser<TNode extends { type: NodeType; position?: Posi
   
   protected parsePrimary(): TNode {
     // Inline peek() for hot path
-    const token = this.current < this.tokens.length ? this.tokens[this.current]! : { type: TokenType.EOF, start: 0, end: 0, line: 1, column: 1 };
+    const token = this.current < this.tokens.length ? this.tokens[this.current]! : { type: TokenType.EOF, value: '', start: 0, end: 0, line: 1, column: 1 };
 
     if (token.type === TokenType.NUMBER) {
       this.current++; // inline advance()
-      return this.createLiteralNode(parseFloat(this.lexer.getTokenValue(token)), 'number', token);
+      return this.createLiteralNode(parseFloat(token.value), 'number', token);
     }
 
     if (token.type === TokenType.STRING) {
       this.current++; // inline advance()
-      const value = this.parseStringValue(this.lexer.getTokenValue(token));
+      const value = this.parseStringValue(token.value);
       return this.createLiteralNode(value, 'string', token);
     }
 
-    if (token.type === TokenType.TRUE || token.type === TokenType.FALSE) {
+    if (token.type === TokenType.IDENTIFIER && (token.value === 'true' || token.value === 'false')) {
       this.advance();
-      return this.createLiteralNode(token.type === TokenType.TRUE, 'boolean', token);
+      return this.createLiteralNode(token.value === 'true', 'boolean', token);
     }
 
-    if (token.type === TokenType.NULL || (token.type === TokenType.IDENTIFIER && this.lexer.getTokenValue(token) === 'null')) {
+    if (token.type === TokenType.IDENTIFIER && token.value === 'null') {
       this.advance();
       return this.createLiteralNode(null, 'null', token);
     }
 
     if (token.type === TokenType.DATETIME) {
       this.advance();
-      const value = this.lexer.getTokenValue(token).substring(1); // Remove @
+      const value = token.value.substring(1); // Remove @
       return this.createLiteralNode(value, 'datetime', token);
     }
 
     if (token.type === TokenType.TIME) {
       this.advance();
-      const value = this.lexer.getTokenValue(token).substring(1); // Remove @
+      const value = token.value.substring(1); // Remove @
       return this.createLiteralNode(value, 'time', token);
     }
 
-    if (token.type === TokenType.THIS || token.type === TokenType.INDEX || token.type === TokenType.TOTAL) {
+    if (token.type === TokenType.SPECIAL_IDENTIFIER) {
       this.advance();
-      return this.createVariableNode(this.lexer.getTokenValue(token), token);
+      return this.createVariableNode(token.value, token);
     }
 
-    if (token.type === TokenType.ENV_VAR) {
+    if (token.type === TokenType.ENVIRONMENT_VARIABLE) {
       this.advance();
-      const value = this.lexer.getTokenValue(token);
-      return this.createVariableNode(value, token);
+      return this.createVariableNode(token.value, token);
     }
 
-    if (token.type === TokenType.IDENTIFIER || 
-        token.type === TokenType.DELIMITED_IDENTIFIER ||
-        this.isKeywordAllowedAsIdentifier(token.type)) {
+    if (token.type === TokenType.IDENTIFIER && token.value === 'not') {
       this.advance();
-      const name = this.parseIdentifierValue(this.lexer.getTokenValue(token));
+      const operand = this.parseExpressionWithPrecedence(operatorRegistry.getPrecedence('not'));
+      return this.createUnaryNode(token, operand);
+    }
+
+    if (token.type === TokenType.IDENTIFIER) {
+      this.advance();
+      const name = this.parseIdentifierValue(token.value);
       return this.createIdentifierNode(name, token);
     }
 
@@ -191,24 +218,23 @@ export abstract class BaseParser<TNode extends { type: NodeType; position?: Posi
       return this.createCollectionNode(elements, this.getPosition(token));
     }
 
-    if (token.type === TokenType.PLUS || token.type === TokenType.MINUS) {
+    // Handle unary operators
+    if (token.type === TokenType.OPERATOR && (token.value === '+' || token.value === '-')) {
       this.advance();
-      const operand = this.parseExpressionWithPrecedence(this.getPrecedence(TokenType.MULTIPLY));
+      const operand = this.parseExpressionWithPrecedence(operatorRegistry.getPrecedence('*'));
       return this.createUnaryNode(token, operand);
     }
 
-    return this.handleError(`Unexpected token: ${this.lexer.getTokenValue(token)}`, token);
+    return this.handleError(`Unexpected token: ${token.value || TokenType[token.type]}`, token);
   }
   
   protected parseInvocation(): TNode {
     const token = this.peek();
     
     // Allow identifiers and keywords that can be used as member names
-    if (token.type === TokenType.IDENTIFIER || 
-        token.type === TokenType.DELIMITED_IDENTIFIER ||
-        this.isKeywordAllowedAsMember(token.type)) {
+    if (token.type === TokenType.IDENTIFIER) {
       this.advance();
-      const name = this.parseIdentifierValue(this.lexer.getTokenValue(token));
+      const name = this.parseIdentifierValue(token.value);
       const node = this.createIdentifierNode(name, token);
       
       // Check if this is a function call
@@ -223,13 +249,12 @@ export abstract class BaseParser<TNode extends { type: NodeType; position?: Posi
     }
     
     // Allow environment variables after dot (like .%resource)
-    if (token.type === TokenType.ENV_VAR) {
+    if (token.type === TokenType.ENVIRONMENT_VARIABLE) {
       this.advance();
-      const value = this.lexer.getTokenValue(token);
-      return this.createVariableNode(value, token);
+      return this.createVariableNode(token.value, token);
     }
 
-    return this.handleError(`Expected identifier after '.', got: ${this.lexer.getTokenValue(token)}`, token);
+    return this.handleError(`Expected identifier after '.', got: ${token.value || TokenType[token.type]}`, token);
   }
   
   protected parseArgumentList(): TNode[] {
@@ -266,11 +291,11 @@ export abstract class BaseParser<TNode extends { type: NodeType; position?: Posi
   
   protected parseTypeName(): string {
     const token = this.advance();
-    if (token.type !== TokenType.IDENTIFIER && token.type !== TokenType.DELIMITED_IDENTIFIER) {
-      this.handleError(`Expected type name, got: ${this.lexer.getTokenValue(token)}`, token);
+    if (token.type !== TokenType.IDENTIFIER) {
+      this.handleError(`Expected type name, got: ${token.value || TokenType[token.type]}`, token);
       return ''; // For TypeScript, though handleError should throw/return error node
     }
-    return this.parseIdentifierValue(this.lexer.getTokenValue(token));
+    return this.parseIdentifierValue(token.value);
   }
   
   protected parseStringValue(raw: string): string {
@@ -315,26 +340,15 @@ export abstract class BaseParser<TNode extends { type: NodeType; position?: Posi
     return (node as any).type === NodeType.Identifier || (node as any).type === NodeType.TypeOrIdentifier;
   }
   
-  protected isBinaryOperator(type: TokenType): boolean {
-    return [
-      TokenType.PLUS, TokenType.MINUS, TokenType.MULTIPLY, TokenType.DIVIDE,
-      TokenType.DIV, TokenType.MOD, TokenType.AMPERSAND, TokenType.PIPE,
-      TokenType.LT, TokenType.GT, TokenType.LTE, TokenType.GTE,
-      TokenType.EQ, TokenType.NEQ, TokenType.SIMILAR, TokenType.NOT_SIMILAR,
-      TokenType.AND, TokenType.OR, TokenType.XOR, TokenType.IMPLIES,
-      TokenType.IN, TokenType.CONTAINS
-    ].includes(type);
-  }
-  
-  protected getPrecedence(type: TokenType): number {
-    // Extract precedence from high byte using bit shift
-    return type >>> 8;
-  }
-  
-  protected getAssociativity(type: TokenType): 'left' | 'right' {
-    // Most operators are left associative
-    // Only implies is right associative
-    return type === TokenType.IMPLIES ? 'right' : 'left';
+  // Helper method to check if a token is a binary operator
+  protected isBinaryOperatorToken(token: Token): boolean {
+    if (token.type === TokenType.OPERATOR || token.type === TokenType.DOT) {
+      return operatorRegistry.isBinaryOperator(token.value);
+    }
+    if (token.type === TokenType.IDENTIFIER) {
+      return operatorRegistry.isKeywordOperator(token.value);
+    }
+    return false;
   }
   
   protected getPosition(token: Token): Position {
@@ -345,36 +359,30 @@ export abstract class BaseParser<TNode extends { type: NodeType; position?: Posi
     };
   }
   
-  protected isKeywordAllowedAsMember(type: TokenType): boolean {
+  protected isKeywordAllowedAsMember(token: Token): boolean {
     // Keywords that can be used as member names
-    return [
-      TokenType.CONTAINS,
-      TokenType.AND,
-      TokenType.OR,
-      TokenType.XOR,
-      TokenType.IMPLIES,
-      TokenType.AS,
-      TokenType.IS,
-      TokenType.DIV,
-      TokenType.MOD,
-      TokenType.IN,
-      TokenType.TRUE,
-      TokenType.FALSE
-    ].includes(type);
+    if (token.type !== TokenType.IDENTIFIER) return false;
+    
+    const keywordsAllowed = [
+      'contains', 'and', 'or', 'xor', 'implies', 
+      'as', 'is', 'div', 'mod', 'in', 'true', 'false'
+    ];
+    
+    return keywordsAllowed.includes(token.value.toLowerCase());
   }
   
-  protected isKeywordAllowedAsIdentifier(type: TokenType): boolean {
+  protected isKeywordAllowedAsIdentifier(token: Token): boolean {
     // Keywords that can be used as identifiers in certain contexts
-    return this.isKeywordAllowedAsMember(type);
+    return this.isKeywordAllowedAsMember(token);
   }
   
   // Helper methods
   protected peek(): Token {
-    return this.tokens[this.current] || { type: TokenType.EOF, start: 0, end: 0, line: 1, column: 1 };
+    return this.tokens[this.current] || { type: TokenType.EOF, value: '', start: 0, end: 0, line: 1, column: 1 };
   }
   
   protected previous(): Token {
-    return this.tokens[this.current - 1] || { type: TokenType.EOF, start: 0, end: 0, line: 1, column: 1 };
+    return this.tokens[this.current - 1] || { type: TokenType.EOF, value: '', start: 0, end: 0, line: 1, column: 1 };
   }
   
   protected isAtEnd(): boolean {
@@ -403,6 +411,7 @@ export abstract class BaseParser<TNode extends { type: NodeType; position?: Posi
   
   protected consume(type: TokenType, message: string): Token {
     if (this.check(type)) return this.advance();
-    return this.handleError(message + ` at token: ${this.lexer.getTokenValue(this.peek())}`, this.peek()) as any;
+    const token = this.peek();
+    return this.handleError(message + ` at token: ${token.value || TokenType[token.type]}`, token) as any;
   }
 }

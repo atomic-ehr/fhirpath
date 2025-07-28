@@ -39,6 +39,11 @@ export enum TokenType {
   // Special tokens
   SPECIAL_IDENTIFIER = 60,     // $...
   ENVIRONMENT_VARIABLE = 70,   // %identifier, %`delimited`, %'string'
+  
+  // Trivia tokens
+  WHITESPACE = 80,
+  LINE_COMMENT = 81,
+  BLOCK_COMMENT = 82,
 }
 
 export enum Channel {
@@ -58,6 +63,7 @@ export interface Token {
 
 export interface LexerOptions {
   trackPosition?: boolean;
+  preserveTrivia?: boolean;
 }
 
 export class Lexer {
@@ -71,6 +77,7 @@ export class Lexer {
     this.input = input;
     this.options = {
       trackPosition: options.trackPosition ?? true,
+      preserveTrivia: options.preserveTrivia ?? false,
     };
   }
   
@@ -91,8 +98,29 @@ export class Lexer {
   }
   
   private nextToken(): Token | null {
-    // Skip whitespace
-    this.skipWhitespace();
+    // Handle whitespace if preserveTrivia is enabled
+    if (this.options.preserveTrivia && this.position < this.input.length) {
+      const wsStart = this.position;
+      const wsStartLine = this.line;
+      const wsStartColumn = this.column;
+      
+      if (this.isWhitespace(this.current())) {
+        this.skipWhitespace();
+        const wsToken = this.createToken(
+          TokenType.WHITESPACE, 
+          this.input.substring(wsStart, this.position),
+          wsStart, 
+          this.position, 
+          wsStartLine, 
+          wsStartColumn
+        );
+        wsToken.channel = Channel.HIDDEN;
+        return wsToken;
+      }
+    } else {
+      // Skip whitespace normally
+      this.skipWhitespace();
+    }
     
     if (this.position >= this.input.length) {
       return null;
@@ -121,12 +149,42 @@ export class Lexer {
       case '/':
         // Check for comments
         if (this.peek() === '/') {
-          this.skipLineComment();
-          return null;
+          if (this.options.preserveTrivia) {
+            const commentStart = this.position;
+            this.skipLineComment();
+            const token = this.createToken(
+              TokenType.LINE_COMMENT,
+              this.input.substring(commentStart, this.position),
+              commentStart,
+              this.position,
+              startLine,
+              startColumn
+            );
+            token.channel = Channel.HIDDEN;
+            return token;
+          } else {
+            this.skipLineComment();
+            return null;
+          }
         }
         if (this.peek() === '*') {
-          this.skipBlockComment();
-          return null;
+          if (this.options.preserveTrivia) {
+            const commentStart = this.position;
+            this.skipBlockComment();
+            const token = this.createToken(
+              TokenType.BLOCK_COMMENT,
+              this.input.substring(commentStart, this.position),
+              commentStart,
+              this.position,
+              startLine,
+              startColumn
+            );
+            token.channel = Channel.HIDDEN;
+            return token;
+          } else {
+            this.skipBlockComment();
+            return null;
+          }
         }
         this.advance();
         return this.createToken(TokenType.OPERATOR, '/', start, this.position, startLine, startColumn);
@@ -449,7 +507,7 @@ export class Lexer {
     }
     
     // Check for decimal part
-    if (this.current() === '.' && this.position + 1 < this.input.length && this.isDigit(this.input[this.position + 1])) {
+    if (this.current() === '.' && this.position + 1 < this.input.length && this.input[this.position + 1] && this.isDigit(this.input[this.position + 1])) {
       this.advance(); // Skip .
       while (this.position < this.input.length && this.isDigit(this.current())) {
         this.advance();
@@ -651,17 +709,22 @@ export class Lexer {
   }
   
   private current(): string {
-    return this.position < this.input.length ? this.input[this.position] : '';
+    return this.position < this.input.length ? this.input[this.position]! : '';
   }
   
   private peek(): string {
-    return this.position + 1 < this.input.length ? this.input[this.position + 1] : '';
+    return this.position + 1 < this.input.length ? this.input[this.position + 1]! : '';
   }
   
   private isDigit(char: string): boolean {
     if (!char) return false;
     const code = char.charCodeAt(0);
     return code >= 48 && code <= 57; // 0-9
+  }
+  
+  private isWhitespace(char: string): boolean {
+    if (!char) return false;
+    return char === ' ' || char === '\t' || char === '\n' || char === '\r';
   }
   
   private createToken(

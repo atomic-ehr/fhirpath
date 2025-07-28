@@ -32,14 +32,14 @@ export interface LiteralNode extends ASTNode {
 
 export interface BinaryNode extends ASTNode {
   type: NodeType.Binary;
-  operator: TokenType;
+  operator: string;
   left: ASTNode;
   right: ASTNode;
 }
 
 export interface UnaryNode extends ASTNode {
   type: NodeType.Unary;
-  operator: TokenType;
+  operator: string;
   operand: ASTNode;
 }
 
@@ -85,14 +85,15 @@ export interface TypeReferenceNode extends ASTNode {
 
 export class Parser extends BaseParser<ASTNode> {
   constructor(input: string) {
-    // Use same lexer options as before for performance, but disable position tracking
-    super(input, { skipWhitespace: true, skipComments: true, trackPosition: false });
+    // Disable position tracking for performance
+    super(input, { trackPosition: false });
   }
 
   parse(): ASTNode {
     const expr = this.expression();
     if (!this.isAtEnd()) {
-      throw new Error(`Unexpected token: ${this.lexer.getTokenValue(this.peek())}`);
+      const token = this.peek();
+      throw new Error(`Unexpected token: ${token.value || TokenType[token.type]}`);
     }
     return expr;
   }
@@ -127,7 +128,7 @@ export class Parser extends BaseParser<ASTNode> {
   protected createBinaryNode(token: Token, left: ASTNode, right: ASTNode): BinaryNode {
     return {
       type: NodeType.Binary,
-      operator: token.type,
+      operator: token.value,
       left,
       right,
       offset: token.start
@@ -137,7 +138,7 @@ export class Parser extends BaseParser<ASTNode> {
   protected createUnaryNode(token: Token, operand: ASTNode): UnaryNode {
     return {
       type: NodeType.Unary,
-      operator: token.type,
+      operator: token.value,
       operand,
       offset: token.start
     };
