@@ -3,7 +3,6 @@ import { PRECEDENCE } from '../types';
 
 export const inOperator: OperatorDefinition = {
   symbol: 'in',
-  tokenType: 0,
   name: 'in',
   category: ['membership'],
   precedence: PRECEDENCE.IN_CONTAINS,

@@ -3,7 +3,6 @@ import { PRECEDENCE } from '../types';
 
 export const notOperator: OperatorDefinition = {
   symbol: 'not',
-  tokenType: 0,
   name: 'not',
   category: ['logical'],
   precedence: PRECEDENCE.UNARY,

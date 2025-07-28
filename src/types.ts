@@ -1,21 +1,21 @@
 // Precedence levels (higher number = higher precedence)
-export const PRECEDENCE = {
+export enum PRECEDENCE {
   // Lowest precedence
-  IMPLIES: 10,
-  OR: 20,
-  XOR: 30,
-  AND: 40,
-  IN_CONTAINS: 50,
-  EQUALITY: 60,      // =, !=, ~, !~
-  COMPARISON: 70,    // <, >, <=, >=
-  PIPE: 80,          // |
-  ADDITIVE: 90,      // +, -
-  MULTIPLICATIVE: 100, // *, /, div, mod
-  UNARY: 110,        // unary +, -, not
-  AS_IS: 120,        // as, is
-  POSTFIX: 130,      // []
-  DOT: 140,          // . (highest)
-};
+  IMPLIES = 10,
+  OR = 20,
+  XOR = 30,
+  AND = 40,
+  IN_CONTAINS = 50,
+  EQUALITY = 60,      // =, !=, ~, !~
+  COMPARISON = 70,    // <, >, <=, >=
+  PIPE = 80,          // |
+  ADDITIVE = 90,      // +, -
+  MULTIPLICATIVE = 100, // *, /, div, mod
+  UNARY = 110,        // unary +, -, not
+  AS_IS = 120,        // as, is
+  POSTFIX = 130,      // []
+  DOT = 140,          // . (highest)
+}
 
 export type FHIRPathType = 'String' | 'Boolean' | 'Date' | 'DateTime' | 'Long' | 
                           'Decimal' | 'Integer' | 'Time' | 'Quantity' | 'Any';
@@ -34,11 +34,9 @@ export interface OperatorSignature {
 
 export interface OperatorDefinition {
   symbol: string;
-  // bit-packed with precedence
-  tokenType: number;
   name: string;
   category: string[];
-  precedence: number;
+  precedence: PRECEDENCE;
   associativity: 'left' | 'right';
   description: string;
   examples: string[];

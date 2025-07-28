@@ -20,7 +20,7 @@ export type {
 // Re-export precedence for backwards compatibility
 export { PRECEDENCE } from './types';
 
-import * as operators from './operators';
+import * as operations from './operations';
 
 export class Registry {
   private symbolOperators = new Map<string, OperatorDefinition>();
@@ -33,12 +33,12 @@ export class Registry {
   }
   
   private registerDefaultOperators(): void {
-    // Register all operators from the operators module
-    const allOperators = Object.values(operators);
+    // Register all operators from the operations module
+    const allOperations = Object.values(operations);
     
-    for (const operator of allOperators) {
-      if (typeof operator === 'object' && 'symbol' in operator) {
-        this.registerOperator(operator);
+    for (const operation of allOperations) {
+      if (typeof operation === 'object' && 'symbol' in operation) {
+        this.registerOperator(operation);
       }
     }
   }

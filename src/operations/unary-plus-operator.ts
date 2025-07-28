@@ -3,7 +3,6 @@ import { PRECEDENCE } from '../types';
 
 export const unaryPlusOperator: OperatorDefinition = {
   symbol: '+',
-  tokenType: 0,
   name: 'unaryPlus',
   category: ['arithmetic'],
   precedence: PRECEDENCE.UNARY,

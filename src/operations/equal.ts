@@ -1,12 +1,11 @@
-import { TokenType } from '../lexer';
-import type { BinaryOperator } from '../registry';
+import type { OperatorDefinition } from '../types';
+import { PRECEDENCE } from '../types';
 
-export const equalOperator: BinaryOperator = {
+export const equalOperator: OperatorDefinition = {
   symbol: '=',
   name: 'equal',
-  tokenType: TokenType.EQ,
   category: ['comparison'],
-  precedence: 40,
+  precedence: PRECEDENCE.EQUALITY,
   associativity: 'left',
   description: 'Equality operator',
   examples: ['Patient.name = "John"', '5 = 5'],

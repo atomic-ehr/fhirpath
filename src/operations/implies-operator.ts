@@ -3,7 +3,6 @@ import { PRECEDENCE } from '../types';
 
 export const impliesOperator: OperatorDefinition = {
   symbol: 'implies',
-  tokenType: 0,
   name: 'implies',
   category: ['logical'],
   precedence: PRECEDENCE.IMPLIES,

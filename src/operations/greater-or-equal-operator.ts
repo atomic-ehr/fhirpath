@@ -3,7 +3,6 @@ import { PRECEDENCE } from '../types';
 
 export const greaterOrEqualOperator: OperatorDefinition = {
   symbol: '>=',
-  tokenType: 0,
   name: 'greaterOrEqual',
   category: ['comparison'],
   precedence: PRECEDENCE.COMPARISON,

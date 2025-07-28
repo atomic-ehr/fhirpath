@@ -3,7 +3,6 @@ import { PRECEDENCE } from '../types';
 
 export const notEquivalentOperator: OperatorDefinition = {
   symbol: '!~',
-  tokenType: 0,
   name: 'notEquivalent',
   category: ['equality'],
   precedence: PRECEDENCE.EQUALITY,

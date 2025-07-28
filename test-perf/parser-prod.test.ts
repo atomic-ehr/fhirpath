@@ -251,7 +251,7 @@ describe('Parser2', () => {
     it('parses union operator', () => {
       const ast = parse('a | b') as BinaryNode;
       expect(ast.type).toBe(NodeType.Binary);
-      expect(ast.operator).toBe(TokenType.PIPE);
+      expect(ast.operator).toBe('|');
       expect((ast.left as IdentifierNode).name).toBe('a');
       expect((ast.right as IdentifierNode).name).toBe('b');
     });
@@ -259,13 +259,13 @@ describe('Parser2', () => {
     it('parses multiple unions', () => {
       const ast = parse('a | b | c') as BinaryNode;
       expect(ast.type).toBe(NodeType.Binary);
-      expect(ast.operator).toBe(TokenType.PIPE);
+      expect(ast.operator).toBe('|');
       // Union is left-associative: (a | b) | c
       expect(ast.left.type).toBe(NodeType.Binary);
       expect((ast.right as IdentifierNode).name).toBe('c');
       
       const leftBinary = ast.left as BinaryNode;
-      expect(leftBinary.operator).toBe(TokenType.PIPE);
+      expect(leftBinary.operator).toBe('|');
       expect((leftBinary.left as IdentifierNode).name).toBe('a');
       expect((leftBinary.right as IdentifierNode).name).toBe('b');
     });

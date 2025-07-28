@@ -3,7 +3,6 @@ import { PRECEDENCE } from '../types';
 
 export const unaryMinusOperator: OperatorDefinition = {
   symbol: '-',
-  tokenType: 0,
   name: 'unaryMinus',
   category: ['arithmetic'],
   precedence: PRECEDENCE.UNARY,

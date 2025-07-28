@@ -1,12 +1,11 @@
-import { TokenType } from '../lexer';
-import type { BinaryOperator } from '../registry';
+import type { OperatorDefinition } from '../types';
+import { PRECEDENCE } from '../types';
 
-export const lessThanOperator: BinaryOperator = {
+export const lessThanOperator: OperatorDefinition = {
   symbol: '<',
   name: 'less-than',
-  tokenType: TokenType.LT,
   category: ['comparison'],
-  precedence: 50,
+  precedence: PRECEDENCE.COMPARISON,
   associativity: 'left',
   description: 'Less than comparison',
   examples: ['5 < 10', 'age < 18'],

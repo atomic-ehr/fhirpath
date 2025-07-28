@@ -3,12 +3,24 @@ import { PRECEDENCE } from '../types';
 
 export const plusOperator: OperatorDefinition = {
   symbol: '+',
-  tokenType: 0, // Will be set by lexer
   name: 'plus',
   category: ['arithmetic'],
   precedence: PRECEDENCE.ADDITIVE,
   associativity: 'left',
   description: 'Addition operator',
-  examples: ['5 + 3', 'name + " suffix"'],
-  signatures: []
+  examples: ['2 + 3', '"Hello" + " " + "World"'],
+  signatures: [
+    {
+      name: 'numeric-plus',
+      left: { type: 'Decimal', singleton: true },
+      right: { type: 'Decimal', singleton: true },
+      result: { type: 'Decimal', singleton: true },
+    },
+    {
+      name: 'string-plus',
+      left: { type: 'String', singleton: true },
+      right: { type: 'String', singleton: true },
+      result: { type: 'String', singleton: true },
+    }
+  ],
 };

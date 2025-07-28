@@ -1,20 +1,28 @@
 import { describe, it, expect } from 'bun:test';
 import { Lexer, TokenType, Channel } from '../src/lexer';
+import type { Token } from '../src/lexer';
 
 describe('Lexer Trivia Support', () => {
+  function getToken(tokens: Token[], index: number): Token {
+    const token = tokens[index];
+    if (!token) {
+      throw new Error(`Token at index ${index} is undefined`);
+    }
+    return token;
+  }
   describe('without preserveTrivia', () => {
     it('should skip whitespace and comments', () => {
       const lexer = new Lexer('5 + 3 // comment', { preserveTrivia: false });
       const tokens = lexer.tokenize();
       
       expect(tokens).toHaveLength(4); // 5, +, 3, EOF
-      expect(tokens[0].type).toBe(TokenType.NUMBER);
-      expect(tokens[0].value).toBe('5');
-      expect(tokens[1].type).toBe(TokenType.OPERATOR);
-      expect(tokens[1].value).toBe('+');
-      expect(tokens[2].type).toBe(TokenType.NUMBER);
-      expect(tokens[2].value).toBe('3');
-      expect(tokens[3].type).toBe(TokenType.EOF);
+      expect(getToken(tokens, 0).type).toBe(TokenType.NUMBER);
+      expect(getToken(tokens, 0).value).toBe('5');
+      expect(getToken(tokens, 1).type).toBe(TokenType.OPERATOR);
+      expect(getToken(tokens, 1).value).toBe('+');
+      expect(getToken(tokens, 2).type).toBe(TokenType.NUMBER);
+      expect(getToken(tokens, 2).value).toBe('3');
+      expect(getToken(tokens, 3).type).toBe(TokenType.EOF);
     });
   });
 
@@ -24,19 +32,19 @@ describe('Lexer Trivia Support', () => {
       const tokens = lexer.tokenize();
       
       expect(tokens).toHaveLength(6); // 5, space, +, space, 3, EOF
-      expect(tokens[0].type).toBe(TokenType.NUMBER);
-      expect(tokens[0].value).toBe('5');
-      expect(tokens[1].type).toBe(TokenType.WHITESPACE);
-      expect(tokens[1].value).toBe(' ');
-      expect(tokens[1].channel).toBe(Channel.HIDDEN);
-      expect(tokens[2].type).toBe(TokenType.OPERATOR);
-      expect(tokens[2].value).toBe('+');
-      expect(tokens[3].type).toBe(TokenType.WHITESPACE);
-      expect(tokens[3].value).toBe(' ');
-      expect(tokens[3].channel).toBe(Channel.HIDDEN);
-      expect(tokens[4].type).toBe(TokenType.NUMBER);
-      expect(tokens[4].value).toBe('3');
-      expect(tokens[5].type).toBe(TokenType.EOF);
+      expect(getToken(tokens, 0).type).toBe(TokenType.NUMBER);
+      expect(getToken(tokens, 0).value).toBe('5');
+      expect(getToken(tokens, 1).type).toBe(TokenType.WHITESPACE);
+      expect(getToken(tokens, 1).value).toBe(' ');
+      expect(getToken(tokens, 1).channel).toBe(Channel.HIDDEN);
+      expect(getToken(tokens, 2).type).toBe(TokenType.OPERATOR);
+      expect(getToken(tokens, 2).value).toBe('+');
+      expect(getToken(tokens, 3).type).toBe(TokenType.WHITESPACE);
+      expect(getToken(tokens, 3).value).toBe(' ');
+      expect(getToken(tokens, 3).channel).toBe(Channel.HIDDEN);
+      expect(getToken(tokens, 4).type).toBe(TokenType.NUMBER);
+      expect(getToken(tokens, 4).value).toBe('3');
+      expect(getToken(tokens, 5).type).toBe(TokenType.EOF);
     });
 
     it('should preserve line comments', () => {

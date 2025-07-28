@@ -3,7 +3,6 @@ import { PRECEDENCE } from '../types';
 
 export const lessOperator: OperatorDefinition = {
   symbol: '<',
-  tokenType: 0,
   name: 'less',
   category: ['comparison'],
   precedence: PRECEDENCE.COMPARISON,

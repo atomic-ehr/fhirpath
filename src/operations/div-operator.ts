@@ -3,7 +3,6 @@ import { PRECEDENCE } from '../types';
 
 export const divOperator: OperatorDefinition = {
   symbol: 'div',
-  tokenType: 0,
   name: 'div',
   category: ['arithmetic'],
   precedence: PRECEDENCE.MULTIPLICATIVE,

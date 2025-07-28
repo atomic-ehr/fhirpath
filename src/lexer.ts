@@ -507,7 +507,7 @@ export class Lexer {
     }
     
     // Check for decimal part
-    if (this.current() === '.' && this.position + 1 < this.input.length && this.input[this.position + 1] && this.isDigit(this.input[this.position + 1])) {
+    if (this.current() === '.' && this.position + 1 < this.input.length && this.input[this.position + 1] && this.isDigit(this.input[this.position + 1]!)) {
       this.advance(); // Skip .
       while (this.position < this.input.length && this.isDigit(this.current())) {
         this.advance();

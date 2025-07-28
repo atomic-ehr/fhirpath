@@ -187,7 +187,7 @@ export class LSPParser extends BaseParser<LSPNode> {
       
       if (!this.isAtEnd()) {
         const token = this.peek();
-        this.addError(`Unexpected token: ${this.lexer.getTokenValue(token)}`, token);
+        this.addError(`Unexpected token: ${token.value}`, token);
       }
       return this.createParseResult(ast as LSPASTNode);
     } catch (error) {

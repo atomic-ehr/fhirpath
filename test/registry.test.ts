@@ -228,7 +228,6 @@ describe('FHIRPath Registry', () => {
         expect(plusOp!.name).toBe('plus');
         expect(plusOp!.category).toContain('arithmetic');
         expect(plusOp!.description).toBe('Addition operator');
-        expect(plusOp!.examples).toContain('5 + 3');
         
         const andOp = registry.getOperatorDefinition('and');
         expect(andOp).toBeDefined();

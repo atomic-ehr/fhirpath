@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'bun:test';
-import { Lexer, TokenType, Token } from '../src/lexer';
+import { Lexer, TokenType } from '../src/lexer';
+import type { Token } from '../src/lexer';
 
 describe('New Simplified Lexer', () => {
   function tokenize(input: string): Token[] {
@@ -9,6 +10,14 @@ describe('New Simplified Lexer', () => {
   
   function tokenValues(input: string): string[] {
     return tokenize(input).map(t => t.value);
+  }
+  
+  function getToken(tokens: Token[], index: number): Token {
+    const token = tokens[index];
+    if (!token) {
+      throw new Error(`Token at index ${index} is undefined`);
+    }
+    return token;
   }
   
   function tokenTypesAndValues(input: string): string[] {
@@ -35,8 +44,8 @@ describe('New Simplified Lexer', () => {
       
       for (const keyword of keywords) {
         const tokens = tokenize(keyword);
-        expect(tokens[0].type).toBe(TokenType.IDENTIFIER);
-        expect(tokens[0].value).toBe(keyword);
+        expect(getToken(tokens, 0).type).toBe(TokenType.IDENTIFIER);
+        expect(getToken(tokens, 0).value).toBe(keyword);
       }
     });
 
@@ -83,31 +92,31 @@ describe('New Simplified Lexer', () => {
   describe('Literals', () => {
     it('should tokenize numbers', () => {
       const tokens = tokenize('42 3.14 0.001');
-      expect(tokens[0].type).toBe(TokenType.NUMBER);
-      expect(tokens[0].value).toBe('42');
-      expect(tokens[1].type).toBe(TokenType.NUMBER);
-      expect(tokens[1].value).toBe('3.14');
-      expect(tokens[2].type).toBe(TokenType.NUMBER);
-      expect(tokens[2].value).toBe('0.001');
+      expect(getToken(tokens, 0).type).toBe(TokenType.NUMBER);
+      expect(getToken(tokens, 0).value).toBe('42');
+      expect(getToken(tokens, 1).type).toBe(TokenType.NUMBER);
+      expect(getToken(tokens, 1).value).toBe('3.14');
+      expect(getToken(tokens, 2).type).toBe(TokenType.NUMBER);
+      expect(getToken(tokens, 2).value).toBe('0.001');
     });
 
     it('should tokenize strings with single quotes', () => {
       const tokens = tokenize("'hello' 'world'");
-      expect(tokens[0].type).toBe(TokenType.STRING);
-      expect(tokens[0].value).toBe("'hello'");
-      expect(tokens[1].value).toBe("'world'");
+      expect(getToken(tokens, 0).type).toBe(TokenType.STRING);
+      expect(getToken(tokens, 0).value).toBe("'hello'");
+      expect(getToken(tokens, 1).value).toBe("'world'");
     });
 
     it('should tokenize strings with double quotes', () => {
       const tokens = tokenize('"hello" "world"');
-      expect(tokens[0].type).toBe(TokenType.STRING);
-      expect(tokens[0].value).toBe('"hello"');
+      expect(getToken(tokens, 0).type).toBe(TokenType.STRING);
+      expect(getToken(tokens, 0).value).toBe('"hello"');
     });
 
     it('should handle escaped characters in strings', () => {
       const tokens = tokenize("'hello\\'world' 'line1\\nline2'");
-      expect(tokens[0].type).toBe(TokenType.STRING);
-      expect(tokens[0].value).toBe("'hello\\'world'");
+      expect(getToken(tokens, 0).type).toBe(TokenType.STRING);
+      expect(getToken(tokens, 0).value).toBe("'hello\\'world'");
     });
 
     it('should tokenize datetime literals', () => {
@@ -122,8 +131,8 @@ describe('New Simplified Lexer', () => {
       
       for (const dt of datetimes) {
         const tokens = tokenize(dt);
-        expect(tokens[0].type).toBe(TokenType.DATETIME);
-        expect(tokens[0].value).toBe(dt);
+        expect(getToken(tokens, 0).type).toBe(TokenType.DATETIME);
+        expect(getToken(tokens, 0).value).toBe(dt);
       }
     });
 
@@ -132,8 +141,8 @@ describe('New Simplified Lexer', () => {
       
       for (const time of times) {
         const tokens = tokenize(time);
-        expect(tokens[0].type).toBe(TokenType.TIME);
-        expect(tokens[0].value).toBe(time);
+        expect(getToken(tokens, 0).type).toBe(TokenType.TIME);
+        expect(getToken(tokens, 0).value).toBe(time);
       }
     });
   });
@@ -156,18 +165,18 @@ describe('New Simplified Lexer', () => {
 
     it('should preserve the full value of environment variables', () => {
       const tokens = tokenize('%ucum %`us-zip` %\'test\'');
-      expect(tokens[0].type).toBe(TokenType.ENVIRONMENT_VARIABLE);
-      expect(tokens[0].value).toBe('%ucum');
-      expect(tokens[1].type).toBe(TokenType.ENVIRONMENT_VARIABLE);
-      expect(tokens[1].value).toBe('%`us-zip`');
-      expect(tokens[2].type).toBe(TokenType.ENVIRONMENT_VARIABLE);
-      expect(tokens[2].value).toBe("%'test'");
+      expect(getToken(tokens, 0).type).toBe(TokenType.ENVIRONMENT_VARIABLE);
+      expect(getToken(tokens, 0).value).toBe('%ucum');
+      expect(getToken(tokens, 1).type).toBe(TokenType.ENVIRONMENT_VARIABLE);
+      expect(getToken(tokens, 1).value).toBe('%`us-zip`');
+      expect(getToken(tokens, 2).type).toBe(TokenType.ENVIRONMENT_VARIABLE);
+      expect(getToken(tokens, 2).value).toBe("%'test'");
     });
 
     it('should handle escaped characters in delimited environment variables', () => {
       const tokens = tokenize('%`with\\`backtick`');
-      expect(tokens[0].type).toBe(TokenType.ENVIRONMENT_VARIABLE);
-      expect(tokens[0].value).toBe('%`with\\`backtick`');
+      expect(getToken(tokens, 0).type).toBe(TokenType.ENVIRONMENT_VARIABLE);
+      expect(getToken(tokens, 0).value).toBe('%`with\\`backtick`');
     });
 
     it('should throw error for invalid environment variable names', () => {
@@ -190,33 +199,33 @@ describe('New Simplified Lexer', () => {
 
     it('should preserve the full value of special identifiers', () => {
       const tokens = tokenize('$this $custom_var $test123');
-      expect(tokens[0].type).toBe(TokenType.SPECIAL_IDENTIFIER);
-      expect(tokens[0].value).toBe('$this');
-      expect(tokens[1].type).toBe(TokenType.SPECIAL_IDENTIFIER);
-      expect(tokens[1].value).toBe('$custom_var');
-      expect(tokens[2].type).toBe(TokenType.SPECIAL_IDENTIFIER);
-      expect(tokens[2].value).toBe('$test123');
+      expect(getToken(tokens, 0).type).toBe(TokenType.SPECIAL_IDENTIFIER);
+      expect(getToken(tokens, 0).value).toBe('$this');
+      expect(getToken(tokens, 1).type).toBe(TokenType.SPECIAL_IDENTIFIER);
+      expect(getToken(tokens, 1).value).toBe('$custom_var');
+      expect(getToken(tokens, 2).type).toBe(TokenType.SPECIAL_IDENTIFIER);
+      expect(getToken(tokens, 2).value).toBe('$test123');
     });
 
     it('should handle $ without following identifier', () => {
       const tokens = tokenize('$ $');
-      expect(tokens[0].type).toBe(TokenType.SPECIAL_IDENTIFIER);
-      expect(tokens[0].value).toBe('$');
-      expect(tokens[1].type).toBe(TokenType.SPECIAL_IDENTIFIER);
-      expect(tokens[1].value).toBe('$');
+      expect(getToken(tokens, 0).type).toBe(TokenType.SPECIAL_IDENTIFIER);
+      expect(getToken(tokens, 0).value).toBe('$');
+      expect(getToken(tokens, 1).type).toBe(TokenType.SPECIAL_IDENTIFIER);
+      expect(getToken(tokens, 1).value).toBe('$');
     });
 
     it('should tokenize delimited identifiers', () => {
       const tokens = tokenize('`special identifier` `with spaces`');
-      expect(tokens[0].type).toBe(TokenType.IDENTIFIER);
-      expect(tokens[0].value).toBe('`special identifier`');
-      expect(tokens[1].value).toBe('`with spaces`');
+      expect(getToken(tokens, 0).type).toBe(TokenType.IDENTIFIER);
+      expect(getToken(tokens, 0).value).toBe('`special identifier`');
+      expect(getToken(tokens, 1).value).toBe('`with spaces`');
     });
 
     it('should handle escaped backticks in delimited identifiers', () => {
       const tokens = tokenize('`with\\`backtick`');
-      expect(tokens[0].type).toBe(TokenType.IDENTIFIER);
-      expect(tokens[0].value).toBe('`with\\`backtick`');
+      expect(getToken(tokens, 0).type).toBe(TokenType.IDENTIFIER);
+      expect(getToken(tokens, 0).value).toBe('`with\\`backtick`');
     });
   });
 
@@ -292,36 +301,36 @@ describe('New Simplified Lexer', () => {
     it('should track token positions', () => {
       const tokens = tokenize('a + b');
       
-      expect(tokens[0].start).toBe(0);
-      expect(tokens[0].end).toBe(1);
-      expect(tokens[0].line).toBe(1);
-      expect(tokens[0].column).toBe(1);
+      expect(getToken(tokens, 0).start).toBe(0);
+      expect(getToken(tokens, 0).end).toBe(1);
+      expect(getToken(tokens, 0).line).toBe(1);
+      expect(getToken(tokens, 0).column).toBe(1);
       
-      expect(tokens[1].start).toBe(2);
-      expect(tokens[1].end).toBe(3);
-      expect(tokens[1].line).toBe(1);
-      expect(tokens[1].column).toBe(3);
+      expect(getToken(tokens, 1).start).toBe(2);
+      expect(getToken(tokens, 1).end).toBe(3);
+      expect(getToken(tokens, 1).line).toBe(1);
+      expect(getToken(tokens, 1).column).toBe(3);
       
-      expect(tokens[2].start).toBe(4);
-      expect(tokens[2].end).toBe(5);
-      expect(tokens[2].line).toBe(1);
-      expect(tokens[2].column).toBe(5);
+      expect(getToken(tokens, 2).start).toBe(4);
+      expect(getToken(tokens, 2).end).toBe(5);
+      expect(getToken(tokens, 2).line).toBe(1);
+      expect(getToken(tokens, 2).column).toBe(5);
     });
 
     it('should track line numbers', () => {
       const tokens = tokenize('a\n+\nb');
       
-      expect(tokens[0].line).toBe(1);
-      expect(tokens[1].line).toBe(2);
-      expect(tokens[2].line).toBe(3);
+      expect(getToken(tokens, 0).line).toBe(1);
+      expect(getToken(tokens, 1).line).toBe(2);
+      expect(getToken(tokens, 2).line).toBe(3);
     });
 
     it('should handle position tracking option', () => {
       const lexer = new Lexer('a + b', { trackPosition: false });
       const tokens = lexer.tokenize();
       
-      expect(tokens[0].line).toBe(0);
-      expect(tokens[0].column).toBe(0);
+      expect(getToken(tokens, 0).line).toBe(0);
+      expect(getToken(tokens, 0).column).toBe(0);
     });
   });
 
