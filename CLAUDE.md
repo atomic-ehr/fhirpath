@@ -25,6 +25,7 @@ Please be concise and to the point.
 
 ## Coding
 
+* For fhirpath strings prefer `'` instead of `"`
 * Follow the Google TypeScript Style Guide located at `./guides/tsguide.md` for all TypeScript code
 * Key style points from the guide:
   - Use 2 spaces for indentation (not tabs)

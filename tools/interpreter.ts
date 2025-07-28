@@ -1,33 +1,45 @@
 #!/usr/bin/env bun
 
-import { evaluate } from '../legacy-src';
+import { Parser } from '../src/parser';
+import { Interpreter } from '../src/interpreter';
 
-const args = process.argv.slice(2);
+const expression = process.argv[2];
+const inputJson = process.argv[3];
 
-if (args.length < 1) {
-  console.error('Usage: bun tools/interpreter.ts "<fhirpath-expression>" [input-json]');
+if (!expression) {
+  console.error('Usage: bun tools/interpreter.ts "<expression>" [input-json]');
   console.error('Examples:');
   console.error('  bun tools/interpreter.ts "5 + 3"');
   console.error('  bun tools/interpreter.ts "name.given" \'{"name": [{"given": ["John", "James"]}]}\'');
+  console.error('  bun tools/interpreter.ts "name.where(use = \'official\').given" \'{"name": [{"use": "official", "given": ["John"]}]}\'');
   process.exit(1);
 }
 
-const expression = args[0]!;
-let input: any = {};
-
-if (args[1]) {
-  try {
-    input = JSON.parse(args[1]);
-  } catch (error) {
-    console.error('Invalid JSON input:', error);
-    process.exit(1);
-  }
-}
-
 try {
-  const result = evaluate(expression, input);
-  console.log(JSON.stringify(result));
-} catch (error) {
-  console.error('Evaluation error:', error);
+  // Parse the expression
+  const parser = new Parser(expression);
+  const ast = parser.parse();
+  
+  // Parse input if provided
+  let input: any = [];
+  if (inputJson) {
+    try {
+      const parsed = JSON.parse(inputJson);
+      input = Array.isArray(parsed) ? parsed : [parsed];
+    } catch (e) {
+      console.error('Invalid JSON input:', e);
+      process.exit(1);
+    }
+  }
+  
+  // Evaluate the expression
+  const interpreter = new Interpreter();
+  const result = interpreter.evaluate(ast, input);
+  
+  // Output the result
+  console.log(JSON.stringify(result.value, null, 2));
+  
+} catch (error: any) {
+  console.error('Error:', error.message);
   process.exit(1);
 }

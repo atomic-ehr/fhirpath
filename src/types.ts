@@ -61,3 +61,108 @@ export interface FunctionDefinition {
     result: TypeSignature;
   };
 }
+
+// Node types enum - string-based for better debugging
+export enum NodeType {
+  EOF = 'EOF',
+  Identifier = 'Identifier',
+  Binary = 'Binary',
+  Unary = 'Unary',
+  TypeOrIdentifier = 'TypeOrIdentifier',
+  Literal = 'Literal',
+  Function = 'Function',
+  Variable = 'Variable',
+  Index = 'Index',
+  MembershipTest = 'MembershipTest',
+  TypeCast = 'TypeCast',
+  Collection = 'Collection',
+  TypeReference = 'TypeReference',
+}
+
+// Position tracking
+export interface Position {
+  line: number;
+  column: number;
+  offset: number;
+}
+
+// Base node interfaces
+export interface BaseASTNode {
+  type: NodeType;
+  position?: Position; // Make position optional for flexibility
+}
+
+export interface ASTNode {
+  type: NodeType;
+  offset?: number;  // Just the start offset for basic error reporting
+  position?: Position; // Make position optional to satisfy BaseASTNode constraint
+}
+
+// Specific node types
+export interface IdentifierNode extends ASTNode {
+  type: NodeType.Identifier;
+  name: string;
+}
+
+export interface TypeOrIdentifierNode extends ASTNode {
+  type: NodeType.TypeOrIdentifier;
+  name: string;
+}
+
+export interface LiteralNode extends ASTNode {
+  type: NodeType.Literal;
+  value: any;
+  valueType: 'string' | 'number' | 'boolean' | 'date' | 'time' | 'datetime' | 'null';
+}
+
+export interface BinaryNode extends ASTNode {
+  type: NodeType.Binary;
+  operator: string;
+  left: ASTNode;
+  right: ASTNode;
+}
+
+export interface UnaryNode extends ASTNode {
+  type: NodeType.Unary;
+  operator: string;
+  operand: ASTNode;
+}
+
+export interface FunctionNode extends ASTNode {
+  type: NodeType.Function;
+  name: ASTNode;
+  arguments: ASTNode[];
+}
+
+export interface VariableNode extends ASTNode {
+  type: NodeType.Variable;
+  name: string;
+}
+
+export interface IndexNode extends ASTNode {
+  type: NodeType.Index;
+  expression: ASTNode;
+  index: ASTNode;
+}
+
+export interface MembershipTestNode extends ASTNode {
+  type: NodeType.MembershipTest;
+  expression: ASTNode;
+  targetType: string;
+}
+
+export interface TypeCastNode extends ASTNode {
+  type: NodeType.TypeCast;
+  expression: ASTNode;
+  targetType: string;
+}
+
+export interface CollectionNode extends ASTNode {
+  type: NodeType.Collection;
+  elements: ASTNode[];
+}
+
+export interface TypeReferenceNode extends ASTNode {
+  type: NodeType.TypeReference;
+  typeName: string;
+}

@@ -74,8 +74,8 @@ describe('Lexer Trivia Support', () => {
       
       const whitespaceTokens = tokens.filter(t => t.type === TokenType.WHITESPACE);
       expect(whitespaceTokens).toHaveLength(2);
-      expect(whitespaceTokens[0].value).toBe('  '); // 2 spaces
-      expect(whitespaceTokens[1].value).toBe('  '); // 2 spaces
+      expect(getToken(whitespaceTokens, 0).value).toBe('  '); // 2 spaces
+      expect(getToken(whitespaceTokens, 1).value).toBe('  '); // 2 spaces
     });
 
     it('should preserve newlines in whitespace', () => {
@@ -84,8 +84,8 @@ describe('Lexer Trivia Support', () => {
       
       const whitespaceTokens = tokens.filter(t => t.type === TokenType.WHITESPACE);
       expect(whitespaceTokens).toHaveLength(2);
-      expect(whitespaceTokens[0].value).toBe(' ');
-      expect(whitespaceTokens[1].value).toBe('\n  ');
+      expect(getToken(whitespaceTokens, 0).value).toBe(' ');
+      expect(getToken(whitespaceTokens, 1).value).toBe('\n  ');
     });
 
     it('should handle mixed trivia correctly', () => {
@@ -123,7 +123,7 @@ describe('Lexer Trivia Support', () => {
       const parser = new Parser('5 + 3 // comment', { preserveTrivia: true });
       const ast = parser.parse();
       
-      expect(ast.type).toBe(2); // Binary
+      expect(ast.type).toBe('Binary'); // Binary
       expect(ast.operator).toBe('+');
       expect(ast.left.value).toBe(5);
       expect(ast.right.value).toBe(3);

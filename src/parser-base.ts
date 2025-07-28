@@ -1,45 +1,12 @@
 import { Lexer, TokenType, Channel, isOperator, isOperatorValue } from './lexer';
 import type { Token, LexerOptions } from './lexer';
 import { registry } from './registry';
+import { NodeType } from './types';
+import type { Position, BaseASTNode } from './types';
 
-// Re-export AST types that are shared
-export interface Position {
-  line: number;
-  column: number;
-  offset: number;
-}
-
-export enum NodeType {
-  // Navigation
-  Identifier,
-  TypeOrIdentifier,
-  
-  // Operators
-  Binary,
-  Unary,
-  
-  // Functions
-  Function,
-  
-  // Literals
-  Literal,
-  Variable,
-  Collection,
-  
-  // Type operations
-  MembershipTest,
-  TypeCast,
-  TypeReference,
-  
-  // Special
-  Index,
-}
-
-// Base node interface - subclasses can extend this
-export interface BaseASTNode {
-  type: NodeType;
-  position?: Position; // Make position optional for flexibility
-}
+// Re-export from types for backward compatibility
+export { NodeType } from './types';
+export type { Position, BaseASTNode } from './types';
 
 /**
  * Abstract base parser with shared parsing logic
@@ -88,6 +55,25 @@ export abstract class BaseParser<TNode extends { type: NodeType; position?: Posi
       const token = this.tokens[this.current];
       if (!token || token.type === TokenType.EOF) break;
       
+      // Check for postfix operations that don't have precedence requirements
+      if (token.type === TokenType.LBRACKET) {
+        // Array indexing - always binds tightly
+        this.current++; // inline advance()
+        const index = this.expression();
+        this.consume(TokenType.RBRACKET, "Expected ']'");
+        left = this.createIndexNode(left, index, this.getPosition(token));
+        continue;
+      }
+      
+      if (token.type === TokenType.LPAREN && this.isFunctionCall(left)) {
+        // Function calls - always bind tightly
+        this.current++; // inline advance()
+        const args = this.parseArgumentList();
+        this.consume(TokenType.RPAREN, "Expected ')'");
+        left = this.createFunctionNode(left, args, this.getPositionFromNode(left));
+        continue;
+      }
+      
       // Get operator value for precedence check
       let operator: string | undefined;
       let precedence = 0;
@@ -127,16 +113,6 @@ export abstract class BaseParser<TNode extends { type: NodeType; position?: Posi
         const right = this.parseExpressionWithPrecedence(nextMinPrecedence);
         
         left = this.createBinaryNode(token, left, right);
-      } else if (token.type === TokenType.LBRACKET) {
-        this.current++; // inline advance()
-        const index = this.expression();
-        this.consume(TokenType.RBRACKET, "Expected ']'");
-        left = this.createIndexNode(left, index, this.getPosition(token));
-      } else if (token.type === TokenType.LPAREN && this.isFunctionCall(left)) {
-        this.current++; // inline advance()
-        const args = this.parseArgumentList();
-        this.consume(TokenType.RPAREN, "Expected ')'");
-        left = this.createFunctionNode(left, args, this.getPositionFromNode(left));
       } else {
         break;
       }

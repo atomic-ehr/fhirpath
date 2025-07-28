@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { Parser, NodeType } from '../src/parser';
+import { Parser, NodeType, pprint } from '../src/parser';
 import type { 
   ASTNode, 
   LiteralNode, 
@@ -597,4 +597,12 @@ describe('FHIRPath Parser', () => {
       expect(ast2.name).toBe('and');
     });
   });
+
+  describe('manaula', ()=>{
+    it('should parse (max = "*") or iif(max != "*", min <= max.toInteger())', () => {   
+      const ast = parse('(max = "*") or iif(max != "*", min <= max.toInteger())') as BinaryNode;
+      expect(ast.type).toBe(NodeType.Binary);
+      console.log(pprint(ast));
+    });
+  })
 });

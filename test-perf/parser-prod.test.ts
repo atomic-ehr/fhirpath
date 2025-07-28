@@ -1,312 +1,225 @@
-import { describe, it, expect } from 'bun:test';
-import { parse, NodeType } from '../src/parser';
-import { TokenType } from '../src/lexer';
-import type { IdentifierNode, BinaryNode } from '../src/parser';
+import { describe, it } from 'bun:test';
+import { Parser, NodeType } from '../src/parser';
+import { Lexer } from '../src/lexer';
+import type { 
+  ASTNode, 
+  BinaryNode, 
+  UnaryNode, 
+  FunctionNode, 
+  IndexNode,
+  MembershipTestNode,
+  TypeCastNode,
+  CollectionNode
+} from '../src/parser';
+import * as fs from 'fs';
+import * as path from 'path';
 
-describe('Parser2', () => {
-  describe('literals', () => {
-    it('parses numbers', () => {
-      const ast = parse('42');
-      expect(ast.type).toBe(NodeType.Literal);
-      expect((ast as any).value).toBe(42);
-      expect((ast as any).valueType).toBe('number');
-    });
-
-    it('parses decimal numbers', () => {
-      const ast = parse('3.14');
-      expect(ast.type).toBe(NodeType.Literal);
-      expect((ast as any).value).toBe(3.14);
-      expect((ast as any).valueType).toBe('number');
-    });
-
-    it('parses strings', () => {
-      const ast = parse("'hello world'");
-      expect(ast.type).toBe(NodeType.Literal);
-      expect((ast as any).value).toBe('hello world');
-      expect((ast as any).valueType).toBe('string');
-    });
-
-    it('parses booleans', () => {
-      let ast = parse('true');
-      expect(ast.type).toBe(NodeType.Literal);
-      expect((ast as any).value).toBe(true);
-      expect((ast as any).valueType).toBe('boolean');
-
-      ast = parse('false');
-      expect(ast.type).toBe(NodeType.Literal);
-      expect((ast as any).value).toBe(false);
-      expect((ast as any).valueType).toBe('boolean');
-    });
-
-    it('parses null', () => {
-      const ast = parse('null');
-      expect(ast.type).toBe(NodeType.Literal);
-      expect((ast as any).value).toBe(null);
-      expect((ast as any).valueType).toBe('null');
-    });
-
-    it('parses datetime', () => {
-      const ast = parse('@2023-01-01T12:00:00');
-      expect(ast.type).toBe(NodeType.Literal);
-      expect((ast as any).value).toBe('2023-01-01T12:00:00');
-      expect((ast as any).valueType).toBe('datetime');
-    });
-
-    it('parses time', () => {
-      const ast = parse('@T12:00:00');
-      expect(ast.type).toBe(NodeType.Literal);
-      expect((ast as any).value).toBe('T12:00:00');
-      expect((ast as any).valueType).toBe('time');
-    });
-  });
-
-  describe('identifiers', () => {
-    it('parses simple identifiers', () => {
-      const ast = parse('name');
-      expect(ast.type).toBe(NodeType.Identifier);
-      expect((ast as any).name).toBe('name');
-    });
-
-    it('parses type identifiers', () => {
-      const ast = parse('Patient');
-      expect(ast.type).toBe(NodeType.TypeOrIdentifier);
-      expect((ast as any).name).toBe('Patient');
-    });
-
-    it('parses delimited identifiers', () => {
-      const ast = parse('`special-name`');
-      expect(ast.type).toBe(NodeType.Identifier);
-      expect((ast as any).name).toBe('special-name');
-    });
-  });
-
-  describe('variables', () => {
-    it('parses $this', () => {
-      const ast = parse('$this');
-      expect(ast.type).toBe(NodeType.Variable);
-      expect((ast as any).name).toBe('$this');
-    });
-
-    it('parses $index', () => {
-      const ast = parse('$index');
-      expect(ast.type).toBe(NodeType.Variable);
-      expect((ast as any).name).toBe('$index');
-    });
-
-    it('parses environment variables', () => {
-      const ast = parse('%env');
-      expect(ast.type).toBe(NodeType.Variable);
-      expect((ast as any).name).toBe('%env');
-    });
-  });
-
-  describe('binary operators', () => {
-    it('parses arithmetic operators', () => {
-      let ast = parse('1 + 2');
-      expect(ast.type).toBe(NodeType.Binary);
-      expect((ast as any).left.value).toBe(1);
-      expect((ast as any).right.value).toBe(2);
-
-      ast = parse('5 - 3');
-      expect(ast.type).toBe(NodeType.Binary);
-      expect((ast as any).left.value).toBe(5);
-      expect((ast as any).right.value).toBe(3);
-
-      ast = parse('2 * 3');
-      expect(ast.type).toBe(NodeType.Binary);
-      expect((ast as any).left.value).toBe(2);
-      expect((ast as any).right.value).toBe(3);
-
-      ast = parse('10 / 2');
-      expect(ast.type).toBe(NodeType.Binary);
-      expect((ast as any).left.value).toBe(10);
-      expect((ast as any).right.value).toBe(2);
-    });
-
-    it('respects operator precedence', () => {
-      const ast = parse('1 + 2 * 3');
-      expect(ast.type).toBe(NodeType.Binary);
-      expect((ast as any).left.value).toBe(1);
-      expect((ast as any).right.type).toBe(NodeType.Binary);
-      expect((ast as any).right.left.value).toBe(2);
-      expect((ast as any).right.right.value).toBe(3);
-    });
-
-    it('handles parentheses', () => {
-      const ast = parse('(1 + 2) * 3');
-      expect(ast.type).toBe(NodeType.Binary);
-      expect((ast as any).left.type).toBe(NodeType.Binary);
-      expect((ast as any).left.left.value).toBe(1);
-      expect((ast as any).left.right.value).toBe(2);
-      expect((ast as any).right.value).toBe(3);
-    });
-
-    it('parses comparison operators', () => {
-      const ast = parse('age > 18');
-      expect(ast.type).toBe(NodeType.Binary);
-      expect((ast as any).left.name).toBe('age');
-      expect((ast as any).right.value).toBe(18);
-    });
-
-    it('parses logical operators', () => {
-      const ast = parse('true and false');
-      expect(ast.type).toBe(NodeType.Binary);
-      expect((ast as any).left.value).toBe(true);
-      expect((ast as any).right.value).toBe(false);
-    });
-  });
-
-  describe('unary operators', () => {
-    it('parses unary plus', () => {
-      const ast = parse('+5');
-      expect(ast.type).toBe(NodeType.Unary);
-      expect((ast as any).operand.value).toBe(5);
-    });
-
-    it('parses unary minus', () => {
-      const ast = parse('-5');
-      expect(ast.type).toBe(NodeType.Unary);
-      expect((ast as any).operand.value).toBe(5);
-    });
-  });
-
-  describe('member access', () => {
-    it('parses dot notation', () => {
-      const ast = parse('Patient.name');
-      expect(ast.type).toBe(NodeType.Binary);
-      expect((ast as any).left.name).toBe('Patient');
-      expect((ast as any).right.name).toBe('name');
-    });
-
-    it('parses chained access', () => {
-      const ast = parse('Patient.name.given');
-      expect(ast.type).toBe(NodeType.Binary);
-      expect((ast as any).left.type).toBe(NodeType.Binary);
-      expect((ast as any).left.left.name).toBe('Patient');
-      expect((ast as any).left.right.name).toBe('name');
-      expect((ast as any).right.name).toBe('given');
-    });
-  });
-
-  describe('function calls', () => {
-    it('parses function calls without arguments', () => {
-      const ast = parse('empty()');
-      expect(ast.type).toBe(NodeType.Function);
-      expect((ast as any).name.name).toBe('empty');
-      expect((ast as any).arguments).toHaveLength(0);
-    });
-
-    it('parses function calls with arguments', () => {
-      const ast = parse('where(active = true)');
-      expect(ast.type).toBe(NodeType.Function);
-      expect((ast as any).name.name).toBe('where');
-      expect((ast as any).arguments).toHaveLength(1);
-      expect((ast as any).arguments[0].type).toBe(NodeType.Binary);
-    });
-
-    it('parses function calls with multiple arguments', () => {
-      const ast = parse('substring(0, 5)');
-      expect(ast.type).toBe(NodeType.Function);
-      expect((ast as any).name.name).toBe('substring');
-      expect((ast as any).arguments).toHaveLength(2);
-      expect((ast as any).arguments[0].value).toBe(0);
-      expect((ast as any).arguments[1].value).toBe(5);
-    });
-  });
-
-  describe('indexing', () => {
-    it('parses indexing', () => {
-      const ast = parse('list[0]');
-      expect(ast.type).toBe(NodeType.Index);
-      expect((ast as any).expression.name).toBe('list');
-      expect((ast as any).index.value).toBe(0);
-    });
-
-    it('parses chained indexing', () => {
-      const ast = parse('matrix[0][1]');
-      expect(ast.type).toBe(NodeType.Index);
-      expect((ast as any).expression.type).toBe(NodeType.Index);
-      expect((ast as any).index.value).toBe(1);
-    });
-  });
-
-  describe('collections', () => {
-    it('parses empty collection', () => {
-      const ast = parse('{}');
-      expect(ast.type).toBe(NodeType.Collection);
-      expect((ast as any).elements).toHaveLength(0);
-    });
-
-    it('parses collection with elements', () => {
-      const ast = parse('{1, 2, 3}');
-      expect(ast.type).toBe(NodeType.Collection);
-      expect((ast as any).elements).toHaveLength(3);
-      expect((ast as any).elements[0].value).toBe(1);
-      expect((ast as any).elements[1].value).toBe(2);
-      expect((ast as any).elements[2].value).toBe(3);
-    });
-  });
-
-  describe('union operator', () => {
-    it('parses union operator', () => {
-      const ast = parse('a | b') as BinaryNode;
-      expect(ast.type).toBe(NodeType.Binary);
-      expect(ast.operator).toBe('|');
-      expect((ast.left as IdentifierNode).name).toBe('a');
-      expect((ast.right as IdentifierNode).name).toBe('b');
-    });
-
-    it('parses multiple unions', () => {
-      const ast = parse('a | b | c') as BinaryNode;
-      expect(ast.type).toBe(NodeType.Binary);
-      expect(ast.operator).toBe('|');
-      // Union is left-associative: (a | b) | c
-      expect(ast.left.type).toBe(NodeType.Binary);
-      expect((ast.right as IdentifierNode).name).toBe('c');
-      
-      const leftBinary = ast.left as BinaryNode;
-      expect(leftBinary.operator).toBe('|');
-      expect((leftBinary.left as IdentifierNode).name).toBe('a');
-      expect((leftBinary.right as IdentifierNode).name).toBe('b');
-    });
-  });
-
-  describe('type operations', () => {
-    it('parses is operator', () => {
-      const ast = parse('value is String');
-      expect(ast.type).toBe(NodeType.MembershipTest);
-      expect((ast as any).expression.name).toBe('value');
-      expect((ast as any).targetType).toBe('String');
-    });
-
-    it('parses as operator', () => {
-      const ast = parse('value as String');
-      expect(ast.type).toBe(NodeType.TypeCast);
-      expect((ast as any).expression.name).toBe('value');
-      expect((ast as any).targetType).toBe('String');
-    });
-  });
-
-  describe('complex expressions', () => {
-    it('parses method chaining with function calls', () => {
-      const ast = parse('Patient.name.where(use = \'official\').given');
-      expect(ast.type).toBe(NodeType.Binary);
-      expect((ast as any).right.name).toBe('given');
-      
-      const whereCall = (ast as any).left;
-      expect(whereCall.type).toBe(NodeType.Binary);
-      expect(whereCall.right.type).toBe(NodeType.Function);
-      expect((whereCall.right as any).name.name).toBe('where');
-    });
-
-    it('parses complex arithmetic', () => {
-      const ast = parse('(age + 5) * 2 - 10');
-      expect(ast.type).toBe(NodeType.Binary);
-      // Further assertions on the structure...
-    });
-    it('parses complex arithmetic', async () => {
-      const ast = parse('Patient.name.given.where(use = "official").given');
-      await Bun.write('./tmp/out.json', JSON.stringify(ast, null, 2));
-    });
+describe('Parser Performance', () => {
+  it('measures parser performance on fixture expressions', () => {
+    runPerformanceTest();
   });
 });
+
+function runPerformanceTest() {
+    const fixturesPath = path.join(process.cwd(), 'test', 'fixtures');
+    const iterations = 5000; // Fewer iterations than lexer since parsing is more expensive
+    
+    // Read all fixture files
+    const fixtureFiles = fs.readdirSync(fixturesPath)
+      .filter(file => file.endsWith('.json'))
+      .map(file => ({
+        name: file,
+        path: path.join(fixturesPath, file)
+      }));
+    
+    console.log(`\nRunning parser performance tests with ${iterations} iterations per expression\n`);
+    
+    let totalExpressions = 0;
+    let totalIterations = 0;
+    let totalTime = 0;
+    let totalTokens = 0;
+    let totalNodes = 0;
+    const expressionStats: { expression: string; time: number; tokens: number; nodes: number }[] = [];
+    
+    for (const fixture of fixtureFiles) {
+      console.log(`Processing ${fixture.name}...`);
+      
+      const content = fs.readFileSync(fixture.path, 'utf-8');
+      const expressions: string[] = JSON.parse(content);
+      
+      for (const expression of expressions) {
+        if (!expression) continue;
+        
+        try {
+          // Warm up run and get stats
+          const warmupParser = new Parser(expression);
+          const ast = warmupParser.parse();
+          const tokenCount = countTokens(expression);
+          const nodeCount = countNodes(ast);
+          
+          // Measure total time for all iterations
+          const start = performance.now();
+          for (let j = 0; j < iterations; j++) {
+            const parser = new Parser(expression);
+            parser.parse();
+          }
+          const end = performance.now();
+          
+          const totalTimeForExpression = end - start;
+          totalTime += totalTimeForExpression;
+          totalExpressions++;
+          totalIterations += iterations;
+          totalTokens += tokenCount * iterations;
+          totalNodes += nodeCount * iterations;
+          
+          expressionStats.push({
+            expression,
+            time: totalTimeForExpression / iterations,
+            tokens: tokenCount,
+            nodes: nodeCount
+          });
+        } catch (error) {
+          // Skip expressions that fail to parse
+          console.log(`  Skipping unparseable expression: ${expression.substring(0, 50)}...`);
+        }
+      }
+    }
+    
+    const avgTimePerExpression = totalTime / totalIterations;
+    const avgTokensPerExpression = totalTokens / totalIterations;
+    const avgNodesPerExpression = totalNodes / totalIterations;
+    
+    // Sort by time to find slowest expressions
+    expressionStats.sort((a, b) => b.time - a.time);
+    
+    console.log('\n' + '='.repeat(70));
+    console.log('PARSER PERFORMANCE RESULTS');
+    console.log('='.repeat(70));
+    console.log(`Total expressions: ${totalExpressions}`);
+    console.log(`Total iterations: ${totalIterations}`);
+    console.log(`Total time: ${(totalTime / 1000).toFixed(2)}s`);
+    console.log(`Time per expression: ${avgTimePerExpression.toFixed(4)}ms`);
+    console.log(`Expressions per second: ${(1000 / avgTimePerExpression).toFixed(0)}`);
+    console.log(`Average tokens per expression: ${avgTokensPerExpression.toFixed(1)}`);
+    console.log(`Average AST nodes per expression: ${avgNodesPerExpression.toFixed(1)}`);
+    
+    console.log('\n' + '='.repeat(70));
+    console.log('TOP 10 SLOWEST EXPRESSIONS');
+    console.log('='.repeat(70));
+    console.log('Time (ms) | Tokens | Nodes | Expression');
+    console.log('-'.repeat(70));
+    
+    for (let i = 0; i < Math.min(10, expressionStats.length); i++) {
+      const stat = expressionStats[i];
+      if (!stat) continue;
+      const expr = stat.expression.length > 40 
+        ? stat.expression.substring(0, 37) + '...' 
+        : stat.expression;
+      console.log(
+        `${stat.time.toFixed(4).padStart(9)} | ` +
+        `${stat.tokens.toString().padStart(6)} | ` +
+        `${stat.nodes.toString().padStart(5)} | ` +
+        expr
+      );
+    }
+    
+    // Calculate complexity metrics
+    const complexityStats = expressionStats.map(stat => ({
+      ...stat,
+      timePerToken: stat.time / stat.tokens,
+      timePerNode: stat.time / stat.nodes
+    }));
+    
+    console.log('\n' + '='.repeat(70));
+    console.log('COMPLEXITY ANALYSIS');
+    console.log('='.repeat(70));
+    
+    // Group by token count ranges
+    const tokenRanges = [
+      { min: 0, max: 5, label: '1-5 tokens' },
+      { min: 5, max: 10, label: '6-10 tokens' },
+      { min: 10, max: 20, label: '11-20 tokens' },
+      { min: 20, max: 50, label: '21-50 tokens' },
+      { min: 50, max: Infinity, label: '50+ tokens' }
+    ];
+    
+    console.log('\nPerformance by expression complexity:');
+    console.log('Token Range  | Count | Avg Time (ms) | Time/Token (μs)');
+    console.log('-'.repeat(55));
+    
+    for (const range of tokenRanges) {
+      const inRange = complexityStats.filter(
+        s => s.tokens > range.min && s.tokens <= range.max
+      );
+      if (inRange.length > 0) {
+        const avgTime = inRange.reduce((sum, s) => sum + s.time, 0) / inRange.length;
+        const avgTimePerToken = inRange.reduce((sum, s) => sum + s.timePerToken, 0) / inRange.length;
+        console.log(
+          `${range.label.padEnd(12)} | ${inRange.length.toString().padStart(5)} | ` +
+          `${avgTime.toFixed(4).padStart(13)} | ${(avgTimePerToken * 1000).toFixed(2).padStart(15)}`
+        );
+      }
+    }
+}
+
+function countTokens(expression: string): number {
+  const lexer = new Lexer(expression);
+  const tokens = lexer.tokenize();
+  // Don't count EOF token
+  return tokens.filter(t => t.type !== 0).length;
+}
+
+function countNodes(node: ASTNode): number {
+  if (!node) return 0;
+  
+  let count = 1;
+  
+  // Handle different node types
+  switch (node.type) {
+    case NodeType.Binary:
+      const binary = node as BinaryNode;
+      count += countNodes(binary.left);
+      count += countNodes(binary.right);
+      break;
+      
+    case NodeType.Unary:
+      const unary = node as UnaryNode;
+      count += countNodes(unary.operand);
+      break;
+      
+    case NodeType.Function:
+      const func = node as FunctionNode;
+      if (func.name && typeof func.name === 'object') {
+        count += countNodes(func.name);
+      }
+      for (const arg of func.arguments) {
+        count += countNodes(arg);
+      }
+      break;
+      
+    case NodeType.Index:
+      const index = node as IndexNode;
+      count += countNodes(index.expression);
+      count += countNodes(index.index);
+      break;
+      
+    case NodeType.MembershipTest:
+      const membershipTest = node as MembershipTestNode;
+      count += countNodes(membershipTest.expression);
+      break;
+      
+    case NodeType.TypeCast:
+      const typeCast = node as TypeCastNode;
+      count += countNodes(typeCast.expression);
+      break;
+      
+    case NodeType.Collection:
+      const collection = node as CollectionNode;
+      for (const elem of collection.elements) {
+        count += countNodes(elem);
+      }
+      break;
+  }
+  
+  return count;
+}

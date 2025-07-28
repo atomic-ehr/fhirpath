@@ -767,7 +767,7 @@ export class LSPParser extends BaseParser<LSPNode> {
     const completions: string[] = [];
     
     // Add all identifiers seen so far
-    for (const name of this.identifierIndex.keys()) {
+    for (const name of Array.from(this.identifierIndex.keys())) {
       completions.push(name);
     }
     

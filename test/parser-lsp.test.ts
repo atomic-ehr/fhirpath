@@ -3,6 +3,7 @@ import { parseLSP, parsePartialLSP } from '../src/parser-lsp';
 import { NodeType } from '../src/parser-base';
 import { TokenType } from '../src/lexer';
 import type { LSPASTNode, IdentifierNode, BinaryNode, FunctionNode, ErrorNode } from '../src/parser-lsp';
+import { pprint } from '../src/parser';
 
 describe('LSP Parser', () => {
   describe('Basic Parsing', () => {
