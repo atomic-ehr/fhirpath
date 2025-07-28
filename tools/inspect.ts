@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 
-import { inspect } from '../src/api';
+import { inspect } from '../legacy-src/api';
 import { readFileSync } from 'fs';
 
 // Parse command line arguments

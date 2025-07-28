@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 
-import { compile } from '../src';
+import { compile } from '../legacy-src';
 
 const args = process.argv.slice(2);
 

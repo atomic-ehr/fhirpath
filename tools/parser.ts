@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 
-import { parse, type ParseResult } from '../src';
+import { parse, type ParseResult } from '../legacy-src';
 
 const expression = process.argv[2];
 const options = process.argv[3];

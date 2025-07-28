@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 
-import { registry } from '../src';
+import { registry } from '../legacy-src';
 
 const args = process.argv.slice(2);
 

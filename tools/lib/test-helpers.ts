@@ -1,7 +1,7 @@
 import { readFileSync, readdirSync, statSync } from "fs";
 import { join } from "path";
-import { parse, evaluate, compile } from "../../src";
-import type { EvaluationContext } from "../../src";
+import { parse, evaluate, compile } from "../../legacy-src";
+import type { EvaluationContext } from "../../legacy-src";
 
 interface UnifiedTest {
   name: string;
