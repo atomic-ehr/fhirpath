@@ -38,3 +38,4 @@ test-output
 tmp
 .env
 llm
+legacy-fp

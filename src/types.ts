@@ -1,5 +1,3 @@
-import type { ASTNode, EvaluationResult, RuntimeContext } from "./types";
-
 // Precedence levels (higher number = higher precedence)
 export enum PRECEDENCE {
   // Lowest precedence
@@ -19,8 +17,7 @@ export enum PRECEDENCE {
   DOT = 140,          // . (highest)
 }
 
-export type FHIRPathType = 'String' | 'Boolean' | 'Date' | 'DateTime' | 'Long' | 
-                          'Decimal' | 'Integer' | 'Time' | 'Quantity' | 'Any';
+export type FHIRPathType = 'String' | 'Boolean' | 'Date' | 'DateTime' | 'Long' | 'Decimal' | 'Integer' | 'Time' | 'Quantity' | 'Any';
 
 export interface TypeSignature {
   type: FHIRPathType;
@@ -43,6 +40,7 @@ export interface OperatorDefinition {
   description: string;
   examples: string[];
   signatures: OperatorSignature[];
+  evaluate: OperationEvaluator;
 }
 
 export interface RegisteredOperator extends OperatorDefinition {
@@ -62,15 +60,16 @@ export interface FunctionDefinition {
     }>;
     result: TypeSignature;
   };
+  evaluate: FunctionEvaluator;
 }
 
 // Node types enum - string-based for better debugging
 export enum NodeType {
   EOF = 'EOF',
-  Identifier = 'Identifier',
   Binary = 'Binary',
   Unary = 'Unary',
   TypeOrIdentifier = 'TypeOrIdentifier',
+  Identifier = 'Identifier',
   Literal = 'Literal',
   Function = 'Function',
   Variable = 'Variable',
@@ -168,15 +167,6 @@ export interface TypeReferenceNode extends ASTNode {
   type: NodeType.TypeReference;
   typeName: string;
 }
-/**
- * Unified runtime context that works with both interpreter and compiler.
- * Uses prototype-based inheritance for efficient context copying.
- *
- * Variable Storage Convention:
- * - Special variables: $this, $index, $total (prefixed with $)
- * - Environment variables: %context, %resource, %rootResource (stored with % prefix)
- * - User-defined variables: stored with % prefix (e.g., %x, %y)
- */
 
 export interface RuntimeContext {
   input: any[];
@@ -188,13 +178,10 @@ export interface EvaluationResult {
   value: any[];
   context: RuntimeContext;
 }
-// Node evaluator function type
 
 export type NodeEvaluator = (node: ASTNode, input: any[], context: RuntimeContext) => EvaluationResult;
-// Operation evaluator function type  
 
 export type OperationEvaluator = (input: any[], context: RuntimeContext, ...args: any[]) => EvaluationResult;
-// Function evaluator function type
 
 export type FunctionEvaluator = (
   input: any[],
