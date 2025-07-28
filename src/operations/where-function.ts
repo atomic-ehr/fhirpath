@@ -1,5 +1,6 @@
 import type { FunctionDefinition, ASTNode } from '../types';
-import { RuntimeContextManager, type FunctionEvaluator } from '../interpreter';
+import { RuntimeContextManager } from '../interpreter';
+import { type FunctionEvaluator } from '../types';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // If no condition provided, return input as-is
@@ -17,6 +18,11 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     // Create iterator context with $this and $index
     let tempContext = RuntimeContextManager.withIterator(context, item, i);
     tempContext = RuntimeContextManager.setSpecialVariable(tempContext, 'total', input.length);
+
+    if (!condition) {
+      results.push(item);
+      continue;
+    }
 
     // Evaluate condition with temporary context
     const condResult = evaluator(condition, [item], tempContext);

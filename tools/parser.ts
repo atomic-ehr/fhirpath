@@ -74,7 +74,7 @@ async function main() {
       
       if (useLisp) {
         console.log('AST:');
-        console.log(pprint(result.ast));
+        console.log(pprint(result.ast as unknown as ASTNode));
         if (result.errors.length > 0) {
           console.log('\nErrors:');
           result.errors.forEach(err => {

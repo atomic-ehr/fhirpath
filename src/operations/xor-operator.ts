@@ -1,6 +1,6 @@
 import type { OperatorDefinition } from '../types';
 import { PRECEDENCE } from '../types';
-import type { OperationEvaluator } from '../interpreter';
+import type { OperationEvaluator } from '../types';
 
 export const evaluate: OperationEvaluator = (input, context, left, right) => {
   // Three-valued logic for XOR

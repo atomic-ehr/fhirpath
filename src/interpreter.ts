@@ -15,27 +15,7 @@ import type {
 import { NodeType } from './parser';
 import { Registry } from './registry';
 import * as operations from './operations';
-
-/**
- * Unified runtime context that works with both interpreter and compiler.
- * Uses prototype-based inheritance for efficient context copying.
- * 
- * Variable Storage Convention:
- * - Special variables: $this, $index, $total (prefixed with $)
- * - Environment variables: %context, %resource, %rootResource (stored with % prefix)
- * - User-defined variables: stored with % prefix (e.g., %x, %y)
- */
-export interface RuntimeContext {
-  input: any[];
-  focus: any[];
-  variables: Record<string, any>;
-}
-
-// Evaluation result - everything is a collection
-export interface EvaluationResult {
-  value: any[];
-  context: RuntimeContext;
-}
+import type { EvaluationResult, FunctionEvaluator, NodeEvaluator, OperationEvaluator, RuntimeContext } from './types';
 
 /**
  * Runtime context manager that provides efficient prototype-based context operations
@@ -178,20 +158,6 @@ export class RuntimeContextManager {
     return context.variables[varKey];
   }
 }
-
-// Node evaluator function type
-export type NodeEvaluator = (node: ASTNode, input: any[], context: RuntimeContext) => EvaluationResult;
-
-// Operation evaluator function type  
-export type OperationEvaluator = (input: any[], context: RuntimeContext, ...args: any[]) => EvaluationResult;
-
-// Function evaluator function type
-export type FunctionEvaluator = (
-  input: any[], 
-  context: RuntimeContext, 
-  args: ASTNode[], 
-  evaluator: (node: ASTNode, input: any[], context: RuntimeContext) => EvaluationResult
-) => EvaluationResult;
 
 export class Interpreter {
   private registry: Registry;

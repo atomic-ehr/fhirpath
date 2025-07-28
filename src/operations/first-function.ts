@@ -1,5 +1,5 @@
 import type { FunctionDefinition } from '../types';
-import type { FunctionEvaluator } from '../interpreter';
+import type { FunctionEvaluator } from '../types';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   return { 

@@ -1,3 +1,5 @@
+import type { ASTNode, EvaluationResult, RuntimeContext } from "./types";
+
 // Precedence levels (higher number = higher precedence)
 export enum PRECEDENCE {
   // Lowest precedence
@@ -166,3 +168,38 @@ export interface TypeReferenceNode extends ASTNode {
   type: NodeType.TypeReference;
   typeName: string;
 }
+/**
+ * Unified runtime context that works with both interpreter and compiler.
+ * Uses prototype-based inheritance for efficient context copying.
+ *
+ * Variable Storage Convention:
+ * - Special variables: $this, $index, $total (prefixed with $)
+ * - Environment variables: %context, %resource, %rootResource (stored with % prefix)
+ * - User-defined variables: stored with % prefix (e.g., %x, %y)
+ */
+
+export interface RuntimeContext {
+  input: any[];
+  focus: any[];
+  variables: Record<string, any>;
+}// Evaluation result - everything is a collection
+
+export interface EvaluationResult {
+  value: any[];
+  context: RuntimeContext;
+}
+// Node evaluator function type
+
+export type NodeEvaluator = (node: ASTNode, input: any[], context: RuntimeContext) => EvaluationResult;
+// Operation evaluator function type  
+
+export type OperationEvaluator = (input: any[], context: RuntimeContext, ...args: any[]) => EvaluationResult;
+// Function evaluator function type
+
+export type FunctionEvaluator = (
+  input: any[],
+  context: RuntimeContext,
+  args: ASTNode[],
+  evaluator: (node: ASTNode, input: any[], context: RuntimeContext) => EvaluationResult
+) => EvaluationResult;
+

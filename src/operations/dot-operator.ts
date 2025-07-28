@@ -1,6 +1,6 @@
 import type { OperatorDefinition } from '../types';
 import { PRECEDENCE } from '../types';
-import type { OperationEvaluator } from '../interpreter';
+import type { OperationEvaluator } from '../types';
 
 // Note: The dot operator is special and is typically handled directly in the interpreter
 // because it needs to evaluate its operands in sequence, not in parallel
