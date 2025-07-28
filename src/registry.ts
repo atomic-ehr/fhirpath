@@ -172,6 +172,40 @@ export class Registry {
     return false;
   }
 
+  // Methods for lexer integration
+  getAllBinaryOperatorSymbols(): Map<string, TokenType> {
+    const symbolMap = new Map<string, TokenType>();
+    this.binaryOperatorsBySymbol.forEach((operator, symbol) => {
+      symbolMap.set(symbol, operator.tokenType);
+    });
+    return symbolMap;
+  }
+
+  getAllOperatorKeywords(): Map<string, TokenType> {
+    const keywordMap = new Map<string, TokenType>();
+    
+    // Add keyword binary operators
+    this.binaryOperators.forEach((operator) => {
+      if (/^[a-zA-Z]+$/.test(operator.symbol)) {
+        keywordMap.set(operator.symbol, operator.tokenType);
+      }
+    });
+    
+    // Add keyword unary operators
+    this.unaryOperators.forEach((operator) => {
+      if (/^[a-zA-Z]+$/.test(operator.symbol)) {
+        keywordMap.set(operator.symbol, operator.tokenType);
+      }
+    });
+    
+    return keywordMap;
+  }
+
+  getTokenTypeForSymbol(symbol: string): TokenType | undefined {
+    const operator = this.binaryOperatorsBySymbol.get(symbol);
+    return operator?.tokenType;
+  }
+
 }
 
 // Import all operations
