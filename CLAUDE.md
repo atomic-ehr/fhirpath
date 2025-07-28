@@ -119,16 +119,6 @@ When task finished move files to ./tasks/done/<filename>.md and write what was d
   - `bun tools/interpreter.ts "name.where(use = 'official').given" '{"name": [{"use": "official", "given": ["John"]}]}'`
   - `bun tools/interpreter.ts "'Hello' + ' ' + 'World'"`
 
-* **Compiler Tool** (`./tools/compiler.ts`) - Compile and evaluate FHIRPath expressions with optional input data
-  ```bash
-  bun tools/compiler.ts "<fhirpath-expression>" [input-json]
-  ```
-  Examples:
-  - `bun tools/compiler.ts "5 + 3"`
-  - `bun tools/compiler.ts "name.given" '{"name": [{"given": ["John", "James"]}]}'`
-  - `bun tools/compiler.ts "name.where(use = 'official').given" '{"name": [{"use": "official", "given": ["John"]}]}'`
-  - `bun tools/compiler.ts "'Hello' + ' ' + 'World'"`
-
 * **Inspect Tool** (`./tools/inspect.ts`) - Debug FHIRPath expressions with rich debugging information including traces, AST, and timing
   ```bash
   bun tools/inspect.ts "<fhirpath-expression>" [input-json] [options]
