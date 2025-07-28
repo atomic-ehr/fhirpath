@@ -308,7 +308,7 @@ describe('LSP Parser', () => {
       expect(result.ast.type).toBe(NodeType.Binary);
       
       const binary = result.ast as BinaryNode;
-      expect(binary.operator).toBe(TokenType.PIPE);
+      expect(binary.operator).toBe('|');
       
       // Union is left-associative, so (a | b) | c
       expect(binary.left.type).toBe(NodeType.Binary);
@@ -316,7 +316,7 @@ describe('LSP Parser', () => {
       expect((binary.right as IdentifierNode).name).toBe('c');
       
       const leftBinary = binary.left as BinaryNode;
-      expect(leftBinary.operator).toBe(TokenType.PIPE);
+      expect(leftBinary.operator).toBe('|');
       expect((leftBinary.left as IdentifierNode).name).toBe('a');
       expect((leftBinary.right as IdentifierNode).name).toBe('b');
     });

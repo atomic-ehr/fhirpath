@@ -1,50 +1,128 @@
-export type FHIRPathType = 'String' | 'Boolean' | 'Date' | 'DateTime' | 'Long' | 
-                          'Decimal' | 'Integer' | 'Time' | 'Quantity' | 'Any';
+import type { 
+  FHIRPathType, 
+  TypeSignature, 
+  OperatorSignature, 
+  OperatorDefinition, 
+  RegisteredOperator, 
+  FunctionDefinition 
+} from './types';
 
-export interface TypeSignature {
-  type: FHIRPathType;
-  singleton: boolean;
-}
+// Re-export types for backwards compatibility
+export type { 
+  FHIRPathType, 
+  TypeSignature, 
+  OperatorSignature, 
+  OperatorDefinition, 
+  RegisteredOperator, 
+  FunctionDefinition 
+} from './types';
 
-export interface OperatorSignature {
-  name: string;
-  left: TypeSignature;
-  right: TypeSignature;
-  result: TypeSignature;
-}
+// Re-export precedence for backwards compatibility
+export { PRECEDENCE } from './types';
 
-export interface OperatorDefinition {
-  symbol: string;
-  // bit-packed with precedence
-  tokenType: number;
-  name: string;
-  category: string[];
-  precedence: number;
-  associativity: 'left' | 'right';
-  description: string;
-  examples: string[];
-  signatures: OperatorSignature[];
-}
-
-export interface RegisteredOperator extends OperatorDefinition {
-}
-
-export interface FunctionDefinition {
-  name: string;
-  category: string[];
-  description: string;
-  examples: string[];
-  signature: {
-    input: TypeSignature;
-    parameters: Array<{
-      name: string;
-      optional?: boolean;
-      type: TypeSignature;
-    }>;
-    result: TypeSignature;
-  };
-}
+import * as operators from './operators';
 
 export class Registry {
-  constructor() { }
+  private symbolOperators = new Map<string, OperatorDefinition>();
+  private keywordOperators = new Map<string, OperatorDefinition>();
+  private unaryOperators = new Map<string, OperatorDefinition>();
+  private functions = new Map<string, FunctionDefinition>();
+  
+  constructor() {
+    this.registerDefaultOperators();
+  }
+  
+  private registerDefaultOperators(): void {
+    // Register all operators from the operators module
+    const allOperators = Object.values(operators);
+    
+    for (const operator of allOperators) {
+      if (typeof operator === 'object' && 'symbol' in operator) {
+        this.registerOperator(operator);
+      }
+    }
+  }
+  
+  private registerOperator(operator: OperatorDefinition): void {
+    const symbol = operator.symbol.toLowerCase();
+    
+    // Check if it's a unary operator first
+    if (operator.name.startsWith('unary') || operator.name === 'not') {
+      this.unaryOperators.set(operator.symbol, operator);
+      
+      // 'not' is only unary, don't register as binary
+      if (operator.name === 'not') {
+        this.keywordOperators.set(symbol, operator);
+        return;
+      }
+    }
+    
+    // Check if it's a keyword operator (contains only letters)
+    if (/^[a-z]+$/.test(symbol)) {
+      this.keywordOperators.set(symbol, operator);
+    } else {
+      // For symbol operators, only register non-unary versions in symbolOperators
+      if (!operator.name.startsWith('unary')) {
+        this.symbolOperators.set(operator.symbol, operator);
+      }
+    }
+  }
+  
+  // Operator methods
+  isSymbolOperator(symbol: string): boolean {
+    return this.symbolOperators.has(symbol);
+  }
+  
+  isKeywordOperator(keyword: string): boolean {
+    return this.keywordOperators.has(keyword.toLowerCase());
+  }
+  
+  isUnaryOperator(op: string): boolean {
+    return this.unaryOperators.has(op);
+  }
+  
+  isBinaryOperator(op: string): boolean {
+    // 'not' is only unary, not binary
+    if (op.toLowerCase() === 'not') {
+      return false;
+    }
+    return this.isSymbolOperator(op) || this.isKeywordOperator(op);
+  }
+  
+  getOperatorDefinition(op: string): OperatorDefinition | undefined {
+    return this.symbolOperators.get(op) || 
+           this.keywordOperators.get(op.toLowerCase()) ||
+           this.unaryOperators.get(op);
+  }
+  
+  getPrecedence(op: string): number {
+    const def = this.getOperatorDefinition(op);
+    return def ? def.precedence : 0;
+  }
+  
+  getAssociativity(op: string): 'left' | 'right' {
+    const def = this.getOperatorDefinition(op);
+    return def ? def.associativity : 'left';
+  }
+  
+  // Get all keyword operators (useful for parser)
+  getKeywordOperators(): string[] {
+    return Array.from(this.keywordOperators.keys());
+  }
+  
+  // Function methods
+  registerFunction(def: FunctionDefinition): void {
+    this.functions.set(def.name.toLowerCase(), def);
+  }
+  
+  getFunction(name: string): FunctionDefinition | undefined {
+    return this.functions.get(name.toLowerCase());
+  }
+  
+  isFunction(name: string): boolean {
+    return this.functions.has(name.toLowerCase());
+  }
 }
+
+// Export singleton instance
+export const registry = new Registry();

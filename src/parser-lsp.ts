@@ -2,7 +2,7 @@ import { TokenType } from './lexer';
 import type { Token } from './lexer';
 import { BaseParser, NodeType } from './parser-base';
 import type { Position } from './parser-base';
-import { operatorRegistry } from './operator-registry';
+import { registry } from './registry';
 
 // LSP-specific types
 export interface Range {
@@ -57,14 +57,14 @@ export interface LiteralNode extends LSPASTNode {
 
 export interface BinaryNode extends LSPASTNode {
   type: NodeType.Binary;
-  operator: TokenType;
+  operator: string;
   left: LSPASTNode;
   right: LSPASTNode;
 }
 
 export interface UnaryNode extends LSPASTNode {
   type: NodeType.Unary;
-  operator: TokenType;
+  operator: string;
   operand: LSPASTNode;
 }
 
@@ -422,15 +422,15 @@ export class LSPParser extends BaseParser<LSPNode> {
       
       if (token.type === TokenType.DOT) {
         operator = '.';
-        precedence = operatorRegistry.getPrecedence(operator);
+        precedence = registry.getPrecedence(operator);
       } else if (token.type === TokenType.OPERATOR) {
         operator = token.value;
-        precedence = operatorRegistry.getPrecedence(operator);
+        precedence = registry.getPrecedence(operator);
       } else if (token.type === TokenType.IDENTIFIER) {
         // Check if it's a keyword operator
-        if (operatorRegistry.isKeywordOperator(token.value)) {
+        if (registry.isKeywordOperator(token.value)) {
           operator = token.value;
-          precedence = operatorRegistry.getPrecedence(operator);
+          precedence = registry.getPrecedence(operator);
         }
       }
       
@@ -451,10 +451,10 @@ export class LSPParser extends BaseParser<LSPNode> {
         this.skipTrivia();
         const typeName = this.parseTypeName();
         left = this.createTypeCastNode(left, typeName, this.getPosition(token));
-      } else if (operator && operatorRegistry.isBinaryOperator(operator)) {
+      } else if (operator && registry.isBinaryOperator(operator)) {
         this.current++;
         this.skipTrivia();
-        const associativity = operatorRegistry.getAssociativity(operator);
+        const associativity = registry.getAssociativity(operator);
         const nextMinPrecedence = associativity === 'left' ? precedence + 1 : precedence;
         const right = this.parseExpressionWithPrecedence(nextMinPrecedence);
         

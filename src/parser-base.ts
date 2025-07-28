@@ -1,6 +1,6 @@
 import { Lexer, TokenType, Channel, isOperator, isOperatorValue } from './lexer';
 import type { Token, LexerOptions } from './lexer';
-import { operatorRegistry } from './operator-registry';
+import { registry } from './registry';
 
 // Re-export AST types that are shared
 export interface Position {
@@ -94,15 +94,15 @@ export abstract class BaseParser<TNode extends { type: NodeType; position?: Posi
       
       if (token.type === TokenType.DOT) {
         operator = '.';
-        precedence = operatorRegistry.getPrecedence(operator);
+        precedence = registry.getPrecedence(operator);
       } else if (token.type === TokenType.OPERATOR) {
         operator = token.value;
-        precedence = operatorRegistry.getPrecedence(operator);
+        precedence = registry.getPrecedence(operator);
       } else if (token.type === TokenType.IDENTIFIER) {
         // Check if it's a keyword operator
-        if (operatorRegistry.isKeywordOperator(token.value)) {
+        if (registry.isKeywordOperator(token.value)) {
           operator = token.value;
-          precedence = operatorRegistry.getPrecedence(operator);
+          precedence = registry.getPrecedence(operator);
         }
       }
       
@@ -120,9 +120,9 @@ export abstract class BaseParser<TNode extends { type: NodeType; position?: Posi
         this.current++; // inline advance()
         const typeName = this.parseTypeName();
         left = this.createTypeCastNode(left, typeName, this.getPosition(token));
-      } else if (operator && operatorRegistry.isBinaryOperator(operator)) {
+      } else if (operator && registry.isBinaryOperator(operator)) {
         this.current++; // inline advance()
-        const associativity = operatorRegistry.getAssociativity(operator);
+        const associativity = registry.getAssociativity(operator);
         const nextMinPrecedence = associativity === 'left' ? precedence + 1 : precedence;
         const right = this.parseExpressionWithPrecedence(nextMinPrecedence);
         
@@ -194,7 +194,7 @@ export abstract class BaseParser<TNode extends { type: NodeType; position?: Posi
 
     if (token.type === TokenType.IDENTIFIER && token.value === 'not') {
       this.advance();
-      const operand = this.parseExpressionWithPrecedence(operatorRegistry.getPrecedence('not'));
+      const operand = this.parseExpressionWithPrecedence(registry.getPrecedence('not'));
       return this.createUnaryNode(token, operand);
     }
 
@@ -221,7 +221,7 @@ export abstract class BaseParser<TNode extends { type: NodeType; position?: Posi
     // Handle unary operators
     if (token.type === TokenType.OPERATOR && (token.value === '+' || token.value === '-')) {
       this.advance();
-      const operand = this.parseExpressionWithPrecedence(operatorRegistry.getPrecedence('*'));
+      const operand = this.parseExpressionWithPrecedence(registry.getPrecedence('*'));
       return this.createUnaryNode(token, operand);
     }
 
@@ -343,10 +343,10 @@ export abstract class BaseParser<TNode extends { type: NodeType; position?: Posi
   // Helper method to check if a token is a binary operator
   protected isBinaryOperatorToken(token: Token): boolean {
     if (token.type === TokenType.OPERATOR || token.type === TokenType.DOT) {
-      return operatorRegistry.isBinaryOperator(token.value);
+      return registry.isBinaryOperator(token.value);
     }
     if (token.type === TokenType.IDENTIFIER) {
-      return operatorRegistry.isKeywordOperator(token.value);
+      return registry.isKeywordOperator(token.value);
     }
     return false;
   }

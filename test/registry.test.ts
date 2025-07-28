@@ -1,277 +1,356 @@
 import { describe, it, expect } from 'bun:test';
-import { Registry, defaultRegistry } from '../src/registry';
-import { TokenType } from '../src/lexer';
+import { registry, Registry, PRECEDENCE } from '../src/registry';
+import type { FunctionDefinition } from '../src/registry';
 
-describe('Registry', () => {
-  describe('Binary Operators', () => {
-    it('should register and retrieve binary operators', () => {
-      const registry = new Registry();
-      
-      const divOperator = {
-        symbol: '/',
-        name: 'divide',
-        tokenType: TokenType.DIVIDE,
-        category: ['arithmetic'],
-        precedence: 80,
-        associativity: 'left' as const,
-        description: 'Division operator',
-        examples: ['10 / 2'],
-        signatures: [{
-          name: 'numeric-divide',
-          left: { type: 'Decimal' as const, singleton: true },
-          right: { type: 'Decimal' as const, singleton: true },
-          result: { type: 'Decimal' as const, singleton: true },
-        }]
-      };
-      
-      registry.registerBinaryOperator(divOperator);
-      
-      const retrieved = registry.getBinaryOperator(TokenType.DIVIDE);
-      expect(retrieved).toBeDefined();
-      expect(retrieved?.symbol).toBe('/');
-      expect(retrieved?.precedence).toBe(80);
-      expect(retrieved?.associativity).toBe('left');
+describe('FHIRPath Registry', () => {
+  describe('Operator Detection', () => {
+    describe('isSymbolOperator', () => {
+      it('should recognize symbol operators', () => {
+        // Arithmetic
+        expect(registry.isSymbolOperator('+')).toBe(true);
+        expect(registry.isSymbolOperator('-')).toBe(true);
+        expect(registry.isSymbolOperator('*')).toBe(true);
+        expect(registry.isSymbolOperator('/')).toBe(true);
+        
+        // Comparison
+        expect(registry.isSymbolOperator('<')).toBe(true);
+        expect(registry.isSymbolOperator('>')).toBe(true);
+        expect(registry.isSymbolOperator('<=')).toBe(true);
+        expect(registry.isSymbolOperator('>=')).toBe(true);
+        
+        // Equality
+        expect(registry.isSymbolOperator('=')).toBe(true);
+        expect(registry.isSymbolOperator('!=')).toBe(true);
+        expect(registry.isSymbolOperator('~')).toBe(true);
+        expect(registry.isSymbolOperator('!~')).toBe(true);
+        
+        // Other
+        expect(registry.isSymbolOperator('|')).toBe(true);
+        expect(registry.isSymbolOperator('&')).toBe(true);
+        expect(registry.isSymbolOperator('.')).toBe(true);
+      });
+
+      it('should not recognize keyword operators as symbol operators', () => {
+        expect(registry.isSymbolOperator('and')).toBe(false);
+        expect(registry.isSymbolOperator('or')).toBe(false);
+        expect(registry.isSymbolOperator('div')).toBe(false);
+        expect(registry.isSymbolOperator('mod')).toBe(false);
+      });
+
+      it('should not recognize non-operators', () => {
+        expect(registry.isSymbolOperator('foo')).toBe(false);
+        expect(registry.isSymbolOperator('#')).toBe(false);
+        expect(registry.isSymbolOperator('@')).toBe(false);
+      });
     });
 
-    it('should retrieve operators by symbol', () => {
-      const registry = new Registry();
-      
-      const modOperator = {
-        symbol: 'mod',
-        name: 'modulo',
-        tokenType: TokenType.MOD,
-        category: ['arithmetic'],
-        precedence: 80,
-        associativity: 'left' as const,
-        description: 'Modulo operator',
-        examples: ['10 mod 3'],
-        signatures: [{
-          name: 'modulo',
-          left: { type: 'Integer' as const, singleton: true },
-          right: { type: 'Integer' as const, singleton: true },
-          result: { type: 'Integer' as const, singleton: true },
-        }]
-      };
-      
-      registry.registerBinaryOperator(modOperator);
-      
-      const retrieved = registry.getBinaryOperatorBySymbol('mod');
-      expect(retrieved).toBeDefined();
-      expect(retrieved?.tokenType).toBe(TokenType.MOD);
+    describe('isKeywordOperator', () => {
+      it('should recognize keyword operators', () => {
+        // Logical
+        expect(registry.isKeywordOperator('and')).toBe(true);
+        expect(registry.isKeywordOperator('or')).toBe(true);
+        expect(registry.isKeywordOperator('xor')).toBe(true);
+        expect(registry.isKeywordOperator('implies')).toBe(true);
+        
+        // Arithmetic
+        expect(registry.isKeywordOperator('div')).toBe(true);
+        expect(registry.isKeywordOperator('mod')).toBe(true);
+        
+        // Membership
+        expect(registry.isKeywordOperator('in')).toBe(true);
+        expect(registry.isKeywordOperator('contains')).toBe(true);
+        
+        // Type
+        expect(registry.isKeywordOperator('is')).toBe(true);
+        expect(registry.isKeywordOperator('as')).toBe(true);
+      });
+
+      it('should be case-insensitive', () => {
+        expect(registry.isKeywordOperator('AND')).toBe(true);
+        expect(registry.isKeywordOperator('Or')).toBe(true);
+        expect(registry.isKeywordOperator('DIV')).toBe(true);
+        expect(registry.isKeywordOperator('Contains')).toBe(true);
+      });
+
+      it('should not recognize symbol operators as keyword operators', () => {
+        expect(registry.isKeywordOperator('+')).toBe(false);
+        expect(registry.isKeywordOperator('-')).toBe(false);
+        expect(registry.isKeywordOperator('=')).toBe(false);
+      });
+
+      it('should not recognize regular identifiers', () => {
+        expect(registry.isKeywordOperator('where')).toBe(false);
+        expect(registry.isKeywordOperator('select')).toBe(false);
+        expect(registry.isKeywordOperator('name')).toBe(false);
+      });
     });
 
-    it('should check if token is binary operator', () => {
-      const registry = new Registry();
-      
-      const andOperator = {
-        symbol: 'and',
-        name: 'and',
-        tokenType: TokenType.AND,
-        category: ['logical'],
-        precedence: 30,
-        associativity: 'left' as const,
-        description: 'Logical AND',
-        examples: ['true and false'],
-        signatures: [{
-          name: 'logical-and',
-          left: { type: 'Boolean' as const, singleton: true },
-          right: { type: 'Boolean' as const, singleton: true },
-          result: { type: 'Boolean' as const, singleton: true },
-        }]
-      };
-      
-      registry.registerBinaryOperator(andOperator);
-      
-      expect(registry.isBinaryOperator(TokenType.AND)).toBe(true);
-      expect(registry.isBinaryOperator(TokenType.IDENTIFIER)).toBe(false);
+    describe('isUnaryOperator', () => {
+      it('should recognize unary operators', () => {
+        expect(registry.isUnaryOperator('+')).toBe(true);
+        expect(registry.isUnaryOperator('-')).toBe(true);
+        expect(registry.isUnaryOperator('not')).toBe(true);
+      });
+
+      it('should not recognize binary-only operators', () => {
+        expect(registry.isUnaryOperator('*')).toBe(false);
+        expect(registry.isUnaryOperator('/')).toBe(false);
+        expect(registry.isUnaryOperator('and')).toBe(false);
+        expect(registry.isUnaryOperator('=')).toBe(false);
+      });
+    });
+
+    describe('isBinaryOperator', () => {
+      it('should recognize all symbol operators as binary', () => {
+        expect(registry.isBinaryOperator('+')).toBe(true);
+        expect(registry.isBinaryOperator('-')).toBe(true);
+        expect(registry.isBinaryOperator('*')).toBe(true);
+        expect(registry.isBinaryOperator('/')).toBe(true);
+        expect(registry.isBinaryOperator('=')).toBe(true);
+        expect(registry.isBinaryOperator('!=')).toBe(true);
+        expect(registry.isBinaryOperator('.')).toBe(true);
+      });
+
+      it('should recognize all keyword operators as binary', () => {
+        expect(registry.isBinaryOperator('and')).toBe(true);
+        expect(registry.isBinaryOperator('or')).toBe(true);
+        expect(registry.isBinaryOperator('div')).toBe(true);
+        expect(registry.isBinaryOperator('mod')).toBe(true);
+        expect(registry.isBinaryOperator('in')).toBe(true);
+        expect(registry.isBinaryOperator('is')).toBe(true);
+      });
+
+      it('should not recognize unary-only operators', () => {
+        // Actually, + and - are both unary and binary, so they should return true
+        expect(registry.isBinaryOperator('not')).toBe(false);
+      });
     });
   });
 
-  describe('Unary Operators', () => {
-    it('should register and retrieve unary operators', () => {
-      const registry = new Registry();
-      
-      const notOperator = {
-        symbol: 'not',
-        name: 'not',
-        tokenType: TokenType.IDENTIFIER, // 'not' is parsed as identifier
-        category: ['logical'],
-        precedence: 90,
-        description: 'Logical NOT',
-        examples: ['not true'],
-        signature: {
-          operand: { type: 'Boolean' as const, singleton: true },
-          result: { type: 'Boolean' as const, singleton: true },
-        }
-      };
-      
-      registry.registerUnaryOperator(notOperator);
-      
-      const retrieved = registry.getUnaryOperator(TokenType.IDENTIFIER);
-      expect(retrieved).toBeDefined();
-      expect(retrieved?.symbol).toBe('not');
+  describe('Operator Properties', () => {
+    describe('getPrecedence', () => {
+      it('should return correct precedence for operators', () => {
+        // Highest precedence
+        expect(registry.getPrecedence('.')).toBe(PRECEDENCE.DOT);
+        
+        // Type operators
+        expect(registry.getPrecedence('as')).toBe(PRECEDENCE.AS_IS);
+        expect(registry.getPrecedence('is')).toBe(PRECEDENCE.AS_IS);
+        
+        // Unary
+        expect(registry.getPrecedence('not')).toBe(PRECEDENCE.UNARY);
+        
+        // Multiplicative
+        expect(registry.getPrecedence('*')).toBe(PRECEDENCE.MULTIPLICATIVE);
+        expect(registry.getPrecedence('/')).toBe(PRECEDENCE.MULTIPLICATIVE);
+        expect(registry.getPrecedence('div')).toBe(PRECEDENCE.MULTIPLICATIVE);
+        expect(registry.getPrecedence('mod')).toBe(PRECEDENCE.MULTIPLICATIVE);
+        
+        // Additive
+        expect(registry.getPrecedence('+')).toBe(PRECEDENCE.ADDITIVE);
+        expect(registry.getPrecedence('-')).toBe(PRECEDENCE.ADDITIVE);
+        expect(registry.getPrecedence('&')).toBe(PRECEDENCE.ADDITIVE);
+        
+        // Pipe
+        expect(registry.getPrecedence('|')).toBe(PRECEDENCE.PIPE);
+        
+        // Comparison
+        expect(registry.getPrecedence('<')).toBe(PRECEDENCE.COMPARISON);
+        expect(registry.getPrecedence('>')).toBe(PRECEDENCE.COMPARISON);
+        expect(registry.getPrecedence('<=')).toBe(PRECEDENCE.COMPARISON);
+        expect(registry.getPrecedence('>=')).toBe(PRECEDENCE.COMPARISON);
+        
+        // Equality
+        expect(registry.getPrecedence('=')).toBe(PRECEDENCE.EQUALITY);
+        expect(registry.getPrecedence('!=')).toBe(PRECEDENCE.EQUALITY);
+        expect(registry.getPrecedence('~')).toBe(PRECEDENCE.EQUALITY);
+        expect(registry.getPrecedence('!~')).toBe(PRECEDENCE.EQUALITY);
+        
+        // Membership
+        expect(registry.getPrecedence('in')).toBe(PRECEDENCE.IN_CONTAINS);
+        expect(registry.getPrecedence('contains')).toBe(PRECEDENCE.IN_CONTAINS);
+        
+        // Logical
+        expect(registry.getPrecedence('and')).toBe(PRECEDENCE.AND);
+        expect(registry.getPrecedence('xor')).toBe(PRECEDENCE.XOR);
+        expect(registry.getPrecedence('or')).toBe(PRECEDENCE.OR);
+        expect(registry.getPrecedence('implies')).toBe(PRECEDENCE.IMPLIES);
+      });
+
+      it('should return 0 for unknown operators', () => {
+        expect(registry.getPrecedence('unknown')).toBe(0);
+        expect(registry.getPrecedence('@@')).toBe(0);
+      });
+
+      it('should handle unary operators correctly', () => {
+        // Unary operators should have their unary precedence
+        const unaryPlus = registry.getOperatorDefinition('+');
+        const unaryMinus = registry.getOperatorDefinition('-');
+        
+        // The registry should return the binary precedence for + and -
+        // since they're looked up in symbol operators first
+        expect(registry.getPrecedence('+')).toBe(PRECEDENCE.ADDITIVE);
+        expect(registry.getPrecedence('-')).toBe(PRECEDENCE.ADDITIVE);
+      });
+    });
+
+    describe('getAssociativity', () => {
+      it('should return left associativity for most operators', () => {
+        // All left-associative
+        expect(registry.getAssociativity('+')).toBe('left');
+        expect(registry.getAssociativity('-')).toBe('left');
+        expect(registry.getAssociativity('*')).toBe('left');
+        expect(registry.getAssociativity('/')).toBe('left');
+        expect(registry.getAssociativity('and')).toBe('left');
+        expect(registry.getAssociativity('or')).toBe('left');
+        expect(registry.getAssociativity('=')).toBe('left');
+        expect(registry.getAssociativity('.')).toBe('left');
+      });
+
+      it('should return right associativity for implies', () => {
+        expect(registry.getAssociativity('implies')).toBe('right');
+      });
+
+      it('should return right associativity for unary operators', () => {
+        expect(registry.getAssociativity('not')).toBe('right');
+      });
+
+      it('should return left for unknown operators', () => {
+        expect(registry.getAssociativity('unknown')).toBe('left');
+      });
+    });
+
+    describe('getOperatorDefinition', () => {
+      it('should return complete operator definitions', () => {
+        const plusOp = registry.getOperatorDefinition('+');
+        expect(plusOp).toBeDefined();
+        expect(plusOp!.symbol).toBe('+');
+        expect(plusOp!.name).toBe('plus');
+        expect(plusOp!.category).toContain('arithmetic');
+        expect(plusOp!.description).toBe('Addition operator');
+        expect(plusOp!.examples).toContain('5 + 3');
+        
+        const andOp = registry.getOperatorDefinition('and');
+        expect(andOp).toBeDefined();
+        expect(andOp!.symbol).toBe('and');
+        expect(andOp!.name).toBe('and');
+        expect(andOp!.category).toContain('logical');
+        expect(andOp!.description).toBe('Logical AND operator');
+      });
+
+      it('should handle case-insensitive keyword operators', () => {
+        const andOp = registry.getOperatorDefinition('AND');
+        expect(andOp).toBeDefined();
+        expect(andOp!.symbol).toBe('and');
+      });
+
+      it('should return undefined for unknown operators', () => {
+        expect(registry.getOperatorDefinition('unknown')).toBeUndefined();
+      });
     });
   });
 
-  describe('Functions', () => {
+  describe('Keyword Operators List', () => {
+    it('should return all keyword operators', () => {
+      const keywords = registry.getKeywordOperators();
+      
+      expect(keywords).toContain('and');
+      expect(keywords).toContain('or');
+      expect(keywords).toContain('xor');
+      expect(keywords).toContain('implies');
+      expect(keywords).toContain('div');
+      expect(keywords).toContain('mod');
+      expect(keywords).toContain('in');
+      expect(keywords).toContain('contains');
+      expect(keywords).toContain('is');
+      expect(keywords).toContain('as');
+      
+      // Should be lowercase
+      expect(keywords).not.toContain('AND');
+      expect(keywords).not.toContain('Or');
+    });
+  });
+
+  describe('Function Registry', () => {
     it('should register and retrieve functions', () => {
-      const registry = new Registry();
+      const testRegistry = new Registry();
       
-      const whereFunction = {
+      const whereFunction: FunctionDefinition = {
         name: 'where',
         category: ['filtering'],
         description: 'Filters a collection',
         examples: ['Patient.name.where(use = "official")'],
         signature: {
-          input: { type: 'Any' as const, singleton: false },
+          input: { type: 'Any', singleton: false },
           parameters: [{
-            name: 'criteria',
-            type: { type: 'Boolean' as const, singleton: true }
+            name: 'condition',
+            type: { type: 'Boolean', singleton: true }
           }],
-          result: { type: 'Any' as const, singleton: false },
+          result: { type: 'Any', singleton: false }
         }
       };
       
-      registry.registerFunction(whereFunction);
+      testRegistry.registerFunction(whereFunction);
       
-      const retrieved = registry.getFunction('where');
+      expect(testRegistry.isFunction('where')).toBe(true);
+      expect(testRegistry.isFunction('WHERE')).toBe(true); // case-insensitive
+      
+      const retrieved = testRegistry.getFunction('where');
       expect(retrieved).toBeDefined();
-      expect(retrieved?.category).toContain('filtering');
-    });
-  });
-
-  describe('Precedence and Associativity', () => {
-    it('should return correct precedence', () => {
-      expect(defaultRegistry.getPrecedence(TokenType.PLUS)).toBe(70);
-      expect(defaultRegistry.getPrecedence(TokenType.EQ)).toBe(40);
-      expect(defaultRegistry.getPrecedence(TokenType.IDENTIFIER)).toBe(-1);
+      expect(retrieved!.name).toBe('where');
+      expect(retrieved!.description).toBe('Filters a collection');
     });
 
-    it('should return correct associativity', () => {
-      expect(defaultRegistry.getAssociativity(TokenType.PLUS)).toBe('left');
-      expect(defaultRegistry.getAssociativity(TokenType.EQ)).toBe('left');
-      expect(defaultRegistry.getAssociativity(TokenType.IDENTIFIER)).toBeNull();
-    });
-  });
-
-  describe('Type System', () => {
-    it('should match exact types', () => {
-      const registry = new Registry();
+    it('should handle case-insensitive function lookup', () => {
+      const testRegistry = new Registry();
       
-      const signature = registry.selectBinaryOperatorSignature(
-        TokenType.PLUS,
-        { type: 'Decimal', singleton: true },
-        { type: 'Decimal', singleton: true }
-      );
-      
-      expect(signature).toBeNull(); // Not registered in test registry
-      
-      // Test with default registry
-      const defaultSig = defaultRegistry.selectBinaryOperatorSignature(
-        TokenType.PLUS,
-        { type: 'Decimal', singleton: true },
-        { type: 'Decimal', singleton: true }
-      );
-      
-      expect(defaultSig).toBeDefined();
-      expect(defaultSig?.name).toBe('numeric-plus');
-    });
-
-    it('should match compatible numeric types', () => {
-      const registry = new Registry();
-      
-      const operator = {
-        symbol: '*',
-        name: 'multiply',
-        tokenType: TokenType.MULTIPLY,
-        category: ['arithmetic'],
-        precedence: 80,
-        associativity: 'left' as const,
-        description: 'Multiplication',
-        examples: ['2 * 3'],
-        signatures: [{
-          name: 'multiply',
-          left: { type: 'Decimal' as const, singleton: true },
-          right: { type: 'Decimal' as const, singleton: true },
-          result: { type: 'Decimal' as const, singleton: true },
-        }]
+      const testFunc: FunctionDefinition = {
+        name: 'TestFunction',
+        category: ['test'],
+        description: 'Test function',
+        examples: [],
+        signature: {
+          input: { type: 'Any', singleton: true },
+          parameters: [],
+          result: { type: 'Any', singleton: true }
+        }
       };
       
-      registry.registerBinaryOperator(operator);
+      testRegistry.registerFunction(testFunc);
       
-      // Integer should be compatible with Decimal
-      const signature = registry.selectBinaryOperatorSignature(
-        TokenType.MULTIPLY,
-        { type: 'Integer', singleton: true },
-        { type: 'Integer', singleton: true }
-      );
+      expect(testRegistry.isFunction('testfunction')).toBe(true);
+      expect(testRegistry.isFunction('TESTFUNCTION')).toBe(true);
+      expect(testRegistry.isFunction('TestFunction')).toBe(true);
       
-      expect(signature).toBeDefined();
-      expect(signature?.name).toBe('multiply');
+      const retrieved = testRegistry.getFunction('TESTFUNCTION');
+      expect(retrieved).toBeDefined();
+      expect(retrieved!.name).toBe('TestFunction');
     });
 
-    it('should match Any type', () => {
-      const signature = defaultRegistry.selectBinaryOperatorSignature(
-        TokenType.EQ,
-        { type: 'String', singleton: true },
-        { type: 'Integer', singleton: true }
-      );
+    it('should return false/undefined for non-existent functions', () => {
+      const testRegistry = new Registry();
       
-      expect(signature).toBeDefined();
-      expect(signature?.name).toBe('equal');
-    });
-
-    it('should respect singleton constraints', () => {
-      const registry = new Registry();
-      
-      const operator = {
-        symbol: 'contains',
-        name: 'contains',
-        tokenType: TokenType.CONTAINS,
-        category: ['collection'],
-        precedence: 35,
-        associativity: 'left' as const,
-        description: 'Contains operator',
-        examples: ['collection contains item'],
-        signatures: [{
-          name: 'contains',
-          left: { type: 'Any' as const, singleton: false }, // collection
-          right: { type: 'Any' as const, singleton: true }, // single item
-          result: { type: 'Boolean' as const, singleton: true },
-        }]
-      };
-      
-      registry.registerBinaryOperator(operator);
-      
-      // Should not match - left side requires collection
-      const signature1 = registry.selectBinaryOperatorSignature(
-        TokenType.CONTAINS,
-        { type: 'String', singleton: true }, // single value, not collection
-        { type: 'String', singleton: true }
-      );
-      
-      expect(signature1).toBeNull();
-      
-      // Should match
-      const signature2 = registry.selectBinaryOperatorSignature(
-        TokenType.CONTAINS,
-        { type: 'String', singleton: false }, // collection
-        { type: 'String', singleton: true }
-      );
-      
-      expect(signature2).toBeDefined();
+      expect(testRegistry.isFunction('nonexistent')).toBe(false);
+      expect(testRegistry.getFunction('nonexistent')).toBeUndefined();
     });
   });
 
-  describe('Default Registry', () => {
-    it('should have basic operators registered', () => {
-      expect(defaultRegistry.getBinaryOperator(TokenType.PLUS)).toBeDefined();
-      expect(defaultRegistry.getBinaryOperator(TokenType.EQ)).toBeDefined();
-      expect(defaultRegistry.getUnaryOperator(TokenType.MINUS)).toBeDefined();
-    });
-
-    it('should have basic functions registered', () => {
-      expect(defaultRegistry.getFunction('substring')).toBeDefined();
+  describe('Precedence Order', () => {
+    it('should have correct precedence ordering', () => {
+      // Verify precedence values are in correct order
+      expect(PRECEDENCE.DOT).toBeGreaterThan(PRECEDENCE.POSTFIX);
+      expect(PRECEDENCE.POSTFIX).toBeGreaterThan(PRECEDENCE.AS_IS);
+      expect(PRECEDENCE.AS_IS).toBeGreaterThan(PRECEDENCE.UNARY);
+      expect(PRECEDENCE.UNARY).toBeGreaterThan(PRECEDENCE.MULTIPLICATIVE);
+      expect(PRECEDENCE.MULTIPLICATIVE).toBeGreaterThan(PRECEDENCE.ADDITIVE);
+      expect(PRECEDENCE.ADDITIVE).toBeGreaterThan(PRECEDENCE.PIPE);
+      expect(PRECEDENCE.PIPE).toBeGreaterThan(PRECEDENCE.COMPARISON);
+      expect(PRECEDENCE.COMPARISON).toBeGreaterThan(PRECEDENCE.EQUALITY);
+      expect(PRECEDENCE.EQUALITY).toBeGreaterThan(PRECEDENCE.IN_CONTAINS);
+      expect(PRECEDENCE.IN_CONTAINS).toBeGreaterThan(PRECEDENCE.AND);
+      expect(PRECEDENCE.AND).toBeGreaterThan(PRECEDENCE.XOR);
+      expect(PRECEDENCE.XOR).toBeGreaterThan(PRECEDENCE.OR);
+      expect(PRECEDENCE.OR).toBeGreaterThan(PRECEDENCE.IMPLIES);
     });
   });
 });
