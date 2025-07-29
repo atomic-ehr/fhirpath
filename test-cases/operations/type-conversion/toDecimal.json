@@ -3,60 +3,138 @@
   "description": "Tests for the toDecimal() function",
   "tests": [
     {
-      "name": "toDecimal - string",
+      "name": "toDecimal - positive decimal string",
       "expression": "'3.14'.toDecimal()",
-      "input": [],
-      "expected": [
-        3.14
-      ],
-      "tags": [
-        "function",
-        "conversion",
-        "toDecimal",
-        "function:toDecimal"
-      ]
+      "expected": [3.14],
+      "tags": ["function", "conversion", "toDecimal", "function:toDecimal", "string"]
+    },
+    {
+      "name": "toDecimal - negative decimal string",
+      "expression": "'-3.14'.toDecimal()",
+      "expected": [-3.14],
+      "tags": ["function", "conversion", "toDecimal", "function:toDecimal", "string", "negative"]
+    },
+    {
+      "name": "toDecimal - positive sign string",
+      "expression": "'+3.14'.toDecimal()",
+      "expected": [3.14],
+      "tags": ["function", "conversion", "toDecimal", "function:toDecimal", "string", "positive-sign"]
+    },
+    {
+      "name": "toDecimal - integer string",
+      "expression": "'42'.toDecimal()",
+      "expected": [42],
+      "tags": ["function", "conversion", "toDecimal", "function:toDecimal", "string"]
+    },
+    {
+      "name": "toDecimal - zero string",
+      "expression": "'0'.toDecimal()",
+      "expected": [0],
+      "tags": ["function", "conversion", "toDecimal", "function:toDecimal", "string", "zero"]
+    },
+    {
+      "name": "toDecimal - negative zero string",
+      "expression": "'-0'.toDecimal()",
+      "expected": [-0],
+      "tags": ["function", "conversion", "toDecimal", "function:toDecimal", "string", "zero"]
     },
     {
       "name": "toDecimal - integer",
       "expression": "42.toDecimal()",
-      "input": [],
-      "expected": [
-        42
-      ],
-      "tags": [
-        "function",
-        "conversion",
-        "toDecimal",
-        "function:toDecimal"
-      ]
+      "expected": [42],
+      "tags": ["function", "conversion", "toDecimal", "function:toDecimal", "integer"]
+    },
+    {
+      "name": "toDecimal - decimal",
+      "expression": "3.14159.toDecimal()",
+      "expected": [3.14159],
+      "tags": ["function", "conversion", "toDecimal", "function:toDecimal", "decimal"]
     },
     {
       "name": "toDecimal - boolean true",
       "expression": "true.toDecimal()",
-      "input": [],
-      "expected": [
-        1
-      ],
-      "tags": [
-        "function",
-        "conversion",
-        "toDecimal",
-        "function:toDecimal"
-      ]
+      "expected": [1.0],
+      "tags": ["function", "conversion", "toDecimal", "function:toDecimal", "boolean"]
     },
     {
       "name": "toDecimal - boolean false",
       "expression": "false.toDecimal()",
-      "input": [],
-      "expected": [
-        0
-      ],
-      "tags": [
-        "function",
-        "conversion",
-        "toDecimal",
-        "function:toDecimal"
-      ]
+      "expected": [0.0],
+      "tags": ["function", "conversion", "toDecimal", "function:toDecimal", "boolean"]
+    },
+    {
+      "name": "toDecimal - empty input",
+      "expression": "({}).toDecimal()",
+      "expected": [],
+      "tags": ["function", "conversion", "toDecimal", "function:toDecimal", "empty"]
+    },
+    {
+      "name": "toDecimal - invalid string format",
+      "expression": "'abc'.toDecimal()",
+      "expected": [],
+      "tags": ["function", "conversion", "toDecimal", "function:toDecimal", "string", "invalid"]
+    },
+    {
+      "name": "toDecimal - string with spaces",
+      "expression": "' 123 '.toDecimal()",
+      "expected": [],
+      "tags": ["function", "conversion", "toDecimal", "function:toDecimal", "string", "invalid"]
+    },
+    {
+      "name": "toDecimal - string with multiple dots",
+      "expression": "'1.2.3'.toDecimal()",
+      "expected": [],
+      "tags": ["function", "conversion", "toDecimal", "function:toDecimal", "string", "invalid"]
+    },
+    {
+      "name": "toDecimal - string with invalid characters",
+      "expression": "'12.3e4'.toDecimal()",
+      "expected": [],
+      "tags": ["function", "conversion", "toDecimal", "function:toDecimal", "string", "invalid"]
+    },
+    {
+      "name": "toDecimal - null value",
+      "expression": "null.toDecimal()",
+      "input": {"null": null},
+      "expected": [],
+      "tags": ["function", "conversion", "toDecimal", "function:toDecimal", "null"]
+    },
+    {
+      "name": "toDecimal - date type",
+      "expression": "@2023-01-01.toDecimal()",
+      "expected": [],
+      "tags": ["function", "conversion", "toDecimal", "function:toDecimal", "date", "invalid-type"]
+    },
+    {
+      "name": "toDecimal - error on multiple items",
+      "expression": "(1 | 2).toDecimal()",
+      "error": "toDecimal() can only be applied to a singleton",
+      "tags": ["function", "conversion", "toDecimal", "function:toDecimal", "error", "multiple"]
+    },
+    {
+      "name": "toDecimal - error with arguments",
+      "expression": "'123'.toDecimal('arg')",
+      "error": "toDecimal() does not take any arguments",
+      "tags": ["function", "conversion", "toDecimal", "function:toDecimal", "error", "arguments"]
+    },
+    {
+      "name": "toDecimal - large decimal string",
+      "expression": "'123456789.987654321'.toDecimal()",
+      "expected": [123456789.987654321],
+      "tags": ["function", "conversion", "toDecimal", "function:toDecimal", "string", "large"]
+    },
+    {
+      "name": "toDecimal - string with leading zeros",
+      "expression": "'00123.45'.toDecimal()",
+      "expected": [123.45],
+      "tags": ["function", "conversion", "toDecimal", "function:toDecimal", "string", "leading-zeros"]
+    },
+    {
+      "name": "toDecimal - path example",
+      "expression": "value.toDecimal()",
+      "input": {"value": "42.5"},
+      "expected": [42.5],
+      "tags": ["function", "conversion", "toDecimal", "function:toDecimal", "path"]
     }
   ]
 }

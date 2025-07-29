@@ -3,73 +3,113 @@
   "description": "Tests for the toInteger() function",
   "tests": [
     {
-      "name": "toInteger - string",
+      "name": "toInteger - positive string",
       "expression": "'42'.toInteger()",
-      "input": [],
-      "expected": [
-        42
-      ],
-      "tags": [
-        "function",
-        "conversion",
-        "toInteger",
-        "function:toInteger"
-      ]
+      "expected": [42],
+      "tags": ["function", "conversion", "toInteger", "function:toInteger", "string"]
     },
     {
-      "name": "toInteger - decimal",
-      "expression": "3.14.toInteger()",
-      "input": [],
-      "expected": [
-        3
-      ],
-      "tags": [
-        "function",
-        "conversion",
-        "toInteger",
-        "function:toInteger"
-      ]
+      "name": "toInteger - negative string",
+      "expression": "'-123'.toInteger()",
+      "expected": [-123],
+      "tags": ["function", "conversion", "toInteger", "function:toInteger", "string", "negative"]
+    },
+    {
+      "name": "toInteger - string with plus sign",
+      "expression": "'+456'.toInteger()",
+      "expected": [456],
+      "tags": ["function", "conversion", "toInteger", "function:toInteger", "string", "plus-sign"]
     },
     {
       "name": "toInteger - boolean true",
       "expression": "true.toInteger()",
-      "input": [],
-      "expected": [
-        1
-      ],
-      "tags": [
-        "function",
-        "conversion",
-        "toInteger",
-        "function:toInteger"
-      ]
+      "expected": [1],
+      "tags": ["function", "conversion", "toInteger", "function:toInteger", "boolean"]
     },
     {
       "name": "toInteger - boolean false",
       "expression": "false.toInteger()",
-      "input": [],
-      "expected": [
-        0
-      ],
-      "tags": [
-        "function",
-        "conversion",
-        "toInteger",
-        "function:toInteger"
-      ]
+      "expected": [0],
+      "tags": ["function", "conversion", "toInteger", "function:toInteger", "boolean"]
+    },
+    {
+      "name": "toInteger - integer (identity)",
+      "expression": "(42).toInteger()",
+      "expected": [42],
+      "tags": ["function", "conversion", "toInteger", "function:toInteger", "identity"]
+    },
+    {
+      "name": "toInteger - negative integer",
+      "expression": "(-42).toInteger()",
+      "expected": [-42],
+      "tags": ["function", "conversion", "toInteger", "function:toInteger", "identity", "negative"]
     },
     {
       "name": "toInteger - invalid string",
       "expression": "'hello'.toInteger()",
-      "input": [],
       "expected": [],
-      "tags": [
-        "function",
-        "conversion",
-        "toInteger",
-        "invalid",
-        "function:toInteger"
-      ]
+      "tags": ["function", "conversion", "toInteger", "function:toInteger", "invalid", "string"]
+    },
+    {
+      "name": "toInteger - string with decimal",
+      "expression": "'3.14'.toInteger()",
+      "expected": [],
+      "tags": ["function", "conversion", "toInteger", "function:toInteger", "invalid", "string", "decimal"]
+    },
+    {
+      "name": "toInteger - string with spaces",
+      "expression": "' 42 '.toInteger()",
+      "expected": [],
+      "tags": ["function", "conversion", "toInteger", "function:toInteger", "invalid", "string", "spaces"]
+    },
+    {
+      "name": "toInteger - string with leading zeros",
+      "expression": "'0042'.toInteger()",
+      "expected": [42],
+      "tags": ["function", "conversion", "toInteger", "function:toInteger", "string", "leading-zeros"]
+    },
+    {
+      "name": "toInteger - decimal number returns empty",
+      "expression": "3.14.toInteger()",
+      "expected": [],
+      "tags": ["function", "conversion", "toInteger", "function:toInteger", "decimal", "empty"]
+    },
+    {
+      "name": "toInteger - empty input",
+      "expression": "({}).toInteger()",
+      "expected": [],
+      "tags": ["function", "conversion", "toInteger", "function:toInteger", "empty"]
+    },
+    {
+      "name": "toInteger - multiple items error",
+      "expression": "(1 | 2).toInteger()",
+      "error": "toInteger() can only be applied to a single item",
+      "tags": ["function", "conversion", "toInteger", "function:toInteger", "error", "multiple"]
+    },
+    {
+      "name": "toInteger - object returns empty",
+      "expression": "Patient.toInteger()",
+      "input": {"resourceType": "Patient", "id": "123"},
+      "expected": [],
+      "tags": ["function", "conversion", "toInteger", "function:toInteger", "object", "empty"]
+    },
+    {
+      "name": "toInteger - empty string returns empty",
+      "expression": "''.toInteger()",
+      "expected": [],
+      "tags": ["function", "conversion", "toInteger", "function:toInteger", "empty-string"]
+    },
+    {
+      "name": "toInteger - zero string",
+      "expression": "'0'.toInteger()",
+      "expected": [0],
+      "tags": ["function", "conversion", "toInteger", "function:toInteger", "string", "zero"]
+    },
+    {
+      "name": "toInteger - large number string",
+      "expression": "'999999999'.toInteger()",
+      "expected": [999999999],
+      "tags": ["function", "conversion", "toInteger", "function:toInteger", "string", "large"]
     }
   ]
 }

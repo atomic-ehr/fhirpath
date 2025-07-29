@@ -73,3 +73,8 @@ export { lowerFunction } from './lower-function';
 export { allFalseFunction } from './allFalse-function';
 export { anyTrueFunction } from './anyTrue-function';
 export { anyFalseFunction } from './anyFalse-function';
+
+// Type conversion functions
+export { toIntegerFunction } from './toInteger-function';
+export { toDecimalFunction } from './toDecimal-function';
+export { toStringFunction } from './toString-function';

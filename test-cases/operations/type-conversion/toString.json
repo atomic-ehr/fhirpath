@@ -3,9 +3,9 @@
   "description": "Tests for the toString() function",
   "tests": [
     {
-      "name": "toString - number",
+      "name": "toString - integer",
       "expression": "42.toString()",
-      "input": [],
+      "input": null,
       "expected": [
         "42"
       ],
@@ -13,13 +13,59 @@
         "function",
         "conversion",
         "toString",
-        "function:toString"
+        "function:toString",
+        "integer"
+      ]
+    },
+    {
+      "name": "toString - negative integer",
+      "expression": "(-123).toString()",
+      "input": null,
+      "expected": [
+        "-123"
+      ],
+      "tags": [
+        "function",
+        "conversion",
+        "toString",
+        "function:toString",
+        "integer"
+      ]
+    },
+    {
+      "name": "toString - decimal",
+      "expression": "3.14.toString()",
+      "input": null,
+      "expected": [
+        "3.14"
+      ],
+      "tags": [
+        "function",
+        "conversion",
+        "toString",
+        "function:toString",
+        "decimal"
+      ]
+    },
+    {
+      "name": "toString - decimal with leading zero",
+      "expression": "0.5.toString()",
+      "input": null,
+      "expected": [
+        "0.5"
+      ],
+      "tags": [
+        "function",
+        "conversion",
+        "toString",
+        "function:toString",
+        "decimal"
       ]
     },
     {
       "name": "toString - boolean true",
       "expression": "true.toString()",
-      "input": [],
+      "input": null,
       "expected": [
         "true"
       ],
@@ -27,13 +73,14 @@
         "function",
         "conversion",
         "toString",
-        "function:toString"
+        "function:toString",
+        "boolean"
       ]
     },
     {
       "name": "toString - boolean false",
       "expression": "false.toString()",
-      "input": [],
+      "input": null,
       "expected": [
         "false"
       ],
@@ -41,13 +88,14 @@
         "function",
         "conversion",
         "toString",
-        "function:toString"
+        "function:toString",
+        "boolean"
       ]
     },
     {
       "name": "toString - string",
       "expression": "'hello'.toString()",
-      "input": [],
+      "input": null,
       "expected": [
         "hello"
       ],
@@ -55,7 +103,191 @@
         "function",
         "conversion",
         "toString",
-        "function:toString"
+        "function:toString",
+        "string"
+      ]
+    },
+    {
+      "name": "toString - empty string",
+      "expression": "''.toString()",
+      "input": null,
+      "expected": [
+        ""
+      ],
+      "tags": [
+        "function",
+        "conversion",
+        "toString",
+        "function:toString",
+        "string"
+      ]
+    },
+    {
+      "name": "toString - empty input returns empty",
+      "expression": "empty.toString()",
+      "input": [
+        {
+          "empty": []
+        }
+      ],
+      "expected": [],
+      "tags": [
+        "function",
+        "conversion",
+        "toString",
+        "function:toString",
+        "empty"
+      ]
+    },
+    {
+      "name": "toString - direct empty collection",
+      "expression": "({}).toString()",
+      "input": null,
+      "expected": [],
+      "tags": [
+        "function",
+        "conversion",
+        "toString",
+        "function:toString",
+        "empty"
+      ]
+    },
+    {
+      "name": "toString - error on multiple inputs",
+      "expression": "values.toString()",
+      "input": [
+        {
+          "values": [1, 2]
+        }
+      ],
+      "expected": [],
+      "error": {
+        "type": "Error",
+        "message": "toString\\(\\) can only be used on single values"
+      },
+      "tags": [
+        "function",
+        "conversion",
+        "toString",
+        "function:toString",
+        "error"
+      ]
+    },
+    {
+      "name": "toString - error on arguments",
+      "expression": "42.toString('test')",
+      "input": null,
+      "expected": [],
+      "error": {
+        "type": "Error",
+        "message": "toString\\(\\) takes no arguments"
+      },
+      "tags": [
+        "function",
+        "conversion",
+        "toString",
+        "function:toString",
+        "error"
+      ]
+    },
+    {
+      "name": "toString - with path expression",
+      "expression": "value.toString()",
+      "input": [
+        {
+          "value": 999
+        }
+      ],
+      "expected": [
+        "999"
+      ],
+      "tags": [
+        "function",
+        "conversion",
+        "toString",
+        "function:toString",
+        "path"
+      ]
+    },
+    {
+      "name": "toString - zero",
+      "expression": "0.toString()",
+      "input": null,
+      "expected": [
+        "0"
+      ],
+      "tags": [
+        "function",
+        "conversion",
+        "toString",
+        "function:toString",
+        "edge-case"
+      ]
+    },
+    {
+      "name": "toString - negative zero",
+      "expression": "(-0).toString()",
+      "input": null,
+      "expected": [
+        "0"
+      ],
+      "tags": [
+        "function",
+        "conversion",
+        "toString",
+        "function:toString",
+        "edge-case"
+      ]
+    },
+    {
+      "name": "toString - null returns empty",
+      "expression": "value.toString()",
+      "input": [
+        {
+          "value": null
+        }
+      ],
+      "expected": [],
+      "tags": [
+        "function",
+        "conversion",
+        "toString",
+        "function:toString",
+        "null"
+      ]
+    },
+    {
+      "name": "toString - object returns empty",
+      "expression": "value.toString()",
+      "input": [
+        {
+          "value": {"foo": "bar"}
+        }
+      ],
+      "expected": [],
+      "tags": [
+        "function",
+        "conversion",
+        "toString",
+        "function:toString",
+        "object"
+      ]
+    },
+    {
+      "name": "toString - array returns empty",
+      "expression": "value.first().toString()",
+      "input": [
+        {
+          "value": [[1, 2, 3]]
+        }
+      ],
+      "expected": [],
+      "tags": [
+        "function",
+        "conversion",
+        "toString",
+        "function:toString",
+        "array"
       ]
     }
   ]
