@@ -6,9 +6,24 @@
       "name": "user-defined variable",
       "expression": "%myVar",
       "input": [],
-      "context": { "variables": { "myVar": [ 1, 2, 3 ] } },
-      "expected": [ 1, 2, 3 ],
-      "tags": [ "variable", "user-defined" ]
+      "context": {
+        "variables": {
+          "myVar": [
+            1,
+            2,
+            3
+          ]
+        }
+      },
+      "expected": [
+        1,
+        2,
+        3
+      ],
+      "tags": [
+        "variable",
+        "user-defined"
+      ]
     },
     {
       "name": "undefined variable throws error",
@@ -17,39 +32,107 @@
       "expected": [],
       "error": {
         "type": "EvaluationError",
-        "message": "Undefined.*variable.*undefinedVar",
+        "message": "Variable.*undefinedVar.*not.*defined",
         "phase": "evaluate"
       },
-      "tags": [ "variable", "undefined", "error" ]
+      "tags": [
+        "variable",
+        "undefined",
+        "error"
+      ]
     },
     {
       "name": "$this in select expression",
       "expression": "name.select($this)",
-      "input": [ { "name": [ 1 ] }, { "name": [ 2 ] } ],
-      "expected": [ 1, 2 ],
-      "tags": [ "variable", "$this", "select" ]
+      "input": [
+        {
+          "name": [
+            1
+          ]
+        },
+        {
+          "name": [
+            2
+          ]
+        }
+      ],
+      "expected": [
+        1,
+        2
+      ],
+      "tags": [
+        "variable",
+        "$this",
+        "select"
+      ]
     },
     {
       "name": "$this in nested navigation",
       "expression": "name.given.select($this)",
-      "input": [ { "name": [ { "given": [ 1 ] } ] }, { "name": [ { "given": [ 2 ] } ] } ],
-      "expected": [ 1, 2 ],
-      "tags": [ "variable", "$this", "navigation", "select" ]
+      "input": [
+        {
+          "name": [
+            {
+              "given": [
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "name": [
+            {
+              "given": [
+                2
+              ]
+            }
+          ]
+        }
+      ],
+      "expected": [
+        1,
+        2
+      ],
+      "tags": [
+        "variable",
+        "$this",
+        "navigation",
+        "select"
+      ]
     },
     {
       "name": "%context variable",
       "expression": "%context",
-      "input": [ { "id": "123" } ],
-      "expected": [ { "id": "123" } ],
-      "tags": [ "variable", "%context" ]
+      "input": [
+        {
+          "id": "123"
+        }
+      ],
+      "expected": [
+        {
+          "id": "123"
+        }
+      ],
+      "tags": [
+        "variable",
+        "%context"
+      ]
     },
     {
       "name": "defined but empty environment variable returns empty",
       "expression": "%emptyVar",
       "input": [],
-      "context": { "variables": { "emptyVar": [] } },
+      "context": {
+        "variables": {
+          "emptyVar": []
+        }
+      },
       "expected": [],
-      "tags": [ "variable", "environment", "empty" ]
+      "tags": [
+        "variable",
+        "environment",
+        "empty"
+      ]
     },
     {
       "name": "multiple undefined variables throws error",
@@ -58,10 +141,15 @@
       "expected": [],
       "error": {
         "type": "EvaluationError",
-        "message": "Undefined.*variable.*var1",
+        "message": "Variable.*var1.*not.*defined",
         "phase": "evaluate"
       },
-      "tags": [ "variable", "undefined", "error", "operator:+" ]
+      "tags": [
+        "variable",
+        "undefined",
+        "error",
+        "operator:+"
+      ]
     }
   ]
 }

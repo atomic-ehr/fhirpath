@@ -2,7 +2,7 @@
 
 import { runTestFromFile, runAllTestsFromFile, loadTestSuite } from "./lib/test-helpers";
 import { join, basename } from "path";
-import { readFileSync, readdirSync, statSync } from "fs";
+import { readFileSync, readdirSync, statSync, writeFileSync } from "fs";
 
 // Parse command line arguments
 const args = process.argv.slice(2);
@@ -13,6 +13,9 @@ if (args.length === 0 || args[0] === "--help" || args[0] === "-h") {
 
 Usage:
   bun tools/testcase.ts <test-file> [test-name]
+  bun tools/testcase.ts <test-file> --list
+  bun tools/testcase.ts <test-file> --pending
+  bun tools/testcase.ts <test-file> --toggle-pending <test-name> [reason]
   bun tools/testcase.ts --tags
   bun tools/testcase.ts --tag <tag-name>
   bun tools/testcase.ts --failing
@@ -24,11 +27,13 @@ Arguments:
   test-name   Optional: specific test name to run (if not provided, runs all tests)
 
 Commands:
-  --tags      List all unique tags from all test files
-  --tag       Show all test expressions for a specific tag
-  --failing   Show all failing tests with commands to debug them
-  --pending   Show all pending tests
-  --watch     Watch for changes in failing tests and re-run them
+  --list              List all tests in a specific file
+  --pending           Show all pending tests (globally or for a specific file)
+  --toggle-pending    Toggle pending status on/off for a specific test
+  --tags              List all unique tags from all test files
+  --tag               Show all test expressions for a specific tag
+  --failing           Show all failing tests with commands to debug them
+  --watch             Watch for changes in failing tests and re-run them
 
 Examples:
   # Run all tests in a file
@@ -43,6 +48,15 @@ Examples:
   # List all tests in a file
   bun tools/testcase.ts operators/arithmetic.json --list
   
+  # Show pending tests in a specific file
+  bun tools/testcase.ts operations/utility/defineVariable.json --pending
+  
+  # Toggle pending status - disable a test
+  bun tools/testcase.ts variables.json --toggle-pending "undefined variable throws error" "Working on implementation"
+  
+  # Toggle pending status - enable a test
+  bun tools/testcase.ts variables.json --toggle-pending "undefined variable throws error"
+  
   # List all unique tags
   bun tools/testcase.ts --tags
   
@@ -52,7 +66,7 @@ Examples:
   # Show failing tests
   bun tools/testcase.ts --failing
   
-  # Show pending tests
+  # Show all pending tests globally
   bun tools/testcase.ts --pending
   
   # Watch failing tests
@@ -684,6 +698,96 @@ if (testName === "--list") {
     });
   } catch (error: any) {
     console.error(`❌ Error loading test file: ${error.message}`);
+    process.exit(1);
+  }
+  process.exit(0);
+}
+
+// Check if listing pending tests for a specific file
+if (testName === "--pending") {
+  try {
+    const suite = loadTestSuite(testPath);
+    const pendingTests = suite.tests.filter((test: any) => test.pending);
+    
+    console.log(`\n⏳ Pending Tests in: ${suite.name}`);
+    if (suite.description) {
+      console.log(`   ${suite.description}`);
+    }
+    
+    if (pendingTests.length === 0) {
+      console.log("\n✅ No pending tests in this file!");
+    } else {
+      console.log(`\n📊 Pending tests: ${pendingTests.length}`);
+      console.log("\n🧪 Tests:");
+      
+      pendingTests.forEach((test: any, index: number) => {
+        console.log(`\n${index + 1}. ${test.name}`);
+        console.log(`   Expression: ${test.expression}`);
+        if (typeof test.pending === 'string') {
+          console.log(`   ⏸️  Reason: ${test.pending}`);
+        }
+        const tags = test.tags ? ` [${test.tags.join(", ")}]` : "";
+        if (tags) {
+          console.log(`   Tags: ${tags}`);
+        }
+        console.log(`   Run: bun tools/testcase.ts ${basename(testPath)} "${test.name}"`);
+      });
+    }
+  } catch (error: any) {
+    console.error(`❌ Error loading test file: ${error.message}`);
+    process.exit(1);
+  }
+  process.exit(0);
+}
+
+// Check if toggling pending status for a specific test
+if (testName === "--toggle-pending" && args[2]) {
+  const targetTestName = args[2];
+  const reason = args[3] || "Pending implementation";
+  
+  try {
+    const file = Bun.file(testPath);
+    const content = await file.text();
+    const suite = JSON.parse(content);
+    
+    // Find the test
+    const testIndex = suite.tests.findIndex((test: any) => test.name === targetTestName);
+    
+    if (testIndex === -1) {
+      console.error(`❌ Test "${targetTestName}" not found in ${basename(testPath)}`);
+      process.exit(1);
+    }
+    
+    const test = suite.tests[testIndex];
+    
+    // Toggle pending status
+    if (test.pending) {
+      // Remove pending
+      delete test.pending;
+      console.log(`\n✅ Enabled test: ${targetTestName}`);
+      console.log(`   Test is now active and will run normally`);
+    } else {
+      // Add pending
+      test.pending = reason;
+      console.log(`\n⏸️  Disabled test: ${targetTestName}`);
+      console.log(`   Reason: ${reason}`);
+    }
+    
+    // Write back to file with proper formatting using Bun
+    const updatedContent = JSON.stringify(suite, null, 2) + '\n';
+    await Bun.write(testPath, updatedContent);
+    
+    console.log(`\n📝 Updated: ${basename(testPath)}`);
+    
+    // Show the test details
+    console.log(`\n📊 Test details:`);
+    console.log(`   Expression: ${test.expression}`);
+    if (test.tags) {
+      console.log(`   Tags: [${test.tags.join(", ")}]`);
+    }
+    
+  } catch (error: any) {
+    console.error(`❌ Error updating test file: ${error.message}`);
     process.exit(1);
   }
   process.exit(0);

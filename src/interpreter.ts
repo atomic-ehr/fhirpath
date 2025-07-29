@@ -302,10 +302,20 @@ export class Interpreter {
       return this.evaluate(binary.right, leftResult.value, leftResult.context);
     }
 
-    // Special handling for union operator (preserves original context)
+    // Special handling for union operator (each side gets fresh context from original)
     if (operator === '|') {
+      // Each side of union should have its own variable scope
+      // Variables defined on left side should not be visible on right side
       const leftResult = this.evaluate(binary.left, input, context);
-      const rightResult = this.evaluate(binary.right, input, context);
+      const rightResult = this.evaluate(binary.right, input, context); // Use original context, not leftResult.context
+      
+      // Merge the results
+      const unionEvaluator = this.operationEvaluators.get('union');
+      if (unionEvaluator) {
+        return unionEvaluator(input, context, leftResult.value, rightResult.value);
+      }
+      
+      // Fallback if union evaluator not found
       return {
         value: [...leftResult.value, ...rightResult.value],
         context  // Original context preserved
@@ -362,7 +372,7 @@ export class Interpreter {
     }
 
     // According to FHIRPath spec: attempting to access an undefined environment variable will result in an error
-    throw new Error(`Undefined variable: ${name}`);
+    throw new Error(`Variable '${name}' is not defined in the current scope`);
   }
 
   // Collection evaluator

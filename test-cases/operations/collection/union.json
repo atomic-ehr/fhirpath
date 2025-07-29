@@ -112,6 +112,48 @@
         "navigation",
         "operator:|"
       ]
+    },
+    {
+      "name": "union operator uses separate contexts for left and right",
+      "expression": "defineVariable('x', 5).select(%x) | defineVariable('y', 10).select(%x)",
+      "input": [
+        {}
+      ],
+      "expected": [],
+      "error": {
+        "type": "EvaluationError",
+        "message": "Variable.*%x.*not.*defined.*scope",
+        "phase": "evaluate"
+      },
+      "tags": [
+        "operator",
+        "union",
+        "operator:|",
+        "variable",
+        "scoping",
+        "defineVariable"
+      ],
+      "description": "Variables defined on left side of union should not be visible on right side"
+    },
+    {
+      "name": "union operator preserves values from both sides",
+      "expression": "defineVariable('x', 5).select(%x) | defineVariable('x', 10).select(%x)",
+      "input": [
+        {}
+      ],
+      "expected": [
+        5,
+        10
+      ],
+      "tags": [
+        "operator",
+        "union",
+        "operator:|",
+        "variable",
+        "scoping",
+        "defineVariable"
+      ],
+      "description": "Each side of union can define its own variables independently"
     }
   ]
 }

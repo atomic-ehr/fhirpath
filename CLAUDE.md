@@ -202,11 +202,15 @@ Use the TypeScript MCP tools for TypeScript-specific operations like finding sym
 * **Test Case Runner** (`./tools/testcase.ts`) - Run test cases from JSON test files
   ```bash
   bun tools/testcase.ts <test-file> [test-name] [mode]
+  bun tools/testcase.ts <test-file> --list
+  bun tools/testcase.ts <test-file> --pending
+  bun tools/testcase.ts <test-file> --toggle-pending <test-name> [reason]
   bun tools/testcase.ts --tags
   bun tools/testcase.ts --tag <tag-name>
   bun tools/testcase.ts --failing
   bun tools/testcase.ts --failing-commands
   bun tools/testcase.ts --pending
+  bun tools/testcase.ts --watch
   ```
   Arguments:
   - `test-file` - Path to JSON test file (relative to test-cases/)
@@ -214,22 +218,28 @@ Use the TypeScript MCP tools for TypeScript-specific operations like finding sym
   - `mode` - Optional: 'interpreter' | 'compiler' | 'both' (default: 'both')
   
   Commands:
+  - `--list` - List all tests in a specific file
+  - `--pending` - Show all pending tests (globally or for a specific file)
+  - `--toggle-pending` - Toggle pending status on/off for a specific test
   - `--tags` - List all unique tags from all test files with usage counts
   - `--tag <tag-name>` - Show all test expressions for a specific tag
   - `--failing` - Show all failing tests with detailed information and debug commands
   - `--failing-commands` - Output only the commands to run failing tests (useful for scripting)
-  - `--pending` - Show all pending tests with reasons and commands to run them
-  - `--list` - List all tests in a specific file
+  - `--watch` - Watch for changes in failing tests and re-run them automatically
   
   Examples:
   - `bun tools/testcase.ts operators/arithmetic.json` - Run all tests in a file
   - `bun tools/testcase.ts operators/arithmetic.json "addition - integers"` - Run a specific test
   - `bun tools/testcase.ts operators/arithmetic.json "addition - integers" interpreter` - Run with interpreter only
   - `bun tools/testcase.ts operators/arithmetic.json --list` - List all tests in a file
+  - `bun tools/testcase.ts operations/utility/defineVariable.json --pending` - Show pending tests in a specific file
+  - `bun tools/testcase.ts variables.json --toggle-pending "test name" "Reason for pending"` - Disable a test
+  - `bun tools/testcase.ts variables.json --toggle-pending "test name"` - Enable a test (removes pending)
   - `bun tools/testcase.ts --tags` - List all unique tags across all test cases
   - `bun tools/testcase.ts --tag arithmetic` - Show all expressions with the "arithmetic" tag
   - `bun tools/testcase.ts --failing` - Show all failing tests with commands to debug them
   - `bun tools/testcase.ts --failing-commands` - Get just the commands for failing tests
+  - `bun tools/testcase.ts --pending` - Show all pending tests across all test files
   
   Scripting Examples:
   ```bash

@@ -53,3 +53,5 @@ export { distinctFunction } from './distinct-function';
 export { iifFunction } from './iif-function';
 export { defineVariableFunction } from './defineVariable-function';
 export { joinFunction } from './join-function';
+export { replaceFunction } from './replace-function';
+export { unionFunction } from './union-function';
