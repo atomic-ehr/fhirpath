@@ -55,3 +55,4 @@ export { defineVariableFunction } from './defineVariable-function';
 export { joinFunction } from './join-function';
 export { replaceFunction } from './replace-function';
 export { unionFunction } from './union-function';
+export { indexOfFunction } from './indexOf-function';

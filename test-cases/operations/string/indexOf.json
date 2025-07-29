@@ -1,0 +1,106 @@
+{
+  "name": "indexOf Function Tests",
+  "description": "Tests for the indexOf() string function",
+  "tests": [
+    {
+      "name": "indexOf - found at beginning",
+      "expression": "'abcdefg'.indexOf('abc')",
+      "input": [],
+      "expected": [0],
+      "tags": ["string", "indexOf"]
+    },
+    {
+      "name": "indexOf - found in middle", 
+      "expression": "'abcdefg'.indexOf('bc')",
+      "input": [],
+      "expected": [1],
+      "tags": ["string", "indexOf"]
+    },
+    {
+      "name": "indexOf - found at end",
+      "expression": "'abcdefg'.indexOf('efg')",
+      "input": [],
+      "expected": [4],
+      "tags": ["string", "indexOf"]
+    },
+    {
+      "name": "indexOf - not found",
+      "expression": "'abcdefg'.indexOf('x')",
+      "input": [],
+      "expected": [-1],
+      "tags": ["string", "indexOf"]
+    },
+    {
+      "name": "indexOf - whole string",
+      "expression": "'abcdefg'.indexOf('abcdefg')",
+      "input": [],
+      "expected": [0],
+      "tags": ["string", "indexOf"]
+    },
+    {
+      "name": "indexOf - empty substring",
+      "expression": "'abcdefg'.indexOf('')",
+      "input": [],
+      "expected": [0],
+      "tags": ["string", "indexOf", "empty"]
+    },
+    {
+      "name": "indexOf - empty input",
+      "expression": "{}.indexOf('abc')",
+      "input": [],
+      "expected": [],
+      "tags": ["string", "indexOf", "empty"]
+    },
+    {
+      "name": "indexOf - with navigation",
+      "expression": "name.given.first().indexOf('oh')",
+      "input": [
+        {
+          "name": {
+            "given": ["John", "James"]
+          }
+        }
+      ],
+      "expected": [1],
+      "tags": ["string", "indexOf", "navigation"]
+    },
+    {
+      "name": "indexOf - case sensitive",
+      "expression": "'Hello World'.indexOf('hello')",
+      "input": [],
+      "expected": [-1],
+      "tags": ["string", "indexOf", "case-sensitive"]
+    },
+    {
+      "name": "indexOf - repeated substring",
+      "expression": "'abc abc'.indexOf('abc')",
+      "input": [],
+      "expected": [0],
+      "tags": ["string", "indexOf"]
+    },
+    {
+      "name": "indexOf - multiple items error",
+      "expression": "('a' | 'b').indexOf('a')",
+      "input": [],
+      "expected": [],
+      "error": {
+        "type": "EvaluationError",
+        "message": "indexOf.*single.*string",
+        "phase": "evaluate"
+      },
+      "tags": ["string", "indexOf", "error"]
+    },
+    {
+      "name": "indexOf - non-string input error",
+      "expression": "5.indexOf('5')",
+      "input": [],
+      "expected": [],
+      "error": {
+        "type": "EvaluationError", 
+        "message": "indexOf.*string.*values",
+        "phase": "evaluate"
+      },
+      "tags": ["string", "indexOf", "error", "type"]
+    }
+  ]
+}

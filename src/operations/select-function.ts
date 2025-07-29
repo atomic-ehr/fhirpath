@@ -3,14 +3,14 @@ import { RuntimeContextManager } from '../interpreter';
 import { type FunctionEvaluator } from '../types';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
-  // If no expression provided, return input as-is
-  if (args.length === 0) {
-    return { value: input, context };
+  // Select requires exactly one argument
+  if (args.length !== 1) {
+    throw new Error('select() requires exactly 1 argument');
   }
 
   const expression = args[0];
   if (!expression) {
-    throw new Error('select function requires an expression argument');
+    throw new Error('select() requires a projection expression');
   }
   
   const results: any[] = [];
@@ -34,12 +34,16 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
 export const selectFunction: FunctionDefinition & { evaluate: FunctionEvaluator } = {
   name: 'select',
   category: ['collection'],
-  description: 'Projects each item in the input collection through an expression',
-  examples: ['Patient.name.select(given.first())'],
+  description: 'Evaluates the projection expression for each item in the input collection. The result of each evaluation is added to the output collection. If the evaluation results in a collection with multiple items, all items are added to the output collection (collections resulting from evaluation of projection are flattened). This means that if the evaluation for an element results in the empty collection ({ }), no element is added to the result, and that if the input collection is empty ({ }), the result is empty as well.',
+  examples: [
+    'Bundle.entry.select(resource as Patient)',
+    'Bundle.entry.select((resource as Patient).telecom.where(system = \'phone\'))',
+    'Patient.name.where(use = \'usual\').select(given.first() + \' \' + family)'
+  ],
   signature: {
     input: { type: 'Any', singleton: false },
     parameters: [
-      { name: 'expression', type: { type: 'Any', singleton: false } },
+      { name: 'projection', type: { type: 'Any', singleton: false } },
     ],
     result: { type: 'Any', singleton: false },
   },
