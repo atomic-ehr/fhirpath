@@ -82,3 +82,7 @@ export { anyFalseFunction } from './anyFalse-function';
 export { toIntegerFunction } from './toInteger-function';
 export { toDecimalFunction } from './toDecimal-function';
 export { toStringFunction } from './toString-function';
+export { toBooleanFunction } from './toBoolean-function';
+
+// Utility functions
+export { traceFunction } from './trace-function';
