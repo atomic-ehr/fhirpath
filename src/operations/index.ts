@@ -59,3 +59,4 @@ export { indexOfFunction } from './indexOf-function';
 export { substringFunction } from './substring-function';
 export { containsFunction } from './contains-function';
 export { lengthFunction } from './length-function';
+export { allTrueFunction } from './allTrue-function';
