@@ -158,6 +158,56 @@
         "$index",
         "function:select"
       ]
+    },
+    {
+      "name": "select - variables should not leak from inner scope",
+      "expression": "defineVariable('outer', 'outer-value').select(defineVariable('inner', 'inner-value').select(%inner)).select(%outer & '-' & %inner)",
+      "input": [
+        {}
+      ],
+      "expected": [],
+      "tags": [
+        "function",
+        "select",
+        "defineVariable",
+        "scope",
+        "function:select"
+      ],
+      "description": "Variables defined inside select() should not be accessible outside that select's scope"
+    },
+    {
+      "name": "select - simple variable scope test",
+      "expression": "defineVariable('x', 1).select(defineVariable('y', 2)).select(%y)",
+      "input": [
+        {}
+      ],
+      "expected": [],
+      "tags": [
+        "function",
+        "select",
+        "defineVariable",
+        "scope",
+        "function:select"
+      ],
+      "description": "Variable %y defined inside first select() should not be accessible in second select()"
+    },
+    {
+      "name": "select - concatenation with out-of-scope variable",
+      "expression": "defineVariable('x', 1).select(defineVariable('y', 2)).where(%y.exists())",
+      "input": [
+        {}
+      ],
+      "expected": [],
+      "tags": [
+        "function",
+        "select",
+        "defineVariable",
+        "scope",
+        "where",
+        "exists",
+        "function:select"
+      ],
+      "description": "Using where() to test if out-of-scope variable %y exists"
     }
   ]
 }

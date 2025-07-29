@@ -3,8 +3,8 @@
 import { readdirSync } from 'fs';
 import { join } from 'path';
 
-const metaDir = './spec2/sections-meta';
-const indexFile = './spec2/sections-meta/.index.json';
+const metaDir = './spec/sections-meta';
+const indexFile = './spec/sections-meta/.index.json';
 
 interface SectionMetadata {
   title: string;

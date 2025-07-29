@@ -25,7 +25,6 @@ export { andOperator } from './and-operator';
 export { orOperator } from './or-operator';
 export { xorOperator } from './xor-operator';
 export { impliesOperator } from './implies-operator';
-export { notOperator } from './not-operator';
 
 // Membership operators
 export { inOperator } from './in-operator';
@@ -45,9 +44,12 @@ export { whereFunction } from './where-function';
 export { selectFunction } from './select-function';
 export { firstFunction } from './first-function';
 export { lastFunction } from './last-function';
+export { skipFunction } from './skip-function';
 export { countFunction } from './count-function';
 export { existsFunction } from './exists-function';
 export { emptyFunction } from './empty-function';
+export { notFunction } from './not-function';
 export { distinctFunction } from './distinct-function';
 export { iifFunction } from './iif-function';
 export { defineVariableFunction } from './defineVariable-function';
+export { joinFunction } from './join-function';

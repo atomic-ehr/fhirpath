@@ -338,8 +338,6 @@ export class Interpreter {
       evaluator = operations.unaryMinusOperator.evaluate;
     } else if (operator === '+' && operations.unaryPlusOperator?.evaluate) {
       evaluator = operations.unaryPlusOperator.evaluate;
-    } else if (operator === 'not' && operations.notOperator?.evaluate) {
-      evaluator = operations.notOperator.evaluate;
     }
 
     if (evaluator) {

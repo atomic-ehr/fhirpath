@@ -1,8 +1,8 @@
 import { readdirSync, readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 
-const sectionsDir = './spec2/sections';
-const outputDir = './spec2/sections-meta';
+const sectionsDir = './spec/sections';
+const outputDir = './spec/sections-meta';
 
 // Create output directory if it doesn't exist
 if (!existsSync(outputDir)) {

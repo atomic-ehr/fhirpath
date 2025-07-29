@@ -2,8 +2,8 @@ import { readdirSync, readFileSync, writeFileSync, existsSync, mkdirSync } from 
 import { join } from 'path';
 import Anthropic from '@anthropic-ai/sdk';
 
-const sectionsDir = './spec2/sections';
-const outputDir = './spec2/sections-meta';
+const sectionsDir = './spec/sections';
+const outputDir = './spec/sections-meta';
 
 // Initialize Claude client
 const anthropic = new Anthropic({

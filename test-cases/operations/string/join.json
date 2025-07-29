@@ -1,0 +1,96 @@
+{
+  "description": "Tests for the join() function",
+  "disabled": false,
+  "tests": [
+    {
+      "description": "join - simple concatenation without separator",
+      "expression": "('A' | 'B' | 'C').join()",
+      "expected": ["ABC"],
+      "tags": ["string", "join"]
+    },
+    {
+      "description": "join - with comma separator",
+      "expression": "('A' | 'B' | 'C').join(',')",
+      "expected": ["A,B,C"],
+      "tags": ["string", "join"]
+    },
+    {
+      "description": "join - with space separator",
+      "expression": "('Hello' | 'World').join(' ')",
+      "expected": ["Hello World"],
+      "tags": ["string", "join"]
+    },
+    {
+      "description": "join - with hyphen separator",
+      "expression": "('2024' | '01' | '15').join('-')",
+      "expected": ["2024-01-15"],
+      "tags": ["string", "join"]
+    },
+    {
+      "description": "join - empty collection",
+      "expression": "{}.join(',')",
+      "expected": [],
+      "tags": ["string", "join", "empty"]
+    },
+    {
+      "description": "join - single item",
+      "expression": "'Hello'.join(',')",
+      "expected": ["Hello"],
+      "tags": ["string", "join"]
+    },
+    {
+      "description": "join - with empty string separator",
+      "expression": "('A' | 'B' | 'C').join('')",
+      "expected": ["ABC"],
+      "tags": ["string", "join"]
+    },
+    {
+      "description": "join - with newline separator",
+      "expression": "('Line1' | 'Line2' | 'Line3').join('\\n')",
+      "expected": ["Line1\nLine2\nLine3"],
+      "tags": ["string", "join"]
+    },
+    {
+      "description": "join - mixed content (numbers converted to strings)",
+      "expression": "('Item' | 1 | 'Item' | 2).join('-')",
+      "expected": ["Item-1-Item-2"],
+      "tags": ["string", "join", "conversion"]
+    },
+    {
+      "description": "join - with null separator (defaults to empty string)",
+      "expression": "('A' | 'B' | 'C').join(null)",
+      "expected": ["ABC"],
+      "tags": ["string", "join", "null"]
+    },
+    {
+      "description": "join - chained with other string operations",
+      "expression": "name.given.join(' ')",
+      "input": {
+        "name": [
+          {"given": ["John", "James"], "family": "Doe"},
+          {"given": ["Jane"], "family": "Smith"}
+        ]
+      },
+      "expected": ["John James Jane"],
+      "tags": ["string", "join", "navigation"]
+    },
+    {
+      "description": "join - per name object (using select)",
+      "expression": "name.select(given.join(' '))",
+      "input": {
+        "name": [
+          {"given": ["John", "James"], "family": "Doe"},
+          {"given": ["Jane", "Marie"], "family": "Smith"}
+        ]
+      },
+      "expected": ["John James", "Jane Marie"],
+      "tags": ["string", "join", "navigation", "select"]
+    },
+    {
+      "description": "join - with complex separator",
+      "expression": "('apple' | 'banana' | 'cherry').join(' and ')",
+      "expected": ["apple and banana and cherry"],
+      "tags": ["string", "join"]
+    }
+  ]
+}

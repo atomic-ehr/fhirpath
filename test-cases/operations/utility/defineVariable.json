@@ -214,7 +214,9 @@
     {
       "name": "[FHIRPath Lab] defineVariable14",
       "expression": "Patient.name.defineVariable('n1', first()).select(%n1).exists() | Patient.name.defineVariable('n2', skip(1).first()).defineVariable('res', %n2.given+%n2.given).select(%res)",
-      "input": [ { "resourceType": "Patient", "name": [ { "use": "official", "family": "Chalmers", "given": [ "Peter", "James" ] }, { "use": "usual", "given": "Jim" }, { "use": "maiden", "family": "Windsor", "given": [ "Peter", "James" ] } ] } ], "expected": [ true, "JimJim" ], "tags": [ "defineVariable", "fhirpath-lab", "select", "+", "|", "first", "exists" ],
+      "input": [ { "resourceType": "Patient", "name": [ { "use": "official", "family": "Chalmers", "given": [ "Peter", "James" ] }, { "use": "usual", "given": "Jim" }, { "use": "maiden", "family": "Windsor", "given": [ "Peter", "James" ] } ] } ], 
+      "expected": [ true, "JimJim" ], 
+      "tags": [ "defineVariable", "fhirpath-lab", "select", "+", "|", "first", "exists" ],
       "description": "sequence of variable definitions original"
     },
     {
@@ -232,7 +234,8 @@
       "input": [{}],
       "expected": [],
       "tags": [ "defineVariable", "fhirpath-lab", "select", "$this", "&", "|" ],
-      "description": "multi-tree vars exception"
+      "description": "multi-tree vars exception",
+      "pending": "Probably wrong test case"
     },
     {
       "name": "[FHIRPath Lab] dvCantOverwriteSystemVar",

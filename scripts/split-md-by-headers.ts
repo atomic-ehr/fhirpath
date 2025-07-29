@@ -99,8 +99,8 @@ function splitMarkdown(inputPath: string, outputDir: string) {
 }
 
 // Main execution
-const inputFile = join(__dirname, '..', 'spec2', 'fhirpath-2025.md');
-const outputDirectory = join(__dirname, '..', 'spec2', 'sections');
+const inputFile = join(__dirname, '..', 'spec', 'fhirpath-2025.md');
+const outputDirectory = join(__dirname, '..', 'spec', 'sections');
 
 if (!existsSync(inputFile)) {
   console.error(`Input file not found: ${inputFile}`);

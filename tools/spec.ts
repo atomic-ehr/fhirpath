@@ -15,9 +15,9 @@ interface SearchResult {
   content?: string;
 }
 
-const metaDir = './spec2/sections-meta';
-const sectionsDir = './spec2/sections';
-const indexFile = './spec2/sections-meta/.index.json';
+const metaDir = './spec/sections-meta';
+const sectionsDir = './spec/sections';
+const indexFile = './spec/sections-meta/.index.json';
 
 async function loadAllMetadata(): Promise<SectionMetadata[]> {
   // Try to load from index first
@@ -192,5 +192,5 @@ if (results.length > displayCount) {
 // If showing content and only one result, provide a tip
 if (showContent && displayCount === 1) {
   console.log('\nTip: You can open the file directly:');
-  console.log(`  bun tools/read.ts spec2/sections/${results[0]!.metadata.file}`);
+  console.log(`  bun tools/read.ts spec/sections/${results[0]!.metadata.file}`);
 }

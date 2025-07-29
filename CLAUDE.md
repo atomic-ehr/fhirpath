@@ -6,6 +6,36 @@ Make comments only if needed.
 This is a design project for a new unit library in typescript.
 Please be concise and to the point.
 
+## FHIRPath Implementation Overview
+
+This is a TypeScript implementation of FHIRPath - a path-based navigation and extraction language for FHIR resources.
+
+### Core Architecture
+
+- **Parser** (`parser.ts`, `parser-base.ts`): Converts FHIRPath expressions to AST using precedence climbing
+- **Lexer** (`lexer.ts`): Tokenizes input strings, recognizing operators, literals, identifiers
+- **Interpreter** (`interpreter.ts`): Evaluates AST nodes using visitor pattern
+- **Registry** (`registry.ts`): Manages operator/function definitions with precedence and type signatures
+- **Operations** (`operations/`): Individual implementations for ~50 operators and functions
+
+### Key Features
+
+- Expression evaluation: `evaluate("Patient.name.given", {input: resource})`
+- Context management: Efficient prototype-based context with variables ($this, $index, %user-defined)
+- Type system: Supports FHIRPath types (String, Integer, Decimal, Boolean, Date, DateTime, etc.)
+- Extensible: Registry pattern allows adding custom operators/functions
+
+### Example Usage
+
+```typescript
+import { evaluate } from './src/index';
+
+const result = evaluate("Patient.name.where(use = 'official').given", {
+  input: { resourceType: 'Patient', name: [{use: 'official', given: ['John']}] }
+});
+// Returns: ['John']
+```
+
 * ./spec is official spec of FHIRPath
 * ./adr is a folder for Architecture Decision Records. (read ./adr/README.md for more details)
 * ./concepts is a wiki like knowledge base for the project.
@@ -99,6 +129,25 @@ When working on tasks move files to ./tasks/in-progress/<filename>.md
 When task finished move files to ./tasks/done/<filename>.md and write what was done in this file.
 
 ## Tools
+
+### TypeScript MCP Tools
+
+Use the TypeScript MCP tools for TypeScript-specific operations like finding symbols, renaming, refactoring, and analyzing code:
+
+* `mcp__typescript__list_tools` - List all available TypeScript MCP tools
+* `mcp__typescript__get_type_in_module` - Get detailed signature for a type/interface/class in a module
+* `mcp__typescript__get_type_at_symbol` - Get type information for a symbol at specific location
+* `mcp__typescript__find_references` - Find all references to a symbol across codebase
+* `mcp__typescript__get_definitions` - Get definition(s) of a TypeScript symbol
+* `mcp__typescript__rename_symbol` - Rename a symbol across the codebase
+* `mcp__typescript__move_file` - Move a file and update all imports
+* `mcp__typescript__move_directory` - Move a directory and update all imports
+* `mcp__typescript__delete_symbol` - Delete a symbol and all its references
+* `mcp__typescript__get_module_symbols` - Get all exported symbols from a module
+* `mcp__typescript__get_symbols_in_scope` - Get all symbols visible at a location
+* `mcp__typescript__get_diagnostics` - Get TypeScript errors/warnings for a file
+
+### Project Tools
 
 * **Parser Tool** (`./tools/parser.ts`) - Parse FHIRPath expressions and output AST as JSON
   ```bash
@@ -218,7 +267,7 @@ When task finished move files to ./tasks/done/<filename>.md and write what was d
   bun scripts/build-spec-index.ts
   ```
   This script:
-  - Reads all metadata files from `spec2/sections-meta/`
+  - Reads all metadata files from `spec/sections-meta/`
   - Creates a single `.index.json` file containing all metadata
   - Improves spec.ts search performance by ~15%
   - Should be run after updating section metadata files

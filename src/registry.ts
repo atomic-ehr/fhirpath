@@ -128,6 +128,33 @@ export class Registry {
   isFunction(name: string): boolean {
     return this.functions.has(name.toLowerCase());
   }
+  
+  // List methods for registry-lookup tool
+  listFunctions(): string[] {
+    return Array.from(this.functions.keys()).sort();
+  }
+  
+  listOperators(): string[] {
+    const operators = new Set<string>();
+    this.symbolOperators.forEach((_, key) => operators.add(key));
+    this.keywordOperators.forEach((_, key) => operators.add(key));
+    this.unaryOperators.forEach((_, key) => operators.add(key));
+    return Array.from(operators).sort();
+  }
+  
+  listAllOperations(): string[] {
+    return [...this.listOperators(), ...this.listFunctions()].sort();
+  }
+  
+  // Get operation info for registry-lookup tool
+  getOperationInfo(name: string): OperatorDefinition | FunctionDefinition | undefined {
+    // Try as operator first
+    const operator = this.getOperatorDefinition(name);
+    if (operator) return operator;
+    
+    // Try as function
+    return this.getFunction(name);
+  }
 }
 
 // Export singleton instance

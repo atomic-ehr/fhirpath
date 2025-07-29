@@ -47,6 +47,89 @@
         "skip",
         "function:skip"
       ]
+    },
+    {
+      "name": "skip - zero items",
+      "expression": "values.skip(0)",
+      "input": [
+        {
+          "values": [
+            1,
+            2,
+            3
+          ]
+        }
+      ],
+      "expected": [
+        1,
+        2,
+        3
+      ],
+      "tags": [
+        "function",
+        "subsetting",
+        "skip",
+        "function:skip"
+      ]
+    },
+    {
+      "name": "skip - negative number",
+      "expression": "values.skip(-2)",
+      "input": [
+        {
+          "values": [
+            1,
+            2,
+            3
+          ]
+        }
+      ],
+      "expected": [
+        1,
+        2,
+        3
+      ],
+      "tags": [
+        "function",
+        "subsetting",
+        "skip",
+        "function:skip"
+      ]
+    },
+    {
+      "name": "skip - empty collection",
+      "expression": "values.skip(2)",
+      "input": [
+        {
+          "values": []
+        }
+      ],
+      "expected": [],
+      "tags": [
+        "function",
+        "subsetting",
+        "skip",
+        "empty",
+        "function:skip"
+      ]
+    },
+    {
+      "name": "skip - single item",
+      "expression": "values.skip(1)",
+      "input": [
+        {
+          "values": [
+            "hello"
+          ]
+        }
+      ],
+      "expected": [],
+      "tags": [
+        "function",
+        "subsetting",
+        "skip",
+        "function:skip"
+      ]
     }
   ]
 }
