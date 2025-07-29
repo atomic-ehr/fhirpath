@@ -361,8 +361,8 @@ export class Interpreter {
       return { value: arrayValue, context };
     }
 
-    // Unknown variable returns empty
-    return { value: [], context };
+    // According to FHIRPath spec: attempting to access an undefined environment variable will result in an error
+    throw new Error(`Undefined variable: ${name}`);
   }
 
   // Collection evaluator

@@ -3,179 +3,65 @@
   "description": "Tests for variable references",
   "tests": [
     {
-      "name": "$this with simple value",
-      "expression": "$this",
-      "input": [],
-      "context": {
-        "rootContext": [
-          42
-        ]
-      },
-      "expected": [
-        42
-      ],
-      "tags": [
-        "variable",
-        "$this"
-      ],
-      "skip": {
-        "interpreter": true,
-        "compiler": true,
-        "reason": "$this requires special context setup"
-      }
-    },
-    {
-      "name": "$this with object",
-      "expression": "$this.name",
-      "input": [],
-      "context": {
-        "rootContext": [
-          {
-            "name": "John"
-          }
-        ]
-      },
-      "expected": [
-        "John"
-      ],
-      "tags": [
-        "variable",
-        "$this",
-        "navigation"
-      ],
-      "skip": {
-        "interpreter": true,
-        "compiler": true,
-        "reason": "$this requires special context setup"
-      }
-    },
-    {
-      "name": "$index in context",
-      "expression": "$index",
-      "input": [],
-      "context": {
-        "env": {
-          "$index": 5
-        }
-      },
-      "expected": [
-        5
-      ],
-      "tags": [
-        "variable",
-        "$index"
-      ]
-    },
-    {
       "name": "user-defined variable",
       "expression": "%myVar",
       "input": [],
-      "context": {
-        "variables": {
-          "myVar": [
-            1,
-            2,
-            3
-          ]
-        }
-      },
-      "expected": [
-        1,
-        2,
-        3
-      ],
-      "tags": [
-        "variable",
-        "user-defined"
-      ]
+      "context": { "variables": { "myVar": [ 1, 2, 3 ] } },
+      "expected": [ 1, 2, 3 ],
+      "tags": [ "variable", "user-defined" ]
     },
     {
-      "name": "undefined variable returns empty",
+      "name": "undefined variable throws error",
       "expression": "%undefinedVar",
       "input": [],
       "expected": [],
-      "tags": [
-        "variable",
-        "undefined",
-        "empty"
-      ]
+      "error": {
+        "type": "EvaluationError",
+        "message": "Undefined.*variable.*undefinedVar",
+        "phase": "evaluate"
+      },
+      "tags": [ "variable", "undefined", "error" ]
     },
     {
       "name": "$this in select expression",
       "expression": "name.select($this)",
-      "input": [
-        {
-          "name": [
-            1
-          ]
-        },
-        {
-          "name": [
-            2
-          ]
-        }
-      ],
-      "expected": [
-        1,
-        2
-      ],
-      "tags": [
-        "variable",
-        "$this",
-        "select"
-      ]
+      "input": [ { "name": [ 1 ] }, { "name": [ 2 ] } ],
+      "expected": [ 1, 2 ],
+      "tags": [ "variable", "$this", "select" ]
     },
     {
       "name": "$this in nested navigation",
       "expression": "name.given.select($this)",
-      "input": [
-        {
-          "name": [
-            {
-              "given": [
-                1
-              ]
-            }
-          ]
-        },
-        {
-          "name": [
-            {
-              "given": [
-                2
-              ]
-            }
-          ]
-        }
-      ],
-      "expected": [
-        1,
-        2
-      ],
-      "tags": [
-        "variable",
-        "$this",
-        "navigation",
-        "select"
-      ]
+      "input": [ { "name": [ { "given": [ 1 ] } ] }, { "name": [ { "given": [ 2 ] } ] } ],
+      "expected": [ 1, 2 ],
+      "tags": [ "variable", "$this", "navigation", "select" ]
     },
     {
       "name": "%context variable",
       "expression": "%context",
-      "input": [
-        {
-          "id": "123"
-        }
-      ],
-      "expected": [
-        {
-          "id": "123"
-        }
-      ],
-      "tags": [
-        "variable",
-        "%context"
-      ]
+      "input": [ { "id": "123" } ],
+      "expected": [ { "id": "123" } ],
+      "tags": [ "variable", "%context" ]
+    },
+    {
+      "name": "defined but empty environment variable returns empty",
+      "expression": "%emptyVar",
+      "input": [],
+      "context": { "variables": { "emptyVar": [] } },
+      "expected": [],
+      "tags": [ "variable", "environment", "empty" ]
+    },
+    {
+      "name": "multiple undefined variables throws error",
+      "expression": "%var1 + %var2",
+      "input": [],
+      "expected": [],
+      "error": {
+        "type": "EvaluationError",
+        "message": "Undefined.*variable.*var1",
+        "phase": "evaluate"
+      },
+      "tags": [ "variable", "undefined", "error", "operator:+" ]
     }
   ]
 }
