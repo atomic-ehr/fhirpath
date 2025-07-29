@@ -12,6 +12,9 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   }
 
   // Evaluate the num argument
+  if (!args[0]) {
+    throw new Error('take() requires a number argument');
+  }
   const numResult = evaluator(args[0], input, context);
   
   // Validate that num is a singleton integer

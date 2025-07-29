@@ -25,7 +25,7 @@
     {
       "name": "single - empty",
       "expression": "{}.single()",
-      "input": [],
+      "input": null,
       "expected": [],
       "tags": [
         "function",
@@ -48,9 +48,8 @@
       ],
       "expected": [],
       "error": {
-        "type": "EvaluationError",
-        "message": "single\\(\\) requires collection to have exactly one item",
-        "phase": "evaluate"
+        "type": "Error",
+        "message": "single\\(\\) requires collection to have exactly one item"
       },
       "tags": [
         "function",
@@ -58,6 +57,168 @@
         "single",
         "error",
         "function:single"
+      ]
+    },
+    {
+      "name": "single - direct single item",
+      "expression": "(5).single()",
+      "input": null,
+      "expected": [
+        5
+      ],
+      "tags": [
+        "function",
+        "subsetting",
+        "single",
+        "function:single"
+      ]
+    },
+    {
+      "name": "single - string item",
+      "expression": "('hello').single()",
+      "input": null,
+      "expected": [
+        "hello"
+      ],
+      "tags": [
+        "function",
+        "subsetting",
+        "single",
+        "function:single",
+        "string"
+      ]
+    },
+    {
+      "name": "single - empty input path",
+      "expression": "empty.single()",
+      "input": [
+        {
+          "empty": []
+        }
+      ],
+      "expected": [],
+      "tags": [
+        "function",
+        "subsetting",
+        "single",
+        "empty",
+        "function:single"
+      ]
+    },
+    {
+      "name": "single - many items error",
+      "expression": "(1 | 2 | 3 | 4 | 5).single()",
+      "input": null,
+      "expected": [],
+      "error": {
+        "type": "Error",
+        "message": "single\\(\\) requires collection to have exactly one item"
+      },
+      "tags": [
+        "function",
+        "subsetting",
+        "single",
+        "error",
+        "function:single"
+      ]
+    },
+    {
+      "name": "single - error with arguments",
+      "expression": "(5).single('test')",
+      "input": null,
+      "expected": [],
+      "error": {
+        "type": "Error",
+        "message": "single\\(\\) takes no arguments"
+      },
+      "tags": [
+        "function",
+        "subsetting",
+        "single",
+        "error",
+        "function:single"
+      ]
+    },
+    {
+      "name": "single - with Patient.name example",
+      "expression": "name.single()",
+      "input": [
+        {
+          "name": [
+            {
+              "use": "official",
+              "family": "Doe",
+              "given": ["John"]
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "use": "official",
+          "family": "Doe",
+          "given": ["John"]
+        }
+      ],
+      "tags": [
+        "function",
+        "subsetting",
+        "single",
+        "function:single",
+        "example"
+      ]
+    },
+    {
+      "name": "single - boolean value",
+      "expression": "(true).single()",
+      "input": null,
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "subsetting",
+        "single",
+        "function:single",
+        "boolean"
+      ]
+    },
+    {
+      "name": "single - null value",
+      "expression": "value.single()",
+      "input": [
+        {
+          "value": [null]
+        }
+      ],
+      "expected": [
+        null
+      ],
+      "tags": [
+        "function",
+        "subsetting",
+        "single",
+        "function:single",
+        "null"
+      ]
+    },
+    {
+      "name": "single - with where clause",
+      "expression": "values.where($this > 5).single()",
+      "input": [
+        {
+          "values": [1, 2, 6, 3, 4]
+        }
+      ],
+      "expected": [
+        6
+      ],
+      "tags": [
+        "function",
+        "subsetting",
+        "single",
+        "function:single",
+        "integration"
       ]
     }
   ]

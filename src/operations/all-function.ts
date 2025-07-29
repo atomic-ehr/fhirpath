@@ -49,7 +49,7 @@ export const allFunction: FunctionDefinition & { evaluate: FunctionEvaluator } =
   signature: {
     input: { type: 'Any', singleton: false },
     parameters: [
-      { name: 'criteria', type: { type: 'expression' } }
+      { name: 'criteria', type: { type: 'Any', singleton: false } }
     ],
     result: { type: 'Boolean', singleton: true }
   },

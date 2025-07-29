@@ -24,6 +24,9 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   }
 
   // Evaluate the suffix argument
+  if (!args[0]) {
+    throw new Error('endsWith() requires a suffix argument');
+  }
   const suffixResult = evaluator(args[0], input, context);
   
   // Validate that suffix is a singleton string

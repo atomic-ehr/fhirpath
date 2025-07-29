@@ -4,51 +4,100 @@
   "tests": [
     {
       "name": "exclude - remove items",
-      "expression": "{1, 2, 3, 4}.exclude({3, 4})",
-      "input": [],
-      "expected": [
-        1,
-        2
-      ],
-      "tags": [
-        "function",
-        "set",
-        "exclude",
-        "function:exclude"
-      ]
+      "expression": "(1 | 2 | 3 | 4).exclude(3 | 4)",
+      "expected": [1, 2],
+      "tags": ["function", "collection", "exclude", "function:exclude"]
     },
     {
       "name": "exclude - remove non-existing",
-      "expression": "{1, 2, 3}.exclude({4, 5})",
-      "input": [],
-      "expected": [
-        1,
-        2,
-        3
-      ],
-      "tags": [
-        "function",
-        "set",
-        "exclude",
-        "function:exclude"
-      ]
+      "expression": "(1 | 2 | 3).exclude(4 | 5)",
+      "expected": [1, 2, 3],
+      "tags": ["function", "collection", "exclude", "function:exclude"]
     },
     {
       "name": "exclude - with empty",
-      "expression": "{1, 2, 3}.exclude({})",
-      "input": [],
-      "expected": [
-        1,
-        2,
-        3
-      ],
-      "tags": [
-        "function",
-        "set",
-        "exclude",
-        "empty",
-        "function:exclude"
-      ]
+      "expression": "(1 | 2 | 3).exclude({})",
+      "expected": [1, 2, 3],
+      "tags": ["function", "collection", "exclude", "function:exclude", "empty"]
+    },
+    {
+      "name": "exclude - empty collection",
+      "expression": "({}).exclude(1 | 2 | 3)",
+      "expected": [],
+      "tags": ["function", "collection", "exclude", "function:exclude", "empty"]
+    },
+    {
+      "name": "exclude - single item",
+      "expression": "(1 | 2 | 3).exclude(2)",
+      "expected": [1, 3],
+      "tags": ["function", "collection", "exclude", "function:exclude", "single"]
+    },
+    {
+      "name": "exclude - preserves duplicates",
+      "expression": "(1 | 2 | 2 | 3 | 3).exclude(2)",
+      "expected": [1, 3, 3],
+      "tags": ["function", "collection", "exclude", "function:exclude", "duplicates"]
+    },
+    {
+      "name": "exclude - preserves order",
+      "expression": "(3 | 1 | 4 | 1 | 5).exclude(1 | 4)",
+      "expected": [3, 5],
+      "tags": ["function", "collection", "exclude", "function:exclude", "order"]
+    },
+    {
+      "name": "exclude - string collections",
+      "expression": "('a' | 'b' | 'c' | 'd').exclude('b' | 'd')",
+      "expected": ["a", "c"],
+      "tags": ["function", "collection", "exclude", "function:exclude", "string"]
+    },
+    {
+      "name": "exclude - boolean values",
+      "expression": "(true | false | true | false).exclude(false)",
+      "expected": [true, true],
+      "tags": ["function", "collection", "exclude", "function:exclude", "boolean"]
+    },
+    {
+      "name": "exclude - mixed types",
+      "expression": "(1 | 'two' | true | 3.14).exclude('two' | true)",
+      "expected": [1, 3.14],
+      "tags": ["function", "collection", "exclude", "function:exclude", "mixed-types"]
+    },
+    {
+      "name": "exclude - all items",
+      "expression": "(1 | 2 | 3).exclude(1 | 2 | 3)",
+      "expected": [],
+      "tags": ["function", "collection", "exclude", "function:exclude", "all"]
+    },
+    {
+      "name": "exclude - none of the items",
+      "expression": "(1 | 2 | 3).exclude(4 | 5 | 6)",
+      "expected": [1, 2, 3],
+      "tags": ["function", "collection", "exclude", "function:exclude", "none"]
+    },
+    {
+      "name": "exclude - with duplicates in exclude list",
+      "expression": "(1 | 2 | 3 | 4).exclude(2 | 2 | 4 | 4)",
+      "expected": [1, 3],
+      "tags": ["function", "collection", "exclude", "function:exclude", "duplicates-exclude"]
+    },
+    {
+      "name": "exclude - complex path expression",
+      "expression": "Patient.name.given.exclude('James')",
+      "input": {
+        "resourceType": "Patient",
+        "name": [{
+          "given": ["John", "James", "Jim"],
+          "family": "Doe"
+        }]
+      },
+      "expected": ["John", "Jim"],
+      "tags": ["function", "collection", "exclude", "function:exclude", "path"]
+    },
+    {
+      "name": "exclude - spec example",
+      "expression": "(1 | 2 | 3).exclude(2)",
+      "expected": [1, 3],
+      "tags": ["function", "collection", "exclude", "function:exclude", "spec-example"]
     }
   ]
 }

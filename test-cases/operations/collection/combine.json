@@ -3,42 +3,118 @@
   "description": "Tests for the combine() function",
   "tests": [
     {
+      "name": "combine - basic collections",
+      "expression": "(1 | 2 | 3).combine((4 | 5 | 6))",
+      "expected": [1, 2, 3, 4, 5, 6],
+      "tags": ["function", "collection", "combine", "function:combine"]
+    },
+    {
       "name": "combine - keeps duplicates",
-      "expression": "{1, 2, 3}.combine({3, 4, 5})",
-      "input": [],
-      "expected": [
-        1,
-        2,
-        3,
-        3,
-        4,
-        5
-      ],
-      "tags": [
-        "function",
-        "set",
-        "combine",
-        "function:combine"
-      ]
+      "expression": "(1 | 2 | 3).combine((3 | 4 | 5))",
+      "expected": [1, 2, 3, 3, 4, 5],
+      "tags": ["function", "collection", "combine", "function:combine", "duplicates"]
     },
     {
       "name": "combine - multiple duplicates",
-      "expression": "{1, 2, 2}.combine({2, 3, 3})",
-      "input": [],
-      "expected": [
-        1,
-        2,
-        2,
-        2,
-        3,
-        3
-      ],
-      "tags": [
-        "function",
-        "set",
-        "combine",
-        "function:combine"
-      ]
+      "expression": "(1 | 2 | 2).combine((2 | 3 | 3))",
+      "expected": [1, 2, 2, 2, 3, 3],
+      "tags": ["function", "collection", "combine", "function:combine", "duplicates"]
+    },
+    {
+      "name": "combine - empty with non-empty",
+      "expression": "({}).combine((1 | 2 | 3))",
+      "expected": [1, 2, 3],
+      "tags": ["function", "collection", "combine", "function:combine", "empty"]
+    },
+    {
+      "name": "combine - non-empty with empty",
+      "expression": "(1 | 2 | 3).combine(({}))",
+      "expected": [1, 2, 3],
+      "tags": ["function", "collection", "combine", "function:combine", "empty"]
+    },
+    {
+      "name": "combine - both empty",
+      "expression": "({}).combine(({}))",
+      "expected": [],
+      "tags": ["function", "collection", "combine", "function:combine", "empty"]
+    },
+    {
+      "name": "combine - strings",
+      "expression": "('a' | 'b').combine(('c' | 'd'))",
+      "expected": ["a", "b", "c", "d"],
+      "tags": ["function", "collection", "combine", "function:combine", "string"]
+    },
+    {
+      "name": "combine - mixed types",
+      "expression": "(1 | 'two' | true).combine((3.14 | false | 'five'))",
+      "expected": [1, "two", true, 3.14, false, "five"],
+      "tags": ["function", "collection", "combine", "function:combine", "mixed-types"]
+    },
+    {
+      "name": "combine - single elements",
+      "expression": "(42).combine((99))",
+      "expected": [42, 99],
+      "tags": ["function", "collection", "combine", "function:combine", "singleton"]
+    },
+    {
+      "name": "combine - path expressions",
+      "expression": "name.given.combine(name.family)",
+      "input": {
+        "name": [
+          {"given": ["John", "James"], "family": "Smith"},
+          {"given": ["Jane"], "family": "Doe"}
+        ]
+      },
+      "expected": ["John", "James", "Jane", "Smith", "Doe"],
+      "tags": ["function", "collection", "combine", "function:combine", "path"]
+    },
+    {
+      "name": "combine - nested collections",
+      "expression": "items.value.combine(siblings.extras.value)",
+      "input": {
+        "items": [{"value": 1}, {"value": 2}],
+        "siblings": {"extras": [{"value": 3}, {"value": 4}]}
+      },
+      "expected": [1, 2, 3, 4],
+      "tags": ["function", "collection", "combine", "function:combine", "nested"]
+    },
+    {
+      "name": "combine - with select",
+      "expression": "values.select($this).combine(('x' | 'y'))",
+      "input": {"values": ["a", "b"]},
+      "expected": ["a", "b", "x", "y"],
+      "tags": ["function", "collection", "combine", "function:combine", "select"]
+    },
+    {
+      "name": "combine - null values preserved",
+      "expression": "(1 | null | 3).combine((null | 5))",
+      "input": {"null": null},
+      "expected": [1, null, 3, null, 5],
+      "tags": ["function", "collection", "combine", "function:combine", "null"]
+    },
+    {
+      "name": "combine - error on missing argument",
+      "expression": "(1 | 2 | 3).combine()",
+      "error": "combine() requires exactly one argument",
+      "tags": ["function", "collection", "combine", "function:combine", "error"]
+    },
+    {
+      "name": "combine - error on multiple arguments",
+      "expression": "(1 | 2).combine((3 | 4), (5 | 6))",
+      "error": "combine() requires exactly one argument",
+      "tags": ["function", "collection", "combine", "function:combine", "error"]
+    },
+    {
+      "name": "combine - expression argument",
+      "expression": "(1 | 2).combine(3 + 4)",
+      "expected": [1, 2, 7],
+      "tags": ["function", "collection", "combine", "function:combine", "expression"]
+    },
+    {
+      "name": "combine - chained",
+      "expression": "(1 | 2).combine((3 | 4)).combine((5 | 6))",
+      "expected": [1, 2, 3, 4, 5, 6],
+      "tags": ["function", "collection", "combine", "function:combine", "chained"]
     }
   ]
 }

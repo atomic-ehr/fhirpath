@@ -4,43 +4,103 @@
   "tests": [
     {
       "name": "intersect - common items",
-      "expression": "{1, 2, 3, 4}.intersect({3, 4, 5, 6})",
-      "input": [],
-      "expected": [
-        3,
-        4
-      ],
-      "tags": [
-        "function",
-        "set",
-        "intersect",
-        "function:intersect"
-      ]
+      "expression": "(1 | 2 | 3 | 4).intersect(3 | 4 | 5 | 6)",
+      "expected": [3, 4],
+      "tags": ["function", "collection", "intersect", "function:intersect"]
     },
     {
       "name": "intersect - no common items",
-      "expression": "{1, 2, 3}.intersect({4, 5, 6})",
-      "input": [],
+      "expression": "(1 | 2 | 3).intersect(4 | 5 | 6)",
       "expected": [],
-      "tags": [
-        "function",
-        "set",
-        "intersect",
-        "function:intersect"
-      ]
+      "tags": ["function", "collection", "intersect", "function:intersect", "disjoint"]
     },
     {
       "name": "intersect - with empty",
-      "expression": "{1, 2, 3}.intersect({})",
-      "input": [],
+      "expression": "(1 | 2 | 3).intersect({})",
       "expected": [],
-      "tags": [
-        "function",
-        "set",
-        "intersect",
-        "empty",
-        "function:intersect"
-      ]
+      "tags": ["function", "collection", "intersect", "function:intersect", "empty"]
+    },
+    {
+      "name": "intersect - empty with collection",
+      "expression": "({}).intersect(1 | 2 | 3)",
+      "expected": [],
+      "tags": ["function", "collection", "intersect", "function:intersect", "empty"]
+    },
+    {
+      "name": "intersect - both empty",
+      "expression": "({}).intersect({})",
+      "expected": [],
+      "tags": ["function", "collection", "intersect", "function:intersect", "empty"]
+    },
+    {
+      "name": "intersect - duplicates in first collection",
+      "expression": "(1 | 2 | 2 | 3 | 3).intersect(2 | 3 | 4)",
+      "expected": [2, 3],
+      "tags": ["function", "collection", "intersect", "function:intersect", "duplicates"]
+    },
+    {
+      "name": "intersect - duplicates in second collection",
+      "expression": "(1 | 2 | 3).intersect(2 | 2 | 3 | 3 | 4)",
+      "expected": [2, 3],
+      "tags": ["function", "collection", "intersect", "function:intersect", "duplicates"]
+    },
+    {
+      "name": "intersect - duplicates in both collections",
+      "expression": "(1 | 2 | 2 | 3 | 3).intersect(2 | 2 | 3 | 3 | 4)",
+      "expected": [2, 3],
+      "tags": ["function", "collection", "intersect", "function:intersect", "duplicates"]
+    },
+    {
+      "name": "intersect - string collections",
+      "expression": "('a' | 'b' | 'c').intersect('b' | 'c' | 'd')",
+      "expected": ["b", "c"],
+      "tags": ["function", "collection", "intersect", "function:intersect", "string"]
+    },
+    {
+      "name": "intersect - mixed types",
+      "expression": "(1 | 'two' | true).intersect('two' | false | 1)",
+      "expected": [1, "two"],
+      "tags": ["function", "collection", "intersect", "function:intersect", "mixed-types"]
+    },
+    {
+      "name": "intersect - boolean values",
+      "expression": "(true | false | true).intersect(true | true)",
+      "expected": [true],
+      "tags": ["function", "collection", "intersect", "function:intersect", "boolean"]
+    },
+    {
+      "name": "intersect - complex objects (currently uses reference equality)",
+      "expression": "Patient.name.intersect(Patient.contact.name)",
+      "input": {
+        "resourceType": "Patient",
+        "name": [
+          {"use": "official", "given": ["John"], "family": "Doe"},
+          {"use": "nickname", "given": ["Johnny"], "family": "D"}
+        ],
+        "contact": [{
+          "name": {"use": "official", "given": ["John"], "family": "Doe"}
+        }]
+      },
+      "expected": [],
+      "tags": ["function", "collection", "intersect", "function:intersect", "complex", "limitation"]
+    },
+    {
+      "name": "intersect - single items",
+      "expression": "(1).intersect(1)",
+      "expected": [1],
+      "tags": ["function", "collection", "intersect", "function:intersect", "singleton"]
+    },
+    {
+      "name": "intersect - preserves type",
+      "expression": "(1 | 2 | 3).intersect(2.0 | 3.0 | 4.0)",
+      "expected": [2, 3],
+      "tags": ["function", "collection", "intersect", "function:intersect", "type-preservation"]
+    },
+    {
+      "name": "intersect - all items common",
+      "expression": "(1 | 2 | 3).intersect(1 | 2 | 3)",
+      "expected": [1, 2, 3],
+      "tags": ["function", "collection", "intersect", "function:intersect", "identical"]
     }
   ]
 }
