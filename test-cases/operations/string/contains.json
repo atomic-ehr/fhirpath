@@ -146,6 +146,86 @@
       "input": [{"name": ["John Doe", "Jane Smith", "Johnny"]}],
       "expected": ["John Doe", "Johnny"],
       "tags": ["function", "string", "contains", "where", "function:contains"]
+    },
+    {
+      "name": "[FHIRPath Lab] contains - not in string",
+      "expression": "'12345'.contains('6') = false",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "string", "contains", "fhirpath-lab", "function:contains"]
+    },
+    {
+      "name": "[FHIRPath Lab] contains - at end",
+      "expression": "'12345'.contains('5') = true",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "string", "contains", "fhirpath-lab", "function:contains"]
+    },
+    {
+      "name": "[FHIRPath Lab] contains - consecutive chars",
+      "expression": "'12345'.contains('45') = true",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "string", "contains", "fhirpath-lab", "function:contains"]
+    },
+    {
+      "name": "[FHIRPath Lab] contains - non-consecutive chars",
+      "expression": "'12345'.contains('35') = false",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "string", "contains", "fhirpath-lab", "function:contains"]
+    },
+    {
+      "name": "[FHIRPath Lab] contains - entire string",
+      "expression": "'12345'.contains('12345') = true",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "string", "contains", "fhirpath-lab", "function:contains"]
+    },
+    {
+      "name": "[FHIRPath Lab] contains - longer than string",
+      "expression": "'12345'.contains('012345') = false",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "string", "contains", "fhirpath-lab", "function:contains"]
+    },
+    {
+      "name": "[FHIRPath Lab] contains - empty string",
+      "expression": "'12345'.contains('') = true",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "string", "contains", "empty", "fhirpath-lab", "function:contains"]
+    },
+    {
+      "name": "[FHIRPath Lab] empty contains non-empty",
+      "expression": "{}.contains('a').empty() = true",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "string", "contains", "empty", "fhirpath-lab", "function:contains"]
+    },
+    {
+      "name": "[FHIRPath Lab] empty contains empty",
+      "expression": "{}.contains('').empty() = true",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "string", "contains", "empty", "fhirpath-lab", "function:contains"]
+    },
+    {
+      "name": "[FHIRPath Lab] contains with expression argument",
+      "expression": "'123456789'.contains(length().toString())",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "string", "contains", "expression", "fhirpath-lab", "function:contains"],
+      "description": "Tests using an expression as the substring argument - length() returns 9, toString() converts to '9'",
+      "pending": "toString() function not yet implemented"
+    },
+    {
+      "name": "contains - navigation to non-string returns empty",
+      "expression": "identifier.contains('rand')",
+      "input": [{"identifier": [{"system": "http://example.org", "value": "123"}]}],
+      "expected": [],
+      "tags": ["function", "string", "contains", "navigation", "type", "function:contains"],
+      "description": "When navigating to non-string properties, contains() should return empty"
     }
   ]
 }
