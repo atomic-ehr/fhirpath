@@ -79,23 +79,6 @@ export class RuntimeContextManager {
   }
 
   /**
-   * Set special variable ($this, $index, $total)
-   */
-  static setSpecialVariable(context: RuntimeContext, name: string, value: any): RuntimeContext {
-    const newContext = this.copy(context);
-    const varKey = `$${name}`;
-    newContext.variables[varKey] = value;
-    
-    // Update input/focus for $this
-    if (name === 'this' && Array.isArray(value) && value.length === 1) {
-      newContext.input = value;
-      newContext.focus = value;
-    }
-    
-    return newContext;
-  }
-
-  /**
    * Set iterator context ($this, $index)
    */
   static withIterator(
@@ -103,24 +86,33 @@ export class RuntimeContextManager {
     item: any, 
     index: number
   ): RuntimeContext {
-    let newContext = this.setSpecialVariable(context, 'this', [item]);
-    newContext = this.setSpecialVariable(newContext, 'index', index);
+    let newContext = this.setVariable(context, '$this', [item], true);
+    newContext = this.setVariable(newContext, '$index', index, true);
     return newContext;
   }
 
   /**
-   * Set a user-defined variable in the context
+   * Set a variable in the context (handles both special $ and user % variables)
    */
-  static setVariable(context: RuntimeContext, name: string, value: any[], allowRedefinition: boolean = false): RuntimeContext {
-    // Check for system variables
+  static setVariable(context: RuntimeContext, name: string, value: any, allowRedefinition: boolean = false): RuntimeContext {
+    // Ensure value is array for consistency (except for special variables like $index)
+    const arrayValue = (name === '$index' || name === '$total') ? value : 
+                      Array.isArray(value) ? value : [value];
+    
+    // Determine variable key based on prefix
+    let varKey = name;
+    if (!name.startsWith('$') && !name.startsWith('%')) {
+      // No prefix - assume user-defined variable, add % prefix
+      varKey = `%${name}`;
+    }
+    
+    // Check for system variables (with or without % prefix)
     const systemVariables = ['context', 'resource', 'rootResource', 'ucum', 'sct', 'loinc'];
-    if (systemVariables.includes(name)) {
+    const baseVarName = varKey.startsWith('%') ? varKey.substring(1) : varKey;
+    if (systemVariables.includes(baseVarName)) {
       // Silently return original context for system variable redefinition
       return context;
     }
-    
-    // Add % prefix for user-defined variables
-    const varKey = name.startsWith('%') ? name : `%${name}`;
     
     // Check if variable already exists (unless redefinition is allowed)
     if (!allowRedefinition && context.variables && Object.prototype.hasOwnProperty.call(context.variables, varKey)) {
@@ -128,8 +120,16 @@ export class RuntimeContextManager {
       return context;
     }
     
+    // Create new context and set variable
     const newContext = this.copy(context);
-    newContext.variables[varKey] = value;
+    newContext.variables[varKey] = arrayValue;
+    
+    // Special handling for $this
+    if (varKey === '$this' && Array.isArray(arrayValue) && arrayValue.length === 1) {
+      newContext.input = arrayValue;
+      newContext.focus = arrayValue;
+    }
+    
     return newContext;
   }
 

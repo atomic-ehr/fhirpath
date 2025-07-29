@@ -18,6 +18,10 @@ export function evaluate(
   
   // Create context with variables if provided
   let context = RuntimeContextManager.create(input);
+  
+  // Set $this to the input (required for expressions like $this.where(...))
+  context = RuntimeContextManager.setVariable(context, '$this', input);
+  
   if (options.variables) {
     for (const [key, value] of Object.entries(options.variables)) {
       const varValue = Array.isArray(value) ? value : [value];

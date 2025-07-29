@@ -21,7 +21,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     
     // Create iterator context with $this and $index
     let tempContext = RuntimeContextManager.withIterator(context, item, i);
-    tempContext = RuntimeContextManager.setSpecialVariable(tempContext, 'total', input.length);
+    tempContext = RuntimeContextManager.setVariable(tempContext, '$total', input.length);
 
     // Evaluate expression with temporary context
     const exprResult = evaluator(expression, [item], tempContext);

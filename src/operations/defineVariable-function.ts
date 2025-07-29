@@ -21,7 +21,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     value = input;
   } else {
     // Two arguments: defineVariable(name, value) - evaluate value expression
-    const tempContext = RuntimeContextManager.setSpecialVariable(context, 'this', input);
+    const tempContext = RuntimeContextManager.setVariable(context, '$this', input);
     const valueExpr = args[1];
     if (!valueExpr) {
       throw new Error('defineVariable requires a value expression');
