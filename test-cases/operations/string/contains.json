@@ -1,0 +1,151 @@
+{
+  "name": "Contains Function Tests",
+  "description": "Tests for the contains() string function",
+  "tests": [
+    {
+      "name": "contains - substring found at beginning",
+      "expression": "'abc'.contains('a')",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "string", "contains", "function:contains"]
+    },
+    {
+      "name": "contains - substring found in middle",
+      "expression": "'abc'.contains('b')",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "string", "contains", "function:contains"]
+    },
+    {
+      "name": "contains - substring found at end",
+      "expression": "'abc'.contains('c')",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "string", "contains", "function:contains"]
+    },
+    {
+      "name": "contains - multiple character substring",
+      "expression": "'abc'.contains('bc')",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "string", "contains", "function:contains"]
+    },
+    {
+      "name": "contains - entire string",
+      "expression": "'abc'.contains('abc')",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "string", "contains", "function:contains"]
+    },
+    {
+      "name": "contains - substring not found",
+      "expression": "'abc'.contains('d')",
+      "input": [],
+      "expected": [false],
+      "tags": ["function", "string", "contains", "function:contains"]
+    },
+    {
+      "name": "contains - empty substring returns true",
+      "expression": "'abc'.contains('')",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "string", "contains", "empty", "function:contains"]
+    },
+    {
+      "name": "contains - empty string contains empty",
+      "expression": "''.contains('')",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "string", "contains", "empty", "function:contains"]
+    },
+    {
+      "name": "contains - empty string does not contain non-empty",
+      "expression": "''.contains('a')",
+      "input": [],
+      "expected": [false],
+      "tags": ["function", "string", "contains", "empty", "function:contains"]
+    },
+    {
+      "name": "contains - empty input returns empty",
+      "expression": "contains('test')",
+      "input": [],
+      "expected": [],
+      "tags": ["function", "string", "contains", "empty", "function:contains"]
+    },
+    {
+      "name": "contains - non-string input returns empty",
+      "expression": "(123).contains('2')",
+      "input": [],
+      "expected": [],
+      "tags": ["function", "string", "contains", "type", "function:contains"]
+    },
+    {
+      "name": "contains - multiple input items throws error",
+      "expression": "('a' | 'b').contains('a')",
+      "input": [],
+      "expected": [],
+      "error": {
+        "type": "EvaluationError",
+        "message": "contains.*single.*string",
+        "phase": "evaluate"
+      },
+      "tags": ["function", "string", "contains", "error", "function:contains"]
+    },
+    {
+      "name": "contains - empty substring collection returns empty",
+      "expression": "'abc'.contains({})",
+      "input": [],
+      "expected": [],
+      "tags": ["function", "string", "contains", "empty", "function:contains"]
+    },
+    {
+      "name": "contains - non-string substring returns empty",
+      "expression": "'abc'.contains(123)",
+      "input": [],
+      "expected": [],
+      "tags": ["function", "string", "contains", "type", "function:contains"]
+    },
+    {
+      "name": "contains - case sensitive",
+      "expression": "'Hello'.contains('hello')",
+      "input": [],
+      "expected": [false],
+      "tags": ["function", "string", "contains", "case", "function:contains"]
+    },
+    {
+      "name": "contains - on input property",
+      "expression": "text.contains('world')",
+      "input": [{"text": "hello world"}],
+      "expected": [true],
+      "tags": ["function", "string", "contains", "navigation", "function:contains"]
+    },
+    {
+      "name": "contains - special characters",
+      "expression": "'a.b.c'.contains('.')",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "string", "contains", "special", "function:contains"]
+    },
+    {
+      "name": "contains - multiple occurrence",
+      "expression": "'abcabc'.contains('bc')",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "string", "contains", "function:contains"]
+    },
+    {
+      "name": "contains - substring longer than string",
+      "expression": "'ab'.contains('abc')",
+      "input": [],
+      "expected": [false],
+      "tags": ["function", "string", "contains", "function:contains"]
+    },
+    {
+      "name": "contains - with where clause",
+      "expression": "name.where($this.contains('John'))",
+      "input": [{"name": ["John Doe", "Jane Smith", "Johnny"]}],
+      "expected": ["John Doe", "Johnny"],
+      "tags": ["function", "string", "contains", "where", "function:contains"]
+    }
+  ]
+}

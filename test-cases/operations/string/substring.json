@@ -1,0 +1,464 @@
+{
+  "name": "substring Function Tests",
+  "description": "Tests for the substring() string function",
+  "tests": [
+    {
+      "name": "substring - from position to end",
+      "expression": "'abcdefg'.substring(3)",
+      "input": [],
+      "expected": [
+        "defg"
+      ],
+      "tags": [
+        "string",
+        "substring"
+      ]
+    },
+    {
+      "name": "substring - with length",
+      "expression": "'abcdefg'.substring(1, 2)",
+      "input": [],
+      "expected": [
+        "bc"
+      ],
+      "tags": [
+        "string",
+        "substring"
+      ]
+    },
+    {
+      "name": "substring - near end with length",
+      "expression": "'abcdefg'.substring(6, 2)",
+      "input": [],
+      "expected": [
+        "g"
+      ],
+      "tags": [
+        "string",
+        "substring"
+      ]
+    },
+    {
+      "name": "substring - start at beginning",
+      "expression": "'abcdefg'.substring(0)",
+      "input": [],
+      "expected": [
+        "abcdefg"
+      ],
+      "tags": [
+        "string",
+        "substring"
+      ]
+    },
+    {
+      "name": "substring - start at beginning with length",
+      "expression": "'abcdefg'.substring(0, 3)",
+      "input": [],
+      "expected": [
+        "abc"
+      ],
+      "tags": [
+        "string",
+        "substring"
+      ]
+    },
+    {
+      "name": "substring - start position at string length returns empty string",
+      "expression": "'abcdefg'.substring(7, 1)",
+      "input": [],
+      "expected": [
+        ""
+      ],
+      "tags": [
+        "string",
+        "substring",
+        "bounds"
+      ]
+    },
+    {
+      "name": "substring - start position outside string",
+      "expression": "'abcdefg'.substring(8, 1)",
+      "input": [],
+      "expected": [],
+      "tags": [
+        "string",
+        "substring",
+        "bounds"
+      ]
+    },
+    {
+      "name": "substring - negative start position",
+      "expression": "'abcdefg'.substring(-1, 1)",
+      "input": [],
+      "expected": [],
+      "tags": [
+        "string",
+        "substring",
+        "bounds",
+        "negative"
+      ]
+    },
+    {
+      "name": "substring - zero length",
+      "expression": "'abcdefg'.substring(3, 0)",
+      "input": [],
+      "expected": [
+        ""
+      ],
+      "tags": [
+        "string",
+        "substring",
+        "empty"
+      ]
+    },
+    {
+      "name": "substring - negative length",
+      "expression": "'abcdefg'.substring(3, -1)",
+      "input": [],
+      "expected": [
+        ""
+      ],
+      "tags": [
+        "string",
+        "substring",
+        "empty",
+        "negative"
+      ]
+    },
+    {
+      "name": "substring - negative start and length",
+      "expression": "'abcdefg'.substring(-1, -1)",
+      "input": [],
+      "expected": [],
+      "tags": [
+        "string",
+        "substring",
+        "bounds",
+        "negative"
+      ]
+    },
+    {
+      "name": "substring - length exceeds remaining string",
+      "expression": "'abcdefg'.substring(5, 10)",
+      "input": [],
+      "expected": [
+        "fg"
+      ],
+      "tags": [
+        "string",
+        "substring",
+        "bounds"
+      ]
+    },
+    {
+      "name": "substring - empty input",
+      "expression": "{}.substring(0)",
+      "input": [],
+      "expected": [],
+      "tags": [
+        "string",
+        "substring",
+        "empty"
+      ]
+    },
+    {
+      "name": "substring - empty start",
+      "expression": "'abcdefg'.substring({})",
+      "input": [],
+      "expected": [],
+      "tags": [
+        "string",
+        "substring",
+        "empty"
+      ]
+    },
+    {
+      "name": "substring - empty length behaves as no length",
+      "expression": "'abcdefg'.substring(3, {})",
+      "input": [],
+      "expected": [
+        "defg"
+      ],
+      "tags": [
+        "string",
+        "substring",
+        "empty"
+      ]
+    },
+    {
+      "name": "substring - with navigation",
+      "expression": "name.given.first().substring(1, 3)",
+      "input": [
+        {
+          "name": {
+            "given": [
+              "John",
+              "James"
+            ]
+          }
+        }
+      ],
+      "expected": [
+        "ohn"
+      ],
+      "tags": [
+        "string",
+        "substring",
+        "navigation"
+      ]
+    },
+    {
+      "name": "substring - empty string input",
+      "expression": "''.substring(0)",
+      "input": [],
+      "expected": [
+        ""
+      ],
+      "tags": [
+        "string",
+        "substring",
+        "empty"
+      ]
+    },
+    {
+      "name": "substring - empty string with start outside",
+      "expression": "''.substring(1)",
+      "input": [],
+      "expected": [],
+      "tags": [
+        "string",
+        "substring",
+        "empty",
+        "bounds"
+      ]
+    },
+    {
+      "name": "substring - multiple items error",
+      "expression": "('abc' | 'def').substring(1)",
+      "input": [],
+      "expected": [],
+      "error": {
+        "type": "EvaluationError",
+        "message": "substring.*single.*string",
+        "phase": "evaluate"
+      },
+      "tags": [
+        "string",
+        "substring",
+        "error"
+      ]
+    },
+    {
+      "name": "substring - non-string input error",
+      "expression": "123.substring(1)",
+      "input": [],
+      "expected": [],
+      "error": {
+        "type": "EvaluationError",
+        "message": "substring.*string.*values",
+        "phase": "evaluate"
+      },
+      "tags": [
+        "string",
+        "substring",
+        "error",
+        "type"
+      ]
+    },
+    {
+      "name": "substring - non-integer start error",
+      "expression": "'abcdefg'.substring(1.5)",
+      "input": [],
+      "expected": [],
+      "error": {
+        "type": "EvaluationError",
+        "message": "substring.*start.*integer",
+        "phase": "evaluate"
+      },
+      "tags": [
+        "string",
+        "substring",
+        "error",
+        "type"
+      ]
+    },
+    {
+      "name": "substring - non-integer length error",
+      "expression": "'abcdefg'.substring(1, 'two')",
+      "input": [],
+      "expected": [],
+      "error": {
+        "type": "EvaluationError",
+        "message": "substring.*length.*integer",
+        "phase": "evaluate"
+      },
+      "tags": [
+        "string",
+        "substring",
+        "error",
+        "type"
+      ]
+    },
+    {
+      "name": "substring - select example from spec",
+      "expression": "name.given.select(substring(0, 1))",
+      "input": [
+        {
+          "name": {
+            "given": [
+              "Peter",
+              "James"
+            ]
+          }
+        }
+      ],
+      "expected": [
+        "P",
+        "J"
+      ],
+      "tags": [
+        "string",
+        "substring",
+        "select",
+        "navigation"
+      ]
+    },
+    {
+      "name": "[FHIRPath Lab] substring with comparison",
+      "expression": "'12345'.substring(2) = '345'",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "string",
+        "substring",
+        "comparison",
+        "fhirpath-lab"
+      ]
+    },
+    {
+      "name": "[FHIRPath Lab] substring single character",
+      "expression": "'12345'.substring(2,1) = '3'",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "string",
+        "substring",
+        "comparison",
+        "fhirpath-lab"
+      ]
+    },
+    {
+      "name": "[FHIRPath Lab] substring length exceeds",
+      "expression": "'12345'.substring(2,5) = '345'",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "string",
+        "substring",
+        "comparison",
+        "fhirpath-lab"
+      ]
+    },
+    {
+      "name": "[FHIRPath Lab] substring start way outside",
+      "expression": "'12345'.substring(25).empty()",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "string",
+        "substring",
+        "empty",
+        "fhirpath-lab"
+      ]
+    },
+    {
+      "name": "[FHIRPath Lab] substring negative start empty check",
+      "expression": "'12345'.substring(-1).empty()",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "string",
+        "substring",
+        "empty",
+        "negative",
+        "fhirpath-lab"
+      ]
+    },
+    {
+      "name": "[FHIRPath Lab] substring with indexOf",
+      "expression": "'LogicalModel-Person'.substring(0, 'LogicalModel-Person'.indexOf('-'))",
+      "input": [],
+      "expected": [
+        "LogicalModel"
+      ],
+      "tags": [
+        "string",
+        "substring",
+        "indexOf",
+        "fhirpath-lab"
+      ]
+    },
+    {
+      "name": "[FHIRPath Lab] substring with dynamic length using length()",
+      "expression": "name.family.first().substring(2, length()-5)",
+      "input": [
+        {
+          "resourceType": "Patient",
+          "name": [
+            {
+              "family": "Chalmers"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        "alm"
+      ],
+      "tags": [
+        "string",
+        "substring",
+        "length",
+        "navigation",
+        "fhirpath-lab"
+      ]
+    },
+    {
+      "name": "[FHIRPath Lab] empty input empty start",
+      "expression": "{}.substring({}).empty() = true",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "string",
+        "substring",
+        "empty",
+        "fhirpath-lab"
+      ]
+    },
+    {
+      "name": "[FHIRPath Lab] string with empty start",
+      "expression": "'string'.substring({}).empty() = true",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "string",
+        "substring",
+        "empty",
+        "fhirpath-lab"
+      ]
+    }
+  ]
+}

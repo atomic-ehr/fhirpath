@@ -1,0 +1,144 @@
+{
+  "name": "length Function Tests",
+  "description": "Tests for the length() string function",
+  "tests": [
+    {
+      "name": "length - simple string",
+      "expression": "'abcdefg'.length()",
+      "input": [],
+      "expected": [7],
+      "tags": ["string", "length"]
+    },
+    {
+      "name": "length - empty string",
+      "expression": "''.length()",
+      "input": [],
+      "expected": [0],
+      "tags": ["string", "length", "empty"]
+    },
+    {
+      "name": "length - single character",
+      "expression": "'a'.length()",
+      "input": [],
+      "expected": [1],
+      "tags": ["string", "length"]
+    },
+    {
+      "name": "length - with spaces",
+      "expression": "'hello world'.length()",
+      "input": [],
+      "expected": [11],
+      "tags": ["string", "length"]
+    },
+    {
+      "name": "length - unicode characters",
+      "expression": "'café'.length()",
+      "input": [],
+      "expected": [4],
+      "tags": ["string", "length", "unicode"]
+    },
+    {
+      "name": "length - empty input",
+      "expression": "{}.length()",
+      "input": [],
+      "expected": [],
+      "tags": ["string", "length", "empty"]
+    },
+    {
+      "name": "length - with navigation",
+      "expression": "name.given.first().length()",
+      "input": [
+        {
+          "name": {
+            "given": ["John", "James"]
+          }
+        }
+      ],
+      "expected": [4],
+      "tags": ["string", "length", "navigation"]
+    },
+    {
+      "name": "length - multiple items error",
+      "expression": "('abc' | 'defgh').length()",
+      "input": [],
+      "expected": [],
+      "error": {
+        "type": "EvaluationError",
+        "message": "length.*single.*string",
+        "phase": "evaluate"
+      },
+      "tags": ["string", "length", "error"]
+    },
+    {
+      "name": "length - non-string input error",
+      "expression": "123.length()",
+      "input": [],
+      "expected": [],
+      "error": {
+        "type": "EvaluationError",
+        "message": "length.*string.*values",
+        "phase": "evaluate"
+      },
+      "tags": ["string", "length", "error", "type"]
+    },
+    {
+      "name": "length - with arguments error",
+      "expression": "'abc'.length(5)",
+      "input": [],
+      "expected": [],
+      "error": {
+        "type": "EvaluationError",
+        "message": "length.*takes no arguments",
+        "phase": "evaluate"
+      },
+      "tags": ["string", "length", "error"]
+    },
+    {
+      "name": "length - in arithmetic expression",
+      "expression": "'hello'.length() + 'world'.length()",
+      "input": [],
+      "expected": [10],
+      "tags": ["string", "length", "arithmetic"]
+    },
+    {
+      "name": "length - in comparison",
+      "expression": "'abc'.length() > 2",
+      "input": [],
+      "expected": [true],
+      "tags": ["string", "length", "comparison"]
+    },
+    {
+      "name": "length - with select",
+      "expression": "name.given.select(length())",
+      "input": [
+        {
+          "name": {
+            "given": ["Peter", "Jo"]
+          }
+        }
+      ],
+      "expected": [5, 2],
+      "tags": ["string", "length", "select", "navigation"]
+    },
+    {
+      "name": "length - used in substring",
+      "expression": "'hello world'.substring(0, 'hello'.length())",
+      "input": [],
+      "expected": ["hello"],
+      "tags": ["string", "length", "substring"]
+    },
+    {
+      "name": "length - chained with where",
+      "expression": "name.given.where(length() > 3)",
+      "input": [
+        {
+          "name": {
+            "given": ["Peter", "Jo", "James"]
+          }
+        }
+      ],
+      "expected": ["Peter", "James"],
+      "tags": ["string", "length", "where", "navigation"]
+    }
+  ]
+}

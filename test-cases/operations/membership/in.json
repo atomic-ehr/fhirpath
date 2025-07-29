@@ -74,8 +74,8 @@
       ]
     },
     {
-      "name": "contains - string contains substring",
-      "expression": "'abc' contains 'a'",
+      "name": "contains - string collection contains character",
+      "expression": "('a' | 'b' | 'c') contains 'a'",
       "input": [],
       "expected": [
         true

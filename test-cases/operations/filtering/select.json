@@ -192,6 +192,154 @@
         "function:select"
       ],
       "description": "Using where() to test if out-of-scope variable %y exists"
+    },
+    {
+      "name": "select - union inside projection",
+      "expression": "select(first | last)",
+      "input": [
+        {
+          "first": "John",
+          "last": "Doe"
+        },
+        {
+          "first": "Jane",
+          "last": "Smith"
+        }
+      ],
+      "expected": [
+        "John",
+        "Doe",
+        "Jane",
+        "Smith"
+      ],
+      "tags": [
+        "function",
+        "select",
+        "union",
+        "operator",
+        "function:select"
+      ],
+      "description": "Using union operator (|) inside select projection"
+    },
+    {
+      "name": "select - boolean expression",
+      "expression": "select(active = true)",
+      "input": [
+        {
+          "name": "John",
+          "active": true
+        },
+        {
+          "name": "Jane",
+          "active": false
+        },
+        {
+          "name": "Bob",
+          "active": true
+        }
+      ],
+      "expected": [
+        true,
+        false,
+        true
+      ],
+      "tags": [
+        "function",
+        "select",
+        "boolean",
+        "function:select"
+      ],
+      "description": "Select with boolean expression that returns true/false values"
+    },
+    {
+      "name": "select - membership check with contains operator",
+      "expression": "select(tags contains 'active')",
+      "input": [
+        {
+          "name": "John",
+          "tags": ["active", "admin"]
+        },
+        {
+          "name": "Jane",
+          "tags": ["user"]
+        },
+        {
+          "name": "Bob",
+          "tags": ["active", "user"]
+        }
+      ],
+      "expected": [
+        true,
+        false,
+        true
+      ],
+      "tags": [
+        "function",
+        "select",
+        "contains",
+        "operator",
+        "membership",
+        "function:select"
+      ],
+      "description": "Using contains operator for membership check inside select projection"
+    },
+    {
+      "name": "select - arithmetic expression",
+      "expression": "select(age + 10)",
+      "input": [
+        {
+          "name": "John",
+          "age": 30
+        },
+        {
+          "name": "Jane",
+          "age": 25
+        }
+      ],
+      "expected": [
+        40,
+        35
+      ],
+      "tags": [
+        "function",
+        "select",
+        "arithmetic",
+        "function:select"
+      ],
+      "description": "Select with arithmetic expression"
+    },
+    {
+      "name": "select - nested property with union",
+      "expression": "name.select(given | family)",
+      "input": [
+        {
+          "name": [
+            {
+              "given": ["John", "James"],
+              "family": "Doe"
+            },
+            {
+              "given": ["Jane"],
+              "family": "Smith"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        "John",
+        "James",
+        "Doe",
+        "Jane",
+        "Smith"
+      ],
+      "tags": [
+        "function",
+        "select",
+        "union",
+        "nested",
+        "function:select"
+      ],
+      "description": "Select on nested structure with union of properties"
     }
   ]
 }

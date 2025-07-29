@@ -17,8 +17,8 @@
       ]
     },
     {
-      "name": "contains - string contains substring",
-      "expression": "'abc' contains 'a'",
+      "name": "contains - string collection contains character",
+      "expression": "('a' | 'b' | 'c') contains 'a'",
       "input": [],
       "expected": [
         true
@@ -46,8 +46,8 @@
       ]
     },
     {
-      "name": "contains - substring not found",
-      "expression": "'abc' contains 'x'",
+      "name": "contains - string not in collection",
+      "expression": "('a' | 'b' | 'c') contains 'x'",
       "input": [],
       "expected": [
         false
@@ -59,6 +59,59 @@
         "string",
         "operator:contains"
       ]
+    },
+    {
+      "name": "contains - empty left operand",
+      "expression": "{} contains 1",
+      "input": [],
+      "expected": [
+        false
+      ],
+      "tags": [
+        "operator",
+        "membership",
+        "contains",
+        "empty",
+        "operator:contains"
+      ]
+    },
+    {
+      "name": "contains - empty right operand",
+      "expression": "{1, 2, 3} contains {}",
+      "input": [],
+      "expected": [],
+      "tags": [
+        "operator",
+        "membership",
+        "contains",
+        "empty",
+        "operator:contains"
+      ]
+    },
+    {
+      "name": "contains - navigation example",
+      "expression": "name.given contains 'Joe'",
+      "input": [
+        {
+          "name": [
+            {
+              "given": ["Joe", "John"],
+              "family": "Doe"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "membership",
+        "contains",
+        "navigation",
+        "operator:contains"
+      ],
+      "description": "Example from the spec: returns true if the list of given names has 'Joe' in it"
     }
   ]
 }
