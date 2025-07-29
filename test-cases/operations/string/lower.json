@@ -1,0 +1,117 @@
+{
+  "name": "Lower Function Tests",
+  "description": "Tests for the lower() function",
+  "tests": [
+    {
+      "name": "lower - uppercase string",
+      "expression": "'ABCDEFG'.lower()",
+      "expected": ["abcdefg"],
+      "tags": ["function", "string", "lower", "function:lower"]
+    },
+    {
+      "name": "lower - mixed case string",
+      "expression": "'aBcDEFG'.lower()",
+      "expected": ["abcdefg"],
+      "tags": ["function", "string", "lower", "function:lower"]
+    },
+    {
+      "name": "lower - already lowercase",
+      "expression": "'abcdefg'.lower()",
+      "expected": ["abcdefg"],
+      "tags": ["function", "string", "lower", "function:lower"]
+    },
+    {
+      "name": "lower - empty string",
+      "expression": "''.lower()",
+      "expected": [""],
+      "tags": ["function", "string", "lower", "function:lower", "empty-string"]
+    },
+    {
+      "name": "lower - string with numbers",
+      "expression": "'ABC123DEF'.lower()",
+      "expected": ["abc123def"],
+      "tags": ["function", "string", "lower", "function:lower", "alphanumeric"]
+    },
+    {
+      "name": "lower - string with special characters",
+      "expression": "'HELLO-WORLD_123!'.lower()",
+      "expected": ["hello-world_123!"],
+      "tags": ["function", "string", "lower", "function:lower", "special-chars"]
+    },
+    {
+      "name": "lower - string with spaces",
+      "expression": "'HELLO WORLD'.lower()",
+      "expected": ["hello world"],
+      "tags": ["function", "string", "lower", "function:lower", "spaces"]
+    },
+    {
+      "name": "lower - unicode characters",
+      "expression": "'CAFÉ'.lower()",
+      "expected": ["café"],
+      "tags": ["function", "string", "lower", "function:lower", "unicode"]
+    },
+    {
+      "name": "lower - empty input collection",
+      "expression": "({}).lower()",
+      "expected": [],
+      "tags": ["function", "string", "lower", "function:lower", "empty"]
+    },
+    {
+      "name": "lower - single character",
+      "expression": "'A'.lower()",
+      "expected": ["a"],
+      "tags": ["function", "string", "lower", "function:lower", "single-char"]
+    },
+    {
+      "name": "lower - newlines and tabs",
+      "expression": "'HELLO\\nWORLD\\tTAB'.lower()",
+      "expected": ["hello\nworld\ttab"],
+      "tags": ["function", "string", "lower", "function:lower", "whitespace"]
+    },
+    {
+      "name": "lower - error on non-string input",
+      "expression": "(123).lower()",
+      "error": "lower() can only be applied to string values",
+      "tags": ["function", "string", "lower", "function:lower", "error", "type-error"]
+    },
+    {
+      "name": "lower - error on multiple items",
+      "expression": "('ABC' | 'DEF').lower()",
+      "error": "lower() can only be applied to a singleton string",
+      "tags": ["function", "string", "lower", "function:lower", "error", "singleton"]
+    },
+    {
+      "name": "lower - error with arguments",
+      "expression": "'ABC'.lower('arg')",
+      "error": "lower() does not take any arguments",
+      "tags": ["function", "string", "lower", "function:lower", "error", "arguments"]
+    },
+    {
+      "name": "lower - path-based example",
+      "expression": "Patient.name.family.lower()",
+      "input": {
+        "resourceType": "Patient",
+        "name": [{
+          "family": "SMITH"
+        }]
+      },
+      "expected": ["smith"],
+      "tags": ["function", "string", "lower", "function:lower", "path"]
+    },
+    {
+      "name": "lower - with select",
+      "expression": "names.select(lower())",
+      "input": {
+        "names": ["ALICE", "BOB", "CHARLIE"]
+      },
+      "expected": ["alice", "bob", "charlie"],
+      "tags": ["function", "string", "lower", "function:lower", "select"]
+    },
+    {
+      "name": "lower - combined with upper",
+      "expression": "'Hello World'.upper().lower()",
+      "expected": ["hello world"],
+      "tags": ["function", "string", "lower", "function:lower", "chained"]
+    }
+  ]
+}

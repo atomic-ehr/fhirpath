@@ -1,0 +1,240 @@
+{
+  "name": "EndsWith Function Tests",
+  "description": "Tests for the endsWith() function",
+  "tests": [
+    {
+      "name": "endsWith - basic true case",
+      "expression": "'abcdefg'.endsWith('efg')",
+      "input": null,
+      "expected": [true],
+      "tags": [
+        "function",
+        "string",
+        "endsWith",
+        "function:endsWith"
+      ]
+    },
+    {
+      "name": "endsWith - basic false case",
+      "expression": "'abcdefg'.endsWith('abc')",
+      "input": null,
+      "expected": [false],
+      "tags": [
+        "function",
+        "string",
+        "endsWith",
+        "function:endsWith"
+      ]
+    },
+    {
+      "name": "endsWith - empty suffix returns true",
+      "expression": "'hello'.endsWith('')",
+      "input": null,
+      "expected": [true],
+      "tags": [
+        "function",
+        "string",
+        "endsWith",
+        "function:endsWith",
+        "edge-case"
+      ]
+    },
+    {
+      "name": "endsWith - full string match",
+      "expression": "'test'.endsWith('test')",
+      "input": null,
+      "expected": [true],
+      "tags": [
+        "function",
+        "string",
+        "endsWith",
+        "function:endsWith"
+      ]
+    },
+    {
+      "name": "endsWith - longer suffix",
+      "expression": "'short'.endsWith('longer')",
+      "input": null,
+      "expected": [false],
+      "tags": [
+        "function",
+        "string",
+        "endsWith",
+        "function:endsWith"
+      ]
+    },
+    {
+      "name": "endsWith - case sensitive",
+      "expression": "'Hello'.endsWith('hello')",
+      "input": null,
+      "expected": [false],
+      "tags": [
+        "function",
+        "string",
+        "endsWith",
+        "function:endsWith",
+        "case-sensitive"
+      ]
+    },
+    {
+      "name": "endsWith - empty input returns empty",
+      "expression": "empty.endsWith('test')",
+      "input": [
+        {
+          "empty": []
+        }
+      ],
+      "expected": [],
+      "tags": [
+        "function",
+        "string",
+        "endsWith",
+        "function:endsWith",
+        "empty"
+      ]
+    },
+    {
+      "name": "endsWith - single character suffix",
+      "expression": "'filename.txt'.endsWith('t')",
+      "input": null,
+      "expected": [true],
+      "tags": [
+        "function",
+        "string",
+        "endsWith",
+        "function:endsWith"
+      ]
+    },
+    {
+      "name": "endsWith - file extension example",
+      "expression": "name.endsWith('.pdf')",
+      "input": [
+        {
+          "name": "document.pdf"
+        }
+      ],
+      "expected": [true],
+      "tags": [
+        "function",
+        "string",
+        "endsWith",
+        "function:endsWith",
+        "practical"
+      ]
+    },
+    {
+      "name": "endsWith - with spaces",
+      "expression": "'hello world '.endsWith(' ')",
+      "input": null,
+      "expected": [true],
+      "tags": [
+        "function",
+        "string",
+        "endsWith",
+        "function:endsWith"
+      ]
+    },
+    {
+      "name": "endsWith - error on multiple inputs",
+      "expression": "names.endsWith('test')",
+      "input": [
+        {
+          "names": ["first", "second"]
+        }
+      ],
+      "expected": [],
+      "error": {
+        "type": "Error",
+        "message": "endsWith\\(\\) can only be used on single string values"
+      },
+      "tags": [
+        "function",
+        "string",
+        "endsWith",
+        "function:endsWith",
+        "error"
+      ]
+    },
+    {
+      "name": "endsWith - error on non-string input",
+      "expression": "(123).endsWith('3')",
+      "input": null,
+      "expected": [],
+      "error": {
+        "type": "Error",
+        "message": "endsWith\\(\\) can only be used on string values"
+      },
+      "tags": [
+        "function",
+        "string",
+        "endsWith",
+        "function:endsWith",
+        "error"
+      ]
+    },
+    {
+      "name": "endsWith - error on non-string suffix",
+      "expression": "'hello'.endsWith(123)",
+      "input": null,
+      "expected": [],
+      "error": {
+        "type": "Error",
+        "message": "endsWith\\(\\) suffix argument must be a string"
+      },
+      "tags": [
+        "function",
+        "string",
+        "endsWith",
+        "function:endsWith",
+        "error"
+      ]
+    },
+    {
+      "name": "endsWith - error on no arguments",
+      "expression": "'hello'.endsWith()",
+      "input": null,
+      "expected": [],
+      "error": {
+        "type": "Error",
+        "message": "endsWith\\(\\) requires exactly 1 argument"
+      },
+      "tags": [
+        "function",
+        "string",
+        "endsWith",
+        "function:endsWith",
+        "error"
+      ]
+    },
+    {
+      "name": "endsWith - error on multiple suffix arguments",
+      "expression": "'hello'.endsWith((true | false))",
+      "input": null,
+      "expected": [],
+      "error": {
+        "type": "Error",
+        "message": "endsWith\\(\\) suffix argument must be a single value"
+      },
+      "tags": [
+        "function",
+        "string",
+        "endsWith",
+        "function:endsWith",
+        "error"
+      ]
+    },
+    {
+      "name": "endsWith - with expression argument",
+      "expression": "'hello world'.endsWith('wor' + 'ld')",
+      "input": null,
+      "expected": [true],
+      "tags": [
+        "function",
+        "string",
+        "endsWith",
+        "function:endsWith",
+        "integration"
+      ]
+    }
+  ]
+}

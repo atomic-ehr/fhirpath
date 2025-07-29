@@ -1,0 +1,109 @@
+{
+  "name": "Trim Function Tests",
+  "description": "Tests for the trim() function",
+  "tests": [
+    {
+      "name": "trim - leading and trailing spaces",
+      "expression": "'  hello  '.trim()",
+      "expected": ["hello"],
+      "tags": ["function", "string", "trim", "function:trim", "spaces"]
+    },
+    {
+      "name": "trim - tabs",
+      "expression": "'\\thello\\t'.trim()",
+      "expected": ["hello"],
+      "tags": ["function", "string", "trim", "function:trim", "tabs"]
+    },
+    {
+      "name": "trim - newlines",
+      "expression": "'\\nhello\\n'.trim()",
+      "expected": ["hello"],
+      "tags": ["function", "string", "trim", "function:trim", "newlines"]
+    },
+    {
+      "name": "trim - carriage returns",
+      "expression": "'\\rhello\\r'.trim()",
+      "expected": ["hello"],
+      "tags": ["function", "string", "trim", "function:trim", "carriage-return"]
+    },
+    {
+      "name": "trim - mixed whitespace",
+      "expression": "'  \\t\\n\\rhello\\r\\n\\t  '.trim()",
+      "expected": ["hello"],
+      "tags": ["function", "string", "trim", "function:trim", "mixed"]
+    },
+    {
+      "name": "trim - no whitespace",
+      "expression": "'hello'.trim()",
+      "expected": ["hello"],
+      "tags": ["function", "string", "trim", "function:trim", "no-trim"]
+    },
+    {
+      "name": "trim - only whitespace",
+      "expression": "'   \\t\\n\\r   '.trim()",
+      "expected": [""],
+      "tags": ["function", "string", "trim", "function:trim", "only-whitespace"]
+    },
+    {
+      "name": "trim - empty string",
+      "expression": "''.trim()",
+      "expected": [""],
+      "tags": ["function", "string", "trim", "function:trim", "empty-string"]
+    },
+    {
+      "name": "trim - whitespace in middle preserved",
+      "expression": "'  hello   world  '.trim()",
+      "expected": ["hello   world"],
+      "tags": ["function", "string", "trim", "function:trim", "preserve-middle"]
+    },
+    {
+      "name": "trim - empty input collection",
+      "expression": "({}).trim()",
+      "expected": [],
+      "tags": ["function", "string", "trim", "function:trim", "empty"]
+    },
+    {
+      "name": "trim - non-string input",
+      "expression": "(123).trim()",
+      "expected": [],
+      "tags": ["function", "string", "trim", "function:trim", "non-string"]
+    },
+    {
+      "name": "trim - multiple input items error",
+      "expression": "('  hello  ' | '  world  ').trim()",
+      "error": "trim() can only be applied to a single string",
+      "tags": ["function", "string", "trim", "function:trim", "error", "multiple-items"]
+    },
+    {
+      "name": "trim - with path expression",
+      "expression": "Patient.name.given.first().trim()",
+      "input": {
+        "resourceType": "Patient",
+        "name": [{
+          "given": ["  John  ", "James"],
+          "family": "Doe"
+        }]
+      },
+      "expected": ["John"],
+      "tags": ["function", "string", "trim", "function:trim", "path"]
+    },
+    {
+      "name": "trim - unicode whitespace also trimmed",
+      "expression": "' hello '.trim()",
+      "expected": ["hello"],
+      "tags": ["function", "string", "trim", "function:trim", "unicode-space"]
+    },
+    {
+      "name": "trim - single space",
+      "expression": "' '.trim()",
+      "expected": [""],
+      "tags": ["function", "string", "trim", "function:trim", "single-space"]
+    },
+    {
+      "name": "trim - real world example",
+      "expression": "'  Patient/123  '.trim()",
+      "expected": ["Patient/123"],
+      "tags": ["function", "string", "trim", "function:trim", "real-world"]
+    }
+  ]
+}

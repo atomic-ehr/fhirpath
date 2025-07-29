@@ -1,0 +1,126 @@
+{
+  "name": "Split Function Tests",
+  "description": "Tests for the split() function",
+  "tests": [
+    {
+      "name": "split - basic comma separation",
+      "expression": "('A,B,C').split(',')",
+      "expected": ["A", "B", "C"],
+      "tags": ["function", "string", "split", "function:split"]
+    },
+    {
+      "name": "split - no separator found",
+      "expression": "('ABC').split(',')",
+      "expected": ["ABC"],
+      "tags": ["function", "string", "split", "function:split"]
+    },
+    {
+      "name": "split - empty elements",
+      "expression": "'A,,C'.split(',')",
+      "expected": ["A", "", "C"],
+      "tags": ["function", "string", "split", "function:split", "empty-elements"]
+    },
+    {
+      "name": "split - empty input",
+      "expression": "({}).split(',')",
+      "expected": [],
+      "tags": ["function", "string", "split", "function:split", "empty"]
+    },
+    {
+      "name": "split - empty string input",
+      "expression": "''.split(',')",
+      "expected": [""],
+      "tags": ["function", "string", "split", "function:split", "empty-string"]
+    },
+    {
+      "name": "split - single character separator",
+      "expression": "'one:two:three'.split(':')",
+      "expected": ["one", "two", "three"],
+      "tags": ["function", "string", "split", "function:split"]
+    },
+    {
+      "name": "split - multi-character separator",
+      "expression": "'one<=>two<=>three'.split('<=>')",
+      "expected": ["one", "two", "three"],
+      "tags": ["function", "string", "split", "function:split", "multi-char"]
+    },
+    {
+      "name": "split - space separator",
+      "expression": "'hello world test'.split(' ')",
+      "expected": ["hello", "world", "test"],
+      "tags": ["function", "string", "split", "function:split", "space"]
+    },
+    {
+      "name": "split - newline separator",
+      "expression": "'line1\\nline2\\nline3'.split('\\n')",
+      "expected": ["line1", "line2", "line3"],
+      "tags": ["function", "string", "split", "function:split", "newline"]
+    },
+    {
+      "name": "split - separator at start",
+      "expression": "',A,B,C'.split(',')",
+      "expected": ["", "A", "B", "C"],
+      "tags": ["function", "string", "split", "function:split", "edge-case"]
+    },
+    {
+      "name": "split - separator at end",
+      "expression": "'A,B,C,'.split(',')",
+      "expected": ["A", "B", "C", ""],
+      "tags": ["function", "string", "split", "function:split", "edge-case"]
+    },
+    {
+      "name": "split - only separators",
+      "expression": "',,'.split(',')",
+      "expected": ["", "", ""],
+      "tags": ["function", "string", "split", "function:split", "edge-case"]
+    },
+    {
+      "name": "split - empty separator",
+      "expression": "'ABC'.split('')",
+      "expected": ["A", "B", "C"],
+      "tags": ["function", "string", "split", "function:split", "empty-separator"]
+    },
+    {
+      "name": "split - path example",
+      "expression": "'/path/to/file'.split('/')",
+      "expected": ["", "path", "to", "file"],
+      "tags": ["function", "string", "split", "function:split", "path"]
+    },
+    {
+      "name": "split - CSV row",
+      "expression": "'John,Doe,30,Engineer'.split(',')",
+      "expected": ["John", "Doe", "30", "Engineer"],
+      "tags": ["function", "string", "split", "function:split", "csv"]
+    },
+    {
+      "name": "split - error on non-string input",
+      "expression": "(123).split(',')",
+      "error": "split() can only be applied to string values",
+      "tags": ["function", "string", "split", "function:split", "error", "type-error"]
+    },
+    {
+      "name": "split - error on collection input",
+      "expression": "('A' | 'B').split(',')",
+      "error": "split() requires a singleton input",
+      "tags": ["function", "string", "split", "function:split", "error", "singleton"]
+    },
+    {
+      "name": "split - error on non-string separator",
+      "expression": "'A,B,C'.split(123)",
+      "error": "split() separator must be a string",
+      "tags": ["function", "string", "split", "function:split", "error", "type-error"]
+    },
+    {
+      "name": "split - error on missing separator",
+      "expression": "'A,B,C'.split()",
+      "error": "split() requires exactly one argument",
+      "tags": ["function", "string", "split", "function:split", "error", "arguments"]
+    },
+    {
+      "name": "split - error on multiple separators",
+      "expression": "'A,B,C'.split(',', ';')",
+      "error": "split() requires exactly one argument",
+      "tags": ["function", "string", "split", "function:split", "error", "arguments"]
+    }
+  ]
+}

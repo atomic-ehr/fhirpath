@@ -51,6 +51,194 @@
         "take",
         "function:take"
       ]
+    },
+    {
+      "name": "take - zero returns empty",
+      "expression": "values.take(0)",
+      "input": [
+        {
+          "values": [
+            1,
+            2,
+            3
+          ]
+        }
+      ],
+      "expected": [],
+      "tags": [
+        "function",
+        "subsetting",
+        "take",
+        "function:take",
+        "edge-case"
+      ]
+    },
+    {
+      "name": "take - negative returns empty",
+      "expression": "values.take(-5)",
+      "input": [
+        {
+          "values": [
+            1,
+            2,
+            3
+          ]
+        }
+      ],
+      "expected": [],
+      "tags": [
+        "function",
+        "subsetting",
+        "take",
+        "function:take",
+        "edge-case"
+      ]
+    },
+    {
+      "name": "take - empty input",
+      "expression": "empty.take(3)",
+      "input": [
+        {
+          "empty": []
+        }
+      ],
+      "expected": [],
+      "tags": [
+        "function",
+        "subsetting",
+        "take",
+        "function:take",
+        "empty"
+      ]
+    },
+    {
+      "name": "take - single item",
+      "expression": "values.take(1)",
+      "input": [
+        {
+          "values": ["a", "b", "c"]
+        }
+      ],
+      "expected": ["a"],
+      "tags": [
+        "function",
+        "subsetting",
+        "take",
+        "function:take"
+      ]
+    },
+    {
+      "name": "take - on direct collection",
+      "expression": "(1 | 2 | 3 | 4 | 5).take(2)",
+      "input": null,
+      "expected": [1, 2],
+      "tags": [
+        "function",
+        "subsetting",
+        "take",
+        "function:take"
+      ]
+    },
+    {
+      "name": "take - error on non-integer argument",
+      "expression": "values.take(3.5)",
+      "input": [
+        {
+          "values": [1, 2, 3]
+        }
+      ],
+      "expected": [],
+      "error": {
+        "type": "Error",
+        "message": "take\\(\\) argument must be an integer"
+      },
+      "tags": [
+        "function",
+        "subsetting",
+        "take",
+        "function:take",
+        "error"
+      ]
+    },
+    {
+      "name": "take - error on string argument",
+      "expression": "values.take('3')",
+      "input": [
+        {
+          "values": [1, 2, 3]
+        }
+      ],
+      "expected": [],
+      "error": {
+        "type": "Error",
+        "message": "take\\(\\) argument must be an integer"
+      },
+      "tags": [
+        "function",
+        "subsetting",
+        "take",
+        "function:take",
+        "error"
+      ]
+    },
+    {
+      "name": "take - error on empty argument",
+      "expression": "values.take(({}))",
+      "input": [
+        {
+          "values": [1, 2, 3]
+        }
+      ],
+      "expected": [],
+      "error": {
+        "type": "Error",
+        "message": "take\\(\\) argument must be a single value"
+      },
+      "tags": [
+        "function",
+        "subsetting",
+        "take",
+        "function:take",
+        "error"
+      ]
+    },
+    {
+      "name": "take - error on no arguments",
+      "expression": "values.take()",
+      "input": [
+        {
+          "values": [1, 2, 3]
+        }
+      ],
+      "expected": [],
+      "error": {
+        "type": "Error",
+        "message": "take\\(\\) requires exactly 1 argument"
+      },
+      "tags": [
+        "function",
+        "subsetting",
+        "take",
+        "function:take",
+        "error"
+      ]
+    },
+    {
+      "name": "take - with expression argument",
+      "expression": "values.take(1 + 2)",
+      "input": [
+        {
+          "values": ["a", "b", "c", "d", "e"]
+        }
+      ],
+      "expected": ["a", "b", "c"],
+      "tags": [
+        "function",
+        "subsetting",
+        "take",
+        "function:take",
+        "integration"
+      ]
     }
   ]
 }

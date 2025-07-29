@@ -4,46 +4,62 @@
   "tests": [
     {
       "name": "tail - multiple items",
-      "expression": "values.tail()",
-      "input": [
-        {
-          "values": [
-            1,
-            2,
-            3,
-            4
-          ]
-        }
-      ],
-      "expected": [
-        2,
-        3,
-        4
-      ],
-      "tags": [
-        "function",
-        "subsetting",
-        "tail",
-        "function:tail"
-      ]
+      "expression": "(1 | 2 | 3 | 4).tail()",
+      "expected": [2, 3, 4],
+      "tags": ["function", "subsetting", "tail", "function:tail"]
     },
     {
       "name": "tail - single item",
-      "expression": "values.tail()",
-      "input": [
-        {
-          "values": [
-            1
-          ]
-        }
-      ],
+      "expression": "(1).tail()",
       "expected": [],
-      "tags": [
-        "function",
-        "subsetting",
-        "tail",
-        "function:tail"
-      ]
+      "tags": ["function", "subsetting", "tail", "function:tail", "singleton"]
+    },
+    {
+      "name": "tail - empty collection",
+      "expression": "({}).tail()",
+      "expected": [],
+      "tags": ["function", "subsetting", "tail", "function:tail", "empty"]
+    },
+    {
+      "name": "tail - two items",
+      "expression": "('first' | 'second').tail()",
+      "expected": ["second"],
+      "tags": ["function", "subsetting", "tail", "function:tail"]
+    },
+    {
+      "name": "tail - mixed types",
+      "expression": "(1 | 'two' | true | 3.14).tail()",
+      "expected": ["two", true, 3.14],
+      "tags": ["function", "subsetting", "tail", "function:tail", "mixed-types"]
+    },
+    {
+      "name": "tail - nested collections",
+      "expression": "Patient.name.tail()",
+      "input": {
+        "resourceType": "Patient",
+        "name": [
+          {"use": "official", "given": ["John"], "family": "Doe"},
+          {"use": "nickname", "given": ["Johnny"], "family": "D"},
+          {"use": "maiden", "given": ["John"], "family": "Smith"}
+        ]
+      },
+      "expected": [
+        {"use": "nickname", "given": ["Johnny"], "family": "D"},
+        {"use": "maiden", "given": ["John"], "family": "Smith"}
+      ],
+      "tags": ["function", "subsetting", "tail", "function:tail", "complex"]
+    },
+    {
+      "name": "tail - chained with other functions",
+      "expression": "(1 | 2 | 3 | 4 | 5).tail().first()",
+      "expected": [2],
+      "tags": ["function", "subsetting", "tail", "function:tail", "chained"]
+    },
+    {
+      "name": "tail - preserves order",
+      "expression": "('a' | 'b' | 'c' | 'd' | 'e').tail()",
+      "expected": ["b", "c", "d", "e"],
+      "tags": ["function", "subsetting", "tail", "function:tail", "order"]
     }
   ]
 }

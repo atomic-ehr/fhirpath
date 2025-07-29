@@ -1,0 +1,111 @@
+{
+  "name": "Upper Function Tests",
+  "description": "Tests for the upper() function",
+  "tests": [
+    {
+      "name": "upper - lowercase string",
+      "expression": "'abcdefg'.upper()",
+      "expected": ["ABCDEFG"],
+      "tags": ["function", "string", "upper", "function:upper"]
+    },
+    {
+      "name": "upper - mixed case string",
+      "expression": "'AbCdefg'.upper()",
+      "expected": ["ABCDEFG"],
+      "tags": ["function", "string", "upper", "function:upper"]
+    },
+    {
+      "name": "upper - already uppercase",
+      "expression": "'ABCDEFG'.upper()",
+      "expected": ["ABCDEFG"],
+      "tags": ["function", "string", "upper", "function:upper"]
+    },
+    {
+      "name": "upper - empty string",
+      "expression": "''.upper()",
+      "expected": [""],
+      "tags": ["function", "string", "upper", "function:upper", "empty-string"]
+    },
+    {
+      "name": "upper - string with numbers",
+      "expression": "'abc123def'.upper()",
+      "expected": ["ABC123DEF"],
+      "tags": ["function", "string", "upper", "function:upper", "alphanumeric"]
+    },
+    {
+      "name": "upper - string with special characters",
+      "expression": "'hello-world_123!'.upper()",
+      "expected": ["HELLO-WORLD_123!"],
+      "tags": ["function", "string", "upper", "function:upper", "special-chars"]
+    },
+    {
+      "name": "upper - string with spaces",
+      "expression": "'hello world'.upper()",
+      "expected": ["HELLO WORLD"],
+      "tags": ["function", "string", "upper", "function:upper", "spaces"]
+    },
+    {
+      "name": "upper - unicode characters",
+      "expression": "'café'.upper()",
+      "expected": ["CAFÉ"],
+      "tags": ["function", "string", "upper", "function:upper", "unicode"]
+    },
+    {
+      "name": "upper - empty input collection",
+      "expression": "({}).upper()",
+      "expected": [],
+      "tags": ["function", "string", "upper", "function:upper", "empty"]
+    },
+    {
+      "name": "upper - single character",
+      "expression": "'a'.upper()",
+      "expected": ["A"],
+      "tags": ["function", "string", "upper", "function:upper", "single-char"]
+    },
+    {
+      "name": "upper - newlines and tabs",
+      "expression": "'hello\\nworld\\ttab'.upper()",
+      "expected": ["HELLO\nWORLD\tTAB"],
+      "tags": ["function", "string", "upper", "function:upper", "whitespace"]
+    },
+    {
+      "name": "upper - error on non-string input",
+      "expression": "(123).upper()",
+      "error": "upper() can only be applied to string values",
+      "tags": ["function", "string", "upper", "function:upper", "error", "type-error"]
+    },
+    {
+      "name": "upper - error on multiple items",
+      "expression": "('abc' | 'def').upper()",
+      "error": "upper() can only be applied to a singleton string",
+      "tags": ["function", "string", "upper", "function:upper", "error", "singleton"]
+    },
+    {
+      "name": "upper - error with arguments",
+      "expression": "'abc'.upper('arg')",
+      "error": "upper() does not take any arguments",
+      "tags": ["function", "string", "upper", "function:upper", "error", "arguments"]
+    },
+    {
+      "name": "upper - path-based example",
+      "expression": "Patient.name.given.first().upper()",
+      "input": {
+        "resourceType": "Patient",
+        "name": [{
+          "given": ["john", "james"]
+        }]
+      },
+      "expected": ["JOHN"],
+      "tags": ["function", "string", "upper", "function:upper", "path"]
+    },
+    {
+      "name": "upper - with select",
+      "expression": "names.select(upper())",
+      "input": {
+        "names": ["alice", "bob", "charlie"]
+      },
+      "expected": ["ALICE", "BOB", "CHARLIE"],
+      "tags": ["function", "string", "upper", "function:upper", "select"]
+    }
+  ]
+}

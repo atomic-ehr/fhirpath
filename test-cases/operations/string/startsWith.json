@@ -1,0 +1,115 @@
+{
+  "name": "StartsWith Function Tests",
+  "description": "Tests for the startsWith() function",
+  "tests": [
+    {
+      "name": "startsWith - matching prefix",
+      "expression": "'abcdefg'.startsWith('abc')",
+      "expected": [true],
+      "tags": ["function", "string", "startsWith", "function:startsWith"]
+    },
+    {
+      "name": "startsWith - non-matching prefix",
+      "expression": "'abcdefg'.startsWith('xyz')",
+      "expected": [false],
+      "tags": ["function", "string", "startsWith", "function:startsWith"]
+    },
+    {
+      "name": "startsWith - empty prefix",
+      "expression": "'hello'.startsWith('')",
+      "expected": [true],
+      "tags": ["function", "string", "startsWith", "function:startsWith", "empty-prefix"]
+    },
+    {
+      "name": "startsWith - exact match",
+      "expression": "'hello'.startsWith('hello')",
+      "expected": [true],
+      "tags": ["function", "string", "startsWith", "function:startsWith", "exact-match"]
+    },
+    {
+      "name": "startsWith - prefix longer than string",
+      "expression": "'hi'.startsWith('hello')",
+      "expected": [false],
+      "tags": ["function", "string", "startsWith", "function:startsWith", "long-prefix"]
+    },
+    {
+      "name": "startsWith - case sensitive",
+      "expression": "'Hello'.startsWith('hello')",
+      "expected": [false],
+      "tags": ["function", "string", "startsWith", "function:startsWith", "case-sensitive"]
+    },
+    {
+      "name": "startsWith - single character prefix",
+      "expression": "'test'.startsWith('t')",
+      "expected": [true],
+      "tags": ["function", "string", "startsWith", "function:startsWith", "single-char"]
+    },
+    {
+      "name": "startsWith - empty input collection",
+      "expression": "({}).startsWith('test')",
+      "expected": [],
+      "tags": ["function", "string", "startsWith", "function:startsWith", "empty"]
+    },
+    {
+      "name": "startsWith - non-string input",
+      "expression": "(123).startsWith('1')",
+      "expected": [],
+      "tags": ["function", "string", "startsWith", "function:startsWith", "non-string"]
+    },
+    {
+      "name": "startsWith - multiple input items error",
+      "expression": "('hello' | 'world').startsWith('h')",
+      "error": "startsWith() can only be applied to a single string",
+      "tags": ["function", "string", "startsWith", "function:startsWith", "error", "multiple-items"]
+    },
+    {
+      "name": "startsWith - empty prefix argument evaluation",
+      "expression": "'test'.startsWith({})",
+      "expected": [],
+      "tags": ["function", "string", "startsWith", "function:startsWith", "empty-arg"]
+    },
+    {
+      "name": "startsWith - non-string prefix",
+      "expression": "'test'.startsWith(123)",
+      "expected": [],
+      "tags": ["function", "string", "startsWith", "function:startsWith", "non-string-arg"]
+    },
+    {
+      "name": "startsWith - multiple prefix values error",
+      "expression": "'test'.startsWith('t' | 'e')",
+      "error": "startsWith() prefix argument must evaluate to a single value",
+      "tags": ["function", "string", "startsWith", "function:startsWith", "error", "multiple-prefix"]
+    },
+    {
+      "name": "startsWith - with path expression",
+      "expression": "Patient.name.given.first().startsWith('J')",
+      "input": {
+        "resourceType": "Patient",
+        "name": [{
+          "given": ["John", "James"],
+          "family": "Doe"
+        }]
+      },
+      "expected": [true],
+      "tags": ["function", "string", "startsWith", "function:startsWith", "path"]
+    },
+    {
+      "name": "startsWith - whitespace handling",
+      "expression": "'  hello'.startsWith('  ')",
+      "expected": [true],
+      "tags": ["function", "string", "startsWith", "function:startsWith", "whitespace"]
+    },
+    {
+      "name": "startsWith - special characters",
+      "expression": "'$special-chars_123'.startsWith('$special')",
+      "expected": [true],
+      "tags": ["function", "string", "startsWith", "function:startsWith", "special-chars"]
+    },
+    {
+      "name": "startsWith - unicode",
+      "expression": "'café'.startsWith('caf')",
+      "expected": [true],
+      "tags": ["function", "string", "startsWith", "function:startsWith", "unicode"]
+    }
+  ]
+}

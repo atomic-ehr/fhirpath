@@ -1,0 +1,76 @@
+import type { FunctionDefinition, FunctionEvaluator } from '../types';
+
+export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
+  // startsWith() requires exactly 1 argument
+  if (args.length !== 1) {
+    throw new Error('startsWith() requires exactly 1 argument');
+  }
+
+  const prefixExpr = args[0];
+  if (!prefixExpr) {
+    throw new Error('startsWith() requires a prefix argument');
+  }
+
+  // If input collection is empty, result is empty
+  if (input.length === 0) {
+    return { value: [], context };
+  }
+
+  // If input collection contains multiple items, signal an error
+  if (input.length > 1) {
+    throw new Error('startsWith() can only be applied to a single string');
+  }
+
+  // Input must be a string
+  const inputValue = input[0];
+  if (typeof inputValue !== 'string') {
+    // Non-string input returns empty
+    return { value: [], context };
+  }
+
+  // Evaluate the prefix expression
+  const prefixResult = evaluator(prefixExpr, input, context);
+  
+  // If prefix evaluation is empty, return empty
+  if (prefixResult.value.length === 0) {
+    return { value: [], context };
+  }
+  
+  // Prefix must be a single string
+  if (prefixResult.value.length > 1) {
+    throw new Error('startsWith() prefix argument must evaluate to a single value');
+  }
+  
+  const prefix = prefixResult.value[0];
+  if (typeof prefix !== 'string') {
+    // Non-string prefix returns empty
+    return { value: [], context };
+  }
+
+  // If prefix is empty string, result is true
+  if (prefix === '') {
+    return { value: [true], context };
+  }
+
+  // Check if input string starts with the prefix
+  const result = inputValue.startsWith(prefix);
+  return { value: [result], context };
+};
+
+export const startsWithFunction: FunctionDefinition & { evaluate: FunctionEvaluator } = {
+  name: 'startsWith',
+  category: ['string'],
+  description: 'Returns true when the input string starts with the given prefix. If prefix is the empty string, the result is true. If the input collection is empty, the result is empty. If the input collection contains multiple items, the evaluation of the expression will end and signal an error to the calling environment.',
+  examples: [
+    "'abcdefg'.startsWith('abc')",
+    "'abcdefg'.startsWith('xyz')"
+  ],
+  signature: {
+    input: { type: 'String', singleton: true },
+    parameters: [
+      { name: 'prefix', type: { type: 'String', singleton: true } }
+    ],
+    result: { type: 'Boolean', singleton: true }
+  },
+  evaluate
+};
