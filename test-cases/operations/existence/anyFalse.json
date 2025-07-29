@@ -4,49 +4,85 @@
   "tests": [
     {
       "name": "anyFalse - contains false",
-      "expression": "values.anyFalse()",
-      "input": [
-        {
-          "values": [
-            true,
-            false,
-            true
-          ]
-        }
-      ],
-      "expected": [
-        true
-      ],
-      "tags": [
-        "function",
-        "aggregate",
-        "boolean",
-        "anyFalse",
-        "function:anyFalse"
-      ]
+      "expression": "(true | false | true).anyFalse()",
+      "expected": [true],
+      "tags": ["function", "aggregate", "boolean", "anyFalse", "function:anyFalse"]
     },
     {
       "name": "anyFalse - all true",
-      "expression": "values.anyFalse()",
-      "input": [
-        {
-          "values": [
-            true,
-            true,
-            true
-          ]
-        }
-      ],
-      "expected": [
-        false
-      ],
-      "tags": [
-        "function",
-        "aggregate",
-        "boolean",
-        "anyFalse",
-        "function:anyFalse"
-      ]
+      "expression": "(true | true | true).anyFalse()",
+      "expected": [false],
+      "tags": ["function", "aggregate", "boolean", "anyFalse", "function:anyFalse"]
+    },
+    {
+      "name": "anyFalse - empty collection",
+      "expression": "({}).anyFalse()",
+      "expected": [false],
+      "tags": ["function", "aggregate", "boolean", "anyFalse", "function:anyFalse", "empty"]
+    },
+    {
+      "name": "anyFalse - single false",
+      "expression": "(false).anyFalse()",
+      "expected": [true],
+      "tags": ["function", "aggregate", "boolean", "anyFalse", "function:anyFalse", "singleton"]
+    },
+    {
+      "name": "anyFalse - single true",
+      "expression": "(true).anyFalse()",
+      "expected": [false],
+      "tags": ["function", "aggregate", "boolean", "anyFalse", "function:anyFalse", "singleton"]
+    },
+    {
+      "name": "anyFalse - all false",
+      "expression": "(false | false | false).anyFalse()",
+      "expected": [true],
+      "tags": ["function", "aggregate", "boolean", "anyFalse", "function:anyFalse"]
+    },
+    {
+      "name": "anyFalse - mixed types (ignores non-boolean)",
+      "expression": "(true | 'string' | 42 | true).anyFalse()",
+      "expected": [false],
+      "tags": ["function", "aggregate", "boolean", "anyFalse", "function:anyFalse", "mixed-types"]
+    },
+    {
+      "name": "anyFalse - with false among mixed types",
+      "expression": "(true | 'string' | false | 42).anyFalse()",
+      "expected": [true],
+      "tags": ["function", "aggregate", "boolean", "anyFalse", "function:anyFalse", "mixed-types"]
+    },
+    {
+      "name": "anyFalse - spec example with Observation",
+      "expression": "Observation.select(component.value.value > 90).anyFalse()",
+      "input": {
+        "resourceType": "Observation",
+        "component": [
+          {"value": {"value": 85, "unit": "mm[Hg]"}},
+          {"value": {"value": 95, "unit": "mm[Hg]"}},
+          {"value": {"value": 88, "unit": "mm[Hg]"}}
+        ]
+      },
+      "expected": [true],
+      "tags": ["function", "aggregate", "boolean", "anyFalse", "function:anyFalse", "spec-example"]
+    },
+    {
+      "name": "anyFalse - spec example with all values above threshold",
+      "expression": "Observation.select(component.value.value > 90).anyFalse()",
+      "input": {
+        "resourceType": "Observation",
+        "component": [
+          {"value": {"value": 91, "unit": "mm[Hg]"}},
+          {"value": {"value": 95, "unit": "mm[Hg]"}},
+          {"value": {"value": 98, "unit": "mm[Hg]"}}
+        ]
+      },
+      "expected": [false],
+      "tags": ["function", "aggregate", "boolean", "anyFalse", "function:anyFalse", "spec-example"]
+    },
+    {
+      "name": "anyFalse - only non-boolean values",
+      "expression": "('string' | 42 | 3.14 | {}).anyFalse()",
+      "expected": [false],
+      "tags": ["function", "aggregate", "boolean", "anyFalse", "function:anyFalse", "mixed-types"]
     }
   ]
 }

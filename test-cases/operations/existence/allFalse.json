@@ -47,6 +47,157 @@
         "allFalse",
         "function:allFalse"
       ]
+    },
+    {
+      "name": "allFalse - empty collection returns true",
+      "expression": "empty.allFalse()",
+      "input": [
+        {
+          "empty": []
+        }
+      ],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "aggregate",
+        "boolean",
+        "allFalse",
+        "function:allFalse",
+        "empty"
+      ]
+    },
+    {
+      "name": "allFalse - single false",
+      "expression": "(false).allFalse()",
+      "input": null,
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "aggregate",
+        "boolean",
+        "allFalse",
+        "function:allFalse",
+        "singleton"
+      ]
+    },
+    {
+      "name": "allFalse - single true",
+      "expression": "(true).allFalse()",
+      "input": null,
+      "expected": [
+        false
+      ],
+      "tags": [
+        "function",
+        "aggregate",
+        "boolean",
+        "allFalse",
+        "function:allFalse",
+        "singleton"
+      ]
+    },
+    {
+      "name": "allFalse - all true",
+      "expression": "values.allFalse()",
+      "input": [
+        {
+          "values": [
+            true,
+            true,
+            true
+          ]
+        }
+      ],
+      "expected": [
+        false
+      ],
+      "tags": [
+        "function",
+        "aggregate",
+        "boolean",
+        "allFalse",
+        "function:allFalse"
+      ]
+    },
+    {
+      "name": "allFalse - direct empty collection",
+      "expression": "({}).allFalse()",
+      "input": null,
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "aggregate",
+        "boolean",
+        "allFalse",
+        "function:allFalse",
+        "empty"
+      ]
+    },
+    {
+      "name": "allFalse - with where clause example",
+      "expression": "values.where($this <= 90).select(true).allFalse()",
+      "input": [
+        {
+          "values": [91, 92, 93]
+        }
+      ],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "aggregate",
+        "boolean",
+        "allFalse",
+        "function:allFalse",
+        "integration"
+      ]
+    },
+    {
+      "name": "allFalse - error on non-boolean input",
+      "expression": "(5).allFalse()",
+      "input": null,
+      "expected": [],
+      "error": {
+        "type": "Error",
+        "message": "allFalse\\(\\) expects all items to be Boolean values"
+      },
+      "tags": [
+        "function",
+        "aggregate",
+        "boolean",
+        "allFalse",
+        "function:allFalse",
+        "error"
+      ]
+    },
+    {
+      "name": "allFalse - error on mixed types",
+      "expression": "mixed.allFalse()",
+      "input": [
+        {
+          "mixed": [false, "string", true]
+        }
+      ],
+      "expected": [],
+      "error": {
+        "type": "Error",
+        "message": "allFalse\\(\\) expects all items to be Boolean values"
+      },
+      "tags": [
+        "function",
+        "aggregate",
+        "boolean",
+        "allFalse",
+        "function:allFalse",
+        "error"
+      ]
     }
   ]
 }

@@ -4,49 +4,73 @@
   "tests": [
     {
       "name": "anyTrue - contains true",
-      "expression": "values.anyTrue()",
-      "input": [
-        {
-          "values": [
-            false,
-            true,
-            false
-          ]
-        }
-      ],
-      "expected": [
-        true
-      ],
-      "tags": [
-        "function",
-        "aggregate",
-        "boolean",
-        "anyTrue",
-        "function:anyTrue"
-      ]
+      "expression": "(false | true | false).anyTrue()",
+      "expected": [true],
+      "tags": ["function", "aggregate", "boolean", "anyTrue", "function:anyTrue"]
     },
     {
       "name": "anyTrue - all false",
-      "expression": "values.anyTrue()",
-      "input": [
-        {
-          "values": [
-            false,
-            false,
-            false
-          ]
-        }
-      ],
-      "expected": [
-        false
-      ],
-      "tags": [
-        "function",
-        "aggregate",
-        "boolean",
-        "anyTrue",
-        "function:anyTrue"
-      ]
+      "expression": "(false | false | false).anyTrue()",
+      "expected": [false],
+      "tags": ["function", "aggregate", "boolean", "anyTrue", "function:anyTrue"]
+    },
+    {
+      "name": "anyTrue - empty collection",
+      "expression": "({}).anyTrue()",
+      "expected": [false],
+      "tags": ["function", "aggregate", "boolean", "anyTrue", "function:anyTrue", "empty"]
+    },
+    {
+      "name": "anyTrue - single true",
+      "expression": "(true).anyTrue()",
+      "expected": [true],
+      "tags": ["function", "aggregate", "boolean", "anyTrue", "function:anyTrue", "singleton"]
+    },
+    {
+      "name": "anyTrue - single false",
+      "expression": "(false).anyTrue()",
+      "expected": [false],
+      "tags": ["function", "aggregate", "boolean", "anyTrue", "function:anyTrue", "singleton"]
+    },
+    {
+      "name": "anyTrue - mixed types (ignores non-boolean)",
+      "expression": "(false | 'string' | 42 | false).anyTrue()",
+      "expected": [false],
+      "tags": ["function", "aggregate", "boolean", "anyTrue", "function:anyTrue", "mixed-types"]
+    },
+    {
+      "name": "anyTrue - with true among mixed types",
+      "expression": "(false | 'string' | true | 42).anyTrue()",
+      "expected": [true],
+      "tags": ["function", "aggregate", "boolean", "anyTrue", "function:anyTrue", "mixed-types"]
+    },
+    {
+      "name": "anyTrue - spec example with Observation",
+      "expression": "Observation.component.select(value.value > 90).anyTrue()",
+      "input": {
+        "resourceType": "Observation",
+        "component": [
+          {"value": {"value": 85, "unit": "mm[Hg]"}},
+          {"value": {"value": 95, "unit": "mm[Hg]"}},
+          {"value": {"value": 88, "unit": "mm[Hg]"}}
+        ]
+      },
+      "expected": [true],
+      "tags": ["function", "aggregate", "boolean", "anyTrue", "function:anyTrue", "spec-example"]
+    },
+    {
+      "name": "anyTrue - spec example with all values below threshold",
+      "expression": "Observation.component.select(value.value > 90).anyTrue()",
+      "input": {
+        "resourceType": "Observation",
+        "component": [
+          {"value": {"value": 85, "unit": "mm[Hg]"}},
+          {"value": {"value": 89, "unit": "mm[Hg]"}},
+          {"value": {"value": 88, "unit": "mm[Hg]"}}
+        ]
+      },
+      "expected": [false],
+      "tags": ["function", "aggregate", "boolean", "anyTrue", "function:anyTrue", "spec-example"]
     }
   ]
 }
