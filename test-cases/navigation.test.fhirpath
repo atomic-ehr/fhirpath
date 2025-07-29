@@ -1,0 +1,9 @@
+// @input [{"name": "John"}]
+// @output ["John"]
+name
+;
+
+// @input [{"name": {"given": "John"}}]
+// @output ["John"]
+name.given
+;

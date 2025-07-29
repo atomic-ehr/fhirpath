@@ -12,7 +12,7 @@ if (args.length === 0 || args[0] === "--help" || args[0] === "-h") {
 🧪 FHIRPath Test Case Runner
 
 Usage:
-  bun tools/testcase.ts <test-file> [test-name] [mode]
+  bun tools/testcase.ts <test-file> [test-name]
   bun tools/testcase.ts --tags
   bun tools/testcase.ts --tag <tag-name>
   bun tools/testcase.ts --failing
@@ -22,7 +22,6 @@ Usage:
 Arguments:
   test-file   Path to JSON test file (relative to test-cases/)
   test-name   Optional: specific test name to run (if not provided, runs all tests)
-  mode        Optional: 'interpreter' | 'compiler' | 'both' (default: 'both')
 
 Commands:
   --tags      List all unique tags from all test files
@@ -38,8 +37,8 @@ Examples:
   # Run a specific test
   bun tools/testcase.ts operators/arithmetic.json "addition - integers"
   
-  # Run with interpreter only
-  bun tools/testcase.ts operators/arithmetic.json "addition - integers" interpreter
+  # Run a specific test with details
+  bun tools/testcase.ts operators/arithmetic.json "addition - integers"
   
   # List all tests in a file
   bun tools/testcase.ts operators/arithmetic.json --list
@@ -261,8 +260,6 @@ if (args[0] === "--failing" || args[0] === "--failing-commands") {
     expression: string;
     file: string;
     error?: string;
-    interpreterFailed: boolean;
-    compilerFailed: boolean;
   }> = [];
 
   if (!commandsOnly) {
@@ -311,31 +308,23 @@ if (args[0] === "--failing" || args[0] === "--failing-commands") {
         console.log = () => {};
         console.error = () => {};
 
-        const result = runSingleTest(test, 'both');
+        const result = runSingleTest(test);
 
         // Restore console
         console.log = originalLog;
         console.error = originalError;
 
-        const interpreterFailed = result.interpreter &&
-          !result.interpreter.pending &&
-          (!result.interpreter.success && !result.interpreter.expectedError) ||
-          (result.interpreter.value !== undefined && JSON.stringify(result.interpreter.value) !== JSON.stringify(test.expected));
-        const compilerFailed = result.compiler &&
-          !result.compiler.pending &&
-          (!result.compiler.success && !result.compiler.expectedError) ||
-          (result.compiler.value !== undefined && JSON.stringify(result.compiler.value) !== JSON.stringify(test.expected));
+        const testFailed = result &&
+          !result.pending &&
+          (!result.success && !result.expectedError) ||
+          (result.value !== undefined && JSON.stringify(result.value) !== JSON.stringify(test.expected));
 
-        if (interpreterFailed || compilerFailed) {
+        if (testFailed) {
           const relativePath = file.replace(testCasesDir + "/", "");
 
           let error = "";
-          if (result.interpreter && !result.interpreter.success) {
-            error = `Interpreter: ${result.interpreter.error}`;
-          } else if (result.compiler && !result.compiler.success) {
-            error = `Compiler: ${result.compiler.error}`;
-          } else if (interpreterFailed && compilerFailed) {
-            error = "Results don't match expected";
+          if (result && !result.success) {
+            error = result.error || "Results don't match expected";
           }
 
           failingTests.push({
@@ -344,8 +333,6 @@ if (args[0] === "--failing" || args[0] === "--failing-commands") {
             expression: test.expression,
             file: relativePath,
             error,
-            interpreterFailed,
-            compilerFailed
           });
         }
       });
@@ -374,12 +361,7 @@ if (args[0] === "--failing" || args[0] === "--failing-commands") {
 
       // Display all tests with their debug commands
       failingTests.forEach((test, index) => {
-        const failureInfo: string[] = [];
-        if (test.interpreterFailed) failureInfo.push("I");
-        if (test.compilerFailed) failureInfo.push("C");
-        const failureMarker = `[${failureInfo.join("/")}]`;
-
-        console.log(`${index + 1}. ${test.test} ${failureMarker}`);
+        console.log(`${index + 1}. ${test.test}`);
         console.log(`   Expression: ${test.expression}`);
         if (test.error) {
           console.log(`   Error: ${test.error}`);
@@ -388,7 +370,6 @@ if (args[0] === "--failing" || args[0] === "--failing-commands") {
         console.log("");
       });
 
-      console.log("💡 Legend: [I] = Interpreter failed, [C] = Compiler failed, [I/C] = Both failed");
     }
   }
 
@@ -510,8 +491,6 @@ if (args[0] === "--watch") {
     expression: string;
     file: string;
     fullPath: string;
-    interpreterFailed: boolean;
-    compilerFailed: boolean;
   }> {
     const failingTests: Array<{
       suite: string;
@@ -562,7 +541,7 @@ if (args[0] === "--watch") {
           console.log = () => {};
           console.error = () => {};
 
-          const result = runSingleTest(test, 'both');
+          const result = runSingleTest(test);
 
           // Restore console
           console.log = originalLog;
@@ -585,9 +564,7 @@ if (args[0] === "--watch") {
               test: test.name,
               expression: test.expression,
               file: relativePath,
-              fullPath: file,
-              interpreterFailed,
-              compilerFailed
+              fullPath: file
             });
           }
         });
@@ -630,7 +607,7 @@ if (args[0] === "--watch") {
         // Run the test with output
         console.log(`\n🧪 ${test.test}`);
         try {
-          runTestFromFile(test.fullPath, test.test, "both");
+          runTestFromFile(test.fullPath, test.test);
         } catch (error: any) {
           console.error(`❌ Error: ${error.message}`);
         }
@@ -676,7 +653,6 @@ if (args[0] === "--watch") {
 
 const testFile = args[0];
 const testName = args[1];
-const mode = args[2] as "interpreter" | "compiler" | "both" | undefined;
 
 // Check if testFile is provided
 if (!testFile) {
@@ -719,11 +695,11 @@ if (args[0] !== "--watch" && args[0] !== "--tags" && args[0] !== "--tag" && args
     if (testName && testName !== "--list") {
       // Run specific test
       console.log(`\n🎯 Running test from: ${basename(testPath!)}`);
-      runTestFromFile(testPath!, testName, mode || "both");
+      runTestFromFile(testPath!, testName);
     } else {
       // Run all tests in the file
       console.log(`\n🎯 Running all tests from: ${basename(testPath)}`);
-      runAllTestsFromFile(testPath!, mode || "both");
+      runAllTestsFromFile(testPath!);
     }
   } catch (error: any) {
     console.error(`\n❌ Error: ${error.message}`);

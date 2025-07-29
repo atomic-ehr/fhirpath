@@ -1,7 +1,6 @@
 #!/usr/bin/env bun
 
-import { Parser } from '../src/parser';
-import { Interpreter } from '../src/interpreter';
+import { evaluate } from '../src/index';
 
 const expression = process.argv[2];
 const inputJson = process.argv[3];
@@ -16,16 +15,11 @@ if (!expression) {
 }
 
 try {
-  // Parse the expression
-  const parser = new Parser(expression);
-  const ast = parser.parse();
-  
   // Parse input if provided
-  let input: any = [];
+  let input: any = undefined;
   if (inputJson) {
     try {
-      const parsed = JSON.parse(inputJson);
-      input = Array.isArray(parsed) ? parsed : [parsed];
+      input = JSON.parse(inputJson);
     } catch (e) {
       console.error('Invalid JSON input:', e);
       process.exit(1);
@@ -33,11 +27,10 @@ try {
   }
   
   // Evaluate the expression
-  const interpreter = new Interpreter();
-  const result = interpreter.evaluate(ast, input);
+  const result = evaluate(expression, { input });
   
   // Output the result
-  console.log(JSON.stringify(result.value, null, 2));
+  console.log(JSON.stringify(result, null, 2));
   
 } catch (error: any) {
   console.error('Error:', error.message);
