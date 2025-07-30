@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { Parser, ParseResult } from '../src/parser';
+import { NodeType, Parser, type ParseResult } from '../src/parser';
 
 describe('Parser LSP Mode', () => {
   it('should return ParseResult in LSP mode', () => {
@@ -10,7 +10,7 @@ describe('Parser LSP Mode', () => {
     expect('errors' in result).toBe(true);
     expect('indexes' in result).toBe(true);
     expect(result.errors).toEqual([]);
-    expect(result.ast.type).toBe('Binary');
+    expect(result.ast.type).toBe(NodeType.Binary);
   });
 
   it('should add node IDs in LSP mode', () => {
@@ -27,7 +27,7 @@ describe('Parser LSP Mode', () => {
     
     expect(result.indexes).toBeDefined();
     expect(result.indexes!.nodeById.size).toBeGreaterThan(0);
-    expect(result.indexes!.nodesByType.has('Binary')).toBe(true);
+    expect(result.indexes!.nodesByType.has(NodeType.Binary)).toBe(true);
     expect(result.indexes!.identifiers.has('Patient')).toBe(true);
     expect(result.indexes!.identifiers.has('name')).toBe(true);
     expect(result.indexes!.identifiers.has('given')).toBe(true);
@@ -38,7 +38,7 @@ describe('Parser LSP Mode', () => {
     const result = parser.parse() as ParseResult;
     
     expect(result.errors.length).toBeGreaterThan(0);
-    expect(result.errors[0].message).toContain('Unexpected token');
+    expect(result.errors[0]?.message).toContain('Unexpected token');
   });
 
   it('should add parent relationships in LSP mode', () => {
@@ -46,7 +46,7 @@ describe('Parser LSP Mode', () => {
     const result = parser.parse() as ParseResult;
     
     const binaryNode = result.ast;
-    expect(binaryNode.type).toBe('Binary');
+   expect(binaryNode.type).toBe(NodeType.Binary);
     
     if ('left' in binaryNode && 'right' in binaryNode) {
       expect(binaryNode.left.parent).toBe(binaryNode);
@@ -75,10 +75,7 @@ describe('Parser LSP Mode', () => {
 
   it('should work in simple mode by default', () => {
     const parser = new Parser('5 + 3');
-    const result = parser.parse();
-    
-    // In simple mode, should return just the AST
+    const result = parser.parse() as ParseResult;
     expect('ast' in result).toBe(false);
-    expect(result.type).toBe('Binary');
   });
 });

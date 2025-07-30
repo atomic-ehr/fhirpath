@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'bun:test';
-import { Parser } from '../src/parser';
+import { Parser, type ASTNode } from '../src/parser';
 import { Interpreter } from '../src/interpreter';
 
 describe('FHIRPath Interpreter', () => {
   function evaluate(expr: string, input: any = {}) {
     const parser = new Parser(expr);
-    const ast = parser.parse();
+    const ast: ASTNode = parser.parse() as ASTNode;
     const interpreter = new Interpreter();
     const result = interpreter.evaluate(ast, Array.isArray(input) ? input : [input]);
     return result.value;

@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 
-import { Parser, pprint, ParseResult } from '../src/parser';
+import { Parser, pprint, type ParseResult } from '../src/parser';
 import type { ASTNode } from '../src/parser';
 
 let expression = process.argv[2];
