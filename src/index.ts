@@ -1,5 +1,4 @@
 import { Parser } from './parser';
-import { LSPParser } from './parser-lsp';
 import { Interpreter, RuntimeContextManager } from './interpreter';
 import { Analyzer } from './analyzer';
 import type { AnalysisResult } from './types';
@@ -14,7 +13,10 @@ export function evaluate(
   options: EvaluateOptions = {}
 ): any[] {
   const parser = new Parser(expression);
-  const ast = parser.parse();
+  const parseResult = parser.parse();
+  
+  // Extract AST from result (works for both simple and LSP modes)
+  const ast = 'ast' in parseResult ? parseResult.ast : parseResult;
   
   const interpreter = new Interpreter();
   const input = options.input === undefined ? [] : Array.isArray(options.input) ? options.input : [options.input];
@@ -41,9 +43,11 @@ export function analyze(
   expression: string,
   options: { variables?: Record<string, unknown> } = {}
 ): AnalysisResult {
-  // TODO: Use LSPParser once it's migrated to unified AST
   const parser = new Parser(expression);
-  const ast = parser.parse();
+  const parseResult = parser.parse();
+  
+  // Extract AST from result (works for both simple and LSP modes)
+  const ast = 'ast' in parseResult ? parseResult.ast : parseResult;
   
   const analyzer = new Analyzer();
   return analyzer.analyze(ast, options.variables);

@@ -602,7 +602,8 @@ describe('FHIRPath Parser', () => {
     it('should parse (max = "*") or iif(max != "*", min <= max.toInteger())', () => {   
       const ast = parse('(max = "*") or iif(max != "*", min <= max.toInteger())') as BinaryNode;
       expect(ast.type).toBe(NodeType.Binary);
-      console.log(pprint(ast));
+      //console.log(pprint(ast));
+      //console.log(JSON.stringify(ast, null, 2));
     });
   })
 });

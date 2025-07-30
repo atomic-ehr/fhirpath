@@ -1,9 +1,7 @@
 #!/usr/bin/env bun
 
-import { Parser, pprint } from '../src/parser';
-import { parseLSP } from '../src/parser-lsp';
+import { Parser, pprint, ParseResult } from '../src/parser';
 import type { ASTNode } from '../src/parser';
-import type { LSPParseResult } from '../src/parser-lsp';
 
 let expression = process.argv[2];
 const options = process.argv.slice(3).join(' ');
@@ -69,8 +67,9 @@ async function main() {
     expression = await getExpression();
     
     if (useLSP || withErrors) {
-      // Use LSP parser which includes error information
-      const result: LSPParseResult = parseLSP(expression);
+      // Use parser in LSP mode which includes error information
+      const parser = new Parser(expression, { mode: 'lsp', errorRecovery: true });
+      const result = parser.parse() as ParseResult;
       
       if (useLisp) {
         console.log('AST:');
@@ -92,7 +91,8 @@ async function main() {
     } else {
       // Use regular parser which throws on errors
       const parser = new Parser(expression);
-      const ast: ASTNode = parser.parse();
+      const parseResult = parser.parse();
+      const ast: ASTNode = 'ast' in parseResult ? parseResult.ast : parseResult;
       
       if (useLisp) {
         console.log(pprint(ast));
