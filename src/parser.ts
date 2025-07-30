@@ -19,7 +19,9 @@ import type {
   CollectionNode,
   TypeReferenceNode,
   ErrorNode,
-  TriviaInfo
+  TriviaInfo,
+  ParseResult,
+  ParseError
 } from './types';
 
 // Re-export types for backward compatibility
@@ -40,7 +42,9 @@ export {
   type CollectionNode,
   type TypeReferenceNode,
   type ErrorNode,
-  type TriviaInfo
+  type TriviaInfo,
+  type ParseResult,
+  type ParseError
 } from './types';
 
 // Parser options
@@ -51,30 +55,6 @@ export interface ParserOptions {
   errorRecovery?: boolean;      // Auto-enabled in LSP mode
   partialParse?: {              // For partial parsing
     cursorPosition: number;
-  };
-}
-
-// Parse error type
-export interface ParseError {
-  message: string;
-  position: Position;
-  range?: Range;
-  token?: Token;
-}
-
-// Parse result for LSP mode
-export interface ParseResult {
-  ast: ASTNode;
-  errors: ParseError[];
-  indexes?: {
-    nodeById: Map<string, ASTNode>;
-    nodesByType: Map<NodeType | 'Error', ASTNode[]>;
-    identifiers: Map<string, ASTNode[]>;
-  };
-  cursorContext?: {
-    node: ASTNode | null;
-    expectedTokens: TokenType[];
-    availableCompletions: string[];
   };
 }
 
@@ -142,7 +122,7 @@ export class Parser extends BaseParser<ASTNode> {
     };
   }
 
-  parse(): ASTNode | ParseResult {
+  parse(): ParseResult {
     if (this.mode === 'simple') {
       return this.parseSimple();
     } else {
@@ -150,13 +130,39 @@ export class Parser extends BaseParser<ASTNode> {
     }
   }
   
-  private parseSimple(): ASTNode {
-    const expr = this.expression();
-    if (!this.isAtEnd()) {
-      const token = this.peek();
-      throw new Error(`Unexpected token: ${token.value || TokenType[token.type]}`);
+  private parseSimple(): ParseResult {
+    const errors: ParseError[] = [];
+    let ast: ASTNode;
+    
+    try {
+      ast = this.expression();
+      if (!this.isAtEnd()) {
+        const token = this.peek();
+        throw new Error(`Unexpected token: ${token.value || TokenType[token.type]}`);
+      }
+    } catch (error) {
+      // In simple mode, we still collect the error but also throw
+      if (error instanceof Error) {
+        const token = this.peek();
+        errors.push({
+          message: error.message,
+          position: {
+            line: token.line || 0,
+            character: token.column || 0,
+            offset: token.start
+          },
+          range: this.getRangeFromToken(token),
+          token
+        });
+        throw error; // Re-throw for backward compatibility
+      }
+      throw error;
     }
-    return expr;
+    
+    return {
+      ast,
+      errors
+    };
   }
   
   private parseLSP(): ParseResult {
@@ -606,7 +612,7 @@ export class Parser extends BaseParser<ASTNode> {
   }
 }
 
-export function parse(input: string, options?: ParserOptions): ASTNode | ParseResult {
+export function parse(input: string, options?: ParserOptions): ParseResult {
   const parser = new Parser(input, options);
   return parser.parse();
 }

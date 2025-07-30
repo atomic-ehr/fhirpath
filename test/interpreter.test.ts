@@ -5,7 +5,11 @@ import { Interpreter } from '../src/interpreter';
 describe('FHIRPath Interpreter', () => {
   function evaluate(expr: string, input: any = {}) {
     const parser = new Parser(expr);
-    const ast: ASTNode = parser.parse() as ASTNode;
+    const parseResult = parser.parse();
+    if (parseResult.errors.length > 0) {
+      throw new Error(parseResult.errors[0]!.message);
+    }
+    const ast = parseResult.ast;
     const interpreter = new Interpreter();
     const result = interpreter.evaluate(ast, Array.isArray(input) ? input : [input]);
     return result.value;

@@ -34,7 +34,14 @@ describe('Parser Fixture Tests', () => {
         it(`should parse expression ${index + 1}: ${expression.substring(0, 50)}${expression.length > 50 ? '...' : ''}`, () => {
           try {
             const parser = new Parser(expression);
-            const ast = parser.parse();
+            const result = parser.parse();
+            
+            // Check for parse errors
+            if (result.errors.length > 0) {
+              throw new Error(result.errors[0]!.message);
+            }
+            
+            const ast = result.ast;
             
             // Basic validation that we got an AST
             expect(ast).toBeDefined();

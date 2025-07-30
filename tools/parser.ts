@@ -69,11 +69,11 @@ async function main() {
     if (useLSP || withErrors) {
       // Use parser in LSP mode which includes error information
       const parser = new Parser(expression, { mode: 'lsp', errorRecovery: true });
-      const result = parser.parse() as ParseResult;
+      const result = parser.parse();
       
       if (useLisp) {
         console.log('AST:');
-        console.log(pprint(result.ast as unknown as ASTNode));
+        console.log(pprint(result.ast));
         if (result.errors.length > 0) {
           console.log('\nErrors:');
           result.errors.forEach(err => {
@@ -91,13 +91,17 @@ async function main() {
     } else {
       // Use regular parser which throws on errors
       const parser = new Parser(expression);
-      const parseResult = parser.parse();
-      const ast: ASTNode = 'ast' in parseResult ? parseResult.ast : parseResult;
+      const result = parser.parse();
+      
+      // Check for errors and throw if present (for backward compatibility)
+      if (result.errors.length > 0) {
+        throw new Error(result.errors[0]!.message);
+      }
       
       if (useLisp) {
-        console.log(pprint(ast));
+        console.log(pprint(result.ast));
       } else {
-        console.log(JSON.stringify(ast, null, 2));
+        console.log(JSON.stringify(result.ast, null, 2));
       }
     }
   } catch (error: any) {

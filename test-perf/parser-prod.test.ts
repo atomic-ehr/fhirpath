@@ -53,7 +53,8 @@ function runPerformanceTest() {
         try {
           // Warm up run and get stats
           const warmupParser = new Parser(expression);
-          const ast = warmupParser.parse();
+          const parseResult = warmupParser.parse();
+          const ast = parseResult.ast;
           const tokenCount = countTokens(expression);
           const nodeCount = countNodes(ast);
           

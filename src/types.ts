@@ -1,3 +1,5 @@
+import type { Token, TokenType } from './lexer';
+
 // Precedence levels (higher number = higher precedence)
 export enum PRECEDENCE {
   // Lowest precedence
@@ -276,6 +278,30 @@ export interface Diagnostic {
 export interface AnalysisResult {
   diagnostics: Diagnostic[];
   ast: ASTNode;
+}
+
+// Parse error type
+export interface ParseError {
+  message: string;
+  position: Position;
+  range?: Range;
+  token?: Token;
+}
+
+// Parse result for parser
+export interface ParseResult {
+  ast: ASTNode;
+  errors: ParseError[];
+  indexes?: {
+    nodeById: Map<string, ASTNode>;
+    nodesByType: Map<NodeType | 'Error', ASTNode[]>;
+    identifiers: Map<string, ASTNode[]>;
+  };
+  cursorContext?: {
+    node: ASTNode | null;
+    expectedTokens: TokenType[];
+    availableCompletions: string[];
+  };
 }
 
 export type NodeEvaluator = (node: ASTNode, input: any[], context: RuntimeContext) => EvaluationResult;

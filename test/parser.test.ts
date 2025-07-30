@@ -18,7 +18,11 @@ import type {
 describe('FHIRPath Parser', () => {
   function parse(expr: string) {
     const parser = new Parser(expr);
-    return parser.parse();
+    const result = parser.parse();
+    if (result.errors.length > 0) {
+      throw new Error(result.errors[0]!.message);
+    }
+    return result.ast;
   }
 
   describe('Literals', () => {

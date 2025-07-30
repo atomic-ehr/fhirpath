@@ -15,8 +15,14 @@ export function evaluate(
   const parser = new Parser(expression);
   const parseResult = parser.parse();
   
-  // Extract AST from result (works for both simple and LSP modes)
-  const ast = 'ast' in parseResult ? parseResult.ast : parseResult;
+  // Check for parse errors
+  if (parseResult.errors.length > 0) {
+    // For backward compatibility, throw the first error
+    const firstError = parseResult.errors[0]!;
+    throw new Error(firstError.message);
+  }
+  
+  const ast = parseResult.ast;
   
   const interpreter = new Interpreter();
   const input = options.input === undefined ? [] : Array.isArray(options.input) ? options.input : [options.input];
@@ -46,8 +52,14 @@ export function analyze(
   const parser = new Parser(expression);
   const parseResult = parser.parse();
   
-  // Extract AST from result (works for both simple and LSP modes)
-  const ast = 'ast' in parseResult ? parseResult.ast : parseResult;
+  // Check for parse errors
+  if (parseResult.errors.length > 0) {
+    // For backward compatibility, throw the first error
+    const firstError = parseResult.errors[0]!;
+    throw new Error(firstError.message);
+  }
+  
+  const ast = parseResult.ast;
   
   const analyzer = new Analyzer();
   return analyzer.analyze(ast, options.variables);
