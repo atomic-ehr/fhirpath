@@ -76,6 +76,13 @@ describe('Parser LSP Mode', () => {
   it('should work in simple mode by default', () => {
     const parser = new Parser('5 + 3');
     const result = parser.parse() as ParseResult;
-    expect('ast' in result).toBe(false);
+    // In simple mode, we still get a ParseResult but without LSP features
+    expect('ast' in result).toBe(true);
+    expect('errors' in result).toBe(true);
+    // LSP-specific features should not be present
+    expect('indexes' in result).toBe(false);
+    expect(result.ast.id).toBeUndefined();
+    expect(result.ast.parent).toBeUndefined();
+    expect(result.ast.raw).toBeUndefined();
   });
 });

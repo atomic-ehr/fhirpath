@@ -108,48 +108,7 @@ interface EnrichedAnalysisResult extends AnalysisResult {
 }
 ```
 
-### 4. Model Provider Interface
-
-To resolve types from the underlying data model (e.g., FHIR resources), the analyzer will support a model provider:
-
-```typescript
-// Interface for providing model type information
-interface ModelTypeProvider {
-  // Get type information for a model type (e.g., "Patient", "Observation")
-  getModelType(typeName: string): ModelTypeInfo | undefined;
-  
-  // Get type of a property path (e.g., "Patient.name" returns "HumanName[]")
-  getPropertyType(modelType: string, propertyPath: string): TypeInfo | undefined;
-  
-  // Check if a type exists in the model
-  hasType(typeName: string): boolean;
-  
-  // Get all available types (for autocomplete)
-  getAllTypes(): string[];
-  
-  // Check if a property exists on a type
-  hasProperty(modelType: string, propertyName: string): boolean;
-  
-  // Get all properties of a type (for autocomplete)
-  getProperties(modelType: string): PropertyInfo[];
-}
-
-interface ModelTypeInfo {
-  name: string;
-  baseType?: string;  // For inheritance
-  abstract?: boolean;
-  properties: Map<string, PropertyInfo>;
-}
-
-interface PropertyInfo {
-  name: string;
-  type: TypeInfo;
-  required: boolean;
-  documentation?: string;
-}
-```
-
-### 5. Analyzer Options
+### 4. Analyzer Options
 
 ```typescript
 interface AnalyzerOptions {
@@ -162,12 +121,12 @@ interface AnalyzerOptions {
   trackUsage?: boolean;          // Track variable usage
   includeMetrics?: boolean;      // Calculate complexity metrics
   
-  // Model provider for type resolution
+  // Model provider for type resolution (see ADR-004)
   modelProvider?: ModelTypeProvider;
 }
 ```
 
-### 6. Type Inference Rules
+### 5. Type Inference Rules
 
 The analyzer will infer types using:
 
@@ -177,40 +136,11 @@ The analyzer will infer types using:
 4. **Type assertions**: `as` and `is` operators provide type hints
 5. **Variable types**: From context or previous assignments
 6. **Collection operations**: Track cardinality through operations
-7. **Model navigation**: When a model provider is available:
-   - Resolve property types through the model (e.g., `Patient.name` → `HumanName[]`)
+7. **Model navigation**: When a model provider is available (see ADR-004):
+   - Resolve property types through the model
    - Validate property access on model types
    - Infer types through property chains
-   - Support polymorphic navigation with type filtering
-
-### 7. Model Provider Integration
-
-When a model provider is supplied, the analyzer enhances its capabilities:
-
-```typescript
-// Example: Analyzing with model provider
-const modelProvider = new FHIRModelProvider();
-
-const result = analyze('Patient.name.given.first()', {
-  enrichAST: true,
-  inferTypes: true,
-  modelProvider: modelProvider
-});
-
-// The analyzer can now:
-// 1. Validate that 'Patient' is a known type
-// 2. Know that Patient.name returns HumanName[] (collection)
-// 3. Know that HumanName.given returns String[] (collection)
-// 4. Know that first() on String[] returns String (singleton)
-// 5. Produce better error messages: "Property 'foo' does not exist on type 'Patient'"
-```
-
-Benefits of model provider integration:
-- **Type-aware navigation**: Validate property paths against the model
-- **Better diagnostics**: Model-specific error messages
-- **Autocomplete support**: Suggest valid properties based on type
-- **Polymorphic handling**: Understand type hierarchies and inheritance
-- **Cross-reference validation**: Ensure type casts and membership tests are valid
+   - Support polymorphic navigation
 
 ## Consequences
 
@@ -266,22 +196,16 @@ Only track types during interpretation.
 - Function return type inference
 - Collection cardinality tracking
 
-### Phase 3: Model Provider Integration
-- Define ModelTypeProvider interface
-- Implement property type resolution
-- Add model-aware validation
-- Support polymorphic navigation
-
-### Phase 4: Advanced Features
+### Phase 3: Advanced Features
 - Variable scope tracking
 - Usage analysis
 - Implicit conversion tracking
 
-### Phase 5: IDE Integration
+### Phase 4: IDE Integration
 - Hover information extraction
 - Completion context from types
 - Type-based navigation
-- Model-aware autocomplete
+- Integration with model provider (see ADR-004)
 
 ### Example Usage
 
@@ -302,60 +226,6 @@ console.log(funcCall.semantic?.matchedSignature);
 // { name: '+', left: String, right: String, result: String }
 ```
 
-### Example Model Provider Implementation
-
-```typescript
-class FHIRModelProvider implements ModelTypeProvider {
-  private typeRegistry: Map<string, ModelTypeInfo>;
-  
-  constructor() {
-    this.typeRegistry = new Map();
-    this.loadFHIRTypes();
-  }
-  
-  getPropertyType(modelType: string, propertyPath: string): TypeInfo | undefined {
-    const type = this.typeRegistry.get(modelType);
-    if (!type) return undefined;
-    
-    // Handle nested paths like "name.given"
-    const parts = propertyPath.split('.');
-    let currentType = type;
-    
-    for (const part of parts) {
-      const prop = currentType.properties.get(part);
-      if (!prop) return undefined;
-      
-      if (prop.type.modelType && parts.length > 1) {
-        currentType = this.typeRegistry.get(prop.type.modelType);
-        if (!currentType) return undefined;
-      } else {
-        return prop.type;
-      }
-    }
-    
-    return undefined;
-  }
-  
-  private loadFHIRTypes() {
-    // Example: Patient type
-    this.typeRegistry.set('Patient', {
-      name: 'Patient',
-      baseType: 'DomainResource',
-      properties: new Map([
-        ['name', { 
-          name: 'name', 
-          type: { 
-            type: 'Any', 
-            modelType: 'HumanName', 
-            cardinality: 'collection' 
-          }, 
-          required: false 
-        }]
-      ])
-    });
-  }
-}
-```
 
 ## References
 
@@ -363,3 +233,4 @@ class FHIRModelProvider implements ModelTypeProvider {
 - Language Server Protocol Specification
 - FHIRPath Specification Section 5 (Types)
 - Rust Analyzer's HIR (High-level Intermediate Representation)
+- ADR-004: Model Provider Interface

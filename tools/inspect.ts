@@ -1,6 +1,7 @@
 #!/usr/bin/env bun
 
-import { inspect } from '../legacy-src/api';
+// TODO: Replace with new inspect implementation
+// import { inspect } from '../legacy-src/api';
 import { readFileSync } from 'fs';
 
 // Parse command line arguments
@@ -163,6 +164,11 @@ function formatAst(node: any, indent = 0): string {
   return result.trimEnd();
 }
 
+// TODO: Implement inspect with new API
+console.error('inspect tool needs to be updated for the new API');
+process.exit(1);
+
+/*
 try {
   // Run inspect
   const result = inspect(
@@ -171,7 +177,9 @@ try {
     { variables },
     { maxTraces }
   );
+  */
   
+  /*
   // Display results based on options
   if (showOnlyAst) {
     console.log('AST:');
@@ -240,3 +248,4 @@ try {
   console.error('Inspection failed:', error);
   process.exit(1);
 }
+*/

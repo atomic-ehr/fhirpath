@@ -1,18 +1,28 @@
-import type { ASTNode, BinaryNode, IdentifierNode, LiteralNode, FunctionNode, Diagnostic, AnalysisResult, UnaryNode, IndexNode, CollectionNode, MembershipTestNode, TypeCastNode, Range, Position } from './types';
+import type { ASTNode, BinaryNode, IdentifierNode, LiteralNode, FunctionNode, Diagnostic, AnalysisResult, UnaryNode, IndexNode, CollectionNode, MembershipTestNode, TypeCastNode, Range, Position, TypeInfo, ModelTypeProvider } from './types';
 import { NodeType, DiagnosticSeverity, isErrorNode } from './types';
 import { registry } from './registry';
+import { TypeAnalyzer } from './type-analyzer';
 
 export class Analyzer {
   private diagnostics: Diagnostic[] = [];
   private variables: Set<string> = new Set(['$this', '$index', '$total']);
+  private typeAnalyzer: TypeAnalyzer;
 
-  analyze(ast: ASTNode, userVariables?: Record<string, any>): AnalysisResult {
+  constructor(modelProvider?: ModelTypeProvider) {
+    this.typeAnalyzer = new TypeAnalyzer(modelProvider);
+  }
+
+  analyze(ast: ASTNode, userVariables?: Record<string, any>, inputType?: TypeInfo): AnalysisResult {
     this.diagnostics = [];
     
     if (userVariables) {
       Object.keys(userVariables).forEach(name => this.variables.add(name));
     }
     
+    // Annotate AST with type information
+    this.typeAnalyzer.annotateAST(ast, inputType);
+    
+    // Perform validation
     this.visitNode(ast);
     
     return {

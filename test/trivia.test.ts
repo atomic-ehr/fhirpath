@@ -121,7 +121,8 @@ describe('Lexer Trivia Support', () => {
       // The parser should skip trivia tokens automatically
       const { Parser } = require('../src/parser');
       const parser = new Parser('5 + 3 // comment', { preserveTrivia: true });
-      const ast = parser.parse();
+      const result = parser.parse();
+      const ast = result.ast;
       
       expect(ast.type).toBe('Binary'); // Binary
       expect(ast.operator).toBe('+');

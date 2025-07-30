@@ -578,7 +578,9 @@ if (args[0] === "--watch") {
               test: test.name,
               expression: test.expression,
               file: relativePath,
-              fullPath: file
+              fullPath: file,
+              interpreterFailed,
+              compilerFailed
             });
           }
         });

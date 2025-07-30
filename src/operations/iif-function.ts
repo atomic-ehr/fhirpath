@@ -76,9 +76,9 @@ export const iifFunction: FunctionDefinition & { evaluate: FunctionEvaluator } =
   signature: {
     input: { type: 'Any', singleton: false },
     parameters: [
-      { name: 'condition', type: { type: 'Boolean', singleton: true } },
-      { name: 'trueResult', type: { type: 'Any', singleton: false } },
-      { name: 'falseResult', type: { type: 'Any', singleton: false }, optional: true },
+      { name: 'condition', expression: true, type: { type: 'Boolean', singleton: true } },
+      { name: 'trueResult', expression: true, type: { type: 'Any', singleton: false } },
+      { name: 'falseResult', expression: true, type: { type: 'Any', singleton: false }, optional: true },
     ],
     result: { type: 'Any', singleton: false },
   },

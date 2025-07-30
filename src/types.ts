@@ -19,18 +19,49 @@ export enum PRECEDENCE {
   DOT = 140,          // . (highest)
 }
 
-export type FHIRPathType = 'String' | 'Boolean' | 'Date' | 'DateTime' | 'Long' | 'Decimal' | 'Integer' | 'Time' | 'Quantity' | 'Any';
+export type TypeName = 'Any' | 'Boolean' | 'String' | 'Integer' | 'Long' | 'Decimal' | 'Date' | 'DateTime' | 'Time' | 'Quantity';
 
-export interface TypeSignature {
-  type: FHIRPathType;
-  singleton: boolean;
+export interface TypeInfo {
+  // FHIRPath type
+  type: TypeName;
+  union?: boolean;
+  singleton?: boolean;
+
+  // Model type information
+  namespace?: string;
+  name?: string;
+
+  // For union types
+  choices?: TypeInfo[];
+
+  // For complex types
+  elements?: {
+    [key: string]: TypeInfo;
+  };
+
+  // Model context
+  modelContext?: unknown;
+}
+
+// Model Provider Interface (from ADR-004)
+export interface ModelTypeProvider<TypeContext = unknown> {
+  getTypeByName(typeName: string): TypeInfo | undefined;
+  navigateProperty(parentType: TypeInfo, propertyName: string): TypeInfo | undefined;
+  hasProperty(parentType: TypeInfo, propertyName: string): boolean;
+  getPropertyNames(parentType: TypeInfo): string[];
+  hasTypeName(typeName: string): boolean;
+  getAllTypeNames(): string[];
+  isTypeCompatible(source: TypeInfo, target: TypeInfo): boolean;
+  mapToFHIRPathType(typeName: string): TypeName;
+  getTypeDocumentation?(type: TypeInfo): string | undefined;
+  getPropertyDocumentation?(parentType: TypeInfo, propertyName: string): string | undefined;
 }
 
 export interface OperatorSignature {
   name: string;
-  left: TypeSignature;
-  right: TypeSignature;
-  result: TypeSignature;
+  left: TypeInfo;
+  right: TypeInfo;
+  result: TypeInfo;
 }
 
 export interface OperatorDefinition {
@@ -54,13 +85,14 @@ export interface FunctionDefinition {
   description: string;
   examples: string[];
   signature: {
-    input: TypeSignature;
+    input: TypeInfo;
     parameters: Array<{
       name: string;
       optional?: boolean;
-      type: TypeSignature;
+      type: TypeInfo;
+      expression?: boolean;
     }>;
-    result: TypeSignature;
+    result: TypeInfo;
   };
   evaluate: FunctionEvaluator;
 }
@@ -141,6 +173,9 @@ export interface BaseASTNode {
   // Metadata for tools
   id?: string;               // Unique identifier for the node
   symbolKind?: SymbolKind;   // LSP SymbolKind for outline
+  
+  // Type information (populated by analyzer)
+  typeInfo?: TypeInfo;       // Inferred type information
 }
 
 // Error node for LSP compatibility

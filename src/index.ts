@@ -61,6 +61,24 @@ export function analyze(
   
   const ast = parseResult.ast;
   
+  // Create analyzer without model provider for now
   const analyzer = new Analyzer();
   return analyzer.analyze(ast, options.variables);
 }
+
+// Export key types and classes
+export { Parser } from './parser';
+export { Interpreter } from './interpreter';
+export { Analyzer } from './analyzer';
+export { TypeAnalyzer } from './type-analyzer';
+export { parse } from './parser';
+export { DiagnosticSeverity } from './types';
+export type { 
+  ParseResult, 
+  Diagnostic, 
+  AnalysisResult, 
+  ASTNode,
+  TypeInfo,
+  TypeName,
+  ModelTypeProvider 
+} from './types';

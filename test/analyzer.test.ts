@@ -32,7 +32,7 @@ describe('Analyzer', () => {
         message: 'Unknown variable: $unknown',
         source: 'fhirpath-analyzer'
       });
-      expect(result.diagnostics[0].range).toBeDefined();
+      expect(result.diagnostics[0]?.range).toBeDefined();
     });
 
     it('should not report errors for user-defined variables', () => {
@@ -112,15 +112,15 @@ describe('Analyzer', () => {
       const diagnostic = result.diagnostics[0];
       
       // Check LSP-required fields
-      expect(diagnostic.range).toBeDefined();
-      expect(diagnostic.range.start).toBeDefined();
-      expect(diagnostic.range.end).toBeDefined();
-      expect(diagnostic.message).toBeDefined();
+      expect(diagnostic?.range).toBeDefined();
+      expect(diagnostic?.range.start).toBeDefined();
+      expect(diagnostic?.range.end).toBeDefined();
+      expect(diagnostic?.message).toBeDefined();
       
       // Check optional fields
-      expect(diagnostic.severity).toBe(DiagnosticSeverity.Error);
-      expect(diagnostic.code).toBe('UNKNOWN_VARIABLE');
-      expect(diagnostic.source).toBe('fhirpath-analyzer');
+      expect(diagnostic?.severity).toBe(DiagnosticSeverity.Error);
+      expect(diagnostic?.code).toBe('UNKNOWN_VARIABLE');
+      expect(diagnostic?.source).toBe('fhirpath-analyzer');
     });
     
     it('should use default range when position is not available', () => {
@@ -128,10 +128,10 @@ describe('Analyzer', () => {
       const diagnostic = result.diagnostics[0];
       
       // Check that range is properly set (with LSP-compatible character field)
-      expect(diagnostic.range.start.line).toBeDefined();
-      expect(diagnostic.range.start.character).toBeDefined();
-      expect(diagnostic.range.end.line).toBeDefined();
-      expect(diagnostic.range.end.character).toBeDefined();
+      expect(diagnostic?.range.start.line).toBeDefined();
+      expect(diagnostic?.range.start.character).toBeDefined();
+      expect(diagnostic?.range.end.line).toBeDefined();
+      expect(diagnostic?.range.end.character).toBeDefined();
     });
   });
 });

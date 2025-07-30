@@ -1,16 +1,16 @@
 import type { 
-  FHIRPathType, 
-  TypeSignature, 
+  TypeName, 
+  TypeInfo, 
   OperatorSignature, 
   OperatorDefinition, 
   RegisteredOperator, 
   FunctionDefinition 
 } from './types';
 
-// Re-export types for backwards compatibility
+// Re-export types
 export type { 
-  FHIRPathType, 
-  TypeSignature, 
+  TypeName, 
+  TypeInfo, 
   OperatorSignature, 
   OperatorDefinition, 
   RegisteredOperator, 
