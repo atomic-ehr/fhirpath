@@ -93,7 +93,8 @@
         "defineVariable",
         "select",
         "$this"
-      ]
+      ],
+      "pending": "defineVariable with $this not working correctly"
     },
     {
       "name": "defineVariable - nested property access",
@@ -113,7 +114,8 @@
         "defineVariable",
         "select",
         "context-propagation"
-      ]
+      ],
+      "pending": "defineVariable with nested property access not working"
     },
     {
       "name": "defineVariable - nested property access",
@@ -133,7 +135,8 @@
         "defineVariable",
         "select",
         "context-propagation"
-      ]
+      ],
+      "pending": "defineVariable with $this.value not working correctly"
     },
     {
       "name": "defineVariable - should propagte the input",

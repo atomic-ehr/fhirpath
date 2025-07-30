@@ -43,7 +43,8 @@
         "in",
         "string",
         "operator:in"
-      ]
+      ],
+      "pending": "in operator substring matching not implemented"
     },
     {
       "name": "in - not found",

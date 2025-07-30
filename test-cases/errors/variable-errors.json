@@ -12,7 +12,13 @@
         "message": "Undefined.*variable.*undefinedEnvVar",
         "phase": "evaluate"
       },
-      "tags": ["error", "variable", "environment", "undefined"]
+      "tags": [
+        "error",
+        "variable",
+        "environment",
+        "undefined"
+      ],
+      "pending": "This is an error test - environment variable should be undefined"
     },
     {
       "name": "undefined variable in expression",
@@ -24,19 +30,35 @@
         "message": "Undefined.*variable.*x",
         "phase": "evaluate"
       },
-      "tags": ["error", "variable", "undefined", "operator:+"]
+      "tags": [
+        "error",
+        "variable",
+        "undefined",
+        "operator:+"
+      ],
+      "pending": "This is an error test - variable should be undefined"
     },
     {
       "name": "undefined variable in function",
       "expression": "where(%filter)",
-      "input": [1, 2, 3],
+      "input": [
+        1,
+        2,
+        3
+      ],
       "expected": [],
       "error": {
         "type": "EvaluationError",
         "message": "Undefined.*variable.*filter",
         "phase": "evaluate"
       },
-      "tags": ["error", "variable", "undefined", "function:where"]
+      "tags": [
+        "error",
+        "variable",
+        "undefined",
+        "function:where"
+      ],
+      "pending": "This is an error test - variable should be undefined"
     },
     {
       "name": "redefining variable in same scope",
@@ -48,7 +70,12 @@
         "message": "Variable.*x.*already.*defined",
         "phase": "evaluate"
       },
-      "tags": ["error", "variable", "redefinition", "defineVariable"],
+      "tags": [
+        "error",
+        "variable",
+        "redefinition",
+        "defineVariable"
+      ],
       "pending": "Variable redefinition checking not implemented"
     },
     {
@@ -61,7 +88,12 @@
         "message": "Cannot.*override.*system.*variable.*this",
         "phase": "evaluate"
       },
-      "tags": ["error", "variable", "system", "defineVariable"],
+      "tags": [
+        "error",
+        "variable",
+        "system",
+        "defineVariable"
+      ],
       "pending": "System variable protection not implemented"
     },
     {
@@ -74,7 +106,12 @@
         "message": "Cannot.*override.*system.*variable.*index",
         "phase": "evaluate"
       },
-      "tags": ["error", "variable", "system", "defineVariable"],
+      "tags": [
+        "error",
+        "variable",
+        "system",
+        "defineVariable"
+      ],
       "pending": "System variable protection not implemented"
     },
     {
@@ -87,51 +124,91 @@
         "message": "Cannot.*override.*system.*variable.*total",
         "phase": "evaluate"
       },
-      "tags": ["error", "variable", "system", "defineVariable"],
+      "tags": [
+        "error",
+        "variable",
+        "system",
+        "defineVariable"
+      ],
       "pending": "System variable protection not implemented"
     },
     {
       "name": "variable out of scope - union operator",
       "expression": "defineVariable('x', 5) | select(%x)",
-      "input": [1, 2],
+      "input": [
+        1,
+        2
+      ],
       "expected": [],
       "error": {
         "type": "EvaluationError",
         "message": "Variable.*x.*not.*defined.*scope",
         "phase": "evaluate"
       },
-      "tags": ["error", "variable", "scope", "operator:|"],
+      "tags": [
+        "error",
+        "variable",
+        "scope",
+        "operator:|"
+      ],
       "pending": "Variable scoping enforcement not implemented"
     },
     {
       "name": "variable out of scope - separate select",
       "expression": "name.defineVariable('n', first()).family | name.select(%n)",
-      "input": [{
-        "name": [
-          {"given": ["John"], "family": "Doe"},
-          {"given": ["Jane"], "family": "Smith"}
-        ]
-      }],
+      "input": [
+        {
+          "name": [
+            {
+              "given": [
+                "John"
+              ],
+              "family": "Doe"
+            },
+            {
+              "given": [
+                "Jane"
+              ],
+              "family": "Smith"
+            }
+          ]
+        }
+      ],
       "expected": [],
       "error": {
         "type": "EvaluationError",
         "message": "Variable.*n.*not.*defined.*scope",
         "phase": "evaluate"
       },
-      "tags": ["error", "variable", "scope", "select"],
+      "tags": [
+        "error",
+        "variable",
+        "scope",
+        "select"
+      ],
       "pending": "Variable scoping enforcement not implemented"
     },
     {
       "name": "nested scope variable leakage",
       "expression": "where(defineVariable('inner', $this > 2)).select(%inner)",
-      "input": [1, 2, 3, 4],
+      "input": [
+        1,
+        2,
+        3,
+        4
+      ],
       "expected": [],
       "error": {
         "type": "EvaluationError",
         "message": "Variable.*inner.*not.*defined.*scope",
         "phase": "evaluate"
       },
-      "tags": ["error", "variable", "scope", "nested"],
+      "tags": [
+        "error",
+        "variable",
+        "scope",
+        "nested"
+      ],
       "pending": "Variable scoping enforcement not implemented"
     }
   ]

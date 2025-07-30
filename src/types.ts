@@ -80,93 +80,167 @@ export enum NodeType {
   TypeReference = 'TypeReference',
 }
 
-// Position tracking
+// LSP-compatible position (zero-based line and character)
 export interface Position {
-  line: number;
-  column: number;
-  offset: number;
+  line: number;      // zero-based line number (uinteger in LSP)
+  character: number; // zero-based character offset within line (uinteger in LSP)
+  offset?: number;   // absolute offset in source (optional, for compatibility)
 }
 
-// Base node interfaces
+// LSP-compatible Range
+export interface Range {
+  start: Position;
+  end: Position;
+}
+
+// LSP SymbolKind enum (subset of LSP spec)
+export enum SymbolKind {
+  Function = 12,
+  Variable = 13,
+  Property = 7,
+  Field = 8,
+  Method = 6,
+}
+
+// Trivia information for preserving formatting
+export interface TriviaInfo {
+  type: 'whitespace' | 'comment' | 'lineComment';
+  value: string;
+  range: Range;
+}
+
+// Parser options to control what gets populated
+export interface ParserOptions {
+  mode?: 'production' | 'development';
+  preserveTrivia?: boolean;      // Populate trivia arrays
+  buildNavigation?: boolean;     // Populate parent/children
+  preserveSource?: boolean;      // Populate raw text
+  generateIds?: boolean;         // Generate unique IDs
+  addSymbolInfo?: boolean;       // Add symbolKind for LSP
+}
+
+// Base structure for all AST nodes
 export interface BaseASTNode {
-  type: NodeType;
-  position?: Position; // Make position optional for flexibility
+  // Core properties - always present
+  type: NodeType | 'Error';
+  
+  // LSP-compatible range - always present for LSP features
+  range: Range;
+  
+  // Optional rich information - populated based on parser options
+  parent?: ASTNode;          // Parent reference
+  children?: ASTNode[];      // Child nodes for navigation
+  
+  // Source preservation (useful for refactoring)
+  leadingTrivia?: TriviaInfo[];  // Comments/whitespace before
+  trailingTrivia?: TriviaInfo[]; // Comments/whitespace after
+  raw?: string;                  // Original source text
+  
+  // Metadata for tools
+  id?: string;               // Unique identifier for the node
+  symbolKind?: SymbolKind;   // LSP SymbolKind for outline
 }
 
-export interface ASTNode {
-  type: NodeType;
-  offset?: number;  // Just the start offset for basic error reporting
-  position?: Position; // Make position optional to satisfy BaseASTNode constraint
+// Error node for LSP compatibility
+export interface ErrorNode extends BaseASTNode {
+  type: 'Error';
+  message: string;
+  expected?: string[];
+  // LSP diagnostic info
+  severity?: DiagnosticSeverity;
+  code?: string | number;
+  source?: string; // e.g., 'fhirpath'
 }
 
 // Specific node types
-export interface IdentifierNode extends ASTNode {
+export interface IdentifierNode extends BaseASTNode {
   type: NodeType.Identifier;
   name: string;
+  // Optional LSP symbol info
+  symbolKind?: SymbolKind.Variable | SymbolKind.Function | SymbolKind.Property;
 }
 
-export interface TypeOrIdentifierNode extends ASTNode {
+export interface TypeOrIdentifierNode extends BaseASTNode {
   type: NodeType.TypeOrIdentifier;
   name: string;
 }
 
-export interface LiteralNode extends ASTNode {
+export interface LiteralNode extends BaseASTNode {
   type: NodeType.Literal;
   value: any;
   valueType: 'string' | 'number' | 'boolean' | 'date' | 'time' | 'datetime' | 'null';
 }
 
-export interface BinaryNode extends ASTNode {
+export interface BinaryNode extends BaseASTNode {
   type: NodeType.Binary;
   operator: string;
   left: ASTNode;
   right: ASTNode;
 }
 
-export interface UnaryNode extends ASTNode {
+export interface UnaryNode extends BaseASTNode {
   type: NodeType.Unary;
   operator: string;
   operand: ASTNode;
 }
 
-export interface FunctionNode extends ASTNode {
+export interface FunctionNode extends BaseASTNode {
   type: NodeType.Function;
   name: ASTNode;
   arguments: ASTNode[];
+  // LSP-specific
+  symbolKind?: SymbolKind.Function;
+  detail?: string; // Function signature for hover/outline
 }
 
-export interface VariableNode extends ASTNode {
+export interface VariableNode extends BaseASTNode {
   type: NodeType.Variable;
   name: string;
 }
 
-export interface IndexNode extends ASTNode {
+export interface IndexNode extends BaseASTNode {
   type: NodeType.Index;
   expression: ASTNode;
   index: ASTNode;
 }
 
-export interface MembershipTestNode extends ASTNode {
+export interface MembershipTestNode extends BaseASTNode {
   type: NodeType.MembershipTest;
   expression: ASTNode;
   targetType: string;
 }
 
-export interface TypeCastNode extends ASTNode {
+export interface TypeCastNode extends BaseASTNode {
   type: NodeType.TypeCast;
   expression: ASTNode;
   targetType: string;
 }
 
-export interface CollectionNode extends ASTNode {
+export interface CollectionNode extends BaseASTNode {
   type: NodeType.Collection;
   elements: ASTNode[];
 }
 
-export interface TypeReferenceNode extends ASTNode {
+export interface TypeReferenceNode extends BaseASTNode {
   type: NodeType.TypeReference;
   typeName: string;
 }
+
+// Unified ASTNode type - discriminated union
+export type ASTNode = 
+  | IdentifierNode
+  | TypeOrIdentifierNode
+  | LiteralNode
+  | BinaryNode
+  | UnaryNode
+  | FunctionNode
+  | VariableNode
+  | IndexNode
+  | MembershipTestNode
+  | TypeCastNode
+  | CollectionNode
+  | TypeReferenceNode
+  | ErrorNode;
 
 export interface RuntimeContext {
   input: any[];
@@ -180,11 +254,6 @@ export interface EvaluationResult {
   context: RuntimeContext;
 }
 
-// LSP-compatible types for analyzer
-export interface Range {
-  start: Position;
-  end: Position;
-}
 
 export enum DiagnosticSeverity {
   Error = 1,
@@ -219,4 +288,33 @@ export type FunctionEvaluator = (
   args: ASTNode[],
   evaluator: (node: ASTNode, input: any[], context: RuntimeContext) => EvaluationResult
 ) => EvaluationResult;
+
+// Type guards for optional properties
+export function hasParentNavigation(node: ASTNode): node is ASTNode & { parent: ASTNode; children: ASTNode[] } {
+  return node.parent !== undefined && node.children !== undefined;
+}
+
+export function hasTrivia(node: ASTNode): node is ASTNode & { leadingTrivia: TriviaInfo[]; trailingTrivia: TriviaInfo[] } {
+  return node.leadingTrivia !== undefined && node.trailingTrivia !== undefined;
+}
+
+export function hasSourceInfo(node: ASTNode): node is ASTNode & { raw: string } {
+  return node.raw !== undefined;
+}
+
+export function hasSymbolKind(node: ASTNode): node is ASTNode & { symbolKind: SymbolKind } {
+  return node.symbolKind !== undefined;
+}
+
+export function isErrorNode(node: ASTNode): node is ErrorNode {
+  return node.type === 'Error';
+}
+
+export function isIdentifierNode(node: ASTNode): node is IdentifierNode {
+  return node.type === NodeType.Identifier;
+}
+
+export function isFunctionNode(node: ASTNode): node is FunctionNode {
+  return node.type === NodeType.Function;
+}
 

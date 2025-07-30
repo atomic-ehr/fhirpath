@@ -1,13 +1,12 @@
 import type { ASTNode, BinaryNode, IdentifierNode, LiteralNode, FunctionNode, Diagnostic, AnalysisResult, UnaryNode, IndexNode, CollectionNode, MembershipTestNode, TypeCastNode, Range, Position } from './types';
-import { NodeType, DiagnosticSeverity } from './types';
+import { NodeType, DiagnosticSeverity, isErrorNode } from './types';
 import { registry } from './registry';
-import type { LSPASTNode } from './parser-lsp';
 
 export class Analyzer {
   private diagnostics: Diagnostic[] = [];
   private variables: Set<string> = new Set(['$this', '$index', '$total']);
 
-  analyze(ast: ASTNode | LSPASTNode, userVariables?: Record<string, any>): AnalysisResult {
+  analyze(ast: ASTNode, userVariables?: Record<string, any>): AnalysisResult {
     this.diagnostics = [];
     
     if (userVariables) {
@@ -18,13 +17,13 @@ export class Analyzer {
     
     return {
       diagnostics: this.diagnostics,
-      ast: ast as any // Type assertion since AnalysisResult expects ASTNode
+      ast
     };
   }
 
-  private visitNode(node: ASTNode | LSPASTNode): void {
-    // Handle LSPParser error nodes
-    if ('type' in node && node.type === 'Error') {
+  private visitNode(node: ASTNode): void {
+    // Handle error nodes
+    if (node.type === 'Error') {
       // Error nodes are already reported by the parser
       return;
     }
@@ -132,25 +131,9 @@ export class Analyzer {
     }
   }
 
-  private addDiagnostic(severity: DiagnosticSeverity, message: string, node: any, code: string): void {
-    let range: Range;
-    
-    // Check if we have a node with range property (from LSPParser)
-    if (node && node.range) {
-      range = node.range;
-    } else if (node && node.position) {
-      // Create a range from simple position
-      range = {
-        start: node.position,
-        end: node.position
-      };
-    } else {
-      // Default range at start of file
-      range = {
-        start: { line: 0, column: 0, offset: 0 },
-        end: { line: 0, column: 0, offset: 0 }
-      };
-    }
+  private addDiagnostic(severity: DiagnosticSeverity, message: string, node: ASTNode, code: string): void {
+    // All nodes now have range property
+    const range: Range = node.range;
 
     this.diagnostics.push({
       range,

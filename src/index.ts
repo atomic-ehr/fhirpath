@@ -41,9 +41,10 @@ export function analyze(
   expression: string,
   options: { variables?: Record<string, unknown> } = {}
 ): AnalysisResult {
-  const parser = new LSPParser(expression);
-  const parseResult = parser.parse();
+  // TODO: Use LSPParser once it's migrated to unified AST
+  const parser = new Parser(expression);
+  const ast = parser.parse();
   
   const analyzer = new Analyzer();
-  return analyzer.analyze(parseResult.ast, options.variables);
+  return analyzer.analyze(ast, options.variables);
 }

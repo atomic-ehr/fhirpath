@@ -4,6 +4,7 @@ import { BaseParser } from './parser-base';
 import { NodeType } from './types';
 import type {
   Position,
+  Range,
   ASTNode,
   IdentifierNode,
   TypeOrIdentifierNode,
@@ -40,8 +41,28 @@ export {
 
 export class Parser extends BaseParser<ASTNode> {
   constructor(input: string) {
-    // Disable position tracking for performance
-    super(input, { trackPosition: false });
+    // Enable position tracking for unified AST structure
+    super(input, { trackPosition: true });
+  }
+  
+  private getRangeFromToken(token: Token): Range {
+    return token.range || {
+      start: { line: 0, character: 0, offset: token.start },
+      end: { line: 0, character: 0, offset: token.end }
+    };
+  }
+  
+  private getRangeFromTokens(startToken: Token, endToken: Token): Range {
+    const start = startToken.range?.start || { line: 0, character: 0, offset: startToken.start };
+    const end = endToken.range?.end || { line: 0, character: 0, offset: endToken.end };
+    return { start, end };
+  }
+  
+  private getRangeFromNodes(startNode: ASTNode, endNode: ASTNode): Range {
+    return {
+      start: startNode.range.start,
+      end: endNode.range.end
+    };
   }
 
   parse(): ASTNode {
@@ -55,20 +76,22 @@ export class Parser extends BaseParser<ASTNode> {
 
   // Implement abstract methods for node creation
   protected createIdentifierNode(name: string, token: Token): ASTNode {
+    const range = this.getRangeFromToken(token);
+    
     // Check if it's a type (starts with uppercase)
     if (name[0] && name[0] >= 'A' && name[0] <= 'Z') {
       return {
         type: NodeType.TypeOrIdentifier,
         name,
-        offset: token.start
-      } as TypeOrIdentifierNode;
+        range
+      };
     }
     
     return {
       type: NodeType.Identifier,
       name,
-      offset: token.start
-    } as IdentifierNode;
+      range
+    };
   }
 
   protected createLiteralNode(value: any, valueType: LiteralNode['valueType'], token: Token): LiteralNode {
@@ -76,7 +99,7 @@ export class Parser extends BaseParser<ASTNode> {
       type: NodeType.Literal,
       value,
       valueType,
-      offset: token.start
+      range: this.getRangeFromToken(token)
     };
   }
 
@@ -86,25 +109,27 @@ export class Parser extends BaseParser<ASTNode> {
       operator: token.value,
       left,
       right,
-      offset: token.start
+      range: this.getRangeFromNodes(left, right)
     };
   }
 
   protected createUnaryNode(token: Token, operand: ASTNode): UnaryNode {
+    const startPos = token.range?.start || { line: 0, character: 0, offset: token.start };
     return {
       type: NodeType.Unary,
       operator: token.value,
       operand,
-      offset: token.start
+      range: { start: startPos, end: operand.range.end }
     };
   }
 
-  protected createFunctionNode(name: ASTNode, args: ASTNode[], position: Position): FunctionNode {
+  protected createFunctionNode(name: ASTNode, args: ASTNode[], startToken: Token): FunctionNode {
+    const endNode = args.length > 0 ? args[args.length - 1]! : name;
     return {
       type: NodeType.Function,
       name,
       arguments: args,
-      offset: name.offset
+      range: this.getRangeFromNodes(name, endNode)
     };
   }
 
@@ -112,43 +137,48 @@ export class Parser extends BaseParser<ASTNode> {
     return {
       type: NodeType.Variable,
       name,
-      offset: token.start
+      range: this.getRangeFromToken(token)
     };
   }
 
-  protected createIndexNode(expression: ASTNode, index: ASTNode, position: Position): IndexNode {
+  protected createIndexNode(expression: ASTNode, index: ASTNode, startToken: Token): IndexNode {
     return {
       type: NodeType.Index,
       expression,
       index,
-      offset: expression.offset
+      range: this.getRangeFromNodes(expression, index)
     };
   }
 
 
-  protected createMembershipTestNode(expression: ASTNode, targetType: string, position: Position): MembershipTestNode {
+  protected createMembershipTestNode(expression: ASTNode, targetType: string, startToken: Token): MembershipTestNode {
+    // The range should extend from expression to the end of the type name
+    const endToken = this.previous(); // Should be the type identifier
     return {
       type: NodeType.MembershipTest,
       expression,
       targetType,
-      offset: expression.offset
+      range: this.getRangeFromTokens(startToken, endToken)
     };
   }
 
-  protected createTypeCastNode(expression: ASTNode, targetType: string, position: Position): TypeCastNode {
+  protected createTypeCastNode(expression: ASTNode, targetType: string, startToken: Token): TypeCastNode {
+    // The range should extend from expression to the end of the type name
+    const endToken = this.previous(); // Should be the type identifier
     return {
       type: NodeType.TypeCast,
       expression,
       targetType,
-      offset: expression.offset
+      range: this.getRangeFromTokens(startToken, endToken)
     };
   }
 
-  protected createCollectionNode(elements: ASTNode[], position: Position): CollectionNode {
+  protected createCollectionNode(elements: ASTNode[], startToken: Token): CollectionNode {
+    const endToken = this.previous(); // Should be RBRACE
     return {
       type: NodeType.Collection,
       elements,
-      offset: elements.length > 0 ? elements[0]?.offset : undefined
+      range: this.getRangeFromTokens(startToken, endToken)
     };
   }
 

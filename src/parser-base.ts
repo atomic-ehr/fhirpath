@@ -2,17 +2,17 @@ import { Lexer, TokenType, Channel, isOperator, isOperatorValue } from './lexer'
 import type { Token, LexerOptions } from './lexer';
 import { registry } from './registry';
 import { NodeType } from './types';
-import type { Position, BaseASTNode } from './types';
+import type { Position, BaseASTNode, Range } from './types';
 
 // Re-export from types for backward compatibility
 export { NodeType } from './types';
-export type { Position, BaseASTNode } from './types';
+export type { Position, BaseASTNode, Range } from './types';
 
 /**
  * Abstract base parser with shared parsing logic
  * Subclasses must implement node creation and error handling
  */
-export abstract class BaseParser<TNode extends { type: NodeType; position?: Position; offset?: number } = BaseASTNode> {
+export abstract class BaseParser<TNode extends BaseASTNode = BaseASTNode> {
   protected lexer: Lexer;
   protected tokens: Token[] = [];
   protected current = 0;
@@ -34,12 +34,12 @@ export abstract class BaseParser<TNode extends { type: NodeType; position?: Posi
   protected abstract createLiteralNode(value: any, valueType: 'string' | 'number' | 'boolean' | 'date' | 'time' | 'datetime' | 'null', token: Token): TNode;
   protected abstract createBinaryNode(token: Token, left: TNode, right: TNode): TNode;
   protected abstract createUnaryNode(token: Token, operand: TNode): TNode;
-  protected abstract createFunctionNode(name: TNode, args: TNode[], position: Position): TNode;
+  protected abstract createFunctionNode(name: TNode, args: TNode[], startToken: Token): TNode;
   protected abstract createVariableNode(name: string, token: Token): TNode;
-  protected abstract createIndexNode(expression: TNode, index: TNode, position: Position): TNode;
-  protected abstract createMembershipTestNode(expression: TNode, targetType: string, position: Position): TNode;
-  protected abstract createTypeCastNode(expression: TNode, targetType: string, position: Position): TNode;
-  protected abstract createCollectionNode(elements: TNode[], position: Position): TNode;
+  protected abstract createIndexNode(expression: TNode, index: TNode, startToken: Token): TNode;
+  protected abstract createMembershipTestNode(expression: TNode, targetType: string, startToken: Token): TNode;
+  protected abstract createTypeCastNode(expression: TNode, targetType: string, startToken: Token): TNode;
+  protected abstract createCollectionNode(elements: TNode[], startToken: Token): TNode;
   protected abstract handleError(message: string, token?: Token): never | TNode;
   
   // Shared expression parsing with precedence climbing
@@ -61,7 +61,7 @@ export abstract class BaseParser<TNode extends { type: NodeType; position?: Posi
         this.current++; // inline advance()
         const index = this.expression();
         this.consume(TokenType.RBRACKET, "Expected ']'");
-        left = this.createIndexNode(left, index, this.getPosition(token));
+        left = this.createIndexNode(left, index, token);
         continue;
       }
       
@@ -70,7 +70,9 @@ export abstract class BaseParser<TNode extends { type: NodeType; position?: Posi
         this.current++; // inline advance()
         const args = this.parseArgumentList();
         this.consume(TokenType.RPAREN, "Expected ')'");
-        left = this.createFunctionNode(left, args, this.getPositionFromNode(left));
+        // For function calls, we need to find the start token from the name node
+        const startToken = this.tokens[this.current - args.length - 2] || token;
+        left = this.createFunctionNode(left, args, startToken);
         continue;
       }
       
@@ -101,11 +103,11 @@ export abstract class BaseParser<TNode extends { type: NodeType; position?: Posi
       } else if (token.type === TokenType.IDENTIFIER && token.value === 'is') {
         this.current++; // inline advance()
         const typeName = this.parseTypeName();
-        left = this.createMembershipTestNode(left, typeName, this.getPosition(token));
+        left = this.createMembershipTestNode(left, typeName, token);
       } else if (token.type === TokenType.IDENTIFIER && token.value === 'as') {
         this.current++; // inline advance()
         const typeName = this.parseTypeName();
-        left = this.createTypeCastNode(left, typeName, this.getPosition(token));
+        left = this.createTypeCastNode(left, typeName, token);
       } else if (operator && registry.isBinaryOperator(operator)) {
         this.current++; // inline advance()
         const associativity = registry.getAssociativity(operator);
@@ -191,7 +193,7 @@ export abstract class BaseParser<TNode extends { type: NodeType; position?: Posi
       this.advance();
       const elements = this.parseCollectionElements();
       this.consume(TokenType.RBRACE, "Expected '}'");
-      return this.createCollectionNode(elements, this.getPosition(token));
+      return this.createCollectionNode(elements, token);
     }
 
     // Handle unary operators
@@ -218,7 +220,8 @@ export abstract class BaseParser<TNode extends { type: NodeType; position?: Posi
         this.advance();
         const args = this.parseArgumentList();
         this.consume(TokenType.RPAREN, "Expected ')'");
-        return this.createFunctionNode(node, args, this.getPositionFromNode(node));
+        const startToken = this.tokens[this.current - args.length - 2] || this.previous();
+        return this.createFunctionNode(node, args, startToken);
       }
       
       return node;
@@ -301,16 +304,6 @@ export abstract class BaseParser<TNode extends { type: NodeType; position?: Posi
     return raw;
   }
   
-  protected getPositionFromNode(node: TNode): Position {
-    if ('position' in node && node.position) {
-      return node.position;
-    }
-    if ('offset' in node && typeof node.offset === 'number') {
-      return { line: 0, column: 0, offset: node.offset };
-    }
-    return { line: 0, column: 0, offset: 0 };
-  }
-  
   // Shared utility methods
   protected isFunctionCall(node: TNode): boolean {
     return (node as any).type === NodeType.Identifier || (node as any).type === NodeType.TypeOrIdentifier;
@@ -325,14 +318,6 @@ export abstract class BaseParser<TNode extends { type: NodeType; position?: Posi
       return registry.isKeywordOperator(token.value);
     }
     return false;
-  }
-  
-  protected getPosition(token: Token): Position {
-    return {
-      line: token.line,
-      column: token.column,
-      offset: token.start
-    };
   }
   
   protected isKeywordAllowedAsMember(token: Token): boolean {

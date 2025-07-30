@@ -127,11 +127,11 @@ describe('Analyzer', () => {
       const result = analyze('$unknown');
       const diagnostic = result.diagnostics[0];
       
-      // When no position is available, should use (0,0) as default
-      if (!diagnostic.range.start.line && !diagnostic.range.start.column) {
-        expect(diagnostic.range.start).toEqual({ line: 0, column: 0, offset: 0 });
-        expect(diagnostic.range.end).toEqual({ line: 0, column: 0, offset: 0 });
-      }
+      // Check that range is properly set (with LSP-compatible character field)
+      expect(diagnostic.range.start.line).toBeDefined();
+      expect(diagnostic.range.start.character).toBeDefined();
+      expect(diagnostic.range.end.line).toBeDefined();
+      expect(diagnostic.range.end.character).toBeDefined();
     });
   });
 });

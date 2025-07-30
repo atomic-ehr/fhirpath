@@ -51,6 +51,8 @@ export enum Channel {
   HIDDEN = 1,
 }
 
+import type { Position, Range } from './types';
+
 export interface Token {
   type: TokenType;
   value: string;
@@ -58,6 +60,7 @@ export interface Token {
   end: number;
   line: number;
   column: number;
+  range?: Range; // LSP-compatible range
   channel?: Channel;
 }
 
@@ -69,9 +72,12 @@ export interface LexerOptions {
 export class Lexer {
   private input: string;
   private position: number = 0;
-  private line: number = 1;
-  private column: number = 1;
+  private line: number = 1;     // Legacy: 1-based for backward compatibility
+  private column: number = 1;   // Legacy: 1-based for backward compatibility
+  private lspLine: number = 0;     // LSP: zero-based
+  private lspCharacter: number = 0; // LSP: zero-based character within line
   private options: LexerOptions;
+  private lineOffsets: number[] = [0]; // Start positions of each line
   
   constructor(input: string, options: LexerOptions = {}) {
     this.input = input;
@@ -79,6 +85,29 @@ export class Lexer {
       trackPosition: options.trackPosition ?? true,
       preserveTrivia: options.preserveTrivia ?? false,
     };
+    if (this.options.trackPosition) {
+      this.buildLineOffsets();
+    }
+  }
+  
+  /**
+   * Build line offset map for efficient position conversions
+   */
+  private buildLineOffsets(): void {
+    this.lineOffsets = [0];
+    
+    for (let i = 0; i < this.input.length; i++) {
+      const char = this.input[i];
+      if (char === '\n') {
+        this.lineOffsets.push(i + 1);
+      } else if (char === '\r') {
+        // Handle \r\n as single line ending
+        if (i + 1 < this.input.length && this.input[i + 1] === '\n') {
+          i++; // Skip the \n
+        }
+        this.lineOffsets.push(i + 1);
+      }
+    }
   }
   
   tokenize(): Token[] {
@@ -696,12 +725,28 @@ export class Lexer {
   
   private advance(): void {
     if (this.position < this.input.length) {
+      const char = this.input[this.position]!;
+      
       if (this.options.trackPosition) {
-        if (this.input[this.position] === '\n') {
+        if (char === '\n') {
           this.line++;
           this.column = 1;
+          this.lspLine++;
+          this.lspCharacter = 0;
+        } else if (char === '\r') {
+          // Handle \r\n as single line ending
+          if (this.position + 1 < this.input.length && this.input[this.position + 1] === '\n') {
+            // Don't update line yet, wait for \n
+          } else {
+            // Standalone \r
+            this.line++;
+            this.column = 1;
+            this.lspLine++;
+            this.lspCharacter = 0;
+          }
         } else {
           this.column++;
+          this.lspCharacter++;
         }
       }
       this.position++;
@@ -727,6 +772,34 @@ export class Lexer {
     return char === ' ' || char === '\t' || char === '\n' || char === '\r';
   }
   
+  /**
+   * Convert absolute offset to LSP Position
+   */
+  private offsetToPosition(offset: number): Position {
+    if (!this.options.trackPosition) {
+      return { line: 0, character: 0, offset };
+    }
+    
+    // Binary search for the line
+    let low = 0;
+    let high = this.lineOffsets.length - 1;
+    
+    while (low < high) {
+      const mid = Math.floor((low + high + 1) / 2);
+      if (this.lineOffsets[mid]! <= offset) {
+        low = mid;
+      } else {
+        high = mid - 1;
+      }
+    }
+    
+    const line = low;
+    const lineStart = this.lineOffsets[line]!;
+    const character = offset - lineStart;
+    
+    return { line, character, offset };
+  }
+  
   private createToken(
     type: TokenType,
     value: string,
@@ -735,7 +808,7 @@ export class Lexer {
     line: number = this.line,
     column: number = this.column
   ): Token {
-    return {
+    const token: Token = {
       type,
       value,
       start,
@@ -743,6 +816,18 @@ export class Lexer {
       line: this.options.trackPosition ? line : 0,
       column: this.options.trackPosition ? column : 0,
     };
+    
+    // Add LSP-compatible range if tracking positions
+    if (this.options.trackPosition) {
+      const startPos = this.offsetToPosition(start);
+      const endPos = this.offsetToPosition(end);
+      token.range = {
+        start: startPos,
+        end: endPos
+      };
+    }
+    
+    return token;
   }
   
   private error(message: string): Error {
