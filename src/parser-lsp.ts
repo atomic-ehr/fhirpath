@@ -416,6 +416,25 @@ export class LSPParser extends BaseParser<LSPNode> {
       const token = this.tokens[this.current];
       if (!token || token.type === TokenType.EOF) break;
       
+      // Check for postfix operations first (they bind tightly)
+      if (token.type === TokenType.LBRACKET) {
+        this.current++;
+        this.skipTrivia();
+        const index = this.expression();
+        this.consume(TokenType.RBRACKET, "Expected ']'");
+        left = this.createIndexNode(left, index, this.getPosition(token));
+        continue;
+      }
+      
+      if (token.type === TokenType.LPAREN && this.isFunctionCall(left)) {
+        this.current++;
+        this.skipTrivia();
+        const args = this.parseArgumentList();
+        this.consume(TokenType.RPAREN, "Expected ')'");
+        left = this.createFunctionNode(left, args, left.position);
+        continue;
+      }
+      
       // Get operator value for precedence check
       let operator: string | undefined;
       let precedence = 0;
@@ -459,18 +478,6 @@ export class LSPParser extends BaseParser<LSPNode> {
         const right = this.parseExpressionWithPrecedence(nextMinPrecedence);
         
         left = this.createBinaryNode(token, left, right);
-      } else if (token.type === TokenType.LBRACKET) {
-        this.current++;
-        this.skipTrivia();
-        const index = this.expression();
-        this.consume(TokenType.RBRACKET, "Expected ']'");
-        left = this.createIndexNode(left, index, this.getPosition(token));
-      } else if (token.type === TokenType.LPAREN && this.isFunctionCall(left)) {
-        this.current++;
-        this.skipTrivia();
-        const args = this.parseArgumentList();
-        this.consume(TokenType.RPAREN, "Expected ')'");
-        left = this.createFunctionNode(left, args, left.position);
       } else {
         break;
       }

@@ -206,7 +206,7 @@ describe('FHIRPath Interpreter', () => {
     it('should evaluate iif', () => {
       expect(evaluate('iif(true, 1, 2)')).toEqual([1]);
       expect(evaluate('iif(false, 1, 2)')).toEqual([2]);
-      expect(evaluate('iif({}, 1, 2)')).toEqual([]);
+      expect(evaluate('iif({}, 1, 2)')).toEqual([2]); // Empty condition is treated as false
     });
 
     it('should evaluate defineVariable', () => {

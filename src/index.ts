@@ -1,5 +1,8 @@
 import { Parser } from './parser';
+import { LSPParser } from './parser-lsp';
 import { Interpreter, RuntimeContextManager } from './interpreter';
+import { Analyzer } from './analyzer';
+import type { AnalysisResult } from './types';
 
 export interface EvaluateOptions {
   input?: unknown;
@@ -32,4 +35,15 @@ export function evaluate(
   const result = interpreter.evaluate(ast, input, context);
   
   return result.value;
+}
+
+export function analyze(
+  expression: string,
+  options: { variables?: Record<string, unknown> } = {}
+): AnalysisResult {
+  const parser = new LSPParser(expression);
+  const parseResult = parser.parse();
+  
+  const analyzer = new Analyzer();
+  return analyzer.analyze(parseResult.ast, options.variables);
 }

@@ -212,23 +212,9 @@
       ]
     },
     {
-      "name": "iif - multiple input values returns empty",
-      "expression": "('item1' | 'item2').iif(true, 'true-result', 'false-result')",
-      "input": [],
-      "expected": [],
-      "tags": [
-        "function",
-        "conditional",
-        "iif",
-        "multiple",
-        "spec",
-        "function:iif"
-      ]
-    },
-    {
       "name": "iif - $this in condition",
       "expression": "('context').iif($this = 'context','true-result', 'false-result')",
-      "input": [],
+      "input": [{}],
       "expected": [
         "true-result"
       ],
@@ -271,6 +257,142 @@
         "iif",
         "lazy",
         "spec",
+        "function:iif"
+      ]
+    },
+    {
+      "name": "iif - $this refers to input collection",
+      "expression": "(1).iif($this.count() = 1, 'one item', 'not one item')",
+      "input": [],
+      "expected": [
+        "one item"
+      ],
+      "tags": [
+        "function",
+        "conditional",
+        "iif",
+        "context",
+        "$this",
+        "collection",
+        "function:iif",
+        "function:count"
+      ]
+    },
+    {
+      "name": "iif - $this in branches refers to input",
+      "expression": "('test').iif(true, $this, 'other')",
+      "input": [],
+      "expected": [
+        "test"
+      ],
+      "tags": [
+        "function",
+        "conditional",
+        "iif",
+        "context",
+        "$this",
+        "branches",
+        "function:iif"
+      ]
+    },
+    {
+      "name": "iif - with exists() condition",
+      "expression": "Patient.name.exists().iif($this, 'has name', 'no name')",
+      "input": [
+        {
+          "resourceType": "Patient",
+          "name": [
+            {
+              "given": ["John"],
+              "family": "Doe"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        "has name"
+      ],
+      "tags": [
+        "function",
+        "conditional",
+        "iif",
+        "exists",
+        "real-world",
+        "function:iif",
+        "function:exists"
+      ]
+    },
+    {
+      "name": "iif - with empty() condition",
+      "expression": "Patient.telecom.empty().iif($this, 'no contact', 'has contact')",
+      "input": [
+        {
+          "resourceType": "Patient",
+          "name": [
+            {
+              "given": ["John"],
+              "family": "Doe"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        "no contact"
+      ],
+      "tags": [
+        "function",
+        "conditional",
+        "iif",
+        "empty",
+        "real-world",
+        "function:iif",
+        "function:empty"
+      ]
+    },
+    {
+      "name": "iif - chained conditions",
+      "expression": "iif(Patient.name.exists(), iif(Patient.name.given.exists(), 'has given name', 'no given name'), 'no name at all')",
+      "input": [
+        {
+          "resourceType": "Patient",
+          "name": [
+            {
+              "given": ["John"],
+              "family": "Doe"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        "has given name"
+      ],
+      "tags": [
+        "function",
+        "conditional",
+        "iif",
+        "nested",
+        "chain",
+        "real-world",
+        "function:iif",
+        "function:exists"
+      ]
+    },
+    {
+      "name": "iif - error on multiple item input",
+      "expression": "('item1' | 'item2').iif(true, 'true-result', 'false-result')",
+      "input": [],
+      "expected": [],
+      "error": {
+        "type": "Error",
+        "message": "iif\\(\\) can only be used on single item or empty collections"
+      },
+      "tags": [
+        "function",
+        "conditional",
+        "iif",
+        "error",
+        "multiple",
+        "cardinality",
         "function:iif"
       ]
     }

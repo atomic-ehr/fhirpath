@@ -11,8 +11,8 @@ import type {
   TypeOrIdentifierNode,
   MembershipTestNode,
   TypeCastNode
-} from './parser';
-import { NodeType } from './parser';
+} from './types';
+import { NodeType } from './types';
 import { Registry } from './registry';
 import * as operations from './operations';
 import type { EvaluationResult, FunctionEvaluator, NodeEvaluator, OperationEvaluator, RuntimeContext } from './types';

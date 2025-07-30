@@ -82,7 +82,3 @@ Create `/test-cases/operations/<category>/$ARGUMENTS.json` with:
 - `bun tools/testcase.ts operations/<category>/$ARGUMENTS.json`
 - `bun tsc --noEmit`
 - Test interactively with interpreter
-
-### 7. Document in CLAUDE.md if needed
-
-Please research the specification first, then implement the function.

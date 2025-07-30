@@ -172,11 +172,41 @@ export interface RuntimeContext {
   input: any[];
   focus: any[];
   variables: Record<string, any>;
-}// Evaluation result - everything is a collection
+}
 
+// Evaluation result - everything is a collection
 export interface EvaluationResult {
   value: any[];
   context: RuntimeContext;
+}
+
+// LSP-compatible types for analyzer
+export interface Range {
+  start: Position;
+  end: Position;
+}
+
+export enum DiagnosticSeverity {
+  Error = 1,
+  Warning = 2,
+  Information = 3,
+  Hint = 4
+}
+
+export interface Diagnostic {
+  range: Range;
+  severity?: DiagnosticSeverity;
+  code?: string;
+  source?: string;
+  message: string;
+  tags?: number[];
+  relatedInformation?: any[];
+  data?: any;
+}
+
+export interface AnalysisResult {
+  diagnostics: Diagnostic[];
+  ast: ASTNode;
 }
 
 export type NodeEvaluator = (node: ASTNode, input: any[], context: RuntimeContext) => EvaluationResult;
