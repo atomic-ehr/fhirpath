@@ -45,15 +45,76 @@ export interface TypeInfo {
 
 // Model Provider Interface (from ADR-004)
 export interface ModelTypeProvider<TypeContext = unknown> {
+  /**
+   * Get type information for a named type in the model
+   * @param typeName - The type name (e.g., "Patient", "Observation")
+   * @returns Type information or undefined if not found
+   */
   getTypeByName(typeName: string): TypeInfo | undefined;
+  
+  /**
+   * Navigate from a type to one of its properties
+   * @param parentType - The parent type (with model context)
+   * @param propertyName - The property name (single level, not path)
+   * @returns Type information of the property or undefined if not found
+   */
   navigateProperty(parentType: TypeInfo, propertyName: string): TypeInfo | undefined;
+  
+  /**
+   * Check if a property exists on a type
+   * @param parentType - The parent type to check
+   * @param propertyName - The property name (single level, not path)
+   */
   hasProperty(parentType: TypeInfo, propertyName: string): boolean;
+  
+  /**
+   * Get available property names for a type
+   * Used for autocomplete and validation
+   * @param parentType - The type to get properties for
+   * @returns Array of property names
+   */
   getPropertyNames(parentType: TypeInfo): string[];
+  
+  /**
+   * Check if a type name exists in the model
+   * @param typeName - The type name to check
+   */
   hasTypeName(typeName: string): boolean;
+  
+  /**
+   * Get all available type names in the model
+   * Used for autocomplete and validation of type references
+   */
   getAllTypeNames(): string[];
+  
+  /**
+   * Check type compatibility for casting/assignment
+   * @param source - The source type
+   * @param target - The target type to check against
+   * @returns true if source is compatible with target
+   */
   isTypeCompatible(source: TypeInfo, target: TypeInfo): boolean;
+  
+  /**
+   * Convert a model type name to FHIRPath type
+   * @param typeName - The model type name
+   * @returns The corresponding FHIRPath type
+   */
   mapToFHIRPathType(typeName: string): TypeName;
+  
+  /**
+   * Get documentation for a type (optional)
+   * @param type - The type to get documentation for
+   * @returns Documentation string or undefined
+   */
   getTypeDocumentation?(type: TypeInfo): string | undefined;
+  
+  /**
+   * Get documentation for a property (optional)
+   * @param parentType - The parent type
+   * @param propertyName - The property name
+   * @returns Documentation string or undefined
+   */
   getPropertyDocumentation?(parentType: TypeInfo, propertyName: string): string | undefined;
 }
 
