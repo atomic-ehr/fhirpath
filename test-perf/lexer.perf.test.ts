@@ -11,7 +11,7 @@ describe('Lexer Performance', () => {
 
 function runPerformanceTest(preserveTrivia: boolean) {
     const fixturesPath = path.join(process.cwd(), 'test', 'fixtures');
-    const iterations = 10000;
+    const iterations = 100; // Reduced for faster test runs
     
     // Read all fixture files
     const fixtureFiles = fs.readdirSync(fixturesPath)

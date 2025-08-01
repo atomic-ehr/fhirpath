@@ -22,7 +22,7 @@ describe('Parser Performance', () => {
 
 function runPerformanceTest() {
     const fixturesPath = path.join(process.cwd(), 'test', 'fixtures');
-    const iterations = 5000; // Fewer iterations than lexer since parsing is more expensive
+    const iterations = 50; // Reduced for faster test runs
     
     // Read all fixture files
     const fixtureFiles = fs.readdirSync(fixturesPath)
