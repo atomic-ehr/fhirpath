@@ -60,7 +60,7 @@ export const unionOperator: OperatorDefinition & { evaluate: OperationEvaluator 
       name: 'union',
       left: { type: 'Any', singleton: false },
       right: { type: 'Any', singleton: false },
-      result: { type: 'Any', singleton: false },
+      result: 'leftType' as any,
     }
   ],
   evaluate

@@ -44,9 +44,9 @@ export const whereFunction: FunctionDefinition & { evaluate: FunctionEvaluator }
   signature: {
     input: { type: 'Any', singleton: false },
     parameters: [
-      { name: 'condition', type: { type: 'Boolean', singleton: false } },
+      { name: 'condition', type: { type: 'Boolean', singleton: false }, expression: true },
     ],
-    result: { type: 'Any', singleton: false },
+    result: 'inputType' as any,
   },
   evaluate
 };

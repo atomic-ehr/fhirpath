@@ -53,7 +53,7 @@ export interface OperatorSignature {
   name: string;
   left: TypeInfo;
   right: TypeInfo;
-  result: TypeInfo;
+  result: TypeInfo | 'inputType' | 'leftType' | 'rightType';
 }
 
 export interface OperatorDefinition {
@@ -84,7 +84,7 @@ export interface FunctionDefinition {
       type: TypeInfo;
       expression?: boolean;
     }>;
-    result: TypeInfo;
+    result: TypeInfo | 'inputType' | 'parameterType';
   };
   evaluate: FunctionEvaluator;
 }

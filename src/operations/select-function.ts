@@ -43,9 +43,9 @@ export const selectFunction: FunctionDefinition & { evaluate: FunctionEvaluator 
   signature: {
     input: { type: 'Any', singleton: false },
     parameters: [
-      { name: 'projection', type: { type: 'Any', singleton: false } },
+      { name: 'projection', type: { type: 'Any', singleton: false }, expression: true },
     ],
-    result: { type: 'Any', singleton: false },
+    result: 'parameterType' as any,
   },
   evaluate
 };
