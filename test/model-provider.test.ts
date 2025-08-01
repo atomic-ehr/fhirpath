@@ -245,4 +245,16 @@ describe('FHIR ModelProvider', () => {
       expect(carePlanType2?.name).toBe('CarePlan');
     });
   });
+
+  describe('modelProvider', async () => {
+    it('should be able to get type info for FHIR primitive types', async () => {
+      const observationType = provider.getType('Observation')!;
+      const value = provider.getElementType(observationType, 'value');
+      expect(value).toBeDefined();
+      const valueType = provider.ofType(value!, 'Quantity');
+      expect(valueType?.type).toBe('Quantity');
+      const valueType2 = provider.ofType(value!, 'Boolean');
+      expect(valueType2?.type).toBe('Boolean');
+    });
+  });
 });

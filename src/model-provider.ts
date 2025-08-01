@@ -169,7 +169,7 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
       let baseTypeName = current.base;
       if (baseTypeName && baseTypeName.startsWith('http://')) {
         const parts = baseTypeName.split('/');
-        baseTypeName = parts[parts.length - 1];
+        baseTypeName = parts[parts.length - 1] || baseTypeName;
       }
       
       const baseSchema = await this.loadSchemaAsync(baseTypeName);
@@ -201,11 +201,7 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
     return element.type && Array.isArray(element.type) && element.type.length > 1;
   }
   
-  private createUnionContext(
-    element: any,
-    path: string,
-    parentSchema: FHIRSchema
-  ): FHIRModelContext {
+  private createUnionContext( element: any, path: string, parentSchema: FHIRSchema): FHIRModelContext {
     // Map choice names to their types
     const choices = element.choices.map((choiceName: string) => {
       // Get the actual element for this choice
@@ -272,10 +268,7 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
     };
   }
   
-  getElementType(
-    parentType: TypeInfo<FHIRModelContext>,
-    propertyName: string
-  ): TypeInfo<FHIRModelContext> | undefined {
+  getElementType( parentType: TypeInfo<FHIRModelContext>, propertyName: string): TypeInfo<FHIRModelContext> | undefined {
     const context = parentType.modelContext;
     if (!context) return undefined;
     

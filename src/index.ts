@@ -47,7 +47,11 @@ export function evaluate(
 
 export function analyze(
   expression: string,
-  options: { variables?: Record<string, unknown> } = {}
+  options: { 
+    variables?: Record<string, unknown>;
+    modelProvider?: import('./types').ModelProvider;
+    inputType?: import('./types').TypeInfo;
+  } = {}
 ): AnalysisResult {
   const parser = new Parser(expression);
   const parseResult = parser.parse();
@@ -61,16 +65,15 @@ export function analyze(
   
   const ast = parseResult.ast;
   
-  // Create analyzer without model provider for now
-  const analyzer = new Analyzer();
-  return analyzer.analyze(ast, options.variables);
+  // Create analyzer with optional model provider
+  const analyzer = new Analyzer(options.modelProvider);
+  return analyzer.analyze(ast, options.variables, options.inputType);
 }
 
 // Export key types and classes
 export { Parser } from './parser';
 export { Interpreter } from './interpreter';
 export { Analyzer } from './analyzer';
-export { TypeAnalyzer } from './type-analyzer';
 export { parse } from './parser';
 export { DiagnosticSeverity } from './types';
 export type { 

@@ -137,8 +137,9 @@ export const modelProvider: ModelProvider<ModelContext> = {
 
     const schemaset = getParents(schema);
 
+    const fhirType = schema.type && typeConversion[schema.type] ? typeConversion[schema.type] : 'Any';
     const typeInfo: TypeInfo<ModelContext> = {
-      type: schema.type && typeConversion[schema.type] ? typeConversion[schema.type] : 'Any',
+      type: fhirType,
       namespace: 'FHIR',
       name: typeName,
       singleton: true,
