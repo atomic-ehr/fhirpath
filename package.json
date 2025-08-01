@@ -55,5 +55,9 @@
   },
   "peerDependencies": {
     "typescript": "^5"
+  },
+  "dependencies": {
+    "@atomic-ehr/fhir-canonical-manager": "^0.0.3",
+    "@atomic-ehr/fhirschema": "^0.0.1"
   }
 }

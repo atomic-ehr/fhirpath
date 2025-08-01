@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed
+Accepted
 
 ## Context
 
@@ -26,122 +26,80 @@ Create a Model Provider interface that allows FHIRPath implementations to integr
 
 ### Core Interface Design
 
-```typescript
-// Import TypeInfo from ADR-005
-import type { TypeInfo, TypeName } from './types';
+Based on our implementation experience, we've simplified the interface to focus on essential operations:
 
-/**
- * Generic interface for providing model type information
- * Works with any type system through the TypeContext generic parameter
- */
-export interface ModelTypeProvider<TypeContext = unknown> {
+```typescript
+// Model Provider Interface
+export interface ModelProvider<TypeContext = unknown> {
   /**
    * Get type information for a named type in the model
-   * @param typeName - The type name (e.g., "Patient", "Observation")
-   * @returns Type information or undefined if not found
+   * @param typeName - The type name (e.g., "Patient", "string")
+   * @returns Type information with FHIRPath type and model context
    */
-  getTypeByName(typeName: string): TypeInfo | undefined;
+  getType(typeName: string): TypeInfo<TypeContext> | undefined;
   
   /**
-   * Navigate from a type to one of its properties
+   * Navigate from a type to one of its properties/elements
    * @param parentType - The parent type (with model context)
-   * @param propertyName - The property name (single level, not path)
-   * @returns Type information of the property or undefined if not found
+   * @param propertyName - The property name (single level)
+   * @returns Type information of the property or undefined
    */
-  navigateProperty(parentType: TypeInfo, propertyName: string): TypeInfo | undefined;
+  getElementType(parentType: TypeInfo<TypeContext>, propertyName: string): TypeInfo<TypeContext> | undefined;
   
   /**
-   * Check if a property exists on a type
-   * @param parentType - The parent type to check
-   * @param propertyName - The property name (single level, not path)
+   * Filter a type to a specific FHIRPath type (for union types)
+   * @param type - The type to filter (may be a union)
+   * @param typeName - The FHIRPath type to filter to
+   * @returns Filtered type information or undefined
    */
-  hasProperty(parentType: TypeInfo, propertyName: string): boolean;
+  ofType(type: TypeInfo<TypeContext>, typeName: TypeName): TypeInfo<TypeContext> | undefined;
   
   /**
    * Get available property names for a type
-   * Used for autocomplete and validation
    * @param parentType - The type to get properties for
    * @returns Array of property names
    */
-  getPropertyNames(parentType: TypeInfo): string[];
-  
-  /**
-   * Check if a type name exists in the model
-   * @param typeName - The type name to check
-   */
-  hasTypeName(typeName: string): boolean;
-  
-  /**
-   * Get all available type names in the model
-   * Used for autocomplete and validation of type references
-   */
-  getAllTypeNames(): string[];
-  
-  /**
-   * Check type compatibility for casting/assignment
-   * @param source - The source type
-   * @param target - The target type to check against
-   * @returns true if source is compatible with target
-   */
-  isTypeCompatible(source: TypeInfo, target: TypeInfo): boolean;
-  
-  /**
-   * Convert a model type name to FHIRPath type
-   * @param typeName - The model type name
-   * @returns The corresponding FHIRPath type
-   */
-  mapToFHIRPathType(typeName: string): TypeName;
-  
-  /**
-   * Get documentation for a type (optional)
-   * @param type - The type to get documentation for
-   * @returns Documentation string or undefined
-   */
-  getTypeDocumentation?(type: TypeInfo): string | undefined;
-  
-  /**
-   * Get documentation for a property (optional)
-   * @param parentType - The parent type
-   * @param propertyName - The property name
-   * @returns Documentation string or undefined
-   */
-  getPropertyDocumentation?(parentType: TypeInfo, propertyName: string): string | undefined;
+  getElementNames(parentType: TypeInfo<TypeContext>): string[];
 }
-```
 
-### Integration with TypeInfo System
-
-The Model Provider leverages the TypeInfo structure from ADR-005:
-
-1. **Uses `TypeInfo`**: The unified type structure that supports both FHIRPath and model types
-2. **Dual type system**: Maintains FHIRPath computational types while preserving model information
-3. **Union type support**: Can represent choice types through the `union` flag and `choices` array
-4. **Complex type elements**: The `elements` map enables property navigation without full model loading
-5. **Preserves type safety**: The opaque `modelContext` allows type-safe navigation without exposing internals
-
-```typescript
-// TypeInfo from ADR-005
-interface TypeInfo {
-  // FHIRPath type
+// TypeInfo structure (from ADR-005)
+export interface TypeInfo<TypeContext = unknown> {
+  // FHIRPath computational type
   type: TypeName;
-  union?: boolean;
+  
+  // Whether this is a single value (vs collection)
   singleton?: boolean;
-
+  
   // Model type information
   namespace?: string;
   name?: string;
-
-  // For union types
-  choices?: TypeInfo[];
-
-  // For complex types
-  elements?: {
-    [key: string]: TypeInfo;
-  }
-
-  // Model context
-  modelContext?: unknown;
+  
+  // Opaque context for model provider implementation
+  modelContext?: TypeContext;
 }
+```
+
+### Key Design Principles
+
+1. **Separation of Concerns**: The TypeInfo structure cleanly separates FHIRPath types from model-specific information
+2. **Opaque Context**: The `modelContext` field allows implementations to store any necessary internal state without exposing it
+3. **Union Type Handling**: Union/choice types are handled through the `ofType` method rather than explicit properties
+4. **Simplified API**: Focus on essential operations that enable type-aware navigation
+
+### Handling Union Types
+
+Union types (like FHIR choice types) are represented as:
+- TypeInfo with `type: 'Any'`
+- Internal union state stored in `modelContext`
+- The `ofType` method filters to specific types within the union
+
+```typescript
+// Example: Patient.multipleBirth[x] can be boolean or integer
+const multipleBirthType = provider.getElementType(patientType, 'multipleBirth');
+// Returns: { type: 'Any', ... }
+
+const booleanType = provider.ofType(multipleBirthType, 'Boolean');
+// Returns: { type: 'Boolean', ... } or undefined if not applicable
 ```
 
 ### Integration Points
@@ -153,228 +111,174 @@ The Model Provider will integrate with:
 3. **Interpreter**: For runtime type checking and optimization
 4. **Language Server**: For IDE features like autocomplete and hover
 
-### Usage Example
+### Implementation Example
 
 ```typescript
-// Example: Implement a model provider for FHIR
-interface FHIRContext {
-  structureDefinition?: StructureDefinition;
-  elementDefinition?: ElementDefinition;
-  path?: string;
+// Simple mock implementation showing key concepts
+interface ModelContext {
+  path: string;
+  schemaset: TypeSchema[];
+  // Union type information stored internally
+  isUnion?: boolean;
+  choices?: Array<{
+    type: TypeName;
+    name: string;
+    singleton: boolean;
+  }>;
 }
 
-class FHIRModelProvider implements ModelTypeProvider<FHIRContext> {
-  private structures: Map<string, StructureDefinition>;
-  
-  constructor(definitions: StructureDefinition[]) {
-    this.structures = new Map();
-    definitions.forEach(sd => {
-      this.structures.set(sd.type, sd);
-    });
-  }
-  
-  getTypeByName(typeName: string): TypeInfo | undefined {
-    const sd = this.structures.get(typeName);
-    if (!sd) return undefined;
-    
-    // Build elements map for the type
-    const elements = this.buildElementsMap(sd);
-    
-    // Return TypeInfo with model context
-    return {
-      type: 'Any',  // Complex types are 'Any' in FHIRPath
-      singleton: true,
-      namespace: 'FHIR',
-      name: typeName,
-      elements,
-      modelContext: {
-        structureDefinition: sd,
-        path: sd.type
-      } as FHIRContext
-    };
-  }
-  
-  navigateProperty(parentType: TypeInfo, propertyName: string): TypeInfo | undefined {
-    // Check if property exists in elements map
-    if (parentType.elements && parentType.elements[propertyName]) {
-      return parentType.elements[propertyName];
+const typeConversion: Record<string, TypeName> = {
+  'string': 'String',
+  'boolean': 'Boolean',
+  'integer': 'Integer',
+  'decimal': 'Decimal',
+  'date': 'Date',
+  'dateTime': 'DateTime',
+  // ... more mappings
+};
+
+export const modelProvider: ModelProvider<ModelContext> = {
+  getType: (typeName: string): TypeInfo<ModelContext> | undefined => {
+    const schema = model[typeName];
+    if (!schema) {
+      // Check primitive types
+      if (typeConversion[typeName]) {
+        return {
+          type: typeConversion[typeName],
+          namespace: 'FHIR',
+          name: typeName,
+          singleton: true,
+          modelContext: { path: typeName, schemaset: [] }
+        };
+      }
+      return undefined;
     }
     
-    // Fallback to model context
-    const context = parentType.modelContext as FHIRContext;
-    if (!context?.structureDefinition) return undefined;
-    
-    const sd = context.structureDefinition;
-    const propertyPath = `${sd.type}.${propertyName}`;
-    
-    // Find the element definition for this property
-    const element = sd.differential.element.find(e => e.path === propertyPath);
-    if (!element) return undefined;
-    
-    // Handle choice types (e.g., value[x])
-    if (element.type && element.type.length > 1) {
-      return this.createUnionType(element, propertyPath, sd);
-    }
-    
-    // Single type property
-    const fhirpathType = this.mapElementToFHIRPathType(element);
-    
-    return {
-      type: fhirpathType,
-      singleton: element.max === '1',
-      namespace: 'FHIR',
-      name: element.type?.[0]?.code,
-      modelContext: {
-        structureDefinition: sd,
-        elementDefinition: element,
-        path: propertyPath
-      } as FHIRContext
-    };
-  }
-  
-  hasProperty(parentType: TypeInfo, propertyName: string): boolean {
-    // Check elements map first
-    if (parentType.elements) {
-      return propertyName in parentType.elements;
-    }
-    
-    // Check model context
-    const context = parentType.modelContext as FHIRContext;
-    if (!context?.structureDefinition) return false;
-    
-    const sd = context.structureDefinition;
-    const propertyPath = `${sd.type}.${propertyName}`;
-    
-    return sd.differential.element.some(e => e.path === propertyPath);
-  }
-  
-  getPropertyNames(parentType: TypeInfo): string[] {
-    // Use elements map if available
-    if (parentType.elements) {
-      return Object.keys(parentType.elements);
-    }
-    
-    // Extract from model context
-    const context = parentType.modelContext as FHIRContext;
-    if (!context?.structureDefinition) return [];
-    
-    const sd = context.structureDefinition;
-    const prefix = `${sd.type}.`;
-    
-    return sd.differential.element
-      .map(e => e.path)
-      .filter(path => path.startsWith(prefix) && !path.includes('.', prefix.length))
-      .map(path => path.substring(prefix.length));
-  }
-  
-  isTypeCompatible(source: TypeInfo, target: TypeInfo): boolean {
-    // Check FHIRPath type compatibility
-    if (source.type === target.type && source.singleton === target.singleton) return true;
-    
-    // Check if source is a union type that includes target
-    if (source.union && source.choices) {
-      return source.choices.some(choice => this.isTypeCompatible(choice, target));
-    }
-    
-    // Check model-specific compatibility
-    if (source.namespace === 'FHIR' && target.namespace === 'FHIR' && source.name && target.name) {
-      return this.checkFHIRTypeCompatibility(source.name, target.name);
-    }
-    
-    return false;
-  }
-  
-  mapToFHIRPathType(typeName: string): TypeName {
-    // Map FHIR types to FHIRPath types
-    const mapping: Record<string, TypeName> = {
-      'string': 'String',
-      'boolean': 'Boolean',
-      'integer': 'Integer',
-      'decimal': 'Decimal',
-      'date': 'Date',
-      'dateTime': 'DateTime',
-      'time': 'Time',
-      'Quantity': 'Quantity'
-    };
-    
-    return mapping[typeName] || 'Any';
-  }
-  
-  private createUnionType(element: ElementDefinition, path: string, sd: StructureDefinition): TypeInfo {
-    const choices: TypeInfo[] = element.type!.map(typeRef => ({
-      type: this.mapToFHIRPathType(typeRef.code),
-      singleton: element.max === '1',
-      namespace: 'FHIR',
-      name: typeRef.code
-    }));
-    
+    // Return complex type as 'Any' with model context
     return {
       type: 'Any',
-      union: true,
-      singleton: element.max === '1',
       namespace: 'FHIR',
-      name: path,
-      choices,
-      modelContext: {
-        structureDefinition: sd,
-        elementDefinition: element,
-        path
-      } as FHIRContext
+      name: typeName,
+      singleton: true,
+      modelContext: { 
+        path: typeName, 
+        schemaset: getParents(schema) 
+      }
     };
-  }
+  },
   
-  private buildElementsMap(sd: StructureDefinition): Record<string, TypeInfo> | undefined {
-    const elements: Record<string, TypeInfo> = {};
-    const prefix = `${sd.type}.`;
+  getElementType: (parentType: TypeInfo<ModelContext>, propertyName: string): TypeInfo<ModelContext> | undefined => {
+    const schemaset = parentType.modelContext?.schemaset;
     
-    sd.differential.element
-      .filter(e => e.path.startsWith(prefix) && !e.path.includes('.', prefix.length))
-      .forEach(element => {
-        const propertyName = element.path.substring(prefix.length);
-        
-        // Handle choice types
-        if (element.type && element.type.length > 1) {
-          elements[propertyName] = this.createUnionType(element, element.path, sd);
-        } else {
-          elements[propertyName] = {
-            type: this.mapElementToFHIRPathType(element),
-            singleton: element.max === '1',
+    // Find element in schema hierarchy
+    let elementSchema = findElementInHierarchy(schemaset, propertyName);
+    if (!elementSchema) return undefined;
+    
+    // Handle choice types
+    if (elementSchema.choices) {
+      const choices = elementSchema.choices.map(choice => ({
+        type: typeConversion[choice.type] || 'Any',
+        name: choice.type,
+        singleton: !elementSchema.array
+      }));
+      
+      return {
+        type: 'Any',  // Union types are 'Any'
+        namespace: 'FHIR',
+        name: parentType.modelContext?.path + '.' + propertyName,
+        singleton: !elementSchema.array,
+        modelContext: { 
+          path: parentType.modelContext?.path + '.' + propertyName,
+          schemaset: [elementSchema],
+          isUnion: true,
+          choices
+        }
+      };
+    }
+    
+    // Handle regular types
+    const fhirpathType = typeConversion[elementSchema.type] || 'Any';
+    return {
+      type: fhirpathType,
+      namespace: 'FHIR',
+      name: elementSchema.type,
+      singleton: !elementSchema.array,
+      modelContext: {
+        path: parentType.modelContext?.path + '.' + propertyName,
+        schemaset: getTypeSchemaset(elementSchema.type)
+      }
+    };
+  },
+  
+  ofType: (type: TypeInfo<ModelContext>, typeName: TypeName): TypeInfo<ModelContext> | undefined => {
+    const context = type.modelContext;
+    
+    // Handle union types
+    if (context?.isUnion && context?.choices) {
+      for (const choice of context.choices) {
+        if (choice.type === typeName) {
+          return {
+            type: choice.type,
             namespace: 'FHIR',
-            name: element.type?.[0]?.code
+            name: choice.name,
+            singleton: choice.singleton,
+            modelContext: {
+              path: context.path + `[${choice.name}]`,
+              schemaset: []
+            }
           };
         }
-      });
+      }
+      return undefined;
+    }
     
-    return Object.keys(elements).length > 0 ? elements : undefined;
-  }
+    // For non-union types, check direct match
+    return type.type === typeName ? type : undefined;
+  },
   
-  private mapElementToFHIRPathType(element: ElementDefinition): TypeName {
-    if (!element.type || element.type.length === 0) return 'Any';
+  getElementNames: (parentType: TypeInfo<ModelContext>): string[] => {
+    const schemaset = parentType.modelContext?.schemaset || [];
+    const names: Set<string> = new Set();
     
-    const firstType = element.type[0].code;
-    return this.mapToFHIRPathType(firstType);
-  }
-  
-  private checkFHIRTypeCompatibility(source: string, target: string): boolean {
-    // Implement FHIR type hierarchy checking
-    // For example: Duration is compatible with Quantity
-    const compatibilities: Record<string, string[]> = {
-      'Duration': ['Quantity'],
-      'SimpleQuantity': ['Quantity'],
-      'Money': ['Quantity']
-    };
+    // Collect properties from all schemas in hierarchy
+    for (const schema of schemaset) {
+      if (schema.elements) {
+        Object.keys(schema.elements).forEach(name => names.add(name));
+      }
+    }
     
-    return compatibilities[source]?.includes(target) || false;
+    return Array.from(names);
   }
-}
+};
+```
 
-// Usage in analyzer
+### Usage Pattern
+
+```typescript
+// Navigate through types
+const patientType = provider.getType('Patient');
+const nameType = provider.getElementType(patientType, 'name');
+const givenType = provider.getElementType(nameType, 'given');
+
+// Handle union types
+const multipleBirthType = provider.getElementType(patientType, 'multipleBirth');
+// Returns: { type: 'Any', ... } with union info in modelContext
+
+const booleanType = provider.ofType(multipleBirthType, 'Boolean');
+// Returns: { type: 'Boolean', ... } if boolean is valid choice
+```
+
+### Integration with the Engine
+
+The analyzer uses the model provider to validate navigation:
+
+```typescript
 function analyzeNavigation(
   currentType: TypeInfo, 
   propertyName: string,
-  provider: ModelTypeProvider
+  provider: ModelProvider
 ): TypeInfo {
-  const nextType = provider.navigateProperty(currentType, propertyName);
+  const nextType = provider.getElementType(currentType, propertyName);
   if (!nextType) {
     const typeName = currentType.namespace && currentType.name 
       ? `${currentType.namespace}.${currentType.name}` 
@@ -391,25 +295,18 @@ function analyzeNavigation(
 
 ### Positive
 
-- **Model awareness**: FHIRPath engine understands the data model
-- **Better validation**: Can catch errors like invalid property access
-- **Enhanced IDE support**: Autocomplete, hover, and navigation
-- **Type safety**: Can validate type casts and membership tests
-- **Extensibility**: Works with any data model (FHIR, CDA, custom)
-- **Better errors**: Model-specific error messages
-- **Performance**: Can optimize based on type information
-- **Black box design**: Model internals are opaque to FHIRPath engine
-- **Flexibility**: Model providers can use any internal representation
-- **Context preservation**: Type context flows naturally through navigation
+- **Model awareness**: FHIRPath engine can validate property navigation
+- **Type safety**: Proper handling of union/choice types through `ofType`
+- **Clean API**: Simple interface with only essential methods
+- **Extensibility**: Works with any data model through the generic TypeContext
+- **Implementation freedom**: Model details stay encapsulated in modelContext
+- **Testable**: Focus on behavior rather than implementation details
 
 ### Negative
 
-- **Complexity**: Additional interface to implement
-- **Coupling**: Creates dependency between engine and model
-- **Maintenance**: Model providers need updates when models change
-- **Memory**: Storing model metadata can be memory intensive
-- **Performance**: Type lookups add overhead during analysis
-- **Opaque handles**: Debugging may be harder with opaque type references
+- **Additional interface**: Requires implementation for model awareness
+- **Memory overhead**: Model context may contain substantial metadata
+- **Complexity**: Union type handling requires careful implementation
 
 ## Alternatives Considered
 
@@ -436,7 +333,7 @@ Inspect actual data instances to infer types.
 ## Implementation Strategy
 
 ### Phase 1: Core Interface
-- Define the ModelTypeProvider interface
+- Define the ModelProvider interface
 - Create a simple test implementation
 - Integrate with analyzer for basic validation
 
@@ -478,19 +375,18 @@ Inspect actual data instances to infer types.
 4. **Validation**: Full constraint validation beyond types
 5. **Generation**: Generate TypeScript types from model
 
-## Summary: Benefits of the TypeInfo-Based Design
+## Summary: Benefits of the Simplified Design
 
-The TypeInfo-based design provides several key advantages:
+The implemented design provides several key advantages:
 
-1. **Unified Type System**: Single structure handles both FHIRPath primitives and complex model types
-2. **Union Type Support**: Native handling of choice types through the `union` flag and `choices` array
-3. **Efficient Navigation**: The `elements` map enables property resolution without full model loading
-4. **Dual Type Preservation**: Maintains both computational types and model-specific information
-5. **Progressive Enhancement**: Can start with basic types and add model information incrementally
-6. **Type Safety**: The opaque `modelContext` maintains detailed type information without exposing implementation
-7. **Extensibility**: New models can be supported by implementing the interface with TypeInfo
+1. **Clean Separation**: TypeInfo focuses on FHIRPath types, modelContext handles model-specific details
+2. **Union Type Handling**: Choice types are elegantly handled through the `ofType` method
+3. **Simple API**: Only four essential methods needed for full functionality
+4. **Type Safety**: The opaque `modelContext` allows implementations to maintain type information without exposing internals
+5. **Flexibility**: Implementations can use any internal representation (schemas, type definitions, etc.)
+6. **Testability**: Public API can be tested without knowledge of implementation details
 
-The integration with ADR-005's TypeInfo structure creates a coherent type system that spans from FHIRPath operations through model navigation while maintaining clean separation of concerns.
+The design strikes a balance between simplicity and functionality, providing just enough interface to enable model-aware FHIRPath evaluation without over-engineering.
 
 ## References
 

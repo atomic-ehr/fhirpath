@@ -1,4 +1,4 @@
-import type { ASTNode, BinaryNode, IdentifierNode, LiteralNode, FunctionNode, Diagnostic, AnalysisResult, UnaryNode, IndexNode, CollectionNode, MembershipTestNode, TypeCastNode, Range, Position, TypeInfo, ModelTypeProvider } from './types';
+import type { ASTNode, BinaryNode, IdentifierNode, LiteralNode, FunctionNode, Diagnostic, AnalysisResult, UnaryNode, IndexNode, CollectionNode, MembershipTestNode, TypeCastNode, Range, Position, TypeInfo, ModelProvider } from './types';
 import { NodeType, DiagnosticSeverity, isErrorNode } from './types';
 import { registry } from './registry';
 import { TypeAnalyzer } from './type-analyzer';
@@ -8,7 +8,7 @@ export class Analyzer {
   private variables: Set<string> = new Set(['$this', '$index', '$total']);
   private typeAnalyzer: TypeAnalyzer;
 
-  constructor(modelProvider?: ModelTypeProvider) {
+  constructor(modelProvider?: ModelProvider) {
     this.typeAnalyzer = new TypeAnalyzer(modelProvider);
   }
 

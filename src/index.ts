@@ -80,5 +80,9 @@ export type {
   ASTNode,
   TypeInfo,
   TypeName,
-  ModelTypeProvider 
+  ModelProvider as ModelTypeProvider 
 } from './types';
+
+// Export FHIR ModelProvider
+export { FHIRModelProvider } from './model-provider';
+export type { FHIRModelContext, FHIRModelProviderConfig } from './model-provider';

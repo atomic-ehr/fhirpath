@@ -10,15 +10,15 @@ import type {
   CollectionNode,
   TypeCastNode,
   MembershipTestNode,
-  ModelTypeProvider
+  ModelProvider
 } from './types';
 import { NodeType } from './types';
 import { registry } from './registry';
 
 export class TypeAnalyzer {
-  private modelProvider?: ModelTypeProvider;
+  private modelProvider?: ModelProvider;
   
-  constructor(modelProvider?: ModelTypeProvider) {
+  constructor(modelProvider?: ModelProvider) {
     this.modelProvider = modelProvider;
   }
   
