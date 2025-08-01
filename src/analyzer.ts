@@ -14,7 +14,8 @@ import type {
   TypeInfo, 
   ModelProvider,
   VariableNode,
-  TypeName
+  TypeName,
+  TypeOrIdentifierNode
 } from './types';
 import { NodeType, DiagnosticSeverity } from './types';
 import { registry } from './registry';
@@ -103,7 +104,34 @@ export class Analyzer {
 
   private visitBinaryOperator(node: BinaryNode): void {
     this.visitNode(node.left);
+    
+    // Special handling for dot operator with function on right side
+    if (node.operator === '.' && node.right.type === NodeType.Function && this.modelProvider) {
+      const funcNode = node.right as FunctionNode;
+      if (funcNode.name.type === NodeType.Identifier) {
+        const funcName = (funcNode.name as IdentifierNode).name;
+        const func = registry.getFunction(funcName);
+        if (func && func.signature.input && node.left.typeInfo) {
+          if (!this.isTypeCompatible(node.left.typeInfo, func.signature.input)) {
+            const inputTypeStr = this.typeToString(node.left.typeInfo);
+            const expectedTypeStr = this.typeToString(func.signature.input);
+            this.addDiagnostic(
+              DiagnosticSeverity.Error,
+              `Type mismatch: function '${func.name}' expects input type ${expectedTypeStr} but got ${inputTypeStr}`,
+              funcNode,
+              'INPUT_TYPE_MISMATCH'
+            );
+          }
+        }
+      }
+    }
+    
     this.visitNode(node.right);
+    
+    // For dot operator, we don't need to check operator types
+    if (node.operator === '.') {
+      return;
+    }
     
     const op = registry.getOperatorDefinition(node.operator);
     if (!op) {
@@ -150,8 +178,10 @@ export class Analyzer {
           this.addDiagnostic(DiagnosticSeverity.Error, `Function '${funcName}' requires at least ${requiredParams} arguments, got ${node.arguments.length}`, node, 'TOO_FEW_ARGS');
         } else if (node.arguments.length > maxParams) {
           this.addDiagnostic(DiagnosticSeverity.Error, `Function '${funcName}' accepts at most ${maxParams} arguments, got ${node.arguments.length}`, node, 'TOO_MANY_ARGS');
-        } else if (node.typeInfo) {
-          // Type check arguments
+        }
+        
+        // Type check arguments if we have type information
+        if (node.typeInfo || node.arguments.some(arg => arg.typeInfo)) {
           this.checkFunctionArgumentTypes(node, func);
         }
       }
@@ -215,6 +245,9 @@ export class Analyzer {
       case NodeType.MembershipTest:
         return { type: 'Boolean', singleton: true };
         
+      case NodeType.TypeOrIdentifier:
+        return this.inferTypeOrIdentifierType(node as TypeOrIdentifierNode, inputType);
+        
       default:
         return { type: 'Any', singleton: false };
     }
@@ -276,6 +309,11 @@ export class Analyzer {
   private inferNavigationType(node: BinaryNode, inputType?: TypeInfo): TypeInfo {
     const leftType = this.inferType(node.left, inputType);
     
+    // If the right side is a function, return the function's type
+    if (node.right.type === NodeType.Function) {
+      return this.inferType(node.right, leftType);
+    }
+    
     // If we have a model provider and the right side is an identifier
     if (this.modelProvider && node.right.type === NodeType.Identifier) {
       const propertyName = (node.right as IdentifierNode).name;
@@ -322,6 +360,9 @@ export class Analyzer {
     if (func.signature.result === 'inputType') {
       // Functions like where() return the same type as input but always as collection
       return inputType ? { ...inputType, singleton: false } : { type: 'Any', singleton: false };
+    } else if (func.signature.result === 'inputTypeSingleton') {
+      // Functions like first(), last() return the same type as input but as singleton
+      return inputType ? { ...inputType, singleton: true } : { type: 'Any', singleton: true };
     } else if (func.signature.result === 'parameterType' && node.arguments.length > 0) {
       // Functions like select() return the type of the first parameter expression as collection
       const paramType = this.inferType(node.arguments[0]!, inputType);
@@ -343,6 +384,27 @@ export class Analyzer {
     }
     
     // Otherwise, try to navigate from input type
+    if (inputType && this.modelProvider) {
+      const elementType = this.modelProvider.getElementType(inputType, node.name);
+      if (elementType) {
+        return elementType;
+      }
+    }
+    
+    return { type: 'Any', singleton: false };
+  }
+  
+  private inferTypeOrIdentifierType(node: TypeOrIdentifierNode, inputType?: TypeInfo): TypeInfo {
+    // TypeOrIdentifier can be either a type name or a property navigation
+    // First check if it's a type name
+    if (this.modelProvider) {
+      const typeInfo = this.modelProvider.getType(node.name);
+      if (typeInfo) {
+        return typeInfo;
+      }
+    }
+    
+    // Otherwise, treat it as navigation from input type
     if (inputType && this.modelProvider) {
       const elementType = this.modelProvider.getElementType(inputType, node.name);
       if (elementType) {
@@ -628,6 +690,10 @@ export class Analyzer {
         const indexNode = node as IndexNode;
         this.annotateAST(indexNode.expression, inputType);
         this.annotateAST(indexNode.index, inputType);
+        break;
+        
+      case NodeType.TypeOrIdentifier:
+        // TypeOrIdentifier doesn't have children to annotate
         break;
     }
   }

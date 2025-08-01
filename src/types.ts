@@ -84,7 +84,7 @@ export interface FunctionDefinition {
       type: TypeInfo;
       expression?: boolean;
     }>;
-    result: TypeInfo | 'inputType' | 'parameterType';
+    result: TypeInfo | 'inputType' | 'inputTypeSingleton' | 'parameterType';
   };
   evaluate: FunctionEvaluator;
 }

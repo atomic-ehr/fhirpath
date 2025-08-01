@@ -16,7 +16,7 @@ export const firstFunction: FunctionDefinition & { evaluate: FunctionEvaluator }
   signature: {
     input: { type: 'Any', singleton: false },
     parameters: [],
-    result: { type: 'Any', singleton: true },
+    result: 'inputTypeSingleton' as any,
   },
   evaluate
 };
