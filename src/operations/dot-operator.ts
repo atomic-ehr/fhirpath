@@ -18,6 +18,19 @@ export const dotOperator: OperatorDefinition & { evaluate: OperationEvaluator } 
   associativity: 'left',
   description: 'Navigation operator',
   examples: ['Patient.name.given'],
-  signatures: [],
+  signatures: [
+    {
+      name: 'navigation',
+      left: { type: 'Any', singleton: false },
+      right: { type: 'Any', singleton: false },
+      result: { type: 'Any', singleton: false }
+    },
+    {
+      name: 'navigation-singleton',
+      left: { type: 'Any', singleton: true },
+      right: { type: 'Any', singleton: false },
+      result: { type: 'Any', singleton: false }
+    }
+  ],
   evaluate
 };
