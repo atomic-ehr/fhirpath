@@ -400,19 +400,20 @@ export class Analyzer {
   }
   
   private inferIdentifierType(node: IdentifierNode, inputType?: TypeInfo): TypeInfo {
-    // If we have a model provider, check if it's a type name
-    if (this.modelProvider) {
-      const typeInfo = this.modelProvider.getType(node.name);
-      if (typeInfo) {
-        return typeInfo;
-      }
-    }
-    
-    // Otherwise, try to navigate from input type
+    // First, try to navigate from input type (most common case)
     if (inputType && this.modelProvider) {
       const elementType = this.modelProvider.getElementType(inputType, node.name);
       if (elementType) {
         return elementType;
+      }
+    }
+    
+    // Only check if it's a type name if it starts with uppercase (FHIR convention)
+    // or if there's no input type context
+    if (this.modelProvider && (!inputType || /^[A-Z]/.test(node.name))) {
+      const typeInfo = this.modelProvider.getType(node.name);
+      if (typeInfo) {
+        return typeInfo;
       }
     }
     
@@ -421,19 +422,20 @@ export class Analyzer {
   
   private inferTypeOrIdentifierType(node: TypeOrIdentifierNode, inputType?: TypeInfo): TypeInfo {
     // TypeOrIdentifier can be either a type name or a property navigation
-    // First check if it's a type name
-    if (this.modelProvider) {
-      const typeInfo = this.modelProvider.getType(node.name);
-      if (typeInfo) {
-        return typeInfo;
-      }
-    }
     
-    // Otherwise, treat it as navigation from input type
+    // First, try navigation from input type (most common case)
     if (inputType && this.modelProvider) {
       const elementType = this.modelProvider.getElementType(inputType, node.name);
       if (elementType) {
         return elementType;
+      }
+    }
+    
+    // Then check if it's a type name (only for uppercase names or no input context)
+    if (this.modelProvider && (!inputType || /^[A-Z]/.test(node.name))) {
+      const typeInfo = this.modelProvider.getType(node.name);
+      if (typeInfo) {
+        return typeInfo;
       }
     }
     

@@ -99,21 +99,28 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
   async initialize(): Promise<void> {
     if (this.initialized) return;
     
-    await this.canonicalManager.init();
-    
-    // Preload common types with error handling
-    const results = await Promise.allSettled(
-      this.commonTypes.map(type => this.loadSchemaAsync(type))
-    );
-    
-    // Log any failed loads
-    results.forEach((result, index) => {
-      if (result.status === 'rejected') {
-        console.warn(`Failed to preload ${this.commonTypes[index]}:`, result.reason);
-      }
-    });
-    
-    this.initialized = true;
+    try {
+      await this.canonicalManager.init();
+      
+      // Preload common types with error handling
+      const results = await Promise.allSettled(
+        this.commonTypes.map(type => this.loadSchemaAsync(type))
+      );
+      
+      // Log any failed loads
+      results.forEach((result, index) => {
+        if (result.status === 'rejected') {
+          console.warn(`Failed to preload ${this.commonTypes[index]}:`, result.reason);
+        }
+      });
+      
+      this.initialized = true;
+    } catch (error) {
+      console.error('Failed to initialize FHIRModelProvider:', error);
+      // Mark as initialized even on failure to prevent repeated attempts
+      // The provider will work in degraded mode (primitives only)
+      this.initialized = true;
+    }
   }
   
   private buildCanonicalUrl(typeName: string): string {
@@ -245,12 +252,14 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
     
     // Complex types require initialization
     if (!this.initialized) {
-      throw new Error('FHIRModelProvider must be initialized before use. Call initialize() first.');
+      console.warn('FHIRModelProvider not initialized. Only primitive types available.');
+      return undefined;
     }
     
     // Load schema from cache
     const schema = this.loadSchemaCached(typeName);
     if (!schema) {
+      // Schema not found - this is expected for non-type identifiers
       return undefined;
     }
     
