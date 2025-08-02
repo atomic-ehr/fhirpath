@@ -23,7 +23,9 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     throw new Error(`Cannot apply ceiling() to ${typeof value}`);
   }
 
-  return { value: [Math.ceil(value)], context };
+  // Math.ceil can return -0, normalize it to 0
+  const result = Math.ceil(value);
+  return { value: [Object.is(result, -0) ? 0 : result], context };
 };
 
 export const ceilingFunction: FunctionDefinition & { evaluate: FunctionEvaluator } = {
