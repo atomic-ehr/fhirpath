@@ -1,0 +1,9 @@
+[
+  {
+    "label": "Bun Test Current File",
+    "command": "bun",
+    "args": ["test", "$ZED_FILE"],
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always"
+  }
+]

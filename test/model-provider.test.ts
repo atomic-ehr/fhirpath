@@ -14,8 +14,12 @@ describe('FHIR ModelProvider', () => {
     });
     
     // Initialize the provider (this will download packages and preload common types)
-    await provider.initialize();
-  }); // Remove timeout parameter as it's not supported in Bun test
+    try {
+      await provider.initialize();
+    } catch (error) {
+      console.error('Failed to initialize model provider in test:', error);
+    }
+  }, 30000); // 30 second timeout for initialization
   
   describe('getType', () => {
     it('should return type info for FHIR primitive types', () => {

@@ -23,8 +23,8 @@ I need to implement the `$ARGUMENTS()` function for FHIRPath. I'll follow the st
 - Check for any special behaviors, edge cases, or STU markers
 - Look for examples in the spec
 
-### 2. Check Legacy Tests
-- Look for existing tests in `legacy-fp/legacy-spec/fhirpath/tests/$ARGUMENTS.json`
+### 2. Grep fhirpathlab-tests
+- Look for existing tests in `./spec/fhirpathlab-tests/fhirpathlab-tests.xml`
 - Extract any useful test cases
 
 ### 3. Implementation
@@ -38,7 +38,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   if (input.length === 0) {
     return { value: [], context };
   }
-  
+
   // Validate singleton input (if required by spec)
   // Type check the input
   // Validate arguments
@@ -82,3 +82,6 @@ Create `/test-cases/operations/<category>/$ARGUMENTS.json` with:
 - `bun tools/testcase.ts operations/<category>/$ARGUMENTS.json`
 - `bun tsc --noEmit`
 - Test interactively with interpreter
+
+### 7. Documentation
+- Update `/spec/functions.md` with new function details

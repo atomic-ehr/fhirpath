@@ -100,20 +100,30 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
     if (this.initialized) return;
     
     try {
+      console.log('FHIRModelProvider: Starting initialization...');
+      console.log('FHIRModelProvider: Cache dir:', this.config.cacheDir);
+      console.log('FHIRModelProvider: Packages:', this.config.packages);
+      
       await this.canonicalManager.init();
+      console.log('FHIRModelProvider: Canonical manager initialized');
       
       // Preload common types with error handling
+      console.log('FHIRModelProvider: Preloading common types...');
       const results = await Promise.allSettled(
         this.commonTypes.map(type => this.loadSchemaAsync(type))
       );
       
       // Log any failed loads
+      let successCount = 0;
       results.forEach((result, index) => {
         if (result.status === 'rejected') {
           console.warn(`Failed to preload ${this.commonTypes[index]}:`, result.reason);
+        } else {
+          successCount++;
         }
       });
       
+      console.log(`FHIRModelProvider: Preloaded ${successCount}/${this.commonTypes.length} types successfully`);
       this.initialized = true;
     } catch (error) {
       console.error('Failed to initialize FHIRModelProvider:', error);
