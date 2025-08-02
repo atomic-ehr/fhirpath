@@ -4,7 +4,7 @@
     "": {
       "name": "@atomic-ehr/fhirpath",
       "dependencies": {
-        "@atomic-ehr/fhir-canonical-manager": "^0.0.3",
+        "@atomic-ehr/fhir-canonical-manager": "^0.0.5",
         "@atomic-ehr/fhirschema": "^0.0.1",
         "@atomic-ehr/ucum": "^0.2.5",
       },
@@ -33,7 +33,7 @@
 
     "@asamuzakjp/css-color": ["@asamuzakjp/css-color@3.2.0", "", { "dependencies": { "@csstools/css-calc": "^2.1.3", "@csstools/css-color-parser": "^3.0.9", "@csstools/css-parser-algorithms": "^3.0.4", "@csstools/css-tokenizer": "^3.0.3", "lru-cache": "^10.4.3" } }, "sha512-K1A6z8tS3XsmCMM86xoWdn7Fkdn9m6RSVtocUrJYIwZnFVkng/PvkEoWtOWmP+Scc6saYWHWZYbndEEXxl24jw=="],
 
-    "@atomic-ehr/fhir-canonical-manager": ["@atomic-ehr/fhir-canonical-manager@0.0.3", "", { "peerDependencies": { "typescript": "^5" }, "bin": { "fcm": "dist/cli/index.js" } }, "sha512-SCUmuilVINbmxzuu/GHpy1y6L+lJwTugUqyWGMgfYYNsHNLGHukjkqC5/swXviy4VsWwmRk834hbdGbRFKb5rw=="],
+    "@atomic-ehr/fhir-canonical-manager": ["@atomic-ehr/fhir-canonical-manager@0.0.5", "", { "peerDependencies": { "typescript": "^5" }, "bin": { "fcm": "dist/cli/index.js" } }, "sha512-Ylfqbu/pLiG4CrPycMm5eTP6g8QeJKqVA3A7VnqX3gUmRccTdc0TsgtnjAze48r+ru6CxRV4fSWG15fQwddSgw=="],
 
     "@atomic-ehr/fhirschema": ["@atomic-ehr/fhirschema@0.0.1", "", { "peerDependencies": { "typescript": "^5" } }, "sha512-Dmk7x/GJipfhIr5jmz69i9f/tor3ipiRMESS68EfZ33mohi0+yFh2ltiKyOPxgreKiqSYsA9niNN/6UzhkmWuA=="],
 
