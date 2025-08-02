@@ -51,7 +51,7 @@ jobs:
           mkdir -p .test-fhir-cache
           cd .test-fhir-cache
           echo '{"name":"fhir-canonical-manager-workspace","version":"1.0.0","private":true,"dependencies":{"hl7.fhir.r4.core":"^4.0.1"}}' > package.json
-          npm install
+          bun install
           cd ..
       
       - name: Run tests
