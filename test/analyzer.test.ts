@@ -166,7 +166,7 @@ describe("Analyzer", () => {
         console.error('Failed to initialize model provider in test:', error);
         modelProviderInitialized = false;
       }
-    }, 30000); // 30 second timeout for initialization
+    });
 
     it("should infer types through FHIR model navigation", () => {
       if (!modelProviderInitialized) {

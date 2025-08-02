@@ -19,7 +19,7 @@ describe('FHIR ModelProvider', () => {
     } catch (error) {
       console.error('Failed to initialize model provider in test:', error);
     }
-  }, 30000); // 30 second timeout for initialization
+  });
   
   describe('getType', () => {
     it('should return type info for FHIR primitive types', () => {

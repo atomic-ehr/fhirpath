@@ -107,6 +107,10 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
       await this.canonicalManager.init();
       console.log('FHIRModelProvider: Canonical manager initialized');
       
+      // Check if packages are actually installed
+      const packagesInstalled = await this.canonicalManager.packages();
+      console.log('FHIRModelProvider: Installed packages:', packagesInstalled);
+      
       // Preload common types with error handling
       console.log('FHIRModelProvider: Preloading common types...');
       const results = await Promise.allSettled(
