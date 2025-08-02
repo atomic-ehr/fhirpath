@@ -1,0 +1,56 @@
+import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { RuntimeContextManager } from '../interpreter';
+
+export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
+  // aggregator expression is required
+  if (args.length < 1) {
+    throw new Error('aggregate() requires at least one argument (aggregator expression)');
+  }
+
+  const aggregatorExpr = args[0]!;
+  const initExpr = args[1]; // optional init value
+
+  // Evaluate init value if provided, otherwise start with empty
+  let total: any[];
+  if (initExpr) {
+    const initResult = evaluator(initExpr, input, context);
+    total = initResult.value;
+  } else {
+    total = [];
+  }
+
+  // For each item in the input collection, evaluate the aggregator expression
+  input.forEach((item, index) => {
+    // Create a new context with $this, $index, and $total
+    let aggregatorContext = RuntimeContextManager.withIterator(context, item, index);
+    aggregatorContext = RuntimeContextManager.setVariable(aggregatorContext, '$total', total);
+
+    // Evaluate the aggregator expression
+    const result = evaluator(aggregatorExpr, [item], aggregatorContext);
+    
+    // Update $total with the result
+    total = result.value;
+  });
+
+  return { value: total, context };
+};
+
+export const aggregateFunction: FunctionDefinition & { evaluate: FunctionEvaluator } = {
+  name: 'aggregate',
+  category: ['aggregates'],
+  description: 'Performs general-purpose aggregation by evaluating the aggregator expression for each element of the input collection',
+  examples: [
+    'value.aggregate($this + $total, 0)',
+    'value.aggregate(iif($total.empty(), $this, iif($this < $total, $this, $total)))',
+    'value.aggregate($total + $this, 0) / value.count()'
+  ],
+  signature: {
+    input: { type: 'Any', singleton: false },
+    parameters: [
+      { name: 'aggregator', expression: true, type: { type: 'Any', singleton: false } },
+      { name: 'init', expression: true, type: { type: 'Any', singleton: false }, optional: true }
+    ],
+    result: { type: 'Any', singleton: false }
+  },
+  evaluate
+};

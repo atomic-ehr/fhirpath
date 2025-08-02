@@ -5,9 +5,9 @@ This document provides a comprehensive reference of all FHIRPath functions as de
 ## Implementation Summary
 
 - **Total Functions in Spec**: 82
-- **Implemented**: 44
-- **Not Implemented**: 38
-- **Implementation Coverage**: 54%
+- **Implemented**: 45
+- **Not Implemented**: 37
+- **Implementation Coverage**: 55%
 
 ## Functions by Category
 
@@ -162,9 +162,9 @@ This document provides a comprehensive reference of all FHIRPath functions as de
 
 | Function | Signature | Return Type | Description | Status |
 |----------|-----------|-------------|-------------|---------|
-| aggregate | `aggregate(aggregator: expression [, init: value])` | value | General-purpose aggregation using aggregator expression | ❌ Not Implemented |
+| aggregate | `aggregate(aggregator: expression [, init: value])` | value | General-purpose aggregation using aggregator expression | ✅ Implemented |
 
-## Functions Not Yet Implemented (38 total)
+## Functions Not Yet Implemented (37 total)
 
 ### High Priority (Core Functionality)
 1. **Type Functions**: `ofType`, all `convertsTo*` functions
@@ -180,8 +180,7 @@ This document provides a comprehensive reference of all FHIRPath functions as de
 4. **Long Type**: `toLong`, `convertsToLong`
 
 ### Low Priority (Specialized)
-1. **Aggregate**: `aggregate` function
-2. **Repeat**: `repeat` function for recursive operations
+1. **Repeat**: `repeat` function for recursive operations
 
 ## Notes
 

@@ -88,3 +88,6 @@ export { toBooleanFunction } from './toBoolean-function';
 
 // Utility functions
 export { traceFunction } from './trace-function';
+
+// Aggregate functions
+export { aggregateFunction } from './aggregate-function';
