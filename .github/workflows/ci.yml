@@ -17,6 +17,11 @@ jobs:
         with:
           submodules: recursive
       
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
         with:
@@ -32,14 +37,6 @@ jobs:
       
       - name: Install dependencies
         run: bun install
-        
-      - name: Pre-install FHIR packages for tests
-        run: |
-          mkdir -p .test-fhir-cache
-          cd .test-fhir-cache
-          echo '{"name":"fhir-canonical-manager-workspace","version":"1.0.0","private":true,"dependencies":{"hl7.fhir.r4.core":"^4.0.1"}}' > package.json
-          bun install
-          cd ..
         
       - name: Run typecheck
         run: bunx tsc --noEmit
@@ -57,6 +54,11 @@ jobs:
         with:
           submodules: recursive
       
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
         with:
@@ -72,14 +74,6 @@ jobs:
       
       - name: Install dependencies
         run: bun install
-        
-      - name: Pre-install FHIR packages for tests
-        run: |
-          mkdir -p .test-fhir-cache
-          cd .test-fhir-cache
-          echo '{"name":"fhir-canonical-manager-workspace","version":"1.0.0","private":true,"dependencies":{"hl7.fhir.r4.core":"^4.0.1"}}' > package.json
-          bun install
-          cd ..
         
       - name: Run typecheck
         run: bunx tsc --noEmit
@@ -97,6 +91,11 @@ jobs:
         with:
           submodules: recursive
       
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
         with:
@@ -112,14 +111,6 @@ jobs:
       
       - name: Install dependencies
         run: bun install
-        
-      - name: Pre-install FHIR packages for tests
-        run: |
-          mkdir -p .test-fhir-cache
-          cd .test-fhir-cache
-          echo '{"name":"fhir-canonical-manager-workspace","version":"1.0.0","private":true,"dependencies":{"hl7.fhir.r4.core":"^4.0.1"}}' > package.json
-          bun install
-          cd ..
         
       - name: Run typecheck
         run: bunx tsc --noEmit
