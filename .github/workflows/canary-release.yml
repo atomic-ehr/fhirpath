@@ -38,7 +38,7 @@ jobs:
       - name: Cache FHIR packages
         uses: actions/cache@v4
         with:
-          path: .test-fhir-cache
+          path: tmp/.test-fhir-cache
           key: fhir-cache-${{ runner.os }}-${{ hashFiles('**/model-provider.test.ts', '**/analyzer.test.ts') }}
           restore-keys: |
             fhir-cache-${{ runner.os }}-

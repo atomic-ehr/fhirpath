@@ -86,7 +86,7 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
   constructor(private config: FHIRModelProviderConfig) {
     const canonicalConfig: Config = {
       packages: config.packages.map(p => `${p.name}@${p.version}`),
-      workingDir: config.cacheDir || './.fhir-cache'
+      workingDir: config.cacheDir || './tmp/.fhir-cache'
     };
     
     if (config.registryUrl) {

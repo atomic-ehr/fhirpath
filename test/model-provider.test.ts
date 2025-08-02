@@ -9,7 +9,7 @@ describe('FHIR ModelProvider', () => {
       packages: [
         { name: 'hl7.fhir.r4.core', version: '4.0.1' }
       ],
-      cacheDir: './.test-fhir-cache',
+      cacheDir: './tmp/.test-fhir-cache',
       registryUrl: 'https://fs.get-ig.org/pkgs'
     });
     

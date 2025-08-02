@@ -1,9 +1,0 @@
-{
-  "name": "fhir-canonical-manager-workspace",
-  "version": "1.0.0",
-  "private": true,
-  "dependencies": {
-    "@atomic-ehr/fhir-canonical-manager": "^0.0.4",
-    "hl7.fhir.r4.core": "^4.0.1"
-  }
-}
