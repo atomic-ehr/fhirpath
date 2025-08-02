@@ -1,5 +1,7 @@
 # @atomic-ehr/fhirpath
 
+[![npm version](https://badge.fury.io/js/@atomic-ehr%2Ffhirpath.svg)](https://www.npmjs.com/package/@atomic-ehr/fhirpath)
+
 A TypeScript implementation of FHIRPath, the path-based navigation and extraction language for FHIR (Fast Healthcare Interoperability Resources).
 
 ## Installation
