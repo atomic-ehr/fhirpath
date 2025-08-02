@@ -5,9 +5,9 @@ This document provides a comprehensive reference of all FHIRPath functions as de
 ## Implementation Summary
 
 - **Total Functions in Spec**: 82
-- **Implemented**: 45
-- **Not Implemented**: 37
-- **Implementation Coverage**: 55%
+- **Implemented**: 52
+- **Not Implemented**: 30
+- **Implementation Coverage**: 63%
 
 ## Functions by Category
 
@@ -117,16 +117,16 @@ This document provides a comprehensive reference of all FHIRPath functions as de
 
 | Function | Signature | Return Type | Description | Status |
 |----------|-----------|-------------|-------------|---------|
-| abs | `abs()` | Integer/Decimal/Quantity | Returns absolute value | ❌ Not Implemented |
-| ceiling | `ceiling()` | Integer | Returns smallest integer greater than or equal to input | ❌ Not Implemented |
+| abs | `abs()` | Integer/Decimal/Quantity | Returns absolute value | ✅ Implemented |
+| ceiling | `ceiling()` | Integer | Returns smallest integer greater than or equal to input | ✅ Implemented |
 | exp | `exp()` | Decimal | Returns e raised to the power of input | ❌ Not Implemented |
-| floor | `floor()` | Integer | Returns largest integer less than or equal to input | ❌ Not Implemented |
+| floor | `floor()` | Integer | Returns largest integer less than or equal to input | ✅ Implemented |
 | ln | `ln()` | Decimal | Returns natural logarithm | ❌ Not Implemented |
 | log | `log(base: Decimal)` | Decimal | Returns logarithm with specified base | ❌ Not Implemented |
-| power | `power(exponent: Integer/Decimal)` | Integer/Decimal | Returns input raised to the power of exponent | ❌ Not Implemented |
-| round | `round([precision: Integer])` | Decimal | Rounds to specified precision | ❌ Not Implemented |
-| sqrt | `sqrt()` | Decimal | Returns square root | ❌ Not Implemented |
-| truncate | `truncate()` | Integer | Truncates decimal to integer | ❌ Not Implemented |
+| power | `power(exponent: Integer/Decimal)` | Integer/Decimal | Returns input raised to the power of exponent | ✅ Implemented |
+| round | `round([precision: Integer])` | Decimal | Rounds to specified precision | ✅ Implemented |
+| sqrt | `sqrt()` | Decimal | Returns square root | ✅ Implemented |
+| truncate | `truncate()` | Integer | Truncates decimal to integer | ✅ Implemented |
 
 ### 9. Tree Navigation Functions (§1.5.9)
 
@@ -164,12 +164,12 @@ This document provides a comprehensive reference of all FHIRPath functions as de
 |----------|-----------|-------------|-------------|---------|
 | aggregate | `aggregate(aggregator: expression [, init: value])` | value | General-purpose aggregation using aggregator expression | ✅ Implemented |
 
-## Functions Not Yet Implemented (37 total)
+## Functions Not Yet Implemented (30 total)
 
 ### High Priority (Core Functionality)
 1. **Type Functions**: `ofType`, all `convertsTo*` functions
 2. **Date/Time Functions**: `toDate`, `toDateTime`, `toTime`, `now`, `today`, `timeOfDay`, all date/time component extractors
-3. **Math Functions**: All math functions (`abs`, `ceiling`, `floor`, `round`, `sqrt`, etc.)
+3. **Math Functions**: `exp`, `ln`, `log` (remaining math functions)
 4. **Tree Navigation**: `children`, `descendants`
 5. **String Functions**: `lastIndexOf`, `matches`, `matchesFull`, `replaceMatches`, `toChars`
 

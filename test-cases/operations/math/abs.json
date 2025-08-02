@@ -1,0 +1,99 @@
+{
+  "name": "Abs Function Tests",
+  "description": "Tests for the abs() function",
+  "tests": [
+    {
+      "name": "abs - positive integer",
+      "expression": "5.abs()",
+      "input": [],
+      "expected": [5],
+      "tags": ["math", "abs"]
+    },
+    {
+      "name": "abs - negative integer",
+      "expression": "(-5).abs()",
+      "input": [],
+      "expected": [5],
+      "tags": ["math", "abs"]
+    },
+    {
+      "name": "abs - positive decimal",
+      "expression": "5.5.abs()",
+      "input": [],
+      "expected": [5.5],
+      "tags": ["math", "abs"]
+    },
+    {
+      "name": "abs - negative decimal",
+      "expression": "(-5.5).abs()",
+      "input": [],
+      "expected": [5.5],
+      "tags": ["math", "abs"]
+    },
+    {
+      "name": "abs - zero",
+      "expression": "0.abs()",
+      "input": [],
+      "expected": [0],
+      "tags": ["math", "abs"]
+    },
+    {
+      "name": "abs - negative zero",
+      "expression": "(-0).abs()",
+      "input": [],
+      "expected": [0],
+      "tags": ["math", "abs"]
+    },
+    {
+      "name": "abs - quantity positive",
+      "expression": "(5.5 'mg').abs()",
+      "input": [],
+      "expected": [{"value": 5.5, "unit": "mg"}],
+      "tags": ["math", "abs", "quantity"]
+    },
+    {
+      "name": "abs - quantity negative",
+      "expression": "(-5.5 'mg').abs()",
+      "input": [],
+      "expected": [{"value": 5.5, "unit": "mg"}],
+      "tags": ["math", "abs", "quantity"]
+    },
+    {
+      "name": "abs - empty input",
+      "expression": "{ }.abs()",
+      "input": [],
+      "expected": [],
+      "tags": ["math", "abs", "empty"]
+    },
+    {
+      "name": "abs - multiple items error",
+      "expression": "(1 | 2).abs()",
+      "input": [],
+      "error": {
+        "type": "Error",
+        "message": "abs\\(\\) can only be applied to a single item"
+      },
+      "tags": ["math", "abs", "error"]
+    },
+    {
+      "name": "abs - with arguments error",
+      "expression": "5.abs(1)",
+      "input": [],
+      "error": {
+        "type": "Error",
+        "message": "abs\\(\\) takes no arguments"
+      },
+      "tags": ["math", "abs", "error"]
+    },
+    {
+      "name": "abs - on string error",
+      "expression": "'hello'.abs()",
+      "input": [],
+      "error": {
+        "type": "Error",
+        "message": "Cannot apply abs\\(\\) to string"
+      },
+      "tags": ["math", "abs", "error", "type"]
+    }
+  ]
+}

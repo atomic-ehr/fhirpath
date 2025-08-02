@@ -91,3 +91,12 @@ export { traceFunction } from './trace-function';
 
 // Aggregate functions
 export { aggregateFunction } from './aggregate-function';
+
+// Math functions
+export { absFunction } from './abs-function';
+export { ceilingFunction } from './ceiling-function';
+export { floorFunction } from './floor-function';
+export { roundFunction } from './round-function';
+export { truncateFunction } from './truncate-function';
+export { sqrtFunction } from './sqrt-function';
+export { powerFunction } from './power-function';

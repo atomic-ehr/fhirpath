@@ -1,0 +1,92 @@
+{
+  "name": "Sqrt Function Tests",
+  "description": "Tests for the sqrt() function",
+  "tests": [
+    {
+      "name": "sqrt - perfect square",
+      "expression": "81.sqrt()",
+      "input": [],
+      "expected": [9],
+      "tags": ["math", "sqrt"]
+    },
+    {
+      "name": "sqrt - decimal result",
+      "expression": "2.sqrt()",
+      "input": [],
+      "expected": [1.4142135623730951],
+      "tags": ["math", "sqrt"]
+    },
+    {
+      "name": "sqrt - zero",
+      "expression": "0.sqrt()",
+      "input": [],
+      "expected": [0],
+      "tags": ["math", "sqrt"]
+    },
+    {
+      "name": "sqrt - one",
+      "expression": "1.sqrt()",
+      "input": [],
+      "expected": [1],
+      "tags": ["math", "sqrt"]
+    },
+    {
+      "name": "sqrt - small number",
+      "expression": "0.25.sqrt()",
+      "input": [],
+      "expected": [0.5],
+      "tags": ["math", "sqrt"]
+    },
+    {
+      "name": "sqrt - negative returns empty",
+      "expression": "(-1).sqrt()",
+      "input": [],
+      "expected": [],
+      "tags": ["math", "sqrt", "negative"]
+    },
+    {
+      "name": "sqrt - negative decimal returns empty",
+      "expression": "(-4.5).sqrt()",
+      "input": [],
+      "expected": [],
+      "tags": ["math", "sqrt", "negative"]
+    },
+    {
+      "name": "sqrt - empty input",
+      "expression": "{ }.sqrt()",
+      "input": [],
+      "expected": [],
+      "tags": ["math", "sqrt", "empty"]
+    },
+    {
+      "name": "sqrt - multiple items error",
+      "expression": "(4 | 9).sqrt()",
+      "input": [],
+      "error": {
+        "type": "Error",
+        "message": "sqrt\\(\\) can only be applied to a single item"
+      },
+      "tags": ["math", "sqrt", "error"]
+    },
+    {
+      "name": "sqrt - with arguments error",
+      "expression": "9.sqrt(1)",
+      "input": [],
+      "error": {
+        "type": "Error",
+        "message": "sqrt\\(\\) takes no arguments"
+      },
+      "tags": ["math", "sqrt", "error"]
+    },
+    {
+      "name": "sqrt - on string error",
+      "expression": "'9'.sqrt()",
+      "input": [],
+      "error": {
+        "type": "Error",
+        "message": "Cannot apply sqrt\\(\\) to string"
+      },
+      "tags": ["math", "sqrt", "error", "type"]
+    }
+  ]
+}

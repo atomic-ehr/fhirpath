@@ -1,0 +1,99 @@
+{
+  "name": "Ceiling Function Tests",
+  "description": "Tests for the ceiling() function",
+  "tests": [
+    {
+      "name": "ceiling - integer",
+      "expression": "1.ceiling()",
+      "input": [],
+      "expected": [1],
+      "tags": ["math", "ceiling"]
+    },
+    {
+      "name": "ceiling - positive decimal rounds up",
+      "expression": "1.1.ceiling()",
+      "input": [],
+      "expected": [2],
+      "tags": ["math", "ceiling"]
+    },
+    {
+      "name": "ceiling - negative decimal rounds up",
+      "expression": "(-1.1).ceiling()",
+      "input": [],
+      "expected": [-1],
+      "tags": ["math", "ceiling"]
+    },
+    {
+      "name": "ceiling - positive large decimal",
+      "expression": "2.9.ceiling()",
+      "input": [],
+      "expected": [3],
+      "tags": ["math", "ceiling"]
+    },
+    {
+      "name": "ceiling - negative large decimal",
+      "expression": "(-2.9).ceiling()",
+      "input": [],
+      "expected": [-2],
+      "tags": ["math", "ceiling"]
+    },
+    {
+      "name": "ceiling - zero",
+      "expression": "0.ceiling()",
+      "input": [],
+      "expected": [0],
+      "tags": ["math", "ceiling"]
+    },
+    {
+      "name": "ceiling - very small positive",
+      "expression": "0.0001.ceiling()",
+      "input": [],
+      "expected": [1],
+      "tags": ["math", "ceiling"]
+    },
+    {
+      "name": "ceiling - very small negative",
+      "expression": "(-0.0001).ceiling()",
+      "input": [],
+      "expected": [0],
+      "tags": ["math", "ceiling"]
+    },
+    {
+      "name": "ceiling - empty input",
+      "expression": "{ }.ceiling()",
+      "input": [],
+      "expected": [],
+      "tags": ["math", "ceiling", "empty"]
+    },
+    {
+      "name": "ceiling - multiple items error",
+      "expression": "(1.1 | 2.2).ceiling()",
+      "input": [],
+      "error": {
+        "type": "Error",
+        "message": "ceiling\\(\\) can only be applied to a single item"
+      },
+      "tags": ["math", "ceiling", "error"]
+    },
+    {
+      "name": "ceiling - with arguments error",
+      "expression": "1.5.ceiling(1)",
+      "input": [],
+      "error": {
+        "type": "Error",
+        "message": "ceiling\\(\\) takes no arguments"
+      },
+      "tags": ["math", "ceiling", "error"]
+    },
+    {
+      "name": "ceiling - on string error",
+      "expression": "'1.5'.ceiling()",
+      "input": [],
+      "error": {
+        "type": "Error",
+        "message": "Cannot apply ceiling\\(\\) to string"
+      },
+      "tags": ["math", "ceiling", "error", "type"]
+    }
+  ]
+}

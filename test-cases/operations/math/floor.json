@@ -1,0 +1,99 @@
+{
+  "name": "Floor Function Tests",
+  "description": "Tests for the floor() function",
+  "tests": [
+    {
+      "name": "floor - integer",
+      "expression": "1.floor()",
+      "input": [],
+      "expected": [1],
+      "tags": ["math", "floor"]
+    },
+    {
+      "name": "floor - positive decimal rounds down",
+      "expression": "2.1.floor()",
+      "input": [],
+      "expected": [2],
+      "tags": ["math", "floor"]
+    },
+    {
+      "name": "floor - negative decimal rounds down",
+      "expression": "(-2.1).floor()",
+      "input": [],
+      "expected": [-3],
+      "tags": ["math", "floor"]
+    },
+    {
+      "name": "floor - positive large decimal",
+      "expression": "2.9.floor()",
+      "input": [],
+      "expected": [2],
+      "tags": ["math", "floor"]
+    },
+    {
+      "name": "floor - negative large decimal",
+      "expression": "(-1.9).floor()",
+      "input": [],
+      "expected": [-2],
+      "tags": ["math", "floor"]
+    },
+    {
+      "name": "floor - zero",
+      "expression": "0.floor()",
+      "input": [],
+      "expected": [0],
+      "tags": ["math", "floor"]
+    },
+    {
+      "name": "floor - very small positive",
+      "expression": "0.9999.floor()",
+      "input": [],
+      "expected": [0],
+      "tags": ["math", "floor"]
+    },
+    {
+      "name": "floor - very small negative",
+      "expression": "(-0.0001).floor()",
+      "input": [],
+      "expected": [-1],
+      "tags": ["math", "floor"]
+    },
+    {
+      "name": "floor - empty input",
+      "expression": "{ }.floor()",
+      "input": [],
+      "expected": [],
+      "tags": ["math", "floor", "empty"]
+    },
+    {
+      "name": "floor - multiple items error",
+      "expression": "(1.1 | 2.2).floor()",
+      "input": [],
+      "error": {
+        "type": "Error",
+        "message": "floor\\(\\) can only be applied to a single item"
+      },
+      "tags": ["math", "floor", "error"]
+    },
+    {
+      "name": "floor - with arguments error",
+      "expression": "1.5.floor(1)",
+      "input": [],
+      "error": {
+        "type": "Error",
+        "message": "floor\\(\\) takes no arguments"
+      },
+      "tags": ["math", "floor", "error"]
+    },
+    {
+      "name": "floor - on string error",
+      "expression": "'1.5'.floor()",
+      "input": [],
+      "error": {
+        "type": "Error",
+        "message": "Cannot apply floor\\(\\) to string"
+      },
+      "tags": ["math", "floor", "error", "type"]
+    }
+  ]
+}
