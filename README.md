@@ -98,15 +98,53 @@ const names1 = compiled(patient1);
 const names2 = compiled(patient2);
 ```
 
-#### `analyze(expression: string | FHIRPathExpression, options?: AnalyzeOptions): AnalysisResult`
+#### `analyze(expression: string, options?: AnalyzeOptions): AnalysisResult`
 
-Performs static type analysis on an expression.
+Performs static type analysis on a FHIRPath expression, with optional type checking using a FHIR model provider and error recovery for broken expressions.
 
 ```typescript
+// Basic analysis
 const analysis = fhirpath.analyze('name.given');
-console.log(analysis.type); // Type information
-console.log(analysis.errors); // Any type errors
+console.log(analysis.diagnostics); // Array of any issues found
+console.log(analysis.ast); // The analyzed AST with type information
+
+// With FHIR model provider for type checking
+import { FHIRModelProvider } from '@atomic-ehr/fhirpath';
+
+const modelProvider = new FHIRModelProvider({
+  packages: [{ name: 'hl7.fhir.r4.core', version: '4.0.1' }]
+});
+await modelProvider.initialize();
+
+const analysis = fhirpath.analyze('Patient.birthDate.substring(0, 4)', {
+  modelProvider
+});
+// Will report type error: substring() expects String but birthDate is date
+
+// With error recovery for IDE/tooling scenarios
+const analysis = fhirpath.analyze('Patient.name.', {
+  errorRecovery: true,  // Won't throw on syntax errors
+  modelProvider
+});
+console.log(analysis.diagnostics); // Contains parse error: "Expected identifier after '.'"
+console.log(analysis.ast); // Partial AST with error nodes
+
+// With input type context
+const analysis = fhirpath.analyze('name.given', {
+  modelProvider,
+  inputType: { 
+    type: 'HumanName',
+    namespace: 'FHIR',
+    singleton: false 
+  }
+});
 ```
+
+**Analyze Options:**
+- `modelProvider?: ModelProvider` - Provides type information for FHIR resources and data types
+- `errorRecovery?: boolean` - Enable error tolerance for broken expressions (useful for IDEs)
+- `variables?: Record<string, unknown>` - Variables available in the expression context
+- `inputType?: TypeInfo` - Type information for the input context
 
 #### `inspect(expression: string | FHIRPathExpression, input?: any, context?: EvaluationContext, options?: InspectOptions): InspectResult`
 
@@ -205,6 +243,48 @@ console.log(whereInfo.syntax.notation); // "where(expression)"
 fhirpath.registry.canRegisterFunction('myFunc'); // true
 fhirpath.registry.canRegisterFunction('where'); // false (built-in)
 ```
+
+### FHIR Model Provider
+
+The FHIR Model Provider enables advanced type checking and validation for FHIR resources:
+
+```typescript
+import { FHIRModelProvider, analyze } from '@atomic-ehr/fhirpath';
+
+// Create and initialize the model provider
+const modelProvider = new FHIRModelProvider({
+  packages: [{ name: 'hl7.fhir.r4.core', version: '4.0.1' }]
+});
+
+// Initialize before use (loads FHIR type definitions)
+await modelProvider.initialize();
+
+// Use with analyze for type checking
+const result = analyze('Patient.active.substring(0, 1)', { modelProvider });
+// Diagnostics: "Type mismatch: function 'substring' expects input type String but got Boolean"
+
+// Type-aware property navigation
+const result2 = analyze('Patient.birthDate.year()', { modelProvider });
+// Works correctly - birthDate is recognized as a date type
+
+// Detect invalid property access
+const result3 = analyze('Patient.invalidProperty', { modelProvider });
+// Diagnostics: "Unknown property 'invalidProperty' on type FHIR.Patient"
+
+// Works with complex paths
+const result4 = analyze(
+  'Bundle.entry.resource.where(resourceType = "Patient").name.given',
+  { modelProvider }
+);
+// Validates entire path with proper type information
+```
+
+The model provider supports:
+- Property validation and type checking
+- Polymorphic type resolution
+- Choice type handling (e.g., `value[x]`)
+- Extension navigation
+- Full FHIR R4 type system
 
 ### Builder Pattern
 
@@ -311,9 +391,64 @@ import type {
   ParseDiagnostic,
   DiagnosticSeverity,
   TextRange,
-  ASTNode
+  ASTNode,
+  // Analyzer types
+  AnalyzeOptions,
+  Diagnostic,
+  TypeInfo,
+  // FHIR Model Provider
+  FHIRModelProvider,
+  FHIRModelProviderConfig
 } from '@atomic-ehr/fhirpath';
 ```
+
+## IDE Integration and Error Recovery
+
+The analyzer supports error recovery mode for IDE and tooling scenarios, allowing analysis of incomplete or syntactically incorrect expressions:
+
+```typescript
+// Normal mode - throws on syntax errors
+try {
+  const result = fhirpath.analyze('Patient.name.');
+} catch (error) {
+  console.error('Syntax error:', error.message);
+}
+
+// Error recovery mode - continues analysis despite errors
+const result = fhirpath.analyze('Patient.name.', {
+  errorRecovery: true
+});
+
+// Check diagnostics instead of catching errors
+console.log(result.diagnostics);
+// [{ 
+//   message: "Expected identifier after '.', got: EOF",
+//   severity: DiagnosticSeverity.Error,
+//   range: { start: { line: 0, character: 13 }, end: { line: 0, character: 13 } }
+// }]
+
+// The AST contains error nodes but analysis continues
+console.log(result.ast); // Partial AST with error nodes
+
+// Complex broken expression - multiple errors reported
+const result2 = fhirpath.analyze('Patient.name.where(use = ).given.', {
+  errorRecovery: true,
+  modelProvider
+});
+console.log(result2.diagnostics.length); // 2 errors
+
+// Type information is preserved for valid parts
+const result3 = fhirpath.analyze('5 + 3 * ', {
+  errorRecovery: true
+});
+// Even though expression is incomplete, literals 5 and 3 have type info
+```
+
+This is particularly useful for:
+- **Language servers**: Provide diagnostics while users type
+- **IDE plugins**: Show errors inline without breaking analysis
+- **Code completion**: Analyze partial expressions for context
+- **Linting tools**: Report all issues in a single pass
 
 ## Common Use Cases
 
