@@ -76,9 +76,11 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
     'Count': 'Quantity'
   };
   
-  // Common FHIR types to preload - start with just a few for testing
+  // Common FHIR types to preload
   private readonly commonTypes = [
-    'Patient', 'HumanName', 'Observation'
+    'Patient', 'HumanName', 'Observation', 'CodeableConcept', 'Coding', 
+    'Extension', 'Reference', 'Identifier', 'Period', 'ContactPoint',
+    'Address', 'Attachment', 'Meta', 'Narrative'
   ];
   
   constructor(private config: FHIRModelProviderConfig) {
@@ -296,7 +298,22 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
       
       // Load schema from cache for complex types
       let elementSchemaHierarchy: FHIRSchema[] = [];
-      if (!this.typeMapping[elementType]) {
+      
+      // Special handling for BackboneElement - it has inline elements
+      if (elementType === 'BackboneElement' && element.elements) {
+        // Create a synthetic schema for the inline BackboneElement
+        const inlineSchema: FHIRSchema = {
+          name: `${schema.name}.${propertyName}`,
+          type: 'BackboneElement',
+          url: `${schema.url}#${propertyName}`,
+          version: schema.version,
+          kind: 'complex-type',
+          class: 'complex-type',
+          elements: element.elements,
+          base: 'BackboneElement'
+        } as FHIRSchema;
+        elementSchemaHierarchy = [inlineSchema];
+      } else if (!this.typeMapping[elementType]) {
         const elementSchema = this.loadSchemaCached(elementType);
         if (elementSchema) {
           elementSchemaHierarchy = this.getSchemaHierarchyCached(elementSchema);
@@ -360,7 +377,13 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
     // Collect properties from all schemas in hierarchy
     for (const schema of context.schemaHierarchy) {
       if (schema.elements) {
-        Object.keys(schema.elements).forEach(name => names.add(name));
+        // Filter out choice-specific elements (e.g., deceasedBoolean when deceased exists)
+        Object.keys(schema.elements).forEach(name => {
+          const element = schema.elements![name];
+          if (element && !element.choiceOf) {
+            names.add(name);
+          }
+        });
       }
     }
     

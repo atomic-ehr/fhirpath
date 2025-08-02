@@ -51,13 +51,19 @@ export function analyze(
     variables?: Record<string, unknown>;
     modelProvider?: import('./types').ModelProvider;
     inputType?: import('./types').TypeInfo;
+    errorRecovery?: boolean;
   } = {}
 ): AnalysisResult {
-  const parser = new Parser(expression);
+  // Use LSP mode with error recovery if requested
+  const parserOptions = options.errorRecovery 
+    ? { mode: 'lsp' as const, errorRecovery: true }
+    : undefined;
+    
+  const parser = new Parser(expression, parserOptions);
   const parseResult = parser.parse();
   
-  // Check for parse errors
-  if (parseResult.errors.length > 0) {
+  // Check for parse errors only if error recovery is disabled
+  if (!options.errorRecovery && parseResult.errors.length > 0) {
     // For backward compatibility, throw the first error
     const firstError = parseResult.errors[0]!;
     throw new Error(firstError.message);
@@ -67,7 +73,15 @@ export function analyze(
   
   // Create analyzer with optional model provider
   const analyzer = new Analyzer(options.modelProvider);
-  return analyzer.analyze(ast, options.variables, options.inputType);
+  const analysisResult = analyzer.analyze(ast, options.variables, options.inputType);
+  
+  // If error recovery is enabled, merge parse errors into diagnostics
+  if (options.errorRecovery && parseResult.errors.length > 0) {
+    // Parse errors are already converted to diagnostics by the analyzer
+    // when it encounters Error nodes in the AST
+  }
+  
+  return analysisResult;
 }
 
 // Export key types and classes

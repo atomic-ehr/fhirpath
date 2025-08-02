@@ -15,10 +15,25 @@ import type {
   ModelProvider,
   VariableNode,
   TypeName,
-  TypeOrIdentifierNode
+  TypeOrIdentifierNode,
+  ErrorNode
 } from './types';
 import { NodeType, DiagnosticSeverity } from './types';
 import { registry } from './registry';
+
+// Diagnostic codes as constants to avoid magic strings
+const DiagnosticCode = {
+  UnknownOperator: 'UNKNOWN_OPERATOR',
+  UnknownVariable: 'UNKNOWN_VARIABLE',
+  UnknownUserVariable: 'UNKNOWN_USER_VARIABLE',
+  UnknownFunction: 'UNKNOWN_FUNCTION',
+  TooFewArgs: 'TOO_FEW_ARGS',
+  TooManyArgs: 'TOO_MANY_ARGS',
+  TypeMismatch: 'TYPE_MISMATCH',
+  InputTypeMismatch: 'INPUT_TYPE_MISMATCH',
+  ArgumentTypeMismatch: 'ARGUMENT_TYPE_MISMATCH',
+  ParseError: 'PARSE_ERROR',
+} as const;
 
 export class Analyzer {
   private diagnostics: Diagnostic[] = [];
@@ -58,9 +73,9 @@ export class Analyzer {
   }
 
   private visitNode(node: ASTNode): void {
-    // Handle error nodes
+    // Handle error nodes - process them for diagnostics but don't traverse
     if (node.type === 'Error') {
-      // Error nodes are already reported by the parser
+      // Diagnostics already added in annotateAST
       return;
     }
     
@@ -92,7 +107,7 @@ export class Analyzer {
         this.visitNode((node as TypeCastNode).expression);
         break;
       case NodeType.Variable:
-        this.visitVariable(node as any);
+        this.validateVariable((node as VariableNode).name, node);
         break;
       case NodeType.Literal:
       case NodeType.TypeOrIdentifier:
@@ -106,7 +121,7 @@ export class Analyzer {
     this.visitNode(node.left);
     
     // Special handling for dot operator with function on right side
-    if (node.operator === '.' && node.right.type === NodeType.Function && this.modelProvider) {
+    if (node.operator === '.' && node.right.type === NodeType.Function) {
       const funcNode = node.right as FunctionNode;
       if (funcNode.name.type === NodeType.Identifier) {
         const funcName = (funcNode.name as IdentifierNode).name;
@@ -119,7 +134,7 @@ export class Analyzer {
               DiagnosticSeverity.Error,
               `Type mismatch: function '${func.name}' expects input type ${expectedTypeStr} but got ${inputTypeStr}`,
               funcNode,
-              'INPUT_TYPE_MISMATCH'
+              DiagnosticCode.InputTypeMismatch
             );
           }
         }
@@ -135,7 +150,7 @@ export class Analyzer {
     
     const op = registry.getOperatorDefinition(node.operator);
     if (!op) {
-      this.addDiagnostic(DiagnosticSeverity.Error, `Unknown operator: ${node.operator}`, node, 'UNKNOWN_OPERATOR');
+      this.addDiagnostic(DiagnosticSeverity.Error, `Unknown operator: ${node.operator}`, node, DiagnosticCode.UnknownOperator);
       return;
     }
     
@@ -146,19 +161,7 @@ export class Analyzer {
   }
 
   private visitIdentifier(node: IdentifierNode): void {
-    const name = node.name;
-    
-    // Check special identifiers
-    if (name.startsWith('$')) {
-      if (!this.variables.has(name)) {
-        this.addDiagnostic(DiagnosticSeverity.Error, `Unknown variable: ${name}`, node, 'UNKNOWN_VARIABLE');
-      }
-    } else if (name.startsWith('%')) {
-      const varName = name.substring(1);
-      if (!this.variables.has(varName)) {
-        this.addDiagnostic(DiagnosticSeverity.Error, `Unknown user variable: ${name}`, node, 'UNKNOWN_USER_VARIABLE');
-      }
-    }
+    this.validateVariable(node.name, node);
   }
 
   private visitFunctionCall(node: FunctionNode): void {
@@ -167,7 +170,7 @@ export class Analyzer {
       const func = registry.getFunction(funcName);
       
       if (!func) {
-        this.addDiagnostic(DiagnosticSeverity.Error, `Unknown function: ${funcName}`, node, 'UNKNOWN_FUNCTION');
+        this.addDiagnostic(DiagnosticSeverity.Error, `Unknown function: ${funcName}`, node, DiagnosticCode.UnknownFunction);
       } else {
         // Check argument count based on signature
         const params = func.signature.parameters;
@@ -175,9 +178,9 @@ export class Analyzer {
         const maxParams = params.length;
         
         if (node.arguments.length < requiredParams) {
-          this.addDiagnostic(DiagnosticSeverity.Error, `Function '${funcName}' requires at least ${requiredParams} arguments, got ${node.arguments.length}`, node, 'TOO_FEW_ARGS');
+          this.addDiagnostic(DiagnosticSeverity.Error, `Function '${funcName}' requires at least ${requiredParams} arguments, got ${node.arguments.length}`, node, DiagnosticCode.TooFewArgs);
         } else if (node.arguments.length > maxParams) {
-          this.addDiagnostic(DiagnosticSeverity.Error, `Function '${funcName}' accepts at most ${maxParams} arguments, got ${node.arguments.length}`, node, 'TOO_MANY_ARGS');
+          this.addDiagnostic(DiagnosticSeverity.Error, `Function '${funcName}' accepts at most ${maxParams} arguments, got ${node.arguments.length}`, node, DiagnosticCode.TooManyArgs);
         }
         
         // Type check arguments if we have type information
@@ -190,17 +193,16 @@ export class Analyzer {
     node.arguments.forEach(arg => this.visitNode(arg));
   }
 
-  private visitVariable(node: any): void {
-    const name = node.name;
-    
+  // Unified variable validation to eliminate duplication
+  private validateVariable(name: string, node: ASTNode): void {
     if (name.startsWith('$')) {
       if (!this.variables.has(name)) {
-        this.addDiagnostic(DiagnosticSeverity.Error, `Unknown variable: ${name}`, node, 'UNKNOWN_VARIABLE');
+        this.addDiagnostic(DiagnosticSeverity.Error, `Unknown variable: ${name}`, node, DiagnosticCode.UnknownVariable);
       }
     } else if (name.startsWith('%')) {
       const varName = name.substring(1);
       if (!this.variables.has(varName)) {
-        this.addDiagnostic(DiagnosticSeverity.Error, `Unknown user variable: ${name}`, node, 'UNKNOWN_USER_VARIABLE');
+        this.addDiagnostic(DiagnosticSeverity.Error, `Unknown user variable: ${name}`, node, DiagnosticCode.UnknownUserVariable);
       }
     }
   }
@@ -215,8 +217,13 @@ export class Analyzer {
     });
   }
 
-  // Type inference methods merged from TypeAnalyzer
+  // Type inference methods
   private inferType(node: ASTNode, inputType?: TypeInfo): TypeInfo {
+    // Handle error nodes
+    if (node.type === 'Error') {
+      return this.inferErrorNodeType(node as ErrorNode, inputType);
+    }
+    
     switch (node.type) {
       case NodeType.Literal:
         return this.inferLiteralType(node as LiteralNode);
@@ -251,6 +258,12 @@ export class Analyzer {
       default:
         return { type: 'Any', singleton: false };
     }
+  }
+  
+  private inferErrorNodeType(errorNode: ErrorNode, inputType?: TypeInfo): TypeInfo {
+    // For error nodes, return a generic type that allows partial analysis to continue
+    // This enables type checking for valid parts of broken expressions
+    return { type: 'Any', singleton: false };
   }
   
   private inferLiteralType(node: LiteralNode): TypeInfo {
@@ -322,6 +335,18 @@ export class Analyzer {
       const resultType = this.modelProvider.getElementType(leftType, propertyName);
       if (resultType) {
         return resultType;
+      }
+      
+      // If property not found and we have a concrete type from model provider, report error
+      // Skip diagnostics for union types - they may have dynamic properties
+      if (leftType.namespace && leftType.name && leftType.modelContext && 
+          !(leftType.modelContext as any).isUnion) {
+        this.addDiagnostic(
+          DiagnosticSeverity.Error,
+          `Unknown property '${propertyName}' on type ${leftType.namespace}.${leftType.name}`,
+          node.right,
+          'UNKNOWN_PROPERTY'
+        );
       }
     }
     
@@ -603,7 +628,7 @@ export class Analyzer {
         DiagnosticSeverity.Error,
         `Type mismatch: operator '${node.operator}' cannot be applied to types ${leftTypeStr} and ${rightTypeStr}`,
         node,
-        'TYPE_MISMATCH'
+        DiagnosticCode.TypeMismatch
       );
     }
   }
@@ -624,7 +649,7 @@ export class Analyzer {
             DiagnosticSeverity.Error,
             `Type mismatch: argument ${i + 1} of function '${func.name}' expects ${paramTypeStr} but got ${argTypeStr}`,
             arg,
-            'ARGUMENT_TYPE_MISMATCH'
+            DiagnosticCode.ArgumentTypeMismatch
           );
         }
       }
@@ -643,6 +668,21 @@ export class Analyzer {
    * Annotate AST with type information
    */
   private annotateAST(node: ASTNode, inputType?: TypeInfo): void {
+    // Handle error nodes
+    if (node.type === 'Error') {
+      const errorNode = node as ErrorNode;
+      // Infer a reasonable type for error nodes
+      node.typeInfo = this.inferErrorNodeType(errorNode, inputType);
+      // Add diagnostic for the error
+      this.addDiagnostic(
+        errorNode.severity || DiagnosticSeverity.Error,
+        errorNode.message,
+        errorNode,
+        errorNode.code?.toString() || DiagnosticCode.ParseError
+      );
+      return;
+    }
+    
     // Infer and attach type info
     node.typeInfo = this.inferType(node, inputType);
 
