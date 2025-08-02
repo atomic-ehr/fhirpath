@@ -1,0 +1,146 @@
+{
+  "name": "Quantity Comparison",
+  "description": "Tests for comparison operations on quantities",
+  "tests": [
+    {
+      "name": "quantity equality - same unit and value",
+      "expression": "5 'mg' = 5 'mg'",
+      "input": [],
+      "expected": [true],
+      "tags": ["quantity", "comparison", "equality"]
+    },
+    {
+      "name": "quantity equality - different values",
+      "expression": "5 'mg' = 3 'mg'",
+      "input": [],
+      "expected": [false],
+      "tags": ["quantity", "comparison", "equality"]
+    },
+    {
+      "name": "quantity equality - unit conversion",
+      "expression": "1000 'mg' = 1 'g'",
+      "input": [],
+      "expected": [true],
+      "tags": ["quantity", "comparison", "equality", "unit-conversion"]
+    },
+    {
+      "name": "quantity equality - incompatible units",
+      "expression": "5 'mg' = 5 'm'",
+      "input": [],
+      "expected": [],
+      "tags": ["quantity", "comparison", "equality", "incompatible"]
+    },
+    {
+      "name": "quantity inequality - same unit",
+      "expression": "5 'mg' != 3 'mg'",
+      "input": [],
+      "expected": [true],
+      "tags": ["quantity", "comparison", "inequality"]
+    },
+    {
+      "name": "quantity inequality - unit conversion",
+      "expression": "1000 'mg' != 1 'g'",
+      "input": [],
+      "expected": [false],
+      "tags": ["quantity", "comparison", "inequality", "unit-conversion"]
+    },
+    {
+      "name": "quantity less than - same unit",
+      "expression": "3 'mg' < 5 'mg'",
+      "input": [],
+      "expected": [true],
+      "tags": ["quantity", "comparison", "less-than"]
+    },
+    {
+      "name": "quantity less than - unit conversion",
+      "expression": "500 'mg' < 1 'g'",
+      "input": [],
+      "expected": [true],
+      "tags": ["quantity", "comparison", "less-than", "unit-conversion"]
+    },
+    {
+      "name": "quantity less than - false",
+      "expression": "5 'mg' < 3 'mg'",
+      "input": [],
+      "expected": [false],
+      "tags": ["quantity", "comparison", "less-than"]
+    },
+    {
+      "name": "quantity greater than - same unit",
+      "expression": "5 'mg' > 3 'mg'",
+      "input": [],
+      "expected": [true],
+      "tags": ["quantity", "comparison", "greater-than"]
+    },
+    {
+      "name": "quantity greater than - unit conversion",
+      "expression": "1 'g' > 500 'mg'",
+      "input": [],
+      "expected": [true],
+      "tags": ["quantity", "comparison", "greater-than", "unit-conversion"]
+    },
+    {
+      "name": "quantity less or equal - equal values",
+      "expression": "5 'mg' <= 5 'mg'",
+      "input": [],
+      "expected": [true],
+      "tags": ["quantity", "comparison", "less-or-equal"]
+    },
+    {
+      "name": "quantity less or equal - less than",
+      "expression": "3 'mg' <= 5 'mg'",
+      "input": [],
+      "expected": [true],
+      "tags": ["quantity", "comparison", "less-or-equal"]
+    },
+    {
+      "name": "quantity less or equal - unit conversion",
+      "expression": "1000 'mg' <= 1 'g'",
+      "input": [],
+      "expected": [true],
+      "tags": ["quantity", "comparison", "less-or-equal", "unit-conversion"]
+    },
+    {
+      "name": "quantity greater or equal - equal values",
+      "expression": "5 'mg' >= 5 'mg'",
+      "input": [],
+      "expected": [true],
+      "tags": ["quantity", "comparison", "greater-or-equal"]
+    },
+    {
+      "name": "quantity greater or equal - greater than",
+      "expression": "5 'mg' >= 3 'mg'",
+      "input": [],
+      "expected": [true],
+      "tags": ["quantity", "comparison", "greater-or-equal"]
+    },
+    {
+      "name": "quantity greater or equal - unit conversion",
+      "expression": "1 'g' >= 1000 'mg'",
+      "input": [],
+      "expected": [true],
+      "tags": ["quantity", "comparison", "greater-or-equal", "unit-conversion"]
+    },
+    {
+      "name": "calendar duration comparison - years to months",
+      "expression": "1 year > 11 months",
+      "input": [],
+      "expected": [true],
+      "tags": ["quantity", "comparison", "calendar", "duration"]
+    },
+    {
+      "name": "calendar duration comparison - equal",
+      "expression": "1 year = 12 months",
+      "input": [],
+      "expected": [true],
+      "tags": ["quantity", "comparison", "calendar", "duration", "equality"]
+    },
+    {
+      "name": "temperature comparison - different scales",
+      "expression": "0 'Cel' = 32 '[degF]'",
+      "input": [],
+      "expected": [true],
+      "tags": ["quantity", "comparison", "temperature", "unit-conversion"]
+    }
+  ]
+}

@@ -22,6 +22,7 @@ export enum TokenType {
   STRING = 3,
   DATETIME = 4,
   TIME = 5,
+  QUANTITY = 6,     // Quantity literals like 5 'mg'
   
   // Operators (all symbol operators consolidated)
   OPERATOR = 10,    // +, -, *, /, <, >, <=, >=, =, !=, ~, !~, |, &

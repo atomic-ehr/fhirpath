@@ -18,6 +18,7 @@ import type {
   TypeCastNode,
   CollectionNode,
   TypeReferenceNode,
+  QuantityNode,
   ErrorNode,
   TriviaInfo,
   ParseResult,
@@ -41,6 +42,7 @@ export {
   type TypeCastNode,
   type CollectionNode,
   type TypeReferenceNode,
+  type QuantityNode,
   type ErrorNode,
   type TriviaInfo,
   type ParseResult,
@@ -429,6 +431,22 @@ export class Parser extends BaseParser<ASTNode> {
     return node;
   }
 
+  protected createQuantityNode(value: number, unit: string, isCalendarUnit: boolean, startToken: Token, endToken: Token): QuantityNode {
+    const node: QuantityNode = {
+      type: NodeType.Quantity,
+      value,
+      unit,
+      isCalendarUnit,
+      range: this.getRangeFromTokens(startToken, endToken)
+    };
+    
+    if (this.mode === 'lsp') {
+      this.enrichNodeForLSP(node, startToken, endToken);
+    }
+    
+    return node;
+  }
+
   protected handleError(message: string, token?: Token): never {
     if (this.mode === 'lsp' && this.options.errorRecovery) {
       // In LSP mode with error recovery, add error and try to recover
@@ -752,6 +770,14 @@ export function pprint(node: ASTNode, indent: number = 0): string {
     case NodeType.TypeReference: {
       const tr = node as TypeReferenceNode;
       return `Type[${tr.typeName}]`;
+    }
+    
+    case NodeType.Quantity: {
+      const q = node as QuantityNode;
+      if (q.isCalendarUnit) {
+        return `${q.value} ${q.unit}`;
+      }
+      return `${q.value} '${q.unit}'`;
     }
     
     default:

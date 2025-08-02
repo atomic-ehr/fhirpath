@@ -40,6 +40,7 @@ export abstract class BaseParser<TNode extends BaseASTNode = BaseASTNode> {
   protected abstract createMembershipTestNode(expression: TNode, targetType: string, startToken: Token): TNode;
   protected abstract createTypeCastNode(expression: TNode, targetType: string, startToken: Token): TNode;
   protected abstract createCollectionNode(elements: TNode[], startToken: Token): TNode;
+  protected abstract createQuantityNode(value: number, unit: string, isCalendarUnit: boolean, startToken: Token, endToken: Token): TNode;
   protected abstract handleError(message: string, token?: Token): never | TNode;
   
   // Shared expression parsing with precedence climbing
@@ -129,7 +130,28 @@ export abstract class BaseParser<TNode extends BaseASTNode = BaseASTNode> {
 
     if (token.type === TokenType.NUMBER) {
       this.current++; // inline advance()
-      return this.createLiteralNode(parseFloat(token.value), 'number', token);
+      const numberValue = parseFloat(token.value);
+      
+      // Check if next token is a string (quantity unit)
+      const nextToken = this.peek();
+      if (nextToken.type === TokenType.STRING) {
+        this.advance();
+        const unit = this.parseStringValue(nextToken.value);
+        return this.createQuantityNode(numberValue, unit, false, token, nextToken);
+      }
+      
+      // Check if next token is a calendar duration identifier
+      if (nextToken.type === TokenType.IDENTIFIER) {
+        const calendarUnits = ['year', 'years', 'month', 'months', 'week', 'weeks', 
+                              'day', 'days', 'hour', 'hours', 'minute', 'minutes', 
+                              'second', 'seconds', 'millisecond', 'milliseconds'];
+        if (calendarUnits.includes(nextToken.value)) {
+          this.advance();
+          return this.createQuantityNode(numberValue, nextToken.value, true, token, nextToken);
+        }
+      }
+      
+      return this.createLiteralNode(numberValue, 'number', token);
     }
 
     if (token.type === TokenType.STRING) {

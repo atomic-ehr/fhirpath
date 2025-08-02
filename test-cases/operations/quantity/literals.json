@@ -1,0 +1,174 @@
+{
+  "name": "Quantity Literals",
+  "description": "Tests for quantity literal parsing and evaluation",
+  "tests": [
+    {
+      "name": "quantity literal - simple unit",
+      "expression": "5 'mg'",
+      "input": [],
+      "expected": [
+        {
+          "value": 5,
+          "unit": "mg"
+        }
+      ],
+      "tags": ["quantity", "literal", "ucum"]
+    },
+    {
+      "name": "quantity literal - decimal value",
+      "expression": "3.14 'km'",
+      "input": [],
+      "expected": [
+        {
+          "value": 3.14,
+          "unit": "km"
+        }
+      ],
+      "tags": ["quantity", "literal", "ucum"]
+    },
+    {
+      "name": "quantity literal - UCUM unit with brackets",
+      "expression": "98.6 '[degF]'",
+      "input": [],
+      "expected": [
+        {
+          "value": 98.6,
+          "unit": "[degF]"
+        }
+      ],
+      "tags": ["quantity", "literal", "ucum"]
+    },
+    {
+      "name": "calendar duration - year",
+      "expression": "1 year",
+      "input": [],
+      "expected": [
+        {
+          "value": 1,
+          "unit": "a"
+        }
+      ],
+      "tags": ["quantity", "literal", "calendar", "duration"]
+    },
+    {
+      "name": "calendar duration - years plural",
+      "expression": "3 years",
+      "input": [],
+      "expected": [
+        {
+          "value": 3,
+          "unit": "a"
+        }
+      ],
+      "tags": ["quantity", "literal", "calendar", "duration"]
+    },
+    {
+      "name": "calendar duration - month",
+      "expression": "6 months",
+      "input": [],
+      "expected": [
+        {
+          "value": 6,
+          "unit": "mo"
+        }
+      ],
+      "tags": ["quantity", "literal", "calendar", "duration"]
+    },
+    {
+      "name": "calendar duration - week",
+      "expression": "2 weeks",
+      "input": [],
+      "expected": [
+        {
+          "value": 2,
+          "unit": "wk"
+        }
+      ],
+      "tags": ["quantity", "literal", "calendar", "duration"]
+    },
+    {
+      "name": "calendar duration - day",
+      "expression": "7 days",
+      "input": [],
+      "expected": [
+        {
+          "value": 7,
+          "unit": "d"
+        }
+      ],
+      "tags": ["quantity", "literal", "calendar", "duration"]
+    },
+    {
+      "name": "calendar duration - hour",
+      "expression": "24 hours",
+      "input": [],
+      "expected": [
+        {
+          "value": 24,
+          "unit": "h"
+        }
+      ],
+      "tags": ["quantity", "literal", "calendar", "duration"]
+    },
+    {
+      "name": "calendar duration - minute",
+      "expression": "30 minutes",
+      "input": [],
+      "expected": [
+        {
+          "value": 30,
+          "unit": "min"
+        }
+      ],
+      "tags": ["quantity", "literal", "calendar", "duration"]
+    },
+    {
+      "name": "calendar duration - second",
+      "expression": "60 seconds",
+      "input": [],
+      "expected": [
+        {
+          "value": 60,
+          "unit": "s"
+        }
+      ],
+      "tags": ["quantity", "literal", "calendar", "duration"]
+    },
+    {
+      "name": "calendar duration - millisecond",
+      "expression": "1000 milliseconds",
+      "input": [],
+      "expected": [
+        {
+          "value": 1000,
+          "unit": "ms"
+        }
+      ],
+      "tags": ["quantity", "literal", "calendar", "duration"]
+    },
+    {
+      "name": "quantity literal - zero value",
+      "expression": "0 'mg'",
+      "input": [],
+      "expected": [
+        {
+          "value": 0,
+          "unit": "mg"
+        }
+      ],
+      "tags": ["quantity", "literal", "edge-case"]
+    },
+    {
+      "name": "quantity literal - negative value",
+      "expression": "-5 'mg'",
+      "input": [],
+      "expected": [
+        {
+          "value": -5,
+          "unit": "mg"
+        }
+      ],
+      "tags": ["quantity", "literal", "edge-case"]
+    }
+  ]
+}

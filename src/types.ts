@@ -104,6 +104,7 @@ export enum NodeType {
   TypeCast = 'TypeCast',
   Collection = 'Collection',
   TypeReference = 'TypeReference',
+  Quantity = 'Quantity',
 }
 
 // LSP-compatible position (zero-based line and character)
@@ -255,6 +256,13 @@ export interface TypeReferenceNode extends BaseASTNode {
   typeName: string;
 }
 
+export interface QuantityNode extends BaseASTNode {
+  type: NodeType.Quantity;
+  value: number;
+  unit: string;
+  isCalendarUnit?: boolean;
+}
+
 // Unified ASTNode type - discriminated union
 export type ASTNode = 
   | IdentifierNode
@@ -269,6 +277,7 @@ export type ASTNode =
   | TypeCastNode
   | CollectionNode
   | TypeReferenceNode
+  | QuantityNode
   | ErrorNode;
 
 export interface RuntimeContext {

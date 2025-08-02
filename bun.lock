@@ -6,6 +6,7 @@
       "dependencies": {
         "@atomic-ehr/fhir-canonical-manager": "^0.0.3",
         "@atomic-ehr/fhirschema": "^0.0.1",
+        "@atomic-ehr/ucum": "^0.2.4",
       },
       "devDependencies": {
         "@anthropic-ai/sdk": "^0.57.0",
@@ -35,6 +36,8 @@
     "@atomic-ehr/fhir-canonical-manager": ["@atomic-ehr/fhir-canonical-manager@0.0.3", "", { "peerDependencies": { "typescript": "^5" }, "bin": { "fcm": "dist/cli/index.js" } }, "sha512-SCUmuilVINbmxzuu/GHpy1y6L+lJwTugUqyWGMgfYYNsHNLGHukjkqC5/swXviy4VsWwmRk834hbdGbRFKb5rw=="],
 
     "@atomic-ehr/fhirschema": ["@atomic-ehr/fhirschema@0.0.1", "", { "peerDependencies": { "typescript": "^5" } }, "sha512-Dmk7x/GJipfhIr5jmz69i9f/tor3ipiRMESS68EfZ33mohi0+yFh2ltiKyOPxgreKiqSYsA9niNN/6UzhkmWuA=="],
+
+    "@atomic-ehr/ucum": ["@atomic-ehr/ucum@0.2.4", "", { "peerDependencies": { "typescript": "^5" } }, "sha512-LONrtLoePWM4PenScr3wyRpJej8lzccWzpI7pryX6ou8bm3OTn3PRdNSOJ6FUR/q1oh+bVz6iDMPlzOaeLkFlg=="],
 
     "@csstools/color-helpers": ["@csstools/color-helpers@5.0.2", "", {}, "sha512-JqWH1vsgdGcw2RR6VliXXdA0/59LttzlU8UlRT/iUUsEeWfYq8I+K0yhihEUTTHLRm1EXvpsCx3083EU15ecsA=="],
 

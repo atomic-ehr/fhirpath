@@ -1,6 +1,6 @@
 # Architecture Decision Records
 
-This directory contains Architecture Decision Records (ADRs) for the UCUM TypeScript library project.
+This directory contains Architecture Decision Records (ADRs) for the FHIRPath TypeScript implementation project.
 
 ## What is an ADR?
 
@@ -30,4 +30,10 @@ Where NNN is a sequential number (001, 002, etc.).
 
 ## Index
 
-- [001 - Dimension Representation](001-dimension-representation.md) - Object vs Vector representation for dimensions
+- [001 - Public Interface](001-public-interface.md) - Evaluate vs parse/compile/interpret API design
+- [002 - Unified AST Node](002-unified-ast-node.md) - Single AST node type vs multiple specific types
+- [003 - Type Enriched AST](003-type-enriched-ast.md) - Adding type information to AST nodes
+- [004 - Model Provider](004-model-provider.md) - Interface for accessing model type information
+- [005 - FHIRPath Type System](005-fhirpath-type-system.md) - Type system implementation for FHIRPath
+- [006 - FHIR Model Provider](006-fhir-model-provider.md) - FHIR-specific model provider implementation
+- [007 - UCUM Quantity Support](007-ucum-quantity-support.md) - Integration of UCUM library for quantity literals and operations

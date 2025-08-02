@@ -10,12 +10,14 @@ import type {
   IndexNode,
   TypeOrIdentifierNode,
   MembershipTestNode,
-  TypeCastNode
+  TypeCastNode,
+  QuantityNode
 } from './types';
 import { NodeType } from './types';
 import { Registry } from './registry';
 import * as operations from './operations';
 import type { EvaluationResult, FunctionEvaluator, NodeEvaluator, OperationEvaluator, RuntimeContext } from './types';
+import { createQuantity } from './quantity-value';
 
 /**
  * Runtime context manager that provides efficient prototype-based context operations
@@ -183,6 +185,7 @@ export class Interpreter {
       [NodeType.Index]: this.evaluateIndex.bind(this),
       [NodeType.MembershipTest]: this.evaluateMembershipTest.bind(this),
       [NodeType.TypeCast]: this.evaluateTypeCast.bind(this),
+      [NodeType.Quantity]: this.evaluateQuantity.bind(this),
       [NodeType.EOF]: () => ({ value: [], context: {} as RuntimeContext }),
       [NodeType.TypeReference]: () => ({ value: [], context: {} as RuntimeContext })
     };
@@ -449,6 +452,13 @@ export class Interpreter {
     // In a real implementation, would perform type conversion
     return { value: exprResult.value, context };
   }
-
-
+  
+  private evaluateQuantity(node: ASTNode, input: any[], context: RuntimeContext): EvaluationResult {
+    const quantity = node as QuantityNode;
+    const quantityValue = createQuantity(quantity.value, quantity.unit, quantity.isCalendarUnit);
+    return {
+      value: [quantityValue],
+      context
+    };
+  }
 }

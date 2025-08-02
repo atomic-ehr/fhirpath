@@ -1,6 +1,8 @@
 import type { OperatorDefinition } from '../types';
 import { PRECEDENCE } from '../types';
 import type { OperationEvaluator } from '../types';
+import { addQuantities } from '../quantity-value';
+import type { QuantityValue } from '../quantity-value';
 
 export const evaluate: OperationEvaluator = (input, context, left, right) => {
   if (left.length === 0 || right.length === 0) {
@@ -9,6 +11,13 @@ export const evaluate: OperationEvaluator = (input, context, left, right) => {
   
   const l = left[0];
   const r = right[0];
+  
+  // Check if both are quantities
+  if (l && typeof l === 'object' && 'unit' in l && 
+      r && typeof r === 'object' && 'unit' in r) {
+    const result = addQuantities(l as QuantityValue, r as QuantityValue);
+    return { value: result ? [result] : [], context };
+  }
   
   if (typeof l === 'string' || typeof r === 'string') {
     return { value: [String(l) + String(r)], context };

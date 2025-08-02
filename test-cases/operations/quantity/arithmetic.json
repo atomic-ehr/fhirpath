@@ -1,0 +1,164 @@
+{
+  "name": "Quantity Arithmetic",
+  "description": "Tests for arithmetic operations on quantities",
+  "tests": [
+    {
+      "name": "quantity addition - same unit",
+      "expression": "5 'mg' + 3 'mg'",
+      "input": [],
+      "expected": [
+        {
+          "value": 8,
+          "unit": "mg"
+        }
+      ],
+      "tags": ["quantity", "arithmetic", "addition"]
+    },
+    {
+      "name": "quantity addition - compatible units",
+      "expression": "1 'g' + 500 'mg'",
+      "input": [],
+      "expected": [
+        {
+          "value": 1.5,
+          "unit": "g"
+        }
+      ],
+      "tags": ["quantity", "arithmetic", "addition", "unit-conversion"]
+    },
+    {
+      "name": "quantity addition - incompatible units",
+      "expression": "5 'mg' + 3 'm'",
+      "input": [],
+      "expected": [],
+      "tags": ["quantity", "arithmetic", "addition", "incompatible"]
+    },
+    {
+      "name": "quantity subtraction - same unit",
+      "expression": "10 'mg' - 3 'mg'",
+      "input": [],
+      "expected": [
+        {
+          "value": 7,
+          "unit": "mg"
+        }
+      ],
+      "tags": ["quantity", "arithmetic", "subtraction"]
+    },
+    {
+      "name": "quantity subtraction - compatible units",
+      "expression": "1 'g' - 200 'mg'",
+      "input": [],
+      "expected": [
+        {
+          "value": 0.8,
+          "unit": "g"
+        }
+      ],
+      "tags": ["quantity", "arithmetic", "subtraction", "unit-conversion"]
+    },
+    {
+      "name": "quantity subtraction - incompatible units",
+      "expression": "5 'mg' - 3 'm'",
+      "input": [],
+      "expected": [],
+      "tags": ["quantity", "arithmetic", "subtraction", "incompatible"]
+    },
+    {
+      "name": "quantity multiplication",
+      "expression": "3 'm' * 4 'm'",
+      "input": [],
+      "expected": [
+        {
+          "value": 12,
+          "unit": "m.m"
+        }
+      ],
+      "tags": ["quantity", "arithmetic", "multiplication"]
+    },
+    {
+      "name": "quantity multiplication - area calculation",
+      "expression": "5 'cm' * 10 'cm'",
+      "input": [],
+      "expected": [
+        {
+          "value": 50,
+          "unit": "cm.cm"
+        }
+      ],
+      "tags": ["quantity", "arithmetic", "multiplication", "area"]
+    },
+    {
+      "name": "quantity division",
+      "expression": "12 'm2' / 3 'm'",
+      "input": [],
+      "expected": [
+        {
+          "value": 4,
+          "unit": "m2/m"
+        }
+      ],
+      "tags": ["quantity", "arithmetic", "division"]
+    },
+    {
+      "name": "quantity division - velocity",
+      "expression": "100 'km' / 2 'h'",
+      "input": [],
+      "expected": [
+        {
+          "value": 50,
+          "unit": "km/h"
+        }
+      ],
+      "tags": ["quantity", "arithmetic", "division", "velocity"]
+    },
+    {
+      "name": "quantity division - same units cancel",
+      "expression": "10 'mg' / 5 'mg'",
+      "input": [],
+      "expected": [
+        {
+          "value": 2,
+          "unit": "1"
+        }
+      ],
+      "tags": ["quantity", "arithmetic", "division", "dimensionless"]
+    },
+    {
+      "name": "calendar duration addition",
+      "expression": "2 years + 3 months",
+      "input": [],
+      "expected": [
+        {
+          "value": 27,
+          "unit": "mo"
+        }
+      ],
+      "tags": ["quantity", "arithmetic", "addition", "calendar", "duration"]
+    },
+    {
+      "name": "calendar duration subtraction",
+      "expression": "1 year - 3 months",
+      "input": [],
+      "expected": [
+        {
+          "value": 9,
+          "unit": "mo"
+        }
+      ],
+      "tags": ["quantity", "arithmetic", "subtraction", "calendar", "duration"]
+    },
+    {
+      "name": "mixed arithmetic expression",
+      "expression": "(5 'mg' + 3 'mg') * 2",
+      "input": [],
+      "expected": [
+        {
+          "value": 16,
+          "unit": "mg"
+        }
+      ],
+      "tags": ["quantity", "arithmetic", "complex"]
+    }
+  ]
+}
