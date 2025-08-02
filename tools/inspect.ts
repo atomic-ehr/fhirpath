@@ -1,7 +1,6 @@
 #!/usr/bin/env bun
 
-// TODO: Replace with new inspect implementation
-// import { inspect } from '../legacy-src/api';
+import { inspect } from '../src/index';
 import { readFileSync } from 'fs';
 
 // Parse command line arguments
@@ -164,22 +163,14 @@ function formatAst(node: any, indent = 0): string {
   return result.trimEnd();
 }
 
-// TODO: Implement inspect with new API
-console.error('inspect tool needs to be updated for the new API');
-process.exit(1);
-
-/*
 try {
   // Run inspect
-  const result = inspect(
-    expression!,
-    inputData,
-    { variables },
-    { maxTraces }
-  );
-  */
+  const result = inspect(expression!, {
+    input: inputData,
+    variables,
+    maxTraces
+  });
   
-  /*
   // Display results based on options
   if (showOnlyAst) {
     console.log('AST:');
@@ -192,6 +183,9 @@ try {
       result.traces.forEach((trace, i) => {
         console.log(`\n[${i + 1}] ${trace.name} at ${trace.timestamp.toFixed(3)}ms (depth: ${trace.depth})`);
         console.log(`    Values: ${formatValue(trace.values)}`);
+        if (trace.projection) {
+          console.log(`    Projection: ${formatValue(trace.projection)}`);
+        }
       });
     }
   } else if (showOnlyTiming) {
@@ -227,6 +221,9 @@ try {
         console.log(`  [${i + 1}] ${trace.name} at ${trace.timestamp.toFixed(3)}ms (depth: ${trace.depth})`);
         if (verbose || trace.values.length <= 3) {
           console.log(`      Values: ${formatValue(trace.values)}`);
+          if (trace.projection) {
+            console.log(`      Projection: ${formatValue(trace.projection)}`);
+          }
         } else {
           console.log(`      Values: ${trace.values.length} items`);
         }
@@ -248,4 +245,3 @@ try {
   console.error('Inspection failed:', error);
   process.exit(1);
 }
-*/
