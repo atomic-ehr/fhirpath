@@ -1,6 +1,6 @@
 {
   "name": "@atomic-ehr/fhirpath",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A TypeScript implementation of FHIRPath",
   "type": "module",
   "main": "./dist/index.js",
