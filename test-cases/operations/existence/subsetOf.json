@@ -1,0 +1,181 @@
+{
+  "description": "Tests for the subsetOf() function",
+  "spec": "https://hl7.org/fhirpath/#subsetofother-collection-boolean",
+  "tests": [
+    {
+      "name": "subsetOf - empty input returns true",
+      "expression": "({}).subsetOf((1 | 2 | 3))",
+      "expected": [true],
+      "tags": ["subsetOf", "existence", "empty"]
+    },
+    {
+      "name": "subsetOf - empty other collection returns false",
+      "expression": "(1 | 2).subsetOf(({}))",
+      "expected": [false],
+      "tags": ["subsetOf", "existence", "empty"]
+    },
+    {
+      "name": "subsetOf - both empty returns true",
+      "expression": "({}).subsetOf(({}))",
+      "expected": [true],
+      "tags": ["subsetOf", "existence", "empty"]
+    },
+    {
+      "name": "subsetOf - simple subset true",
+      "expression": "(1 | 2).subsetOf((1 | 2 | 3))",
+      "expected": [true],
+      "tags": ["subsetOf", "existence", "integer"]
+    },
+    {
+      "name": "subsetOf - simple subset false",
+      "expression": "(1 | 2 | 4).subsetOf((1 | 2 | 3))",
+      "expected": [false],
+      "tags": ["subsetOf", "existence", "integer"]
+    },
+    {
+      "name": "subsetOf - equal sets return true",
+      "expression": "(1 | 2 | 3).subsetOf((1 | 2 | 3))",
+      "expected": [true],
+      "tags": ["subsetOf", "existence", "integer"]
+    },
+    {
+      "name": "subsetOf - single element subset",
+      "expression": "(2).subsetOf((1 | 2 | 3))",
+      "expected": [true],
+      "tags": ["subsetOf", "existence", "integer", "singleton"]
+    },
+    {
+      "name": "subsetOf - single element not subset",
+      "expression": "(4).subsetOf((1 | 2 | 3))",
+      "expected": [false],
+      "tags": ["subsetOf", "existence", "integer", "singleton"]
+    },
+    {
+      "name": "subsetOf - string subset",
+      "expression": "('a' | 'b').subsetOf(('a' | 'b' | 'c'))",
+      "expected": [true],
+      "tags": ["subsetOf", "existence", "string"]
+    },
+    {
+      "name": "subsetOf - string not subset",
+      "expression": "('a' | 'd').subsetOf(('a' | 'b' | 'c'))",
+      "expected": [false],
+      "tags": ["subsetOf", "existence", "string"]
+    },
+    {
+      "name": "subsetOf - duplicate elements in input",
+      "expression": "(1 | 1 | 2).subsetOf((1 | 2 | 3))",
+      "expected": [true],
+      "tags": ["subsetOf", "existence", "duplicates"]
+    },
+    {
+      "name": "subsetOf - duplicate elements in other",
+      "expression": "(1 | 2).subsetOf((1 | 1 | 2 | 2 | 3))",
+      "expected": [true],
+      "tags": ["subsetOf", "existence", "duplicates"]
+    },
+    {
+      "name": "subsetOf - boolean subset",
+      "expression": "(true).subsetOf((true | false))",
+      "expected": [true],
+      "tags": ["subsetOf", "existence", "boolean"]
+    },
+    {
+      "name": "subsetOf - mixed numeric types",
+      "expression": "(1 | 2.0).subsetOf((1.0 | 2 | 3))",
+      "expected": [true],
+      "tags": ["subsetOf", "existence", "numeric", "type-coercion"]
+    },
+    {
+      "name": "subsetOf - order doesn't matter",
+      "expression": "(3 | 1 | 2).subsetOf((2 | 1 | 3))",
+      "expected": [true],
+      "tags": ["subsetOf", "existence", "order"]
+    },
+    {
+      "name": "subsetOf - with FHIR resource example",
+      "expression": "Patient.name.where(use = 'official').given.subsetOf(Patient.name.given)",
+      "input": {
+        "resourceType": "Patient",
+        "name": [
+          {
+            "use": "official",
+            "given": ["John", "Michael"]
+          },
+          {
+            "use": "nickname",
+            "given": ["Johnny"]
+          }
+        ]
+      },
+      "expected": [true],
+      "tags": ["subsetOf", "existence", "fhir", "resource"]
+    },
+    {
+      "name": "subsetOf - not all tags are subset",
+      "expression": "Patient.contained.meta.tag.code.subsetOf(Patient.meta.tag.code)",
+      "input": {
+        "resourceType": "Patient",
+        "meta": {
+          "tag": [
+            {"code": "tag1"},
+            {"code": "tag2"}
+          ]
+        },
+        "contained": [
+          {
+            "resourceType": "Observation",
+            "meta": {
+              "tag": [
+                {"code": "tag1"},
+                {"code": "tag3"}
+              ]
+            }
+          }
+        ]
+      },
+      "expected": [false],
+      "tags": ["subsetOf", "existence", "fhir", "resource"]
+    },
+    {
+      "name": "FHIRPath Lab - testSubSetOf1",
+      "expression": "Patient.name.first().subsetOf($this.name)",
+      "input": {
+        "resourceType": "Patient",
+        "name": [
+          {
+            "use": "official",
+            "family": "Chalmers",
+            "given": ["Peter", "James"]
+          },
+          {
+            "use": "usual",
+            "given": ["Jim"]
+          }
+        ]
+      },
+      "expected": [true],
+      "tags": ["subsetOf", "existence", "fhirpathlab", "fhir"]
+    },
+    {
+      "name": "FHIRPath Lab - testSubSetOf2",
+      "expression": "Patient.name.subsetOf($this.name.first()).not()",
+      "input": {
+        "resourceType": "Patient",
+        "name": [
+          {
+            "use": "official",
+            "family": "Chalmers",
+            "given": ["Peter", "James"]
+          },
+          {
+            "use": "usual",
+            "given": ["Jim"]
+          }
+        ]
+      },
+      "expected": [true],
+      "tags": ["subsetOf", "existence", "fhirpathlab", "fhir", "not"]
+    }
+  ]
+}

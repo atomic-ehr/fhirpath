@@ -77,6 +77,8 @@ export { lowerFunction } from './lower-function';
 export { allFalseFunction } from './allFalse-function';
 export { anyTrueFunction } from './anyTrue-function';
 export { anyFalseFunction } from './anyFalse-function';
+export { subsetOfFunction } from './subsetOf-function';
+export { supersetOfFunction } from './supersetOf-function';
 
 // Type conversion functions
 export { toIntegerFunction } from './toInteger-function';

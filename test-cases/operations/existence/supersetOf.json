@@ -1,0 +1,208 @@
+{
+  "description": "Tests for the supersetOf() function",
+  "spec": "https://hl7.org/fhirpath/#supersetofother-collection-boolean",
+  "tests": [
+    {
+      "name": "supersetOf - empty other returns true",
+      "expression": "(1 | 2 | 3).supersetOf(({}))",
+      "expected": [true],
+      "tags": ["supersetOf", "existence", "empty"]
+    },
+    {
+      "name": "supersetOf - empty input returns false",
+      "expression": "({}).supersetOf((1 | 2))",
+      "expected": [false],
+      "tags": ["supersetOf", "existence", "empty"]
+    },
+    {
+      "name": "supersetOf - both empty returns true",
+      "expression": "({}).supersetOf(({}))",
+      "expected": [true],
+      "tags": ["supersetOf", "existence", "empty"]
+    },
+    {
+      "name": "supersetOf - simple superset true",
+      "expression": "(1 | 2 | 3).supersetOf((1 | 2))",
+      "expected": [true],
+      "tags": ["supersetOf", "existence", "integer"]
+    },
+    {
+      "name": "supersetOf - simple superset false",
+      "expression": "(1 | 2 | 3).supersetOf((1 | 2 | 4))",
+      "expected": [false],
+      "tags": ["supersetOf", "existence", "integer"]
+    },
+    {
+      "name": "supersetOf - equal sets return true",
+      "expression": "(1 | 2 | 3).supersetOf((1 | 2 | 3))",
+      "expected": [true],
+      "tags": ["supersetOf", "existence", "integer"]
+    },
+    {
+      "name": "supersetOf - single element superset",
+      "expression": "(1 | 2 | 3).supersetOf((2))",
+      "expected": [true],
+      "tags": ["supersetOf", "existence", "integer", "singleton"]
+    },
+    {
+      "name": "supersetOf - single element not superset",
+      "expression": "(1 | 2 | 3).supersetOf((4))",
+      "expected": [false],
+      "tags": ["supersetOf", "existence", "integer", "singleton"]
+    },
+    {
+      "name": "supersetOf - string superset",
+      "expression": "('a' | 'b' | 'c').supersetOf(('a' | 'b'))",
+      "expected": [true],
+      "tags": ["supersetOf", "existence", "string"]
+    },
+    {
+      "name": "supersetOf - string not superset",
+      "expression": "('a' | 'b' | 'c').supersetOf(('a' | 'd'))",
+      "expected": [false],
+      "tags": ["supersetOf", "existence", "string"]
+    },
+    {
+      "name": "supersetOf - duplicate elements in input",
+      "expression": "(1 | 1 | 2 | 2 | 3).supersetOf((1 | 2))",
+      "expected": [true],
+      "tags": ["supersetOf", "existence", "duplicates"]
+    },
+    {
+      "name": "supersetOf - duplicate elements in other",
+      "expression": "(1 | 2 | 3).supersetOf((1 | 1 | 2 | 2))",
+      "expected": [true],
+      "tags": ["supersetOf", "existence", "duplicates"]
+    },
+    {
+      "name": "supersetOf - boolean superset",
+      "expression": "(true | false).supersetOf((true))",
+      "expected": [true],
+      "tags": ["supersetOf", "existence", "boolean"]
+    },
+    {
+      "name": "supersetOf - mixed numeric types",
+      "expression": "(1.0 | 2 | 3).supersetOf((1 | 2.0))",
+      "expected": [true],
+      "tags": ["supersetOf", "existence", "numeric", "type-coercion"]
+    },
+    {
+      "name": "supersetOf - order doesn't matter",
+      "expression": "(2 | 1 | 3).supersetOf((3 | 1 | 2))",
+      "expected": [true],
+      "tags": ["supersetOf", "existence", "order"]
+    },
+    {
+      "name": "supersetOf - with FHIR resource example",
+      "expression": "Patient.name.given.supersetOf(Patient.name.where(use = 'official').given)",
+      "input": {
+        "resourceType": "Patient",
+        "name": [
+          {
+            "use": "official",
+            "given": ["John", "Michael"]
+          },
+          {
+            "use": "nickname",
+            "given": ["Johnny"]
+          }
+        ]
+      },
+      "expected": [true],
+      "tags": ["supersetOf", "existence", "fhir", "resource"]
+    },
+    {
+      "name": "supersetOf - all tags are superset",
+      "expression": "Patient.meta.tag.code.supersetOf(Patient.contained.meta.tag.code)",
+      "input": {
+        "resourceType": "Patient",
+        "meta": {
+          "tag": [
+            {"code": "tag1"},
+            {"code": "tag2"},
+            {"code": "tag3"}
+          ]
+        },
+        "contained": [
+          {
+            "resourceType": "Observation",
+            "meta": {
+              "tag": [
+                {"code": "tag1"},
+                {"code": "tag3"}
+              ]
+            }
+          }
+        ]
+      },
+      "expected": [true],
+      "tags": ["supersetOf", "existence", "fhir", "resource"]
+    },
+    {
+      "name": "supersetOf - not all tags are superset",
+      "expression": "Patient.meta.tag.code.supersetOf(Patient.contained.meta.tag.code)",
+      "input": {
+        "resourceType": "Patient",
+        "meta": {
+          "tag": [
+            {"code": "tag1"},
+            {"code": "tag2"}
+          ]
+        },
+        "contained": [
+          {
+            "resourceType": "Observation",
+            "meta": {
+              "tag": [
+                {"code": "tag1"},
+                {"code": "tag3"}
+              ]
+            }
+          }
+        ]
+      },
+      "expected": [false],
+      "tags": ["supersetOf", "existence", "fhir", "resource"]
+    },
+    {
+      "name": "FHIRPath Lab - testSuperSetOf1",
+      "expression": "Patient.name.first().supersetOf($this.name).not()",
+      "input": {
+        "resourceType": "Patient",
+        "name": [
+          {
+            "use": "official",
+            "family": "Chalmers",
+            "given": ["Peter", "James"]
+          },
+          {
+            "use": "usual",
+            "given": ["Jim"]
+          }
+        ]
+      },
+      "expected": [true],
+      "tags": ["supersetOf", "existence", "fhirpathlab", "fhir", "not"]
+    },
+    {
+      "name": "FHIRPath Lab - testSuperSetOf2",
+      "expression": "Patient.name.supersetOf($this.name.first())",
+      "input": {
+        "resourceType": "Patient",
+        "name": [
+          {
+            "use": "official",
+            "family": "Chalmers",
+            "given": ["Peter", "James"]
+          },
+          {
+            "use": "usual",
+            "given": ["Jim"]
+          }
+        ]
+      },
+      "expected": [true],
+      "tags": ["supersetOf", "existence", "fhirpathlab", "fhir"]
+    }
+  ]
+}

@@ -351,8 +351,7 @@
         "first",
         "skip"
       ],
-      "description": "use of different variables in different contexts",
-      "pending": "Uses unimplemented function(s): join() in compiler"
+      "description": "use of different variables in different contexts"
     },
     {
       "name": "[FHIRPath Lab] defineVariable7",
