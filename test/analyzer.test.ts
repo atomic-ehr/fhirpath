@@ -153,17 +153,17 @@ describe("Analyzer", () => {
         const patientType = modelProvider.getType('Patient');
         modelProviderInitialized = patientType !== undefined && patientType.modelContext !== undefined;
         if (!modelProviderInitialized) {
-          console.warn('Model provider initialized but cannot load types - tests will be skipped');
+          // console.warn('Model provider initialized but cannot load types - tests will be skipped');
         }
       } catch (error) {
-        console.error('Failed to initialize model provider in test:', error);
+        // console.error('Failed to initialize model provider in test:', error);
         modelProviderInitialized = false;
       }
     });
 
     it("should infer types through FHIR model navigation", () => {
       if (!modelProviderInitialized) {
-        console.log('Skipping test - model provider not properly initialized');
+        // console.log('Skipping test - model provider not properly initialized');
         return;
       }
 
@@ -185,7 +185,7 @@ describe("Analyzer", () => {
 
     it("should detect type error when calling substring on non-string type", () => {
       if (!modelProviderInitialized) {
-        console.log('Skipping test - model provider not properly initialized');
+        // console.log('Skipping test - model provider not properly initialized');
         return;
       }
 
@@ -204,7 +204,7 @@ describe("Analyzer", () => {
 
     it("should allow string operations on string types", () => {
       if (!modelProviderInitialized) {
-        console.log('Skipping test - model provider not properly initialized');
+        // console.log('Skipping test - model provider not properly initialized');
         return;
       }
 
@@ -217,7 +217,7 @@ describe("Analyzer", () => {
 
     it("should detect type errors in arithmetic operations", () => {
       if (!modelProviderInitialized) {
-        console.log('Skipping test - model provider not properly initialized');
+        // console.log('Skipping test - model provider not properly initialized');
         return;
       }
 
@@ -237,7 +237,7 @@ describe("Analyzer", () => {
 
     it("should handle collection types properly", () => {
       if (!modelProviderInitialized) {
-        console.log('Skipping test - model provider not properly initialized');
+        // console.log('Skipping test - model provider not properly initialized');
         return;
       }
 
@@ -257,7 +257,7 @@ describe("Analyzer", () => {
 
     it("should detect errors when accessing non-existent properties", () => {
       if (!modelProviderInitialized) {
-        console.log('Skipping test - model provider not properly initialized');
+        // console.log('Skipping test - model provider not properly initialized');
         return;
       }
 
@@ -277,7 +277,7 @@ describe("Analyzer", () => {
 
     it("should properly type check where clause conditions", () => {
       if (!modelProviderInitialized) {
-        console.log('Skipping test - model provider not properly initialized');
+        // console.log('Skipping test - model provider not properly initialized');
         return;
       }
 
@@ -294,7 +294,7 @@ describe("Analyzer", () => {
 
     it("should handle union operations with type preservation", () => {
       if (!modelProviderInitialized) {
-        console.log('Skipping test - model provider not properly initialized');
+        // console.log('Skipping test - model provider not properly initialized');
         return;
       }
 
@@ -316,7 +316,7 @@ describe("Analyzer", () => {
 
     it("should type check function arguments with FHIR types", () => {
       if (!modelProviderInitialized) {
-        console.log('Skipping test - model provider not properly initialized');
+        // console.log('Skipping test - model provider not properly initialized');
         return;
       }
 
@@ -337,7 +337,7 @@ describe("Analyzer", () => {
 
     it("should handle complex nested expressions with proper type inference", () => {
       if (!modelProviderInitialized) {
-        console.log('Skipping test - model provider not properly initialized');
+        // console.log('Skipping test - model provider not properly initialized');
         return;
       }
 
@@ -357,7 +357,7 @@ describe("Analyzer", () => {
 
     it("should detect type mismatches in comparisons", () => {
       if (!modelProviderInitialized) {
-        console.log('Skipping test - model provider not properly initialized');
+        // console.log('Skipping test - model provider not properly initialized');
         return;
       }
 
@@ -374,7 +374,7 @@ describe("Analyzer", () => {
 
     it("should handle polymorphic types correctly", () => {
       if (!modelProviderInitialized) {
-        console.log('Skipping test - model provider not properly initialized');
+        // console.log('Skipping test - model provider not properly initialized');
         return;
       }
 
@@ -388,7 +388,7 @@ describe("Analyzer", () => {
 
     it("should handle type casting operations", () => {
       if (!modelProviderInitialized) {
-        console.log('Skipping test - model provider not properly initialized');
+        // console.log('Skipping test - model provider not properly initialized');
         return;
       }
 
@@ -405,7 +405,7 @@ describe("Analyzer", () => {
 
     it("should detect errors in select expressions", () => {
       if (!modelProviderInitialized) {
-        console.log('Skipping test - model provider not properly initialized');
+        // console.log('Skipping test - model provider not properly initialized');
         return;
       }
 
@@ -423,7 +423,7 @@ describe("Analyzer", () => {
 
     it("should handle extension navigation", () => {
       if (!modelProviderInitialized) {
-        console.log('Skipping test - model provider not properly initialized');
+        // console.log('Skipping test - model provider not properly initialized');
         return;
       }
 
@@ -437,7 +437,7 @@ describe("Analyzer", () => {
 
     it("should handle invalid property access", () => {
       if (!modelProviderInitialized) {
-        console.log('Skipping test - model provider not properly initialized');
+        // console.log('Skipping test - model provider not properly initialized');
         return;
       }
 
@@ -452,7 +452,7 @@ describe("Analyzer", () => {
 
     it("should handle invalid input type", () => {
       if (!modelProviderInitialized) {
-        console.log('Skipping test - model provider not properly initialized');
+        // console.log('Skipping test - model provider not properly initialized');
         return;
       }
 
@@ -465,7 +465,7 @@ describe("Analyzer", () => {
 
     it("should handle operators type mismatch", () => {
       if (!modelProviderInitialized) {
-        console.log('Skipping test - model provider not properly initialized');
+        // console.log('Skipping test - model provider not properly initialized');
         return;
       }
 
@@ -473,13 +473,13 @@ describe("Analyzer", () => {
         modelProvider,
       });
       expect(result.diagnostics[0]).toBeDefined();
-      console.log(result.diagnostics);
+      // console.log(result.diagnostics);
       expect(result.diagnostics[0]?.message).toContain("Type mismatch");
     });
 
     it("should handle syntactic errors", () => {
       if (!modelProviderInitialized) {
-        console.log('Skipping test - model provider not properly initialized');
+        // console.log('Skipping test - model provider not properly initialized');
         return;
       }
 
@@ -493,7 +493,7 @@ describe("Analyzer", () => {
 
     it("should work with error recovery mode", () => {
       if (!modelProviderInitialized) {
-        console.log('Skipping test - model provider not properly initialized');
+        // console.log('Skipping test - model provider not properly initialized');
         return;
       }
 

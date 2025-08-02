@@ -17,7 +17,7 @@ describe('FHIR ModelProvider', () => {
     try {
       await provider.initialize();
     } catch (error) {
-      console.error('Failed to initialize model provider in test:', error);
+      // console.error('Failed to initialize model provider in test:', error);
     }
   });
   

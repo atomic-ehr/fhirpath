@@ -74,7 +74,7 @@ function createTestFunction(test: any) {
       // Special handling for calendar duration tests
       if (test.name?.includes('calendar duration')) {
         // For now, skip these tests as they have different conversion logic
-        console.log(`Note: Calendar duration test '${test.name}' has different conversion behavior`);
+        // console.log(`Note: Calendar duration test '${test.name}' has different conversion behavior`);
         return;
       }
       
@@ -83,7 +83,7 @@ function createTestFunction(test: any) {
           normalizedResult.length === 1 && normalizedResult[0] === false &&
           test.expected.length === 0) {
         // This is a known difference: incompatible comparisons return [false] instead of []
-        console.log(`Note: Incompatible unit comparison returns [false] instead of []`);
+        // console.log(`Note: Incompatible unit comparison returns [false] instead of []`);
         return;
       }
       

@@ -59,20 +59,20 @@ describe('Parser Fixture Tests', () => {
             // Mark as pending with reason instead of failing
             // This allows us to see which expressions need work
             expect(true).toBe(true); // Pass the test but log the issue
-            console.log(`      ⚠️  Skipped (unsupported): ${error instanceof Error ? error.message : error}`);
+            // console.log(`      ⚠️  Skipped (unsupported): ${error instanceof Error ? error.message : error}`);
           }
         });
       });
       
       // Summary test
       it(`should provide parsing summary for ${fixture.name}`, () => {
-        console.log(`\n    Summary for ${fixture.name}:`);
-        console.log(`      Total expressions: ${totalExpressions}`);
-        console.log(`      Parsed successfully: ${parsedSuccessfully} (${((parsedSuccessfully / totalExpressions) * 100).toFixed(1)}%)`);
-        console.log(`      Failed to parse: ${failedToParse} (${((failedToParse / totalExpressions) * 100).toFixed(1)}%)`);
+        // console.log(`\n    Summary for ${fixture.name}:`);
+        // console.log(`      Total expressions: ${totalExpressions}`);
+        // console.log(`      Parsed successfully: ${parsedSuccessfully} (${((parsedSuccessfully / totalExpressions) * 100).toFixed(1)}%)`);
+        // console.log(`      Failed to parse: ${failedToParse} (${((failedToParse / totalExpressions) * 100).toFixed(1)}%)`);
         
         if (errors.length > 0) {
-          console.log(`\n      Common error patterns:`);
+          // console.log(`\n      Common error patterns:`);
           const errorCounts = new Map<string, number>();
           
           errors.forEach(({ error }) => {
@@ -87,7 +87,7 @@ describe('Parser Fixture Tests', () => {
             .slice(0, 5); // Top 5 error types
           
           sortedErrors.forEach(([errorType, count]) => {
-            console.log(`        - ${errorType}: ${count} occurrences`);
+            // console.log(`        - ${errorType}: ${count} occurrences`);
           });
         }
         
@@ -121,20 +121,20 @@ describe('Parser Fixture Tests', () => {
         }
       }
       
-      console.log('\n  📊 Overall Parser Coverage:');
-      console.log(`     Total expressions across all fixtures: ${totalExpressions}`);
-      console.log(`     Successfully parsed: ${totalParsed} (${((totalParsed / totalExpressions) * 100).toFixed(1)}%)`);
-      console.log(`     Failed to parse: ${totalFailed} (${((totalFailed / totalExpressions) * 100).toFixed(1)}%)`);
+      // console.log('\n  📊 Overall Parser Coverage:');
+      // console.log(`     Total expressions across all fixtures: ${totalExpressions}`);
+      // console.log(`     Successfully parsed: ${totalParsed} (${((totalParsed / totalExpressions) * 100).toFixed(1)}%)`);
+      // console.log(`     Failed to parse: ${totalFailed} (${((totalFailed / totalExpressions) * 100).toFixed(1)}%)`);
       
       // Set a reasonable threshold for passing
       const successRate = (totalParsed / totalExpressions) * 100;
       const threshold = 80; // We expect at least 80% success rate
       
       if (successRate < threshold) {
-        console.log(`\n     ⚠️  Success rate (${successRate.toFixed(1)}%) is below threshold (${threshold}%)`);
-        console.log(`     This indicates the parser needs more work to support additional FHIRPath features.`);
+        // console.log(`\n     ⚠️  Success rate (${successRate.toFixed(1)}%) is below threshold (${threshold}%)`);
+        // console.log(`     This indicates the parser needs more work to support additional FHIRPath features.`);
       } else {
-        console.log(`\n     ✅ Success rate (${successRate.toFixed(1)}%) meets or exceeds threshold (${threshold}%)`);
+        // console.log(`\n     ✅ Success rate (${successRate.toFixed(1)}%) meets or exceeds threshold (${threshold}%)`);
       }
       
       expect(successRate).toBeGreaterThanOrEqual(threshold);
