@@ -90,6 +90,7 @@ export { Interpreter } from './interpreter';
 export { Analyzer } from './analyzer';
 export { parse } from './parser';
 export { DiagnosticSeverity } from './types';
+export { Registry, registry } from './registry';
 export type { 
   ParseResult, 
   Diagnostic, 
@@ -97,7 +98,9 @@ export type {
   ASTNode,
   TypeInfo,
   TypeName,
-  ModelProvider as ModelTypeProvider 
+  ModelProvider as ModelTypeProvider,
+  OperatorDefinition,
+  FunctionDefinition
 } from './types';
 
 // Export FHIR ModelProvider
