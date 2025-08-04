@@ -1,4 +1,5 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // truncate() takes no arguments
@@ -16,7 +17,9 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     throw new Error('truncate() can only be applied to a single item');
   }
 
-  const value = input[0];
+  const boxedValue = input[0];
+  if (!boxedValue) return { value: [], context };
+  const value = unbox(boxedValue);
 
   // Must be a number
   if (typeof value !== 'number') {
@@ -24,7 +27,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   }
 
   // Math.trunc removes decimal part (towards zero)
-  return { value: [Math.trunc(value)], context };
+  return { value: [box(Math.trunc(value), { type: 'Integer', singleton: true })], context };
 };
 
 export const truncateFunction: FunctionDefinition & { evaluate: FunctionEvaluator } = {

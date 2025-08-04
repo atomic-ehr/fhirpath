@@ -1,4 +1,5 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   if (args.length !== 1) {
@@ -14,39 +15,34 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   const other = otherResult.value;
 
   // Find elements that are in both collections, eliminating duplicates
-  // Note: This uses JavaScript's === equality which may not handle
-  // complex objects correctly. A full implementation would need deep equality
-  // as specified in FHIRPath equals (=) semantics.
+  // Use deep equality for comparison as specified in FHIRPath equals (=) semantics.
   const result: any[] = [];
-  const processedItems = new Set<any>();
+  const processedItemsJson = new Set<string>();
   
   // Check each item from input collection
-  for (const item of input) {
+  for (const boxedItem of input) {
+    const item = unbox(boxedItem);
+    const itemJson = JSON.stringify(item);
+    
     // Skip if we've already processed this item (to eliminate duplicates)
-    let alreadyProcessed = false;
-    for (const processed of processedItems) {
-      if (processed === item) {
-        alreadyProcessed = true;
-        break;
-      }
-    }
-    if (alreadyProcessed) {
+    if (processedItemsJson.has(itemJson)) {
       continue;
     }
     
     // Check if item exists in other collection
     let foundInOther = false;
-    for (const otherItem of other) {
-      if (item === otherItem) {
+    for (const boxedOtherItem of other) {
+      const otherItem = unbox(boxedOtherItem);
+      if (JSON.stringify(otherItem) === itemJson) {
         foundInOther = true;
         break;
       }
     }
     
-    // If found in both collections, add to result
+    // If found in both collections, add to result (preserving boxing)
     if (foundInOther) {
-      result.push(item);
-      processedItems.add(item);
+      result.push(boxedItem);
+      processedItemsJson.add(itemJson);
     }
   }
   

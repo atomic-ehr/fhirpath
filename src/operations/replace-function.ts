@@ -1,5 +1,6 @@
 import type { FunctionDefinition } from '../types';
 import type { FunctionEvaluator } from '../types';
+import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // Check if we have exactly 2 arguments
@@ -17,7 +18,12 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     throw new Error('replace() can only be used on a single string value');
   }
   
-  const inputValue = input[0];
+  const boxedInput = input[0];
+  if (!boxedInput) {
+    return { value: [], context };
+  }
+  
+  const inputValue = unbox(boxedInput);
   
   // Input must be a string
   if (typeof inputValue !== 'string') {
@@ -41,7 +47,12 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     throw new Error('replace() pattern must be a single string value');
   }
   
-  const pattern = patternResult.value[0];
+  const boxedPattern = patternResult.value[0];
+  if (!boxedPattern) {
+    return { value: [], context };
+  }
+  
+  const pattern = unbox(boxedPattern);
   if (typeof pattern !== 'string') {
     return { value: [], context };
   }
@@ -63,7 +74,12 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     throw new Error('replace() substitution must be a single string value');
   }
   
-  const substitution = substitutionResult.value[0];
+  const boxedSubstitution = substitutionResult.value[0];
+  if (!boxedSubstitution) {
+    return { value: [], context };
+  }
+  
+  const substitution = unbox(boxedSubstitution);
   if (typeof substitution !== 'string') {
     return { value: [], context };
   }
@@ -73,13 +89,13 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     // Insert substitution between every character
     const chars = inputValue.split('');
     const result = substitution + chars.join(substitution) + substitution;
-    return { value: [result], context };
+    return { value: [box(result, { type: 'String', singleton: true })], context };
   }
   
   // Normal replacement: replace all occurrences
   const result = inputValue.split(pattern).join(substitution);
   
-  return { value: [result], context };
+  return { value: [box(result, { type: 'Integer', singleton: true })], context };
 };
 
 export const replaceFunction: FunctionDefinition & { evaluate: FunctionEvaluator } = {

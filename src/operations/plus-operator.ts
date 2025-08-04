@@ -3,32 +3,44 @@ import { PRECEDENCE } from '../types';
 import type { OperationEvaluator } from '../types';
 import { addQuantities } from '../quantity-value';
 import type { QuantityValue } from '../quantity-value';
+import { box, unbox } from '../boxing';
 
 export const evaluate: OperationEvaluator = (input, context, left, right) => {
   if (left.length === 0 || right.length === 0) {
     return { value: [], context };
   }
   
-  const l = left[0];
-  const r = right[0];
+  const boxedL = left[0];
+  const boxedR = right[0];
+  
+  if (!boxedL || !boxedR) {
+    return { value: [], context };
+  }
+  
+  const l = unbox(boxedL);
+  const r = unbox(boxedR);
   
   // Check if both are quantities
   if (l && typeof l === 'object' && 'unit' in l && 
       r && typeof r === 'object' && 'unit' in r) {
     const result = addQuantities(l as QuantityValue, r as QuantityValue);
-    return { value: result ? [result] : [], context };
+    return { value: result ? [box(result, { type: 'Quantity', singleton: true })] : [], context };
   }
   
   if (typeof l === 'string' || typeof r === 'string') {
-    return { value: [String(l) + String(r)], context };
+    return { value: [box(String(l) + String(r), { type: 'String', singleton: true })], context };
   }
   
   if (typeof l === 'number' && typeof r === 'number') {
-    return { value: [l + r], context };
+    const result = l + r;
+    const typeInfo = Number.isInteger(result) ? 
+      { type: 'Integer' as const, singleton: true } : 
+      { type: 'Decimal' as const, singleton: true };
+    return { value: [box(result, typeInfo)], context };
   }
   
   // For other types, convert to string
-  return { value: [String(l) + String(r)], context };
+  return { value: [box(String(l) + String(r), { type: 'String', singleton: true })], context };
 };
 
 export const plusOperator: OperatorDefinition & { evaluate: OperationEvaluator } = {

@@ -1,6 +1,7 @@
 import type { OperatorDefinition } from '../types';
 import { PRECEDENCE } from '../types';
 import type { OperationEvaluator } from '../types';
+import { box, unbox } from '../boxing';
 
 export const evaluate: OperationEvaluator = (input, context, left, right) => {
   // Three-valued logic for implies per spec truth table
@@ -10,23 +11,37 @@ export const evaluate: OperationEvaluator = (input, context, left, right) => {
     if (right.length === 0) {
       return { value: [], context };  // empty implies empty = empty
     }
-    if (right[0] === false) {
+    const boxedRight = right[0];
+    if (boxedRight && unbox(boxedRight) === false) {
       return { value: [], context };  // empty implies false = empty
     }
-    return { value: [true], context }; // empty implies true = true
+    return { value: [box(true, { type: 'Boolean', singleton: true })], context }; // empty implies true = true
   }
   
+  const boxedLeft = left[0];
+  if (!boxedLeft) {
+    return { value: [], context };
+  }
+  
+  const leftValue = unbox(boxedLeft);
+  
   // Handle false left operand
-  if (left[0] === false) {
-    return { value: [true], context }; // false implies anything = true
+  if (leftValue === false) {
+    return { value: [box(true, { type: 'Boolean', singleton: true })], context }; // false implies anything = true
   }
   
   // Handle true left operand
-  if (right.length === 0) {
-    return { value: [], context }; // true implies empty = empty
+  if (leftValue === true) {
+    if (right.length === 0) {
+      return { value: [], context }; // true implies empty = empty
+    }
+    
+    // true implies y = y (pass through the boxed right value)
+    return { value: [right[0]!], context };
   }
   
-  return { value: [right[0]], context }; // true implies y = y
+  // Non-boolean left value returns empty
+  return { value: [], context };
 };
 
 export const impliesOperator: OperatorDefinition & { evaluate: OperationEvaluator } = {

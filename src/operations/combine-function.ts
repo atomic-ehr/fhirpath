@@ -1,4 +1,5 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // combine() requires exactly one argument (the other collection)

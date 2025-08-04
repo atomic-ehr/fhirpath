@@ -18,6 +18,7 @@ import { Registry } from './registry';
 import * as operations from './operations';
 import type { EvaluationResult, FunctionEvaluator, NodeEvaluator, OperationEvaluator, RuntimeContext } from './types';
 import { createQuantity } from './quantity-value';
+import { box, unbox, ensureBoxed, type FHIRPathValue } from './boxing';
 
 /**
  * Runtime context manager that provides efficient prototype-based context operations
@@ -225,13 +226,16 @@ export class Interpreter {
       input = input === null || input === undefined ? [] : [input];
     }
 
+    // Box the initial input values
+    const boxedInput = input.map(value => ensureBoxed(value));
+
     // Dispatch to appropriate evaluator
     const evaluator = this.nodeEvaluators[node.type];
     if (!evaluator) {
       throw new Error(`Unknown node type: ${node.type}`);
     }
 
-    return evaluator(node, input, context);
+    return evaluator(node, boxedInput, context);
   }
 
   private createInitialContext(input: any[]): RuntimeContext {
@@ -242,28 +246,62 @@ export class Interpreter {
   }
 
   // Literal node evaluator
-  private evaluateLiteral(node: ASTNode, input: any[], context: RuntimeContext): EvaluationResult {
+  private evaluateLiteral(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): EvaluationResult {
     const literal = node as LiteralNode;
+    
+    // Box the literal value with appropriate type info
+    let typeInfo: import('./types').TypeInfo | undefined;
+    const value = literal.value;
+    
+    if (typeof value === 'string') {
+      typeInfo = { type: 'String', singleton: true };
+    } else if (typeof value === 'number') {
+      typeInfo = Number.isInteger(value) ? 
+        { type: 'Integer', singleton: true } : 
+        { type: 'Decimal', singleton: true };
+    } else if (typeof value === 'boolean') {
+      typeInfo = { type: 'Boolean', singleton: true };
+    }
+    
     return {
-      value: [literal.value],
+      value: [box(literal.value, typeInfo)],
       context
     };
   }
 
   // Identifier node evaluator
-  private evaluateIdentifier(node: ASTNode, input: any[], context: RuntimeContext): EvaluationResult {
+  private evaluateIdentifier(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): EvaluationResult {
     const identifier = node as IdentifierNode;
     const name = identifier.name;
 
-    // Navigate property on each item in input
-    const results: any[] = [];
-    for (const item of input) {
+    // Navigate property on each boxed item in input
+    const results: FHIRPathValue[] = [];
+    
+    for (const boxedItem of input) {
+      const item = unbox(boxedItem);
+      
+      // Special handling for primitive extension navigation
+      if (name === 'extension' && boxedItem.primitiveElement?.extension) {
+        // Navigation from a primitive value to its extensions
+        for (const ext of boxedItem.primitiveElement.extension) {
+          results.push(box(ext, { type: 'Any', singleton: false }));
+        }
+        continue;
+      }
+      
       if (item && typeof item === 'object' && name in item) {
         const value = item[name];
+        const primitiveElementName = `_${name}`;
+        const primitiveElement = (primitiveElementName in item) ? item[primitiveElementName] : undefined;
+        
         if (Array.isArray(value)) {
-          results.push(...value);
+          // Box each array element
+          for (const v of value) {
+            results.push(box(v, undefined, primitiveElement));
+          }
         } else if (value !== null && value !== undefined) {
-          results.push(value);
+          // Box single value with primitive element if available
+          results.push(box(value, undefined, primitiveElement));
         }
       }
     }
@@ -275,14 +313,15 @@ export class Interpreter {
   }
 
   // TypeOrIdentifier node evaluator (handles Patient, Observation, etc.)
-  private evaluateTypeOrIdentifier(node: ASTNode, input: any[], context: RuntimeContext): EvaluationResult {
+  private evaluateTypeOrIdentifier(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): EvaluationResult {
     const typeOrId = node as TypeOrIdentifierNode;
     const name = typeOrId.name;
 
     // First try as type filter
-    const filtered = input.filter(item => 
-      item && typeof item === 'object' && item.resourceType === name
-    );
+    const filtered = input.filter(boxedItem => {
+      const item = unbox(boxedItem);
+      return item && typeof item === 'object' && item.resourceType === name;
+    });
 
     if (filtered.length > 0) {
       return { value: filtered, context };
@@ -293,7 +332,7 @@ export class Interpreter {
   }
 
   // Binary operator evaluator
-  private evaluateBinary(node: ASTNode, input: any[], context: RuntimeContext): EvaluationResult {
+  private evaluateBinary(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): EvaluationResult {
     const binary = node as BinaryNode;
     const operator = binary.operator;
 
@@ -339,7 +378,7 @@ export class Interpreter {
   }
 
   // Unary operator evaluator
-  private evaluateUnary(node: ASTNode, input: any[], context: RuntimeContext): EvaluationResult {
+  private evaluateUnary(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): EvaluationResult {
     const unary = node as UnaryNode;
     const operator = unary.operator;
     
@@ -362,7 +401,7 @@ export class Interpreter {
   }
 
   // Variable evaluator
-  private evaluateVariable(node: ASTNode, input: any[], context: RuntimeContext): EvaluationResult {
+  private evaluateVariable(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): EvaluationResult {
     const variable = node as VariableNode;
     const name = variable.name;
 
@@ -371,7 +410,9 @@ export class Interpreter {
     if (value !== undefined) {
       // Ensure value is always an array
       const arrayValue = Array.isArray(value) ? value : [value];
-      return { value: arrayValue, context };
+      // Box each value in the array
+      const boxedValues = arrayValue.map(v => ensureBoxed(v));
+      return { value: boxedValues, context };
     }
 
     // According to FHIRPath spec: attempting to access an undefined environment variable will result in an error
@@ -379,9 +420,9 @@ export class Interpreter {
   }
 
   // Collection evaluator
-  private evaluateCollection(node: ASTNode, input: any[], context: RuntimeContext): EvaluationResult {
+  private evaluateCollection(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): EvaluationResult {
     const collection = node as CollectionNode;
-    const results: any[] = [];
+    const results: FHIRPathValue[] = [];
 
     for (const element of collection.elements) {
       const result = this.evaluate(element, input, context);
@@ -407,7 +448,7 @@ export class Interpreter {
   }
 
   // Index evaluator
-  private evaluateIndex(node: ASTNode, input: any[], context: RuntimeContext): EvaluationResult {
+  private evaluateIndex(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): EvaluationResult {
     const indexNode = node as IndexNode;
     const exprResult = this.evaluate(indexNode.expression, input, context);
     const indexResult = this.evaluate(indexNode.index, input, context);
@@ -416,35 +457,43 @@ export class Interpreter {
       return { value: [], context };
     }
 
-    const index = indexResult.value[0];
-    if (typeof index === 'number' && index >= 0 && index < exprResult.value.length) {
-      return { value: [exprResult.value[index]], context };
+    const boxedIndex = indexResult.value[0];
+    if (boxedIndex) {
+      const index = unbox(boxedIndex);
+      if (typeof index === 'number' && index >= 0 && index < exprResult.value.length) {
+        const result = exprResult.value[index];
+        return { value: result ? [result] : [], context };
+      }
     }
 
     return { value: [], context };
   }
 
   // Type membership test (is operator)
-  private evaluateMembershipTest(node: ASTNode, input: any[], context: RuntimeContext): EvaluationResult {
+  private evaluateMembershipTest(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): EvaluationResult {
     const test = node as MembershipTestNode;
     const exprResult = this.evaluate(test.expression, input, context);
     
-    // Simple type checking
-    const results = exprResult.value.map(item => {
-      switch (test.targetType) {
-        case 'String': return typeof item === 'string';
-        case 'Boolean': return typeof item === 'boolean';
-        case 'Integer': return Number.isInteger(item);
-        case 'Decimal': return typeof item === 'number';
-        default: return false;
-      }
+    // Simple type checking on unboxed values
+    const results = exprResult.value.map(boxedItem => {
+      const item = unbox(boxedItem);
+      const isMatch = (() => {
+        switch (test.targetType) {
+          case 'String': return typeof item === 'string';
+          case 'Boolean': return typeof item === 'boolean';
+          case 'Integer': return Number.isInteger(item);
+          case 'Decimal': return typeof item === 'number';
+          default: return false;
+        }
+      })();
+      return box(isMatch, { type: 'Boolean', singleton: true });
     });
 
     return { value: results, context };
   }
 
   // Type cast (as operator)
-  private evaluateTypeCast(node: ASTNode, input: any[], context: RuntimeContext): EvaluationResult {
+  private evaluateTypeCast(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): EvaluationResult {
     const cast = node as TypeCastNode;
     const exprResult = this.evaluate(cast.expression, input, context);
     
@@ -453,11 +502,11 @@ export class Interpreter {
     return { value: exprResult.value, context };
   }
   
-  private evaluateQuantity(node: ASTNode, input: any[], context: RuntimeContext): EvaluationResult {
+  private evaluateQuantity(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): EvaluationResult {
     const quantity = node as QuantityNode;
     const quantityValue = createQuantity(quantity.value, quantity.unit, quantity.isCalendarUnit);
     return {
-      value: [quantityValue],
+      value: [box(quantityValue, { type: 'Quantity', singleton: true })],
       context
     };
   }

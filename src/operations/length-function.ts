@@ -1,4 +1,5 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // Check single item in input
@@ -10,7 +11,12 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     throw new Error('length() can only be used on single string values');
   }
 
-  const inputValue = input[0];
+  const boxedInputValue = input[0];
+  if (!boxedInputValue) {
+    return { value: [], context };
+  }
+  
+  const inputValue = unbox(boxedInputValue);
   if (typeof inputValue !== 'string') {
     throw new Error('length() can only be used on string values');
   }
@@ -21,7 +27,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   }
 
   // Return the length of the string
-  return { value: [inputValue.length], context };
+  return { value: [box(inputValue.length, { type: 'Integer', singleton: true })], context };
 };
 
 export const lengthFunction: FunctionDefinition & { evaluate: FunctionEvaluator } = {

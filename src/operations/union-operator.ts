@@ -1,6 +1,7 @@
 import type { OperatorDefinition } from '../types';
 import { PRECEDENCE } from '../types';
 import type { OperationEvaluator } from '../types';
+import { box, unbox } from '../boxing';
 
 // Note: The union operator is special and is typically handled directly in the interpreter
 // because it needs to preserve the original context for both operands

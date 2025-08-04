@@ -1,5 +1,6 @@
 import type { FunctionDefinition } from '../types';
 import type { FunctionEvaluator } from '../types';
+import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // If input is empty, return empty
@@ -11,13 +12,23 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   let separator = '';
   if (args.length > 0 && args[0]) {
     const sepResult = evaluator(args[0], input, context);
-    if (sepResult.value.length > 0 && typeof sepResult.value[0] === 'string') {
-      separator = sepResult.value[0];
+    if (sepResult.value.length > 0) {
+      const boxedSep = sepResult.value[0];
+      if (boxedSep) {
+        const sepValue = unbox(boxedSep);
+        if (typeof sepValue === 'string') {
+          separator = sepValue;
+        }
+      }
     }
   }
 
   // Convert all input items to strings and join
-  const stringValues = input.map(item => {
+  const stringValues = input.map(boxedItem => {
+    if (boxedItem === null || boxedItem === undefined) {
+      return '';
+    }
+    const item = unbox(boxedItem);
     if (item === null || item === undefined) {
       return '';
     }
@@ -27,7 +38,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   const result = stringValues.join(separator);
 
   return { 
-    value: [result], 
+    value: [box(result, { type: 'String', singleton: true })], 
     context 
   };
 };

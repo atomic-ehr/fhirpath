@@ -1,24 +1,32 @@
 import type { OperatorDefinition } from '../types';
 import { PRECEDENCE } from '../types';
 import type { OperationEvaluator } from '../types';
-import { equalQuantities } from '../quantity-value';
-import type { QuantityValue } from '../quantity-value';
+import { equalQuantities, compareQuantities, type QuantityValue } from '../quantity-value';
+import { box, unbox } from '../boxing';
 
 export const evaluate: OperationEvaluator = (input, context, left, right) => {
   if (left.length === 0 || right.length === 0) {
     return { value: [], context };
   }
   
-  const l = left[0];
-  const r = right[0];
+  const boxedL = left[0];
+  const boxedR = right[0];
+  
+  if (!boxedL || !boxedR) {
+    return { value: [], context };
+  }
+  
+  const l = unbox(boxedL);
+  const r = unbox(boxedR);
   
   // Check if both are quantities
   if (l && typeof l === 'object' && 'unit' in l && 
       r && typeof r === 'object' && 'unit' in r) {
-    return { value: [equalQuantities(l as QuantityValue, r as QuantityValue)], context };
+    const result = equalQuantities(l as QuantityValue, r as QuantityValue);
+    return { value: [box(result, { type: 'Boolean', singleton: true })], context };
   }
   
-  return { value: [l === r], context };
+  return { value: [box(l === r, { type: 'Boolean', singleton: true })], context };
 };
 
 export const equalOperator: OperatorDefinition & { evaluate: OperationEvaluator } = {

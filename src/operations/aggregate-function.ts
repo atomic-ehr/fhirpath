@@ -1,5 +1,6 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
 import { RuntimeContextManager } from '../interpreter';
+import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // aggregator expression is required

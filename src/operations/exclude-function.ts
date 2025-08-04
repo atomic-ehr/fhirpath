@@ -1,4 +1,5 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   if (args.length !== 1) {
@@ -18,22 +19,22 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   const result: any[] = [];
   
   // Check each item from input collection
-  for (const item of input) {
+  for (const boxedItem of input) {
+    const item = unbox(boxedItem);
     // Check if item exists in other collection
     let foundInOther = false;
-    for (const otherItem of other) {
-      // Note: This uses JavaScript's === equality which may not handle
-      // complex objects correctly. A full implementation would need deep equality
-      // as specified in FHIRPath equals (=) semantics.
-      if (item === otherItem) {
+    for (const boxedOtherItem of other) {
+      const otherItem = unbox(boxedOtherItem);
+      // Use JSON.stringify for deep equality comparison
+      if (JSON.stringify(item) === JSON.stringify(otherItem)) {
         foundInOther = true;
         break;
       }
     }
     
-    // If not found in other collection, add to result
+    // If not found in other collection, add to result (preserving boxing)
     if (!foundInOther) {
-      result.push(item);
+      result.push(boxedItem);
     }
   }
   

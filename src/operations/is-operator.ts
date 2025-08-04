@@ -1,13 +1,14 @@
 import type { OperatorDefinition } from '../types';
 import { PRECEDENCE } from '../types';
 import type { OperationEvaluator } from '../types';
+import { box, unbox } from '../boxing';
 
 export const evaluate: OperationEvaluator = (input, context, left, right) => {
   // Note: 'is' operator requires special handling for type checking
   // Right operand should be a type identifier
   // For now, implementing basic type checking
   if (left.length === 0) {
-    return { value: [false], context };
+    return { value: [box(false, { type: 'Boolean', singleton: true })], context };
   }
   
   // TODO: Implement proper FHIRPath type checking
@@ -17,15 +18,15 @@ export const evaluate: OperationEvaluator = (input, context, left, right) => {
   
   switch (typeName) {
     case 'String':
-      return { value: [typeof item === 'string'], context };
+      return { value: [box(typeof item === 'string', { type: 'Boolean', singleton: true })], context };
     case 'Boolean':
-      return { value: [typeof item === 'boolean'], context };
+      return { value: [box(typeof item === 'boolean', { type: 'Boolean', singleton: true })], context };
     case 'Integer':
-      return { value: [Number.isInteger(item)], context };
+      return { value: [box(Number.isInteger(item), { type: 'Any', singleton: true })], context };
     case 'Decimal':
-      return { value: [typeof item === 'number'], context };
+      return { value: [box(typeof item === 'number', { type: 'Boolean', singleton: true })], context };
     default:
-      return { value: [false], context };
+      return { value: [box(false, { type: 'Boolean', singleton: true })], context };
   }
 };
 

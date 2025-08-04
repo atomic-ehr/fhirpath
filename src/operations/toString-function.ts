@@ -1,4 +1,5 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // toString takes no arguments
@@ -16,44 +17,49 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     throw new Error('toString() can only be used on single values');
   }
 
-  const inputValue = input[0];
+  const boxedInputValue = input[0];
+  if (!boxedInputValue) {
+    return { value: [], context };
+  }
+  
+  const inputValue = unbox(boxedInputValue);
 
   // Handle different types according to the spec
   if (typeof inputValue === 'string') {
     // Already a string
-    return { value: [inputValue], context };
+    return { value: [box(inputValue, { type: 'String', singleton: true })], context };
   }
   
   if (typeof inputValue === 'number') {
     // Integer or Decimal
-    return { value: [inputValue.toString()], context };
+    return { value: [box(inputValue.toString(), { type: 'String', singleton: true })], context };
   }
   
   if (typeof inputValue === 'boolean') {
     // Boolean: true -> 'true', false -> 'false'
-    return { value: [inputValue ? 'true' : 'false'], context };
+    return { value: [box(inputValue ? 'true' : 'false', { type: 'String', singleton: true })], context };
   }
   
   // Handle Date, Time, DateTime objects if they have specific properties
   if (inputValue && typeof inputValue === 'object') {
     // Check for Date type (YYYY-MM-DD format)
     if (inputValue.type === 'Date' && inputValue.value) {
-      return { value: [inputValue.value], context };
+      return { value: [box(inputValue.value, { type: 'String', singleton: true })], context };
     }
     
     // Check for DateTime type (YYYY-MM-DDThh:mm:ss.fff(+|-)hh:mm format)
     if (inputValue.type === 'DateTime' && inputValue.value) {
-      return { value: [inputValue.value], context };
+      return { value: [box(inputValue.value, { type: 'String', singleton: true })], context };
     }
     
     // Check for Time type (hh:mm:ss.fff(+|-)hh:mm format)
     if (inputValue.type === 'Time' && inputValue.value) {
-      return { value: [inputValue.value], context };
+      return { value: [box(inputValue.value, { type: 'String', singleton: true })], context };
     }
     
     // Check for Quantity type
     if (inputValue.type === 'Quantity' && inputValue.value !== undefined && inputValue.unit) {
-      return { value: [`${inputValue.value} '${inputValue.unit}'`], context };
+      return { value: [box(`${inputValue.value} '${inputValue.unit}'`, { type: 'String', singleton: true })], context };
     }
   }
   

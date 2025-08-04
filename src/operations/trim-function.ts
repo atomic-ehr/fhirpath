@@ -1,4 +1,5 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // trim() takes no arguments
@@ -17,7 +18,12 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   }
 
   // Input must be a string
-  const inputValue = input[0];
+  const boxedInputValue = input[0];
+  if (!boxedInputValue) {
+    return { value: [], context };
+  }
+  
+  const inputValue = unbox(boxedInputValue);
   if (typeof inputValue !== 'string') {
     // Non-string input returns empty
     return { value: [], context };
@@ -27,7 +33,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   // FHIRPath defines whitespace as: tab (\t), space ( ), line feed (\n), carriage return (\r)
   const trimmed = inputValue.trim();
   
-  return { value: [trimmed], context };
+  return { value: [box(trimmed, { type: 'String', singleton: true })], context };
 };
 
 export const trimFunction: FunctionDefinition & { evaluate: FunctionEvaluator } = {

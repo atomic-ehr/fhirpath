@@ -1,6 +1,7 @@
 import type { FunctionDefinition, LiteralNode } from '../types';
 import { RuntimeContextManager } from '../interpreter';
 import { type FunctionEvaluator } from '../types';
+import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   if (args.length < 1) {

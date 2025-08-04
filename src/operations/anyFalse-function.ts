@@ -1,23 +1,25 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // Empty input returns false per spec
   if (input.length === 0) {
-    return { value: [false], context };
+    return { value: [box(false, { type: 'Boolean', singleton: true })], context };
   }
   
   // Check if any item in the collection is false
-  for (const item of input) {
+  for (const boxedItem of input) {
+    const item = unbox(boxedItem);
     if (typeof item !== 'boolean') {
       continue; // Skip non-boolean values
     }
     if (item === false) {
-      return { value: [true], context };
+      return { value: [box(true, { type: 'Boolean', singleton: true })], context };
     }
   }
   
   // All items are true or non-boolean
-  return { value: [false], context };
+  return { value: [box(false, { type: 'Boolean', singleton: true })], context };
 };
 
 export const anyFalseFunction: FunctionDefinition & { evaluate: FunctionEvaluator } = {

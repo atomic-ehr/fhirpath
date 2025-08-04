@@ -1,4 +1,5 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   if (args.length !== 1) {
@@ -15,34 +16,27 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
 
   // Merge the two collections and eliminate duplicates using equals (=) semantics
   const result: any[] = [];
+  const processedItemsJson = new Set<string>();
   
   // Add items from input collection
-  for (const item of input) {
-    let isDuplicate = false;
-    for (const existing of result) {
-      // Use equals operator semantics for duplicate detection
-      if (existing === item) {
-        isDuplicate = true;
-        break;
-      }
-    }
-    if (!isDuplicate) {
-      result.push(item);
+  for (const boxedItem of input) {
+    const item = unbox(boxedItem);
+    const itemJson = JSON.stringify(item);
+    
+    if (!processedItemsJson.has(itemJson)) {
+      result.push(boxedItem);
+      processedItemsJson.add(itemJson);
     }
   }
   
   // Add items from other collection if not already present
-  for (const item of other) {
-    let isDuplicate = false;
-    for (const existing of result) {
-      // Use equals operator semantics for duplicate detection
-      if (existing === item) {
-        isDuplicate = true;
-        break;
-      }
-    }
-    if (!isDuplicate) {
-      result.push(item);
+  for (const boxedItem of other) {
+    const item = unbox(boxedItem);
+    const itemJson = JSON.stringify(item);
+    
+    if (!processedItemsJson.has(itemJson)) {
+      result.push(boxedItem);
+      processedItemsJson.add(itemJson);
     }
   }
   

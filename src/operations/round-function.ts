@@ -1,4 +1,5 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // round() takes 0 or 1 argument (precision)
@@ -16,7 +17,9 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     throw new Error('round() can only be applied to a single item');
   }
 
-  const value = input[0];
+  const boxedValue = input[0];
+  if (!boxedValue) return { value: [], context };
+  const value = unbox(boxedValue);
 
   // Must be a number
   if (typeof value !== 'number') {
@@ -33,7 +36,11 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     if (precisionResult.value.length > 1) {
       throw new Error('round() precision must be a single value');
     }
-    precision = precisionResult.value[0];
+    const boxedPrecision = precisionResult.value[0];
+    if (!boxedPrecision) {
+      return { value: [], context };
+    }
+    precision = unbox(boxedPrecision);
     if (!Number.isInteger(precision) || precision < 0) {
       throw new Error('round() precision must be a non-negative integer');
     }
@@ -51,7 +58,14 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     rounded = Math.ceil(scaled - 0.5);
   }
   
-  return { value: [rounded / multiplier], context };
+  const result = rounded / multiplier;
+  
+  // If precision is 0 and result is a whole number, return as integer
+  if (precision === 0 && Number.isInteger(result)) {
+    return { value: [box(result, { type: 'Integer', singleton: true })], context };
+  }
+  
+  return { value: [box(result, { type: 'Decimal', singleton: true })], context };
 };
 
 export const roundFunction: FunctionDefinition & { evaluate: FunctionEvaluator } = {

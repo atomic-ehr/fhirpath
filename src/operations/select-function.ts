@@ -1,6 +1,7 @@
 import type { FunctionDefinition } from '../types';
 import { RuntimeContextManager } from '../interpreter';
 import { type FunctionEvaluator } from '../types';
+import { unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // Select requires exactly one argument
@@ -15,16 +16,20 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   
   const results: any[] = [];
 
-  // Process each item with modified context
+  // Process each boxed item with modified context
   for (let i = 0; i < input.length; i++) {
-    const item = input[i];
+    const boxedItem = input[i];
+    if (!boxedItem) continue;
+    
+    const item = unbox(boxedItem);
     
     // Create iterator context with $this and $index
     let tempContext = RuntimeContextManager.withIterator(context, item, i);
     tempContext = RuntimeContextManager.setVariable(tempContext, '$total', input.length);
 
-    // Evaluate expression with temporary context
-    const exprResult = evaluator(expression, [item], tempContext);
+    // Evaluate expression with temporary context (passing boxed item)
+    const exprResult = evaluator(expression, [boxedItem], tempContext);
+    // Results are already boxed
     results.push(...exprResult.value);
   }
 

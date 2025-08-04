@@ -1,4 +1,5 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // startsWith() requires exactly 1 argument
@@ -22,7 +23,12 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   }
 
   // Input must be a string
-  const inputValue = input[0];
+  const boxedInputValue = input[0];
+  if (!boxedInputValue) {
+    return { value: [], context };
+  }
+  
+  const inputValue = unbox(boxedInputValue);
   if (typeof inputValue !== 'string') {
     // Non-string input returns empty
     return { value: [], context };
@@ -41,7 +47,12 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     throw new Error('startsWith() prefix argument must evaluate to a single value');
   }
   
-  const prefix = prefixResult.value[0];
+  const boxedPrefix = prefixResult.value[0];
+  if (!boxedPrefix) {
+    return { value: [], context };
+  }
+  
+  const prefix = unbox(boxedPrefix);
   if (typeof prefix !== 'string') {
     // Non-string prefix returns empty
     return { value: [], context };
@@ -49,12 +60,12 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
 
   // If prefix is empty string, result is true
   if (prefix === '') {
-    return { value: [true], context };
+    return { value: [box(true, { type: 'Boolean', singleton: true })], context };
   }
 
   // Check if input string starts with the prefix
   const result = inputValue.startsWith(prefix);
-  return { value: [result], context };
+  return { value: [box(result, { type: 'Boolean', singleton: true })], context };
 };
 
 export const startsWithFunction: FunctionDefinition & { evaluate: FunctionEvaluator } = {

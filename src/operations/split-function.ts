@@ -1,4 +1,5 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // Handle empty input collection
@@ -11,7 +12,12 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     throw new Error('split() requires a singleton input');
   }
 
-  const inputValue = input[0];
+  const boxedInputValue = input[0];
+  if (!boxedInputValue) {
+    return { value: [], context };
+  }
+  
+  const inputValue = unbox(boxedInputValue);
   
   // Type check the input - must be a string
   if (typeof inputValue !== 'string') {
@@ -34,7 +40,12 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     throw new Error('split() separator must be a singleton');
   }
   
-  const separator = separatorResult.value[0];
+  const boxedSeparator = separatorResult.value[0];
+  if (!boxedSeparator) {
+    throw new Error('split() separator must be a string');
+  }
+  
+  const separator = unbox(boxedSeparator);
   
   if (typeof separator !== 'string') {
     throw new Error('split() separator must be a string');
@@ -42,8 +53,11 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
 
   // Perform the split operation
   const result = inputValue.split(separator);
+  
+  // Box each result string
+  const boxedResult = result.map(str => box(str, { type: 'String', singleton: false }));
 
-  return { value: result, context };
+  return { value: boxedResult, context };
 };
 
 export const splitFunction: FunctionDefinition & { evaluate: FunctionEvaluator } = {

@@ -1,21 +1,30 @@
 import type { OperatorDefinition } from '../types';
 import { PRECEDENCE } from '../types';
 import type { OperationEvaluator } from '../types';
+import { box, unbox } from '../boxing';
 
 export const evaluate: OperationEvaluator = (input, context, left, right) => {
   // Three-valued logic implementation
-  if (left.length === 0 || right.length === 0) {
-    // If either operand is true, result is true
-    if (left.length > 0 && left[0] === true) {
-      return { value: [true], context };
-    }
-    if (right.length > 0 && right[0] === true) {
-      return { value: [true], context };
-    }
-    // Otherwise unknown
-    return { value: [], context };
+  
+  // Get values safely
+  const leftBoxed = left.length > 0 ? left[0] : null;
+  const rightBoxed = right.length > 0 ? right[0] : null;
+  
+  const leftValue = leftBoxed ? unbox(leftBoxed) : null;
+  const rightValue = rightBoxed ? unbox(rightBoxed) : null;
+  
+  // If either operand is true, result is true
+  if (leftValue === true || rightValue === true) {
+    return { value: [box(true, { type: 'Boolean', singleton: true })], context };
   }
-  return { value: [left[0] || right[0]], context };
+  
+  // If both operands are false, result is false
+  if (leftValue === false && rightValue === false) {
+    return { value: [box(false, { type: 'Boolean', singleton: true })], context };
+  }
+  
+  // Otherwise (empty or non-boolean), result is empty
+  return { value: [], context };
 };
 
 export const orOperator: OperatorDefinition & { evaluate: OperationEvaluator } = {

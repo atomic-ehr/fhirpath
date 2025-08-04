@@ -1,4 +1,5 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // Handle empty input collection
@@ -11,7 +12,12 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     throw new Error('lower() can only be applied to a singleton string');
   }
   
-  const inputValue = input[0];
+  const boxedInputValue = input[0];
+  if (!boxedInputValue) {
+    return { value: [], context };
+  }
+  
+  const inputValue = unbox(boxedInputValue);
   
   // Type check the input - must be a string
   if (typeof inputValue !== 'string') {
@@ -26,7 +32,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   // Convert to lowercase
   const result = inputValue.toLowerCase();
   
-  return { value: [result], context };
+  return { value: [box(result, { type: 'String', singleton: true })], context };
 };
 
 export const lowerFunction: FunctionDefinition & { evaluate: FunctionEvaluator } = {

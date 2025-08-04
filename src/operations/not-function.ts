@@ -1,5 +1,6 @@
 import type { FunctionDefinition } from '../types';
 import type { FunctionEvaluator } from '../types';
+import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // Three-valued logic implementation
@@ -8,12 +9,19 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     return { value: [], context };
   }
   
-  if (input[0] === true) {
-    return { value: [false], context };
+  const boxedValue = input[0];
+  if (!boxedValue) {
+    return { value: [], context };
   }
   
-  if (input[0] === false) {
-    return { value: [true], context };
+  const value = unbox(boxedValue);
+  
+  if (value === true) {
+    return { value: [box(false, { type: 'Boolean', singleton: true })], context };
+  }
+  
+  if (value === false) {
+    return { value: [box(true, { type: 'Boolean', singleton: true })], context };
   }
   
   // Non-boolean values return empty

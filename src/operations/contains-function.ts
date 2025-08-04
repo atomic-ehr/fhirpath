@@ -1,5 +1,6 @@
 import type { FunctionDefinition } from '../types';
 import type { FunctionEvaluator } from '../types';
+import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // contains() requires exactly 1 argument
@@ -23,7 +24,12 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   }
 
   // Input must be a string
-  const inputValue = input[0];
+  const boxedInputValue = input[0];
+  if (!boxedInputValue) {
+    return { value: [], context };
+  }
+  
+  const inputValue = unbox(boxedInputValue);
   if (typeof inputValue !== 'string') {
     // Non-string input returns empty
     return { value: [], context };
@@ -42,7 +48,12 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     throw new Error('contains() substring argument must evaluate to a single value');
   }
   
-  const substring = substringResult.value[0];
+  const boxedSubstring = substringResult.value[0];
+  if (!boxedSubstring) {
+    return { value: [], context };
+  }
+  
+  const substring = unbox(boxedSubstring);
   if (typeof substring !== 'string') {
     // Non-string substring returns empty
     return { value: [], context };
@@ -50,12 +61,12 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
 
   // If substring is empty string, result is true
   if (substring === '') {
-    return { value: [true], context };
+    return { value: [box(true, { type: 'Boolean', singleton: true })], context };
   }
 
   // Check if input string contains the substring
   const result = inputValue.includes(substring);
-  return { value: [result], context };
+  return { value: [box(result, { type: 'Boolean', singleton: true })], context };
 };
 
 export const containsFunction: FunctionDefinition & { evaluate: FunctionEvaluator } = {

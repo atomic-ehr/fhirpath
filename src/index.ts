@@ -2,6 +2,7 @@ import { Parser } from './parser';
 import { Interpreter, RuntimeContextManager } from './interpreter';
 import { Analyzer } from './analyzer';
 import type { AnalysisResult } from './types';
+import { unbox } from './boxing';
 
 export interface EvaluateOptions {
   input?: unknown;
@@ -42,7 +43,8 @@ export function evaluate(
   
   const result = interpreter.evaluate(ast, input, context);
   
-  return result.value;
+  // Unbox the results before returning
+  return result.value.map(unbox);
 }
 
 export function analyze(

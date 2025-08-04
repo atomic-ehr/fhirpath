@@ -1,4 +1,5 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // Handle empty input collection
@@ -16,18 +17,23 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     throw new Error('toDecimal() does not take any arguments');
   }
   
-  const inputValue = input[0];
+  const boxedInputValue = input[0];
+  if (!boxedInputValue) {
+    return { value: [], context };
+  }
+  
+  const inputValue = unbox(boxedInputValue);
   
   // Handle different input types according to spec
   
   // Integer or Decimal - return as decimal
   if (typeof inputValue === 'number') {
-    return { value: [inputValue], context };
+    return { value: [box(inputValue, { type: 'Decimal', singleton: true })], context };
   }
   
   // Boolean - true -> 1.0, false -> 0.0
   if (typeof inputValue === 'boolean') {
-    return { value: [inputValue ? 1.0 : 0.0], context };
+    return { value: [box(inputValue ? 1.0 : 0.0, { type: 'Decimal', singleton: true })], context };
   }
   
   // String - try to convert to decimal
@@ -47,7 +53,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
       return { value: [], context };
     }
     
-    return { value: [parsedValue], context };
+    return { value: [box(parsedValue, { type: 'Decimal', singleton: true })], context };
   }
   
   // For any other type, return empty

@@ -1,5 +1,6 @@
 import type { FunctionDefinition } from '../types';
 import type { FunctionEvaluator } from '../types';
+import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   if (args.length < 2) {
@@ -48,7 +49,12 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     return evaluator(elseExpr, input, context);
   }
 
-  const condition = condResult.value[0];
+  const boxedCondition = condResult.value[0];
+  if (!boxedCondition) {
+    return { value: [], context };
+  }
+  
+  const condition = unbox(boxedCondition);
   
   // Check if condition is a boolean
   if (typeof condition !== 'boolean') {

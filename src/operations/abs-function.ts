@@ -1,4 +1,5 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // abs() takes no arguments
@@ -16,21 +17,28 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     throw new Error('abs() can only be applied to a single item');
   }
 
-  const value = input[0];
+  const boxedValue = input[0];
+  if (!boxedValue) return { value: [], context };
+  const value = unbox(boxedValue);
 
   // Handle different types
   if (typeof value === 'number') {
-    return { value: [Math.abs(value)], context };
+    const result = Math.abs(value);
+    const typeInfo = Number.isInteger(result) ? 
+      { type: 'Integer' as const, singleton: true } : 
+      { type: 'Decimal' as const, singleton: true };
+    return { value: [box(result, typeInfo)], context };
   }
 
   // Handle Quantity type
   if (value && typeof value === 'object' && 'value' in value && 'unit' in value) {
+    const result = {
+      value: Math.abs(value.value),
+      unit: value.unit,
+      ...(value._ucumQuantity && { _ucumQuantity: { ...value._ucumQuantity, value: Math.abs(value._ucumQuantity.value) } })
+    };
     return { 
-      value: [{
-        value: Math.abs(value.value),
-        unit: value.unit,
-        ...(value._ucumQuantity && { _ucumQuantity: { ...value._ucumQuantity, value: Math.abs(value._ucumQuantity.value) } })
-      }], 
+      value: [box(result, { type: 'Quantity', singleton: true })], 
       context 
     };
   }

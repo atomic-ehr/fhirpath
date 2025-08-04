@@ -1,4 +1,5 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // Check single item in input
@@ -10,7 +11,12 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     throw new Error('substring() can only be used on single string values');
   }
 
-  const inputValue = input[0];
+  const boxedInput = input[0];
+  if (!boxedInput) {
+    return { value: [], context };
+  }
+  
+  const inputValue = unbox(boxedInput);
   if (typeof inputValue !== 'string') {
     throw new Error('substring() can only be used on string values');
   }
@@ -36,7 +42,12 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     throw new Error('substring() start argument must be a single value');
   }
   
-  const start = startResult.value[0];
+  const boxedStart = startResult.value[0];
+  if (!boxedStart) {
+    return { value: [], context };
+  }
+  
+  const start = unbox(boxedStart);
   if (typeof start !== 'number' || !Number.isInteger(start)) {
     throw new Error('substring() start argument must be an integer');
   }
@@ -48,7 +59,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   
   // Special case: start equals string length (e.g., empty string with start 0)
   if (start === inputValue.length) {
-    return { value: [''], context };
+    return { value: [box('', { type: 'String', singleton: true })], context };
   }
 
   // Handle optional length argument
@@ -67,17 +78,22 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
           throw new Error('substring() length argument must be a single value');
         }
         
-        const lengthValue = lengthResult.value[0];
-        if (typeof lengthValue !== 'number' || !Number.isInteger(lengthValue)) {
-          throw new Error('substring() length argument must be an integer');
-        }
+        const boxedLength = lengthResult.value[0];
+        if (!boxedLength) {
+          length = undefined;
+        } else {
+          const lengthValue = unbox(boxedLength);
+          if (typeof lengthValue !== 'number' || !Number.isInteger(lengthValue)) {
+            throw new Error('substring() length argument must be an integer');
+          }
         
-        // Negative or zero length returns empty string
-        if (lengthValue <= 0) {
-          return { value: [''], context };
+          // Negative or zero length returns empty string
+          if (lengthValue <= 0) {
+            return { value: [box('', { type: 'String', singleton: true })], context };
+          }
+          
+          length = lengthValue;
         }
-        
-        length = lengthValue;
       }
     }
   }
@@ -92,7 +108,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     result = inputValue.substring(start, start + length);
   }
   
-  return { value: [result], context };
+  return { value: [box(result, { type: 'String', singleton: true })], context };
 };
 
 export const substringFunction: FunctionDefinition & { evaluate: FunctionEvaluator } = {

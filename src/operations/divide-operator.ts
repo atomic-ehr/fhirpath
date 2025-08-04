@@ -3,20 +3,25 @@ import { PRECEDENCE } from '../types';
 import type { OperationEvaluator } from '../types';
 import { divideQuantities } from '../quantity-value';
 import type { QuantityValue } from '../quantity-value';
+import { box, unbox } from '../boxing';
 
 export const evaluate: OperationEvaluator = (input, context, left, right) => {
   if (left.length === 0 || right.length === 0) {
     return { value: [], context };
   }
   
-  const l = left[0];
-  const r = right[0];
+  const boxedl = left[0];
+  if (!boxedl) return { value: [], context };
+  const l = unbox(boxedl);
+  const boxedr = right[0];
+  if (!boxedr) return { value: [], context };
+  const r = unbox(boxedr);
   
   // Check if both are quantities
   if (l && typeof l === 'object' && 'unit' in l && 
       r && typeof r === 'object' && 'unit' in r) {
     const result = divideQuantities(l as QuantityValue, r as QuantityValue);
-    return { value: result ? [result] : [], context };
+    return { value: result ? [box(result, { type: 'Quantity', singleton: true })] : [], context };
   }
   
   // Handle quantity / number
@@ -25,7 +30,7 @@ export const evaluate: OperationEvaluator = (input, context, left, right) => {
       return { value: [], context };
     }
     const q = l as QuantityValue;
-    return { value: [{ value: q.value / r, unit: q.unit }], context };
+    return { value: [box({ value: q.value / r, unit: q.unit }, { type: 'Quantity', singleton: true })], context };
   }
   
   // Handle numeric division
@@ -33,7 +38,7 @@ export const evaluate: OperationEvaluator = (input, context, left, right) => {
     if (r === 0) {
       return { value: [], context };
     }
-    return { value: [l / r], context };
+    return { value: [box(l / r, { type: 'Any', singleton: true })], context };
   }
   
   // For other types, return empty

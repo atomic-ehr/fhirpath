@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'bun:test';
 import { Parser, type ASTNode } from '../src/parser';
 import { Interpreter } from '../src/interpreter';
+import { unbox } from '../src/boxing';
 
 describe('FHIRPath Interpreter', () => {
   function evaluate(expr: string, input: any = {}) {
@@ -12,7 +13,8 @@ describe('FHIRPath Interpreter', () => {
     const ast = parseResult.ast;
     const interpreter = new Interpreter();
     const result = interpreter.evaluate(ast, Array.isArray(input) ? input : [input]);
-    return result.value;
+    // Unbox all values before returning
+    return result.value.map(v => unbox(v));
   }
 
   describe('Literals', () => {

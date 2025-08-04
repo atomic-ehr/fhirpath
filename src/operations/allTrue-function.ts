@@ -1,22 +1,24 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // If the input is empty, the result is true
   if (input.length === 0) {
-    return { value: [true], context };
+    return { value: [box(true, { type: 'Boolean', singleton: true })], context };
   }
   
-  // Verify all inputs are booleans
+  // Verify all inputs are booleans (unbox first)
   for (let i = 0; i < input.length; i++) {
-    if (typeof input[i] !== 'boolean') {
-      throw new Error(`allTrue() expects all items to be Boolean values, but item at index ${i} is ${typeof input[i]}`);
+    const unboxedValue = unbox(input[i]!);
+    if (typeof unboxedValue !== 'boolean') {
+      throw new Error(`allTrue() expects all items to be Boolean values, but item at index ${i} is ${typeof unboxedValue}`);
     }
   }
   
   // Return true if all items are true, false if any item is false
-  const result = input.every(item => item === true);
+  const result = input.every(item => unbox(item) === true);
   
-  return { value: [result], context };
+  return { value: [box(result, { type: 'Boolean', singleton: true })], context };
 };
 
 export const allTrueFunction: FunctionDefinition & { evaluate: FunctionEvaluator } = {

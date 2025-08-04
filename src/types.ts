@@ -286,9 +286,9 @@ export interface RuntimeContext {
   variables: Record<string, any>;
 }
 
-// Evaluation result - everything is a collection
+// Evaluation result - everything is a collection of boxed values
 export interface EvaluationResult {
-  value: any[];
+  value: import('./boxing').FHIRPathValue[];
   context: RuntimeContext;
 }
 
@@ -340,15 +340,15 @@ export interface ParseResult {
   };
 }
 
-export type NodeEvaluator = (node: ASTNode, input: any[], context: RuntimeContext) => EvaluationResult;
+export type NodeEvaluator = (node: ASTNode, input: import('./boxing').FHIRPathValue[], context: RuntimeContext) => EvaluationResult;
 
-export type OperationEvaluator = (input: any[], context: RuntimeContext, ...args: any[]) => EvaluationResult;
+export type OperationEvaluator = (input: import('./boxing').FHIRPathValue[], context: RuntimeContext, ...args: any[]) => EvaluationResult;
 
 export type FunctionEvaluator = (
-  input: any[],
+  input: import('./boxing').FHIRPathValue[],
   context: RuntimeContext,
   args: ASTNode[],
-  evaluator: (node: ASTNode, input: any[], context: RuntimeContext) => EvaluationResult
+  evaluator: (node: ASTNode, input: import('./boxing').FHIRPathValue[], context: RuntimeContext) => EvaluationResult
 ) => EvaluationResult;
 
 // Type guards for optional properties

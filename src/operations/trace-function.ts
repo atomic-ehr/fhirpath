@@ -1,4 +1,5 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // trace() requires at least a name argument
@@ -23,7 +24,12 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     throw new Error('trace() name argument must be a single value');
   }
   
-  const name = nameResult.value[0];
+  const boxedName = nameResult.value[0];
+  if (!boxedName) {
+    throw new Error('trace() name argument must be a string');
+  }
+  
+  const name = unbox(boxedName);
   if (typeof name !== 'string') {
     throw new Error('trace() name argument must be a string');
   }

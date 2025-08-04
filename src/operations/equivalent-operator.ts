@@ -1,44 +1,49 @@
 import type { OperatorDefinition } from '../types';
 import { PRECEDENCE } from '../types';
 import type { OperationEvaluator } from '../types';
+import { box, unbox } from '../boxing';
 
 export const evaluate: OperationEvaluator = (input, context, left, right) => {
   // Empty collections are equivalent
   if (left.length === 0 && right.length === 0) {
-    return { value: [true], context };
+    return { value: [box(true, { type: 'Boolean', singleton: true })], context };
   }
   
   // Different sizes are not equivalent
   if (left.length !== right.length) {
-    return { value: [false], context };
+    return { value: [box(false, { type: 'Boolean', singleton: true })], context };
   }
   
   // For single items, check type-specific equivalence
   if (left.length === 1 && right.length === 1) {
-    const l = left[0];
-    const r = right[0];
+    const boxedl = left[0];
+  if (!boxedl) return { value: [], context };
+  const l = unbox(boxedl);
+    const boxedr = right[0];
+  if (!boxedr) return { value: [], context };
+  const r = unbox(boxedr);
     
     // String equivalence: case-insensitive with normalized whitespace
     if (typeof l === 'string' && typeof r === 'string') {
       const normalizeString = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ');
-      return { value: [normalizeString(l) === normalizeString(r)], context };
+      return { value: [box(normalizeString(l) === normalizeString(r), { type: 'Boolean', singleton: true })], context };
     }
     
     // Number equivalence (for Integer and Decimal)
     if (typeof l === 'number' && typeof r === 'number') {
       // For decimals with different precision, round to least precise
       // This is a simplified implementation
-      return { value: [Math.abs(l - r) < Number.EPSILON], context };
+      return { value: [box(Math.abs(l - r) < Number.EPSILON, { type: 'Boolean', singleton: true })], context };
     }
     
     // Boolean equivalence
     if (typeof l === 'boolean' && typeof r === 'boolean') {
-      return { value: [l === r], context };
+      return { value: [box(l === r, { type: 'Boolean', singleton: true })], context };
     }
     
     // For complex types and other cases, use equality for now
     // TODO: Implement full equivalence logic for Date/DateTime/Time and complex types
-    return { value: [l === r], context };
+    return { value: [box(l === r, { type: 'Boolean', singleton: true })], context };
   }
   
   // For multiple items, comparison is order-independent
@@ -49,11 +54,11 @@ export const evaluate: OperationEvaluator = (input, context, left, right) => {
   
   for (let i = 0; i < leftSorted.length; i++) {
     if (leftSorted[i] !== rightSorted[i]) {
-      return { value: [false], context };
+      return { value: [box(false, { type: 'Boolean', singleton: true })], context };
     }
   }
   
-  return { value: [true], context };
+  return { value: [box(true, { type: 'Boolean', singleton: true })], context };
 };
 
 export const equivalentOperator: OperatorDefinition & { evaluate: OperationEvaluator } = {

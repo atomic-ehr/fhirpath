@@ -1,4 +1,5 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // single takes no arguments
@@ -13,7 +14,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
 
   // If there is exactly one item, return it
   if (input.length === 1) {
-    return { value: [input[0]], context };
+    return { value: input[0] ? [input[0]] : [], context };
   }
 
   // If there are multiple items, signal an error

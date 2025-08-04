@@ -1,4 +1,5 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // toInteger() takes no arguments
@@ -16,13 +17,18 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     throw new Error('toInteger() can only be applied to a single item');
   }
 
-  const inputValue = input[0];
+  const boxedInputValue = input[0];
+  if (!boxedInputValue) {
+    return { value: [], context };
+  }
+  
+  const inputValue = unbox(boxedInputValue);
 
   // Handle different input types according to spec
   
   // Integer - return as is
   if (typeof inputValue === 'number' && Number.isInteger(inputValue)) {
-    return { value: [inputValue], context };
+    return { value: [box(inputValue, { type: 'Integer', singleton: true })], context };
   }
   
   // String - convert if valid integer format
@@ -31,7 +37,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     const integerRegex = /^(\+|-)?\d+$/;
     if (integerRegex.test(inputValue)) {
       const intValue = parseInt(inputValue, 10);
-      return { value: [intValue], context };
+      return { value: [box(intValue, { type: 'Integer', singleton: true })], context };
     }
     // String not convertible to integer - return empty
     return { value: [], context };
@@ -39,7 +45,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   
   // Boolean - true -> 1, false -> 0
   if (typeof inputValue === 'boolean') {
-    return { value: [inputValue ? 1 : 0], context };
+    return { value: [box(inputValue ? 1 : 0, { type: 'Integer', singleton: true })], context };
   }
 
   // For all other types (including decimals), return empty

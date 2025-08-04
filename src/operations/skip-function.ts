@@ -1,5 +1,6 @@
 import type { FunctionDefinition } from '../types';
 import type { FunctionEvaluator } from '../types';
+import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   if (args.length !== 1) {
@@ -18,7 +19,12 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     throw new Error('skip() argument cannot be empty');
   }
   
-  const skipValue = numResult.value[0];
+  const boxedSkipValue = numResult.value[0];
+  if (!boxedSkipValue) {
+    throw new Error('skip() argument must be a single value');
+  }
+  
+  const skipValue = unbox(boxedSkipValue);
   
   if (typeof skipValue !== 'number' || !Number.isInteger(skipValue)) {
     throw new Error('skip() argument must be an integer');

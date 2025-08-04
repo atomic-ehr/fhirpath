@@ -1,4 +1,5 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   if (args.length !== 1) {
@@ -18,33 +19,34 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
 
   // If the other collection is empty, the result is true
   if (other.length === 0) {
-    return { value: [true], context };
+    return { value: [box(true, { type: 'Boolean', singleton: true })], context };
   }
 
   // If the input collection is empty but other is not, the result is false
   if (input.length === 0) {
-    return { value: [false], context };
+    return { value: [box(false, { type: 'Boolean', singleton: true })], context };
   }
 
   // Check if all items in other are members of input using equals semantics
-  for (const otherItem of other) {
+  for (const boxedOtherItem of other) {
+    const otherItem = unbox(boxedOtherItem);
     let found = false;
-    for (const inputItem of input) {
-      // Use JavaScript === for now, matching the equals operator behavior
-      // A full implementation would need deep equality as specified in FHIRPath
-      if (otherItem === inputItem) {
+    for (const boxedInputItem of input) {
+      const inputItem = unbox(boxedInputItem);
+      // Use deep equality for comparing items
+      if (JSON.stringify(otherItem) === JSON.stringify(inputItem)) {
         found = true;
         break;
       }
     }
     // If any item from other is not found in input, return false
     if (!found) {
-      return { value: [false], context };
+      return { value: [box(false, { type: 'Boolean', singleton: true })], context };
     }
   }
 
   // All items in other are members of input
-  return { value: [true], context };
+  return { value: [box(true, { type: 'Boolean', singleton: true })], context };
 };
 
 export const supersetOfFunction: FunctionDefinition & { evaluate: FunctionEvaluator } = {

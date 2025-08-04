@@ -1,4 +1,5 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // isDistinct takes no arguments
@@ -8,7 +9,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
 
   // If input is empty, return true
   if (input.length === 0) {
-    return { value: [true], context };
+    return { value: [box(true, { type: 'Boolean', singleton: true })], context };
   }
 
   // Check if all items are distinct by comparing each pair
@@ -16,15 +17,19 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   for (let i = 0; i < input.length; i++) {
     for (let j = i + 1; j < input.length; j++) {
       // Two items are considered equal if they have the same value
-      // Using === for primitive comparison (matching the equal operator behavior)
-      if (input[i] === input[j]) {
-        return { value: [false], context };
+      // Compare unboxed values
+      const value1 = unbox(input[i]!);
+      const value2 = unbox(input[j]!);
+      
+      // Use JSON.stringify for deep comparison
+      if (JSON.stringify(value1) === JSON.stringify(value2)) {
+        return { value: [box(false, { type: 'Boolean', singleton: true })], context };
       }
     }
   }
 
   // All items are distinct
-  return { value: [true], context };
+  return { value: [box(true, { type: 'Boolean', singleton: true })], context };
 };
 
 export const isDistinctFunction: FunctionDefinition & { evaluate: FunctionEvaluator } = {

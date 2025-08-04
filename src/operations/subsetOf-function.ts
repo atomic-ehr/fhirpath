@@ -1,4 +1,5 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   if (args.length !== 1) {
@@ -7,7 +8,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
 
   // If the input collection is empty, the result is true
   if (input.length === 0) {
-    return { value: [true], context };
+    return { value: [box(true, { type: 'Boolean', singleton: true })], context };
   }
 
   // Evaluate the other collection argument
@@ -23,28 +24,29 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
 
   // If the other collection is empty but input is not, the result is false
   if (other.length === 0) {
-    return { value: [false], context };
+    return { value: [box(false, { type: 'Boolean', singleton: true })], context };
   }
 
   // Check if all items in input are members of other using equals semantics
-  for (const inputItem of input) {
+  for (const boxedInputItem of input) {
+    const inputItem = unbox(boxedInputItem);
     let found = false;
-    for (const otherItem of other) {
-      // Use JavaScript === for now, matching the equals operator behavior
-      // A full implementation would need deep equality as specified in FHIRPath
-      if (inputItem === otherItem) {
+    for (const boxedOtherItem of other) {
+      const otherItem = unbox(boxedOtherItem);
+      // Use deep equality for comparing items
+      if (JSON.stringify(inputItem) === JSON.stringify(otherItem)) {
         found = true;
         break;
       }
     }
     // If any item is not found in other, return false
     if (!found) {
-      return { value: [false], context };
+      return { value: [box(false, { type: 'Boolean', singleton: true })], context };
     }
   }
 
   // All items in input are members of other
-  return { value: [true], context };
+  return { value: [box(true, { type: 'Boolean', singleton: true })], context };
 };
 
 export const subsetOfFunction: FunctionDefinition & { evaluate: FunctionEvaluator } = {

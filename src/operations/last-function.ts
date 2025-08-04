@@ -1,11 +1,14 @@
 import type { FunctionDefinition } from '../types';
 import type { FunctionEvaluator } from '../types';
+import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
-  return { 
-    value: input.length > 0 ? [input[input.length - 1]] : [], 
-    context 
-  };
+  if (input.length > 0) {
+    const lastItem = input[input.length - 1];
+    // TypeScript knows lastItem is defined here
+    return { value: [lastItem!], context };
+  }
+  return { value: [], context };
 };
 
 export const lastFunction: FunctionDefinition & { evaluate: FunctionEvaluator } = {

@@ -1,4 +1,5 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // Validate arguments
@@ -22,7 +23,12 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     throw new Error('take() argument must be a single value');
   }
   
-  const num = numResult.value[0];
+  const boxedNum = numResult.value[0];
+  if (!boxedNum) {
+    throw new Error('take() argument must be a single value');
+  }
+  
+  const num = unbox(boxedNum);
   
   // Check that num is an integer
   if (!Number.isInteger(num)) {

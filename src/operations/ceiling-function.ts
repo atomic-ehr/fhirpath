@@ -1,4 +1,5 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // ceiling() takes no arguments
@@ -16,7 +17,9 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     throw new Error('ceiling() can only be applied to a single item');
   }
 
-  const value = input[0];
+  const boxedValue = input[0];
+  if (!boxedValue) return { value: [], context };
+  const value = unbox(boxedValue);
 
   // Must be a number
   if (typeof value !== 'number') {
@@ -25,7 +28,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
 
   // Math.ceil can return -0, normalize it to 0
   const result = Math.ceil(value);
-  return { value: [Object.is(result, -0) ? 0 : result], context };
+  return { value: [box(Object.is(result, -0) ? 0 : result, { type: 'Integer', singleton: true })], context };
 };
 
 export const ceilingFunction: FunctionDefinition & { evaluate: FunctionEvaluator } = {

@@ -1,4 +1,5 @@
 import type { FunctionDefinition, FunctionEvaluator, LiteralNode } from '../types';
+import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // Check single item in input
@@ -10,7 +11,12 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     throw new Error('indexOf() can only be used on single string values');
   }
 
-  const inputValue = input[0];
+  const boxedInputValue = input[0];
+  if (!boxedInputValue) {
+    return { value: [], context };
+  }
+  
+  const inputValue = unbox(boxedInputValue);
   if (typeof inputValue !== 'string') {
     throw new Error('indexOf() can only be used on string values');
   }
@@ -36,20 +42,25 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     throw new Error('indexOf() substring argument must be a single value');
   }
   
-  const substring = substringResult.value[0];
+  const boxedSubstring = substringResult.value[0];
+  if (!boxedSubstring) {
+    return { value: [], context };
+  }
+  
+  const substring = unbox(boxedSubstring);
   if (typeof substring !== 'string') {
     throw new Error('indexOf() substring argument must be a string');
   }
 
   // Handle empty substring - returns 0 per spec
   if (substring === '') {
-    return { value: [0], context };
+    return { value: [box(0, { type: 'Integer', singleton: true })], context };
   }
 
   // Find the index
   const index = inputValue.indexOf(substring);
   
-  return { value: [index], context };
+  return { value: [box(index, { type: 'Integer', singleton: true })], context };
 };
 
 export const indexOfFunction: FunctionDefinition & { evaluate: FunctionEvaluator } = {

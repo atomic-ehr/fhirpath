@@ -1,9 +1,10 @@
 import type { FunctionDefinition } from '../types';
 import type { FunctionEvaluator } from '../types';
+import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   return { 
-    value: [input.length === 0], 
+    value: [box(input.length === 0, { type: 'Boolean', singleton: true })], 
     context 
   };
 };

@@ -1,4 +1,5 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // toBoolean() takes no arguments
@@ -16,21 +17,26 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     throw new Error('toBoolean() can only be applied to a single item');
   }
 
-  const inputValue = input[0];
+  const boxedInputValue = input[0];
+  if (!boxedInputValue) {
+    return { value: [], context };
+  }
+  
+  const inputValue = unbox(boxedInputValue);
 
   // Handle different input types according to spec
   
-  // Boolean - return as is
+  // Boolean - return as is (boxed)
   if (typeof inputValue === 'boolean') {
-    return { value: [inputValue], context };
+    return { value: [box(inputValue, { type: 'Boolean', singleton: true })], context };
   }
   
   // Integer - 1 -> true, 0 -> false
   if (typeof inputValue === 'number' && Number.isInteger(inputValue)) {
     if (inputValue === 1) {
-      return { value: [true], context };
+      return { value: [box(true, { type: 'Boolean', singleton: true })], context };
     } else if (inputValue === 0) {
-      return { value: [false], context };
+      return { value: [box(false, { type: 'Boolean', singleton: true })], context };
     }
     // Other integers return empty
     return { value: [], context };
@@ -39,9 +45,9 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   // Decimal - 1.0 -> true, 0.0 -> false
   if (typeof inputValue === 'number' && !Number.isInteger(inputValue)) {
     if (inputValue === 1.0) {
-      return { value: [true], context };
+      return { value: [box(true, { type: 'Boolean', singleton: true })], context };
     } else if (inputValue === 0.0) {
-      return { value: [false], context };
+      return { value: [box(false, { type: 'Boolean', singleton: true })], context };
     }
     // Other decimals return empty
     return { value: [], context };
@@ -53,12 +59,12 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     
     // True representations
     if (['true', 't', 'yes', 'y', '1', '1.0'].includes(lowerValue)) {
-      return { value: [true], context };
+      return { value: [box(true, { type: 'Boolean', singleton: true })], context };
     }
     
     // False representations
     if (['false', 'f', 'no', 'n', '0', '0.0'].includes(lowerValue)) {
-      return { value: [false], context };
+      return { value: [box(false, { type: 'Boolean', singleton: true })], context };
     }
     
     // Other strings return empty

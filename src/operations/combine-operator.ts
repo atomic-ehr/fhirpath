@@ -1,17 +1,18 @@
 import type { OperatorDefinition } from '../types';
 import { PRECEDENCE } from '../types';
 import type { OperationEvaluator } from '../types';
+import { box, unbox } from '../boxing';
 
 export const evaluate: OperationEvaluator = (input, context, left, right) => {
   // Combine operator concatenates all values as strings
-  const leftStr = left.map(v => String(v)).join('');
-  const rightStr = right.map(v => String(v)).join('');
+  const leftStr = left.map(v => String(unbox(v))).join('');
+  const rightStr = right.map(v => String(unbox(v))).join('');
   
   if (leftStr === '' && rightStr === '') {
     return { value: [], context };
   }
   
-  return { value: [leftStr + rightStr], context };
+  return { value: [box(leftStr + rightStr, { type: 'String', singleton: true })], context };
 };
 
 export const combineOperator: OperatorDefinition & { evaluate: OperationEvaluator } = {

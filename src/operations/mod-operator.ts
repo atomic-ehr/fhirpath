@@ -1,15 +1,32 @@
 import type { OperatorDefinition } from '../types';
 import { PRECEDENCE } from '../types';
 import type { OperationEvaluator } from '../types';
+import { box, unbox } from '../boxing';
 
 export const evaluate: OperationEvaluator = (input, context, left, right) => {
   if (left.length === 0 || right.length === 0) {
     return { value: [], context };
   }
-  if (right[0] === 0) {
+  
+  const boxedLeft = left[0];
+  const boxedRight = right[0];
+  if (!boxedLeft || !boxedRight) {
     return { value: [], context };
   }
-  return { value: [left[0] % right[0]], context };
+  
+  const leftValue = unbox(boxedLeft);
+  const rightValue = unbox(boxedRight);
+  
+  if (rightValue === 0) {
+    return { value: [], context };
+  }
+  
+  const result = (leftValue as any) % (rightValue as any);
+  
+  // Determine result type based on input types
+  const resultType = Number.isInteger(leftValue) && Number.isInteger(rightValue) ? 'Integer' : 'Decimal';
+  
+  return { value: [box(result, { type: resultType, singleton: true })], context };
 };
 
 export const modOperator: OperatorDefinition & { evaluate: OperationEvaluator } = {

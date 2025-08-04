@@ -1,4 +1,5 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // power() takes exactly one argument (exponent)
@@ -16,7 +17,12 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     throw new Error('power() can only be applied to a single item');
   }
 
-  const base = input[0];
+  const boxedBase = input[0];
+  if (!boxedBase) {
+    return { value: [], context };
+  }
+  
+  const base = unbox(boxedBase);
 
   // Base must be a number
   if (typeof base !== 'number') {
@@ -32,7 +38,12 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     throw new Error('power() exponent must be a single value');
   }
 
-  const exponent = exponentResult.value[0];
+  const boxedExponent = exponentResult.value[0];
+  if (!boxedExponent) {
+    return { value: [], context };
+  }
+  
+  const exponent = unbox(boxedExponent);
   if (typeof exponent !== 'number') {
     throw new Error('power() exponent must be a number');
   }
@@ -48,10 +59,10 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
 
   // If both inputs are integers and result is a whole number, return as integer
   if (Number.isInteger(base) && Number.isInteger(exponent) && Number.isInteger(result)) {
-    return { value: [result], context };
+    return { value: [box(result, { type: 'Integer', singleton: true })], context };
   }
 
-  return { value: [result], context };
+  return { value: [box(result, { type: 'Decimal', singleton: true })], context };
 };
 
 export const powerFunction: FunctionDefinition & { evaluate: FunctionEvaluator } = {

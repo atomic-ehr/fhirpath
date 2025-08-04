@@ -1,4 +1,5 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // Validate arguments
@@ -16,7 +17,12 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     throw new Error('endsWith() can only be used on single string values');
   }
 
-  const inputValue = input[0];
+  const boxedInputValue = input[0];
+  if (!boxedInputValue) {
+    return { value: [], context };
+  }
+  
+  const inputValue = unbox(boxedInputValue);
 
   // Check that input is a string
   if (typeof inputValue !== 'string') {
@@ -34,7 +40,12 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     throw new Error('endsWith() suffix argument must be a single value');
   }
   
-  const suffix = suffixResult.value[0];
+  const boxedSuffix = suffixResult.value[0];
+  if (!boxedSuffix) {
+    return { value: [], context };
+  }
+  
+  const suffix = unbox(boxedSuffix);
   
   // Check that suffix is a string
   if (typeof suffix !== 'string') {
@@ -43,13 +54,13 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   
   // If suffix is empty string, result is true
   if (suffix === '') {
-    return { value: [true], context };
+    return { value: [box(true, { type: 'Boolean', singleton: true })], context };
   }
   
   // Check if input ends with suffix
   const result = inputValue.endsWith(suffix);
   
-  return { value: [result], context };
+  return { value: [box(result, { type: 'Boolean', singleton: true })], context };
 };
 
 export const endsWithFunction: FunctionDefinition & { evaluate: FunctionEvaluator } = {
