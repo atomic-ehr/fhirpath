@@ -393,7 +393,7 @@
     {
       "name": "[FHIRPath Lab] defineVariable8",
       "expression": "defineVariable('v1', 'value1').select(%v1).trace('data').defineVariable('v2', 'value2').select($this & ':' & %v1 & '-' & %v2) | defineVariable('v3', 'value3').select(%v3)",
-      "input": [],
+      "input": [{}],
       "expected": [
         "value1:value1-value2",
         "value3"
@@ -407,8 +407,7 @@
         "&",
         "|"
       ],
-      "description": "CompositeVariableUse",
-      "pending": "Uses unimplemented function(s): trace()"
+      "description": "CompositeVariableUse"
     },
     {
       "name": "[FHIRPath Lab] defineVariable9",
