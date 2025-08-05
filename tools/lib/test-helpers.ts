@@ -1,7 +1,8 @@
 import { readFileSync, readdirSync, statSync } from "fs";
 import { join } from "path";
-import { evaluate } from "../../src/index";
+import { evaluate, FHIRModelProvider } from "../../src/index";
 import type { EvaluateOptions } from "../../src/index";
+import { getModelProvider } from "./model-provider-singleton";
 
 interface UnifiedTest {
   name: string;
@@ -29,6 +30,7 @@ interface UnifiedTest {
   specRef?: string;
   parserOnly?: boolean;  // Flag to indicate this test should only test parser behavior
   mode?: string; // Parser mode: 'fast', 'standard', 'diagnostic'
+  modelProvider?: string; // Model provider type: 'r4', 'r5', etc.
 }
 
 interface TestSuite {
@@ -58,7 +60,7 @@ export function findTestsByTag(suite: TestSuite, tag: string): UnifiedTest[] {
   return suite.tests.filter(test => test.tags?.includes(tag) ?? false);
 }
 
-function createOptions(test: UnifiedTest): EvaluateOptions {
+async function createOptions(test: UnifiedTest): Promise<EvaluateOptions> {
   const options: EvaluateOptions = {
     input: test.input
   };
@@ -77,6 +79,11 @@ function createOptions(test: UnifiedTest): EvaluateOptions {
   if (Object.keys(allVariables).length > 0) {
     options.variables = allVariables;
   }
+  
+  // Add model provider if specified
+  if (test.modelProvider) {
+    options.modelProvider = await getModelProvider();
+  }
 
   return options;
 }
@@ -88,8 +95,8 @@ function matchesError(error: Error, expectedError: UnifiedTest['error']): boolea
   const errorWithCode = error as any;
   
   // If error has a code and expected has a code, match by code
-  if (errorWithCode.code && expectedError.code) {
-    const codeMatches = errorWithCode.code === expectedError.code;
+  if (errorWithCode.code && (expectedError as any).code) {
+    const codeMatches = errorWithCode.code === (expectedError as any).code;
     
     // If code matches, we're good (even if phase is different - analyze is earlier than evaluate)
     if (codeMatches) {
@@ -102,8 +109,8 @@ function matchesError(error: Error, expectedError: UnifiedTest['error']): boolea
   return messageRegex.test(error.message);
 }
 
-export function runSingleTest(test: UnifiedTest) {
-  const options = createOptions(test);
+export async function runSingleTest(test: UnifiedTest) {
+  const options = await createOptions(test);
 
   console.log(`\n🧪 Running test: ${test.name}`);
   
@@ -205,7 +212,7 @@ export function runSingleTest(test: UnifiedTest) {
   return { success: true, skipped: true, reason: 'Test skipped' };
 }
 
-export function runTestFromFile(filePath: string, testName: string) {
+export async function runTestFromFile(filePath: string, testName: string) {
   const suite = loadTestSuite(filePath);
   const test = findTest(suite, testName);
   
@@ -214,10 +221,10 @@ export function runTestFromFile(filePath: string, testName: string) {
     return;
   }
   
-  return runSingleTest(test);
+  return await runSingleTest(test);
 }
 
-export function runAllTestsFromFile(filePath: string) {
+export async function runAllTestsFromFile(filePath: string) {
   const suite = loadTestSuite(filePath);
   
   console.log(`\n🗂️  Running all tests from: ${suite.name}`);
@@ -232,8 +239,8 @@ export function runAllTestsFromFile(filePath: string) {
   
   const startTime = performance.now();
   
-  suite.tests.forEach((test) => {
-    const result = runSingleTest(test);
+  for (const test of suite.tests) {
+    const result = await runSingleTest(test);
     
     if (result.pending) {
       pending++;
@@ -244,7 +251,7 @@ export function runAllTestsFromFile(filePath: string) {
     } else {
       failed++;
     }
-  });
+  }
   
   const endTime = performance.now();
   const totalTime = endTime - startTime;

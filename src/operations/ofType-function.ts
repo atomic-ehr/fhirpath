@@ -48,6 +48,10 @@ export const ofTypeFunction: FunctionDefinition = {
     }
 
     // If we have typeInfo from the analyzer (with ModelProvider), use it
+    // NOTE: This optimization is currently disabled because currentNode refers to the ofType
+    // function node, not the input navigation node. The correct type checking happens below
+    // using the boxed items' typeInfo.
+    /*
     const currentNode = context.currentNode;
     if (currentNode?.typeInfo?.modelContext) {
       // Type-aware filtering with model context
@@ -74,10 +78,23 @@ export const ofTypeFunction: FunctionDefinition = {
         return { value: filtered, context };
       }
     }
+    */
 
-    // Basic type filtering without ModelProvider
-    // This will likely give incorrect results for choice types
+    // Filter using ModelProvider if available, otherwise fall back to type info and runtime checks
     const filtered = input.filter(boxedItem => {
+      // If we have a ModelProvider in context, use it for accurate type checking
+      if (context.modelProvider && boxedItem.typeInfo) {
+        const matchingType = context.modelProvider.ofType(boxedItem.typeInfo, targetTypeName as import('../types').TypeName);
+        return matchingType !== undefined;
+      }
+      
+      // Check if the box has type information
+      if (boxedItem.typeInfo) {
+        // If we have type info, use it for accurate filtering
+        return boxedItem.typeInfo.type === targetTypeName;
+      }
+      
+      // Fall back to runtime type checking
       const item = unbox(boxedItem);
       
       // Check primitive types

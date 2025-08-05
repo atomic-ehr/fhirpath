@@ -62,7 +62,9 @@
         ]
       },
       "expected": [true],
-      "tags": ["function", "aggregate", "boolean", "anyFalse", "function:anyFalse", "spec-example"]
+      "tags": ["function", "aggregate", "boolean", "anyFalse", "function:anyFalse", "spec-example"],
+      "note": "This test uses non-FHIR-compliant data structure for simplicity. In FHIR, component.value should be component.valueQuantity",
+      "skipModelProvider": true
     },
     {
       "name": "anyFalse - spec example with all values above threshold",
@@ -76,7 +78,9 @@
         ]
       },
       "expected": [false],
-      "tags": ["function", "aggregate", "boolean", "anyFalse", "function:anyFalse", "spec-example"]
+      "tags": ["function", "aggregate", "boolean", "anyFalse", "function:anyFalse", "spec-example"],
+      "note": "This test uses non-FHIR-compliant data structure for simplicity. In FHIR, component.value should be component.valueQuantity",
+      "skipModelProvider": true
     },
     {
       "name": "anyFalse - only non-boolean values",

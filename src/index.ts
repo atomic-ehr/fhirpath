@@ -49,7 +49,7 @@ export function evaluate(
   }
   
   // Use the analyzed AST with type information
-  const interpreter = new Interpreter();
+  const interpreter = new Interpreter(undefined, options.modelProvider);
   const input = options.input === undefined ? [] : Array.isArray(options.input) ? options.input : [options.input];
   
   // Create context with variables if provided

@@ -36,7 +36,7 @@
         "filter",
         "function:ofType"
       ],
-      "pending": "ofType function not implemented"
+      "modelProvider": "r4"
     },
     {
       "name": "ofType - no matches",
@@ -56,7 +56,176 @@
         "empty",
         "function:ofType"
       ],
-      "pending": "ofType function not implemented"
+      "modelProvider": "r4"
+    },
+    {
+      "name": "ofType - with path navigation",
+      "expression": "Bundle.entry.resource.ofType(Patient)",
+      "input": [
+        {
+          "resourceType": "Bundle",
+          "entry": [
+            {
+              "resource": {
+                "resourceType": "Patient",
+                "id": "p1",
+                "name": [{"family": "Smith"}]
+              }
+            },
+            {
+              "resource": {
+                "resourceType": "Observation",
+                "id": "o1",
+                "status": "final"
+              }
+            },
+            {
+              "resource": {
+                "resourceType": "Patient",
+                "id": "p2",
+                "name": [{"family": "Jones"}]
+              }
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "resourceType": "Patient",
+          "id": "p1",
+          "name": [{"family": "Smith"}]
+        },
+        {
+          "resourceType": "Patient",
+          "id": "p2",
+          "name": [{"family": "Jones"}]
+        }
+      ],
+      "tags": [
+        "function",
+        "type",
+        "ofType",
+        "filter",
+        "navigation",
+        "function:ofType"
+      ],
+      "modelProvider": "r4"
+    },
+    {
+      "name": "ofType - empty input",
+      "expression": "ofType(Patient)",
+      "input": [],
+      "expected": [],
+      "tags": [
+        "function",
+        "type",
+        "ofType",
+        "filter",
+        "empty",
+        "function:ofType"
+      ],
+      "modelProvider": "r4"
+    },
+    {
+      "name": "ofType - with primitive types",
+      "expression": "ofType(String)",
+      "input": ["hello", 123, true, "world"],
+      "expected": ["hello", "world"],
+      "tags": [
+        "function",
+        "type",
+        "ofType",
+        "filter",
+        "primitive",
+        "function:ofType"
+      ]
+    },
+    {
+      "name": "ofType - with Integer type",
+      "expression": "ofType(Integer)",
+      "input": [1, 2.5, 3, "four", true],
+      "expected": [1, 3],
+      "tags": [
+        "function",
+        "type",
+        "ofType",
+        "filter",
+        "primitive",
+        "function:ofType"
+      ]
+    },
+    {
+      "name": "ofType - with Boolean type",
+      "expression": "ofType(Boolean)",
+      "input": [true, false, 1, "true", null],
+      "expected": [true, false],
+      "tags": [
+        "function",
+        "type",
+        "ofType",
+        "filter",
+        "primitive",
+        "function:ofType"
+      ]
+    },
+    {
+      "name": "ofType - with choice type property",
+      "expression": "Observation.value.ofType(CodeableConcept)",
+      "input": [
+        {
+          "resourceType": "Observation",
+          "valueCodeableConcept":
+          {
+            "text": "test",
+            "coding": [
+              {
+                "system": "http://unitsofmeasure.org",
+                "code": "[degF]"
+              }
+            ]
+          } 
+        }
+      ],
+      "expected": [
+        {
+          "text": "test",
+          "coding": [
+            {
+              "system": "http://unitsofmeasure.org",
+              "code": "[degF]"
+            }
+          ]
+        }
+      ],
+      "tags": [
+        "function",
+        "type",
+        "ofType",
+        "filter",
+        "choice",
+        "function:ofType"
+      ],
+      "modelProvider": "r4"
+    },
+    {
+      "name": "ofType - with polymorphic deceased field",
+      "expression": "Patient.deceased.ofType(Boolean)",
+      "input": [
+        {
+          "resourceType": "Patient",
+          "deceasedBoolean": true
+        }
+      ],
+      "expected": [true],
+      "tags": [
+        "function",
+        "type",
+        "ofType",
+        "filter",
+        "polymorphic",
+        "function:ofType"
+      ],
+      "modelProvider": "r4"
     }
   ]
 }

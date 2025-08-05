@@ -4,13 +4,10 @@ import { ErrorCodes } from "../src/index";
 
 describe('Type Operation Validation', () => {
   describe('ofType function', () => {
-    it('should require ModelProvider for ofType with primitive types', () => {
+    it('should not require ModelProvider for ofType with primitive types', () => {
       const result = analyze('data.ofType(String)');
       const modelDiagnostics = result.diagnostics.filter(d => d.code === ErrorCodes.MODEL_PROVIDER_REQUIRED);
-      expect(modelDiagnostics).toHaveLength(1);
-      expect(modelDiagnostics[0]?.message).toContain('ofType');
-      expect(modelDiagnostics[0]?.message).toContain('ModelProvider');
-      expect(modelDiagnostics[0]?.message).toContain('choice types');
+      expect(modelDiagnostics).toHaveLength(0);
     });
 
     it('should require ModelProvider for ofType with complex types', () => {
@@ -60,8 +57,8 @@ describe('Type Operation Validation', () => {
   describe('multiple type operations', () => {
     it('should only report errors for non-primitive type operations without ModelProvider', () => {
       const result = analyze('data.ofType(String) | value is Boolean | item as Integer');
-      // ofType requires ModelProvider, but 'is Boolean' and 'as Integer' don't (primitive types)
-      expect(result.diagnostics.filter(d => d.code === ErrorCodes.MODEL_PROVIDER_REQUIRED)).toHaveLength(1);
+      // All operations use primitive types, so no ModelProvider required
+      expect(result.diagnostics.filter(d => d.code === ErrorCodes.MODEL_PROVIDER_REQUIRED)).toHaveLength(0);
     });
   });
 });

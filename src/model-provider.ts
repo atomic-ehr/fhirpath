@@ -205,7 +205,12 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
   }
   
   private mapToFHIRPathType(fhirType: string): TypeName {
-    return this.typeMapping[fhirType] || 'Any';
+    // If it's a mapped type (primitive or special types), use the mapping
+    if (this.typeMapping[fhirType]) {
+      return this.typeMapping[fhirType];
+    }
+    // Otherwise, keep the FHIR type name (for complex types like CodeableConcept)
+    return fhirType as TypeName;
   }
   
   private isChoiceType(element: any): boolean {

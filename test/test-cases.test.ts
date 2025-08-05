@@ -4,6 +4,7 @@ import { join, basename } from 'path';
 import { loadTestSuite } from '../tools/lib/test-helpers';
 import { evaluate, FHIRPathError, FHIRModelProvider } from '../src/index';
 import type { EvaluateOptions } from '../src/index';
+import { getModelProviderSync } from './model-provider-singleton';
 
 const TEST_CASES_DIR = join(__dirname, '../test-cases');
 
@@ -75,8 +76,11 @@ function createTestFunction(test: any) {
       (!Array.isArray(test.input) && (test.input as any)?.resourceType)
     );
     
-    if ((usesTypeOperations || hasFHIRResource) && !isTestingModelProviderAbsence) {
-      options.modelProvider = new FHIRModelProvider();
+    // Check if test explicitly requests to skip ModelProvider
+    const skipModelProvider = (test as any).skipModelProvider === true;
+    
+    if ((usesTypeOperations || hasFHIRResource) && !isTestingModelProviderAbsence && !skipModelProvider) {
+      options.modelProvider = getModelProviderSync();
     }
 
     if (test.error) {

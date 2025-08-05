@@ -285,6 +285,7 @@ export interface RuntimeContext {
   focus: any[];
   variables: Record<string, any>;
   currentNode?: ASTNode;
+  modelProvider?: ModelProvider;
 }
 
 // Evaluation result - everything is a collection of boxed values

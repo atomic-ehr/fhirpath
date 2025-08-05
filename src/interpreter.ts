@@ -168,9 +168,11 @@ export class Interpreter {
   private nodeEvaluators: Record<NodeType, NodeEvaluator>;
   private operationEvaluators: Map<string, OperationEvaluator>;
   private functionEvaluators: Map<string, FunctionEvaluator>;
+  private modelProvider?: import('./types').ModelProvider<any>;
 
-  constructor(registry?: Registry) {
+  constructor(registry?: Registry, modelProvider?: import('./types').ModelProvider<any>) {
     this.registry = registry || new Registry();
+    this.modelProvider = modelProvider;
     this.operationEvaluators = new Map();
     this.functionEvaluators = new Map();
     
@@ -247,6 +249,10 @@ export class Interpreter {
     const context = RuntimeContextManager.create(input);
     // Set $this to initial input
     context.variables['$this'] = input;
+    // Add model provider if available
+    if (this.modelProvider) {
+      context.modelProvider = this.modelProvider;
+    }
     return context;
   }
 
@@ -282,6 +288,9 @@ export class Interpreter {
     // Navigate property on each boxed item in input
     const results: FHIRPathValue[] = [];
     
+    // Get the type info from the node (set by analyzer)
+    const nodeTypeInfo = node.typeInfo;
+    
     for (const boxedItem of input) {
       const item = unbox(boxedItem);
       
@@ -289,24 +298,80 @@ export class Interpreter {
       if (name === 'extension' && boxedItem.primitiveElement?.extension) {
         // Navigation from a primitive value to its extensions
         for (const ext of boxedItem.primitiveElement.extension) {
-          results.push(box(ext, { type: 'Any', singleton: false }));
+          results.push(box(ext, nodeTypeInfo || { type: 'Any', singleton: false }));
         }
         continue;
       }
       
-      if (item && typeof item === 'object' && name in item) {
-        const value = item[name];
-        const primitiveElementName = `_${name}`;
-        const primitiveElement = (primitiveElementName in item) ? item[primitiveElementName] : undefined;
-        
-        if (Array.isArray(value)) {
-          // Box each array element
-          for (const v of value) {
-            results.push(box(v, undefined, primitiveElement));
+      if (item && typeof item === 'object') {
+        // Check if this is a choice type navigation
+        if (nodeTypeInfo?.modelContext && typeof nodeTypeInfo.modelContext === 'object' &&
+            'isUnion' in nodeTypeInfo.modelContext && 
+            nodeTypeInfo.modelContext.isUnion && 'choices' in nodeTypeInfo.modelContext &&
+            Array.isArray(nodeTypeInfo.modelContext.choices)) {
+          // For choice types, look for any of the choice properties
+          for (const choice of nodeTypeInfo.modelContext.choices) {
+            const choiceName = choice.choiceName;
+            if (choiceName && choiceName in item) {
+              const value = item[choiceName];
+              const primitiveElementName = `_${choiceName}`;
+              const primitiveElement = (primitiveElementName in item) ? item[primitiveElementName] : undefined;
+              
+              // Box with the specific choice type
+              const choiceTypeInfo = {
+                type: choice.type,
+                singleton: !Array.isArray(value),
+                modelContext: choice
+              };
+              
+              if (Array.isArray(value)) {
+                for (const v of value) {
+                  results.push(box(v, { ...choiceTypeInfo, singleton: true }, primitiveElement));
+                }
+              } else if (value !== null && value !== undefined) {
+                results.push(box(value, choiceTypeInfo, primitiveElement));
+              }
+            }
           }
-        } else if (value !== null && value !== undefined) {
-          // Box single value with primitive element if available
-          results.push(box(value, undefined, primitiveElement));
+        } else if (name in item) {
+          // Regular property navigation
+          const value = item[name];
+          const primitiveElementName = `_${name}`;
+          const primitiveElement = (primitiveElementName in item) ? item[primitiveElementName] : undefined;
+          
+          if (Array.isArray(value)) {
+            // Box each array element with type info
+            // For arrays, make the type singleton since each element is a single value
+            const elementTypeInfo = nodeTypeInfo ? { ...nodeTypeInfo, singleton: true } : undefined;
+            for (const v of value) {
+              // Special handling for FHIR resources - use their resourceType
+              // Only do this if the property navigation has type 'Any' (polymorphic reference)
+              if (v && typeof v === 'object' && 'resourceType' in v && typeof v.resourceType === 'string' &&
+                  nodeTypeInfo?.type === 'Any') {
+                const resourceTypeInfo = {
+                  type: v.resourceType as import('./types').TypeName,
+                  singleton: true
+                };
+                results.push(box(v, resourceTypeInfo, primitiveElement));
+              } else {
+                results.push(box(v, elementTypeInfo, primitiveElement));
+              }
+            }
+          } else if (value !== null && value !== undefined) {
+            // Special handling for FHIR resources - use their resourceType
+            // Only do this if the property navigation has type 'Any' (polymorphic reference)
+            if (value && typeof value === 'object' && 'resourceType' in value && typeof value.resourceType === 'string' &&
+                nodeTypeInfo?.type === 'Any') {
+              const resourceTypeInfo = {
+                type: value.resourceType as import('./types').TypeName,
+                singleton: !Array.isArray(value)
+              };
+              results.push(box(value, resourceTypeInfo, primitiveElement));
+            } else {
+              // Box single value with primitive element if available
+              results.push(box(value, nodeTypeInfo, primitiveElement));
+            }
+          }
         }
       }
     }

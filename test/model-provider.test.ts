@@ -85,7 +85,7 @@ describe('FHIR ModelProvider', () => {
       // Patient.name
       const nameType = provider.getElementType(patientType, 'name');
       expect(nameType).toBeDefined();
-      expect(nameType?.type).toBe('Any'); // HumanName is complex
+      expect(nameType?.type).toBe('HumanName' as any); // Complex type name is preserved
       expect(nameType?.name).toBe('HumanName');
       expect(nameType?.singleton).toBe(false); // name is an array
     });

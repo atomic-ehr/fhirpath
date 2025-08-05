@@ -183,9 +183,24 @@ export class Analyzer {
       
       // Check if this is a type operation that requires ModelProvider
       if (funcName === 'ofType' && !this.modelProvider) {
-        this.diagnostics.push(
-          toDiagnostic(Errors.modelProviderRequired('ofType', node.range))
-        );
+        // Check if the type argument is a primitive type
+        const primitiveTypes = ['String', 'Integer', 'Decimal', 'Boolean', 'Date', 'DateTime', 'Time', 'Quantity'];
+        let isPrimitive = false;
+        
+        if (node.arguments.length > 0) {
+          const typeArg = node.arguments[0]!;
+          if (typeArg.type === NodeType.Identifier) {
+            isPrimitive = primitiveTypes.includes((typeArg as IdentifierNode).name);
+          } else if ((typeArg as any).type === NodeType.TypeOrIdentifier || (typeArg as any).type === NodeType.TypeReference) {
+            isPrimitive = primitiveTypes.includes((typeArg as any).name);
+          }
+        }
+        
+        if (!isPrimitive) {
+          this.diagnostics.push(
+            toDiagnostic(Errors.modelProviderRequired('ofType', node.range))
+          );
+        }
       }
       
       const func = registry.getFunction(funcName);

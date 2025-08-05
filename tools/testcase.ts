@@ -797,18 +797,20 @@ if (testName === "--toggle-pending" && args[2]) {
 
 // Run the tests (skip if we've already handled special commands)
 if (args[0] !== "--watch" && args[0] !== "--tags" && args[0] !== "--tag" && args[0] !== "--failing" && args[0] !== "--failing-commands" && args[0] !== "--pending") {
-  try {
-    if (testName && testName !== "--list") {
-      // Run specific test
-      console.log(`\n🎯 Running test from: ${basename(testPath!)}`);
-      runTestFromFile(testPath!, testName);
-    } else {
-      // Run all tests in the file
-      console.log(`\n🎯 Running all tests from: ${basename(testPath)}`);
-      runAllTestsFromFile(testPath!);
+  (async () => {
+    try {
+      if (testName && testName !== "--list") {
+        // Run specific test
+        console.log(`\n🎯 Running test from: ${basename(testPath!)}`);
+        await runTestFromFile(testPath!, testName);
+      } else {
+        // Run all tests in the file
+        console.log(`\n🎯 Running all tests from: ${basename(testPath)}`);
+        await runAllTestsFromFile(testPath!);
+      }
+    } catch (error: any) {
+      console.error(`\n❌ Error: ${error.message}`);
+      process.exit(1);
     }
-  } catch (error: any) {
-    console.error(`\n❌ Error: ${error.message}`);
-    process.exit(1);
-  }
+  })();
 }
