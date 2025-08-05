@@ -1,11 +1,12 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { Errors } from '../errors';
 import { RuntimeContextManager } from '../interpreter';
 import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // all() requires exactly one argument (the criteria expression)
   if (!args || args.length !== 1) {
-    throw new Error('all() requires exactly one argument');
+    throw Errors.invalidOperation('all requires exactly one argument');
   }
 
   // If the input collection is empty, the result is true per spec
@@ -15,7 +16,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
 
   const criteriaExpression = args[0];
   if (!criteriaExpression) {
-    throw new Error('all() requires a criteria expression');
+    throw Errors.invalidOperation('all requires a criteria expression');
   }
 
   // Evaluate the criteria for each element in the input collection

@@ -14,7 +14,8 @@
       "error": {
         "type": "ParseError",
         "message": "Unterminated string",
-        "phase": "parse"
+        "phase": "parse",
+        "code": "FP5003"
       },
       "pending": "Error handling tests need implementation"
     },
@@ -30,7 +31,8 @@
       "error": {
         "type": "ParseError",
         "message": "Unexpected token",
-        "phase": "parse"
+        "phase": "parse",
+        "code": "FP5001"
       },
       "pending": "Error handling tests need implementation"
     },

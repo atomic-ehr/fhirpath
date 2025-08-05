@@ -1,4 +1,5 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { Errors } from '../errors';
 import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
@@ -9,12 +10,12 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   
   // If input contains multiple items, signal an error
   if (input.length > 1) {
-    throw new Error('toDecimal() can only be applied to a singleton');
+    throw Errors.invalidOperation('toDecimal can only be applied to a singleton');
   }
   
   // toDecimal() takes no arguments
   if (args && args.length > 0) {
-    throw new Error('toDecimal() does not take any arguments');
+    throw Errors.invalidOperation('toDecimal does not take any arguments');
   }
   
   const boxedInputValue = input[0];

@@ -33,7 +33,8 @@
       "error": {
         "type": "EvaluationError",
         "message": "Variable.*undefinedVar.*not.*defined",
-        "phase": "evaluate"
+        "phase": "evaluate",
+        "code": "FP1008"
       },
       "tags": [
         "variable",
@@ -142,7 +143,8 @@
       "error": {
         "type": "EvaluationError",
         "message": "Variable.*var1.*not.*defined",
-        "phase": "evaluate"
+        "phase": "evaluate",
+        "code": "FP1008"
       },
       "tags": [
         "variable",

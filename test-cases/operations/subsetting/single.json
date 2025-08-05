@@ -49,7 +49,7 @@
       "expected": [],
       "error": {
         "type": "Error",
-        "message": "single\\(\\) requires collection to have exactly one item"
+        "message": "single requires a single item, but collection has \\d+ items"
       },
       "tags": [
         "function",
@@ -112,7 +112,7 @@
       "expected": [],
       "error": {
         "type": "Error",
-        "message": "single\\(\\) requires collection to have exactly one item"
+        "message": "single requires a single item, but collection has \\d+ items"
       },
       "tags": [
         "function",
@@ -129,7 +129,7 @@
       "expected": [],
       "error": {
         "type": "Error",
-        "message": "single\\(\\) takes no arguments"
+        "message": "single expects 0 arguments, got \\d+"
       },
       "tags": [
         "function",
@@ -148,7 +148,9 @@
             {
               "use": "official",
               "family": "Doe",
-              "given": ["John"]
+              "given": [
+                "John"
+              ]
             }
           ]
         }
@@ -157,7 +159,9 @@
         {
           "use": "official",
           "family": "Doe",
-          "given": ["John"]
+          "given": [
+            "John"
+          ]
         }
       ],
       "tags": [
@@ -188,7 +192,9 @@
       "expression": "value.single()",
       "input": [
         {
-          "value": [null]
+          "value": [
+            null
+          ]
         }
       ],
       "expected": [
@@ -207,7 +213,13 @@
       "expression": "values.where($this > 5).single()",
       "input": [
         {
-          "values": [1, 2, 6, 3, 4]
+          "values": [
+            1,
+            2,
+            6,
+            3,
+            4
+          ]
         }
       ],
       "expected": [

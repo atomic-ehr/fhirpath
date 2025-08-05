@@ -1,4 +1,5 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { Errors } from '../errors';
 import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
@@ -8,7 +9,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   }
   
   if (input.length > 1) {
-    throw new Error('substring() can only be used on single string values');
+    throw Errors.stringSingletonRequired('substring', input.length);
   }
 
   const boxedInput = input[0];
@@ -18,12 +19,12 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   
   const inputValue = unbox(boxedInput);
   if (typeof inputValue !== 'string') {
-    throw new Error('substring() can only be used on string values');
+    throw Errors.stringOperationOnNonString('substring');
   }
 
   // Check arguments - requires at least 1 (start), optionally 2 (start, length)
   if (args.length === 0 || args.length > 2) {
-    throw new Error('substring() requires 1 or 2 arguments (start, and optionally length)');
+    throw Errors.invalidOperation('substring requires 1 or 2 arguments (start, and optionally length)');
   }
 
   // Evaluate start argument
@@ -39,7 +40,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   }
   
   if (startResult.value.length > 1) {
-    throw new Error('substring() start argument must be a single value');
+    throw Errors.singletonRequired('substring start', startResult.value.length);
   }
   
   const boxedStart = startResult.value[0];
@@ -49,7 +50,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   
   const start = unbox(boxedStart);
   if (typeof start !== 'number' || !Number.isInteger(start)) {
-    throw new Error('substring() start argument must be an integer');
+    throw Errors.invalidNumericOperation('substring', 'start argument', 'integer');
   }
 
   // If start is outside string bounds, return empty
@@ -75,7 +76,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
         length = undefined;
       } else {
         if (lengthResult.value.length > 1) {
-          throw new Error('substring() length argument must be a single value');
+          throw Errors.singletonRequired('substring length', lengthResult.value.length);
         }
         
         const boxedLength = lengthResult.value[0];
@@ -84,7 +85,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
         } else {
           const lengthValue = unbox(boxedLength);
           if (typeof lengthValue !== 'number' || !Number.isInteger(lengthValue)) {
-            throw new Error('substring() length argument must be an integer');
+            throw Errors.invalidNumericOperation('substring', 'length argument', 'integer');
           }
         
           // Negative or zero length returns empty string

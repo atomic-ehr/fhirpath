@@ -1,16 +1,17 @@
 import type { FunctionDefinition, LiteralNode } from '../types';
+import { Errors } from '../errors';
 import { RuntimeContextManager } from '../interpreter';
 import { type FunctionEvaluator } from '../types';
 import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   if (args.length < 1) {
-    throw new Error('defineVariable requires at least 1 argument');
+    throw Errors.invalidOperation('defineVariable requires at least 1 argument');
   }
 
   const nameNode = args[0] as LiteralNode;
   if (nameNode.valueType !== 'string') {
-    throw new Error('Variable name must be a string');
+    throw Errors.invalidOperation('Variable name must be a string');
   }
 
   const varName = nameNode.value as string;
@@ -25,7 +26,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     const tempContext = RuntimeContextManager.setVariable(context, '$this', input);
     const valueExpr = args[1];
     if (!valueExpr) {
-      throw new Error('defineVariable requires a value expression');
+      throw Errors.invalidOperation('defineVariable requires a value expression');
     }
     const valueResult = evaluator(valueExpr, input, tempContext);
     value = valueResult.value;

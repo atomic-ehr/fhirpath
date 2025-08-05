@@ -6,64 +6,116 @@
       "name": "abs - positive integer",
       "expression": "5.abs()",
       "input": [],
-      "expected": [5],
-      "tags": ["math", "abs"]
+      "expected": [
+        5
+      ],
+      "tags": [
+        "math",
+        "abs"
+      ]
     },
     {
       "name": "abs - negative integer",
       "expression": "(-5).abs()",
       "input": [],
-      "expected": [5],
-      "tags": ["math", "abs"]
+      "expected": [
+        5
+      ],
+      "tags": [
+        "math",
+        "abs"
+      ]
     },
     {
       "name": "abs - positive decimal",
       "expression": "5.5.abs()",
       "input": [],
-      "expected": [5.5],
-      "tags": ["math", "abs"]
+      "expected": [
+        5.5
+      ],
+      "tags": [
+        "math",
+        "abs"
+      ]
     },
     {
       "name": "abs - negative decimal",
       "expression": "(-5.5).abs()",
       "input": [],
-      "expected": [5.5],
-      "tags": ["math", "abs"]
+      "expected": [
+        5.5
+      ],
+      "tags": [
+        "math",
+        "abs"
+      ]
     },
     {
       "name": "abs - zero",
       "expression": "0.abs()",
       "input": [],
-      "expected": [0],
-      "tags": ["math", "abs"]
+      "expected": [
+        0
+      ],
+      "tags": [
+        "math",
+        "abs"
+      ]
     },
     {
       "name": "abs - negative zero",
       "expression": "(-0).abs()",
       "input": [],
-      "expected": [0],
-      "tags": ["math", "abs"]
+      "expected": [
+        0
+      ],
+      "tags": [
+        "math",
+        "abs"
+      ]
     },
     {
       "name": "abs - quantity positive",
       "expression": "(5.5 'mg').abs()",
       "input": [],
-      "expected": [{"value": 5.5, "unit": "mg"}],
-      "tags": ["math", "abs", "quantity"]
+      "expected": [
+        {
+          "value": 5.5,
+          "unit": "mg"
+        }
+      ],
+      "tags": [
+        "math",
+        "abs",
+        "quantity"
+      ]
     },
     {
       "name": "abs - quantity negative",
       "expression": "(-5.5 'mg').abs()",
       "input": [],
-      "expected": [{"value": 5.5, "unit": "mg"}],
-      "tags": ["math", "abs", "quantity"]
+      "expected": [
+        {
+          "value": 5.5,
+          "unit": "mg"
+        }
+      ],
+      "tags": [
+        "math",
+        "abs",
+        "quantity"
+      ]
     },
     {
       "name": "abs - empty input",
       "expression": "{ }.abs()",
       "input": [],
       "expected": [],
-      "tags": ["math", "abs", "empty"]
+      "tags": [
+        "math",
+        "abs",
+        "empty"
+      ]
     },
     {
       "name": "abs - multiple items error",
@@ -71,9 +123,13 @@
       "input": [],
       "error": {
         "type": "Error",
-        "message": "abs\\(\\) can only be applied to a single item"
+        "message": "abs requires a single item, but collection has \\d+ items"
       },
-      "tags": ["math", "abs", "error"]
+      "tags": [
+        "math",
+        "abs",
+        "error"
+      ]
     },
     {
       "name": "abs - with arguments error",
@@ -81,9 +137,13 @@
       "input": [],
       "error": {
         "type": "Error",
-        "message": "abs\\(\\) takes no arguments"
+        "message": "abs expects 0 arguments, got \\d+"
       },
-      "tags": ["math", "abs", "error"]
+      "tags": [
+        "math",
+        "abs",
+        "error"
+      ]
     },
     {
       "name": "abs - on string error",
@@ -91,9 +151,15 @@
       "input": [],
       "error": {
         "type": "Error",
-        "message": "Cannot apply abs\\(\\) to string"
+        "message": "Cannot apply abs to string",
+        "code": "FP3006"
       },
-      "tags": ["math", "abs", "error", "type"]
+      "tags": [
+        "math",
+        "abs",
+        "error",
+        "type"
+      ]
     }
   ]
 }

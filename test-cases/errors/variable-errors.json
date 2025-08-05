@@ -10,7 +10,8 @@
       "error": {
         "type": "EvaluationError",
         "message": "Undefined.*variable.*undefinedEnvVar",
-        "phase": "evaluate"
+        "phase": "evaluate",
+        "code": "FP1008"
       },
       "tags": [
         "error",
@@ -28,7 +29,8 @@
       "error": {
         "type": "EvaluationError",
         "message": "Undefined.*variable.*x",
-        "phase": "evaluate"
+        "phase": "evaluate",
+        "code": "FP1008"
       },
       "tags": [
         "error",
@@ -50,7 +52,8 @@
       "error": {
         "type": "EvaluationError",
         "message": "Undefined.*variable.*filter",
-        "phase": "evaluate"
+        "phase": "evaluate",
+        "code": "FP1008"
       },
       "tags": [
         "error",
@@ -68,7 +71,8 @@
       "error": {
         "type": "EvaluationError",
         "message": "Variable.*x.*already.*defined",
-        "phase": "evaluate"
+        "phase": "evaluate",
+        "code": "FP6005"
       },
       "tags": [
         "error",
@@ -86,7 +90,8 @@
       "error": {
         "type": "EvaluationError",
         "message": "Cannot.*override.*system.*variable.*this",
-        "phase": "evaluate"
+        "phase": "evaluate",
+        "code": "FP6005"
       },
       "tags": [
         "error",
@@ -104,7 +109,8 @@
       "error": {
         "type": "EvaluationError",
         "message": "Cannot.*override.*system.*variable.*index",
-        "phase": "evaluate"
+        "phase": "evaluate",
+        "code": "FP6005"
       },
       "tags": [
         "error",
@@ -122,7 +128,8 @@
       "error": {
         "type": "EvaluationError",
         "message": "Cannot.*override.*system.*variable.*total",
-        "phase": "evaluate"
+        "phase": "evaluate",
+        "code": "FP6005"
       },
       "tags": [
         "error",
@@ -143,7 +150,8 @@
       "error": {
         "type": "EvaluationError",
         "message": "Variable.*x.*not.*defined.*scope",
-        "phase": "evaluate"
+        "phase": "evaluate",
+        "code": "FP1008"
       },
       "tags": [
         "error",
@@ -178,7 +186,8 @@
       "error": {
         "type": "EvaluationError",
         "message": "Variable.*n.*not.*defined.*scope",
-        "phase": "evaluate"
+        "phase": "evaluate",
+        "code": "FP1008"
       },
       "tags": [
         "error",
@@ -201,7 +210,8 @@
       "error": {
         "type": "EvaluationError",
         "message": "Variable.*inner.*not.*defined.*scope",
-        "phase": "evaluate"
+        "phase": "evaluate",
+        "code": "FP1008"
       },
       "tags": [
         "error",

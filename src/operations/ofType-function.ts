@@ -1,4 +1,5 @@
 import type { FunctionDefinition, RuntimeContext, ASTNode, TypeInfo } from '../types';
+import { Errors } from '../errors';
 import type { NodeEvaluator } from '../types';
 import type { FHIRPathValue } from '../boxing';
 import { unbox } from '../boxing';
@@ -26,7 +27,7 @@ export const ofTypeFunction: FunctionDefinition = {
   },
   evaluate(input: FHIRPathValue[], context: RuntimeContext, args: ASTNode[], evaluator: NodeEvaluator) {
     if (args.length !== 1) {
-      throw new Error('ofType() requires exactly one argument');
+      throw Errors.invalidOperation('ofType requires exactly one argument');
     }
 
     const typeArg = args[0]!;
@@ -43,7 +44,7 @@ export const ofTypeFunction: FunctionDefinition = {
       // Handle cases like ofType(Patient())
       targetTypeName = typeArg.name.name;
     } else {
-      throw new Error(`ofType() requires a type name as argument, got ${typeArg.type}`);
+      throw Errors.invalidOperation(`ofType() requires a type name as argument, got ${typeArg.type}`);
     }
 
     // If we have typeInfo from the analyzer (with ModelProvider), use it

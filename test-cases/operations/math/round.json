@@ -6,92 +6,162 @@
       "name": "round - integer",
       "expression": "1.round()",
       "input": [],
-      "expected": [1],
-      "tags": ["math", "round"]
+      "expected": [
+        1
+      ],
+      "tags": [
+        "math",
+        "round"
+      ]
     },
     {
       "name": "round - decimal below .5",
       "expression": "1.4.round()",
       "input": [],
-      "expected": [1],
-      "tags": ["math", "round"]
+      "expected": [
+        1
+      ],
+      "tags": [
+        "math",
+        "round"
+      ]
     },
     {
       "name": "round - decimal at .5",
       "expression": "1.5.round()",
       "input": [],
-      "expected": [2],
-      "tags": ["math", "round"]
+      "expected": [
+        2
+      ],
+      "tags": [
+        "math",
+        "round"
+      ]
     },
     {
       "name": "round - decimal above .5",
       "expression": "1.6.round()",
       "input": [],
-      "expected": [2],
-      "tags": ["math", "round"]
+      "expected": [
+        2
+      ],
+      "tags": [
+        "math",
+        "round"
+      ]
     },
     {
       "name": "round - negative below .5",
       "expression": "(-1.4).round()",
       "input": [],
-      "expected": [-1],
-      "tags": ["math", "round"]
+      "expected": [
+        -1
+      ],
+      "tags": [
+        "math",
+        "round"
+      ]
     },
     {
       "name": "round - negative at .5",
       "expression": "(-1.5).round()",
       "input": [],
-      "expected": [-2],
-      "tags": ["math", "round"]
+      "expected": [
+        -2
+      ],
+      "tags": [
+        "math",
+        "round"
+      ]
     },
     {
       "name": "round - with precision 3",
       "expression": "3.14159.round(3)",
       "input": [],
-      "expected": [3.142],
-      "tags": ["math", "round", "precision"]
+      "expected": [
+        3.142
+      ],
+      "tags": [
+        "math",
+        "round",
+        "precision"
+      ]
     },
     {
       "name": "round - with precision 0",
       "expression": "3.14159.round(0)",
       "input": [],
-      "expected": [3],
-      "tags": ["math", "round", "precision"]
+      "expected": [
+        3
+      ],
+      "tags": [
+        "math",
+        "round",
+        "precision"
+      ]
     },
     {
       "name": "round - with precision 1",
       "expression": "3.14159.round(1)",
       "input": [],
-      "expected": [3.1],
-      "tags": ["math", "round", "precision"]
+      "expected": [
+        3.1
+      ],
+      "tags": [
+        "math",
+        "round",
+        "precision"
+      ]
     },
     {
       "name": "round - with precision 5",
       "expression": "3.141592653589793.round(5)",
       "input": [],
-      "expected": [3.14159],
-      "tags": ["math", "round", "precision"]
+      "expected": [
+        3.14159
+      ],
+      "tags": [
+        "math",
+        "round",
+        "precision"
+      ]
     },
     {
       "name": "round - negative with precision",
       "expression": "(-3.14159).round(2)",
       "input": [],
-      "expected": [-3.14],
-      "tags": ["math", "round", "precision", "negative"]
+      "expected": [
+        -3.14
+      ],
+      "tags": [
+        "math",
+        "round",
+        "precision",
+        "negative"
+      ]
     },
     {
       "name": "round - zero",
       "expression": "0.round()",
       "input": [],
-      "expected": [0],
-      "tags": ["math", "round"]
+      "expected": [
+        0
+      ],
+      "tags": [
+        "math",
+        "round"
+      ]
     },
     {
       "name": "round - empty input",
       "expression": "{ }.round()",
       "input": [],
       "expected": [],
-      "tags": ["math", "round", "empty"]
+      "tags": [
+        "math",
+        "round",
+        "empty"
+      ]
     },
     {
       "name": "round - multiple items error",
@@ -99,9 +169,13 @@
       "input": [],
       "error": {
         "type": "Error",
-        "message": "round\\(\\) can only be applied to a single item"
+        "message": "round requires a single item, but collection has \\d+ items"
       },
-      "tags": ["math", "round", "error"]
+      "tags": [
+        "math",
+        "round",
+        "error"
+      ]
     },
     {
       "name": "round - negative precision error",
@@ -109,9 +183,15 @@
       "input": [],
       "error": {
         "type": "Error",
-        "message": "round\\(\\) precision must be a non-negative integer"
+        "message": "precision must be a non-negative integer",
+        "code": "FP6005"
       },
-      "tags": ["math", "round", "error", "precision"]
+      "tags": [
+        "math",
+        "round",
+        "error",
+        "precision"
+      ]
     },
     {
       "name": "round - non-integer precision error",
@@ -119,9 +199,15 @@
       "input": [],
       "error": {
         "type": "Error",
-        "message": "round\\(\\) precision must be a non-negative integer"
+        "message": "precision must be a non-negative integer",
+        "code": "FP6005"
       },
-      "tags": ["math", "round", "error", "precision"]
+      "tags": [
+        "math",
+        "round",
+        "error",
+        "precision"
+      ]
     },
     {
       "name": "round - too many arguments error",
@@ -129,9 +215,14 @@
       "input": [],
       "error": {
         "type": "Error",
-        "message": "round\\(\\) takes at most 1 argument"
+        "message": "round expects 0 to 1 argument",
+        "code": "FP2002"
       },
-      "tags": ["math", "round", "error"]
+      "tags": [
+        "math",
+        "round",
+        "error"
+      ]
     },
     {
       "name": "round - on string error",
@@ -139,9 +230,15 @@
       "input": [],
       "error": {
         "type": "Error",
-        "message": "Cannot apply round\\(\\) to string"
+        "message": "Cannot apply round to string",
+        "code": "FP3006"
       },
-      "tags": ["math", "round", "error", "type"]
+      "tags": [
+        "math",
+        "round",
+        "error",
+        "type"
+      ]
     }
   ]
 }

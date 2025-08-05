@@ -1,10 +1,11 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { Errors } from '../errors';
 import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // tail() takes no arguments
   if (args.length !== 0) {
-    throw new Error('tail() takes no arguments');
+    throw Errors.wrongArgumentCount('tail', 0, args.length);
   }
   
   // If input has 0 or 1 items, return empty collection

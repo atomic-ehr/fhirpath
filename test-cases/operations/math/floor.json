@@ -6,64 +6,108 @@
       "name": "floor - integer",
       "expression": "1.floor()",
       "input": [],
-      "expected": [1],
-      "tags": ["math", "floor"]
+      "expected": [
+        1
+      ],
+      "tags": [
+        "math",
+        "floor"
+      ]
     },
     {
       "name": "floor - positive decimal rounds down",
       "expression": "2.1.floor()",
       "input": [],
-      "expected": [2],
-      "tags": ["math", "floor"]
+      "expected": [
+        2
+      ],
+      "tags": [
+        "math",
+        "floor"
+      ]
     },
     {
       "name": "floor - negative decimal rounds down",
       "expression": "(-2.1).floor()",
       "input": [],
-      "expected": [-3],
-      "tags": ["math", "floor"]
+      "expected": [
+        -3
+      ],
+      "tags": [
+        "math",
+        "floor"
+      ]
     },
     {
       "name": "floor - positive large decimal",
       "expression": "2.9.floor()",
       "input": [],
-      "expected": [2],
-      "tags": ["math", "floor"]
+      "expected": [
+        2
+      ],
+      "tags": [
+        "math",
+        "floor"
+      ]
     },
     {
       "name": "floor - negative large decimal",
       "expression": "(-1.9).floor()",
       "input": [],
-      "expected": [-2],
-      "tags": ["math", "floor"]
+      "expected": [
+        -2
+      ],
+      "tags": [
+        "math",
+        "floor"
+      ]
     },
     {
       "name": "floor - zero",
       "expression": "0.floor()",
       "input": [],
-      "expected": [0],
-      "tags": ["math", "floor"]
+      "expected": [
+        0
+      ],
+      "tags": [
+        "math",
+        "floor"
+      ]
     },
     {
       "name": "floor - very small positive",
       "expression": "0.9999.floor()",
       "input": [],
-      "expected": [0],
-      "tags": ["math", "floor"]
+      "expected": [
+        0
+      ],
+      "tags": [
+        "math",
+        "floor"
+      ]
     },
     {
       "name": "floor - very small negative",
       "expression": "(-0.0001).floor()",
       "input": [],
-      "expected": [-1],
-      "tags": ["math", "floor"]
+      "expected": [
+        -1
+      ],
+      "tags": [
+        "math",
+        "floor"
+      ]
     },
     {
       "name": "floor - empty input",
       "expression": "{ }.floor()",
       "input": [],
       "expected": [],
-      "tags": ["math", "floor", "empty"]
+      "tags": [
+        "math",
+        "floor",
+        "empty"
+      ]
     },
     {
       "name": "floor - multiple items error",
@@ -71,9 +115,13 @@
       "input": [],
       "error": {
         "type": "Error",
-        "message": "floor\\(\\) can only be applied to a single item"
+        "message": "floor requires a single item, but collection has \\d+ items"
       },
-      "tags": ["math", "floor", "error"]
+      "tags": [
+        "math",
+        "floor",
+        "error"
+      ]
     },
     {
       "name": "floor - with arguments error",
@@ -81,9 +129,13 @@
       "input": [],
       "error": {
         "type": "Error",
-        "message": "floor\\(\\) takes no arguments"
+        "message": "floor expects 0 arguments, got \\d+"
       },
-      "tags": ["math", "floor", "error"]
+      "tags": [
+        "math",
+        "floor",
+        "error"
+      ]
     },
     {
       "name": "floor - on string error",
@@ -91,9 +143,15 @@
       "input": [],
       "error": {
         "type": "Error",
-        "message": "Cannot apply floor\\(\\) to string"
+        "message": "Cannot apply floor to string",
+        "code": "FP3006"
       },
-      "tags": ["math", "floor", "error", "type"]
+      "tags": [
+        "math",
+        "floor",
+        "error",
+        "type"
+      ]
     }
   ]
 }

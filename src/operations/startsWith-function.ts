@@ -1,15 +1,16 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { Errors } from '../errors';
 import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // startsWith() requires exactly 1 argument
   if (args.length !== 1) {
-    throw new Error('startsWith() requires exactly 1 argument');
+    throw Errors.wrongArgumentCount('startsWith', 1, args.length);
   }
 
   const prefixExpr = args[0];
   if (!prefixExpr) {
-    throw new Error('startsWith() requires a prefix argument');
+    throw Errors.argumentRequired('startsWith', 'prefix argument');
   }
 
   // If input collection is empty, result is empty
@@ -19,7 +20,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
 
   // If input collection contains multiple items, signal an error
   if (input.length > 1) {
-    throw new Error('startsWith() can only be applied to a single string');
+    throw Errors.invalidOperation('startsWith can only be applied to a single string');
   }
 
   // Input must be a string
@@ -44,7 +45,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   
   // Prefix must be a single string
   if (prefixResult.value.length > 1) {
-    throw new Error('startsWith() prefix argument must evaluate to a single value');
+    throw Errors.invalidOperation('startsWith prefix argument must evaluate to a single value');
   }
   
   const boxedPrefix = prefixResult.value[0];

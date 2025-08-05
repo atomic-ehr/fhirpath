@@ -1,10 +1,11 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { Errors } from '../errors';
 import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // truncate() takes no arguments
   if (args.length !== 0) {
-    throw new Error('truncate() takes no arguments');
+    throw Errors.wrongArgumentCount('truncate', 0, args.length);
   }
 
   // If input is empty, return empty
@@ -14,7 +15,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
 
   // If input has multiple items, error
   if (input.length > 1) {
-    throw new Error('truncate() can only be applied to a single item');
+    throw Errors.singletonRequired('truncate', input.length);
   }
 
   const boxedValue = input[0];
@@ -23,7 +24,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
 
   // Must be a number
   if (typeof value !== 'number') {
-    throw new Error(`Cannot apply truncate() to ${typeof value}`);
+    throw Errors.invalidOperandType('truncate', `${typeof value}`);
   }
 
   // Math.trunc removes decimal part (towards zero)

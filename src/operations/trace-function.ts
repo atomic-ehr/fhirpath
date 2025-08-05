@@ -1,4 +1,5 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { Errors } from '../errors';
 import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
@@ -10,28 +11,28 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   }
   
   if (args.length > 2) {
-    throw new Error('trace() takes at most 2 arguments');
+    throw Errors.wrongArgumentCountRange('trace', 0, 2, args.length);
   }
 
   // Evaluate the name argument
   if (!args[0]) {
-    throw new Error('trace() requires a name argument');
+    throw Errors.argumentRequired('trace', 'name argument');
   }
   const nameResult = evaluator(args[0], input, context);
   
   // Validate that name is a singleton string
   if (nameResult.value.length !== 1) {
-    throw new Error('trace() name argument must be a single value');
+    throw Errors.singletonRequired('trace name', nameResult.value.length);
   }
   
   const boxedName = nameResult.value[0];
   if (!boxedName) {
-    throw new Error('trace() name argument must be a string');
+    throw Errors.invalidStringOperation('trace', 'name argument');
   }
   
   const name = unbox(boxedName);
   if (typeof name !== 'string') {
-    throw new Error('trace() name argument must be a string');
+    throw Errors.invalidStringOperation('trace', 'name argument');
   }
 
   // If projection argument is provided, evaluate it and log the result

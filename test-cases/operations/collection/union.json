@@ -123,7 +123,8 @@
       "error": {
         "type": "EvaluationError",
         "message": "Variable.*%x.*not.*defined.*scope",
-        "phase": "evaluate"
+        "phase": "evaluate",
+        "code": "FP1008"
       },
       "tags": [
         "operator",

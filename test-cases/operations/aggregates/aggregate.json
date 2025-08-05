@@ -6,78 +6,136 @@
       "name": "aggregate - sum with init value 0",
       "expression": "(1 | 2 | 3 | 4 | 5).aggregate($this + $total, 0)",
       "input": [],
-      "expected": [15],
-      "tags": ["aggregate", "sum"]
+      "expected": [
+        15
+      ],
+      "tags": [
+        "aggregate",
+        "sum"
+      ]
     },
     {
       "name": "aggregate - sum with init value 2",
       "expression": "(1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9).aggregate($this + $total, 2)",
       "input": [],
-      "expected": [47],
-      "tags": ["aggregate", "sum", "init"]
+      "expected": [
+        47
+      ],
+      "tags": [
+        "aggregate",
+        "sum",
+        "init"
+      ]
     },
     {
       "name": "aggregate - minimum value without init",
       "expression": "(1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9).aggregate(iif($total.empty(), $this, iif($this < $total, $this, $total)))",
       "input": [],
-      "expected": [1],
-      "tags": ["aggregate", "min"]
+      "expected": [
+        1
+      ],
+      "tags": [
+        "aggregate",
+        "min"
+      ]
     },
     {
       "name": "aggregate - maximum value without init",
       "expression": "(1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9).aggregate(iif($total.empty(), $this, iif($this > $total, $this, $total)))",
       "input": [],
-      "expected": [9],
-      "tags": ["aggregate", "max"]
+      "expected": [
+        9
+      ],
+      "tags": [
+        "aggregate",
+        "max"
+      ]
     },
     {
       "name": "aggregate - concatenate strings",
       "expression": "('a' | 'b' | 'c').aggregate($total + $this, '')",
       "input": [],
-      "expected": ["abc"],
-      "tags": ["aggregate", "string", "concat"]
+      "expected": [
+        "abc"
+      ],
+      "tags": [
+        "aggregate",
+        "string",
+        "concat"
+      ]
     },
     {
       "name": "aggregate - empty input with init",
       "expression": "{ }.aggregate($this + $total, 10)",
       "input": [],
-      "expected": [10],
-      "tags": ["aggregate", "empty", "init"]
+      "expected": [
+        10
+      ],
+      "tags": [
+        "aggregate",
+        "empty",
+        "init"
+      ]
     },
     {
       "name": "aggregate - empty input without init",
       "expression": "{ }.aggregate($this + $total)",
       "input": [],
       "expected": [],
-      "tags": ["aggregate", "empty"]
+      "tags": [
+        "aggregate",
+        "empty"
+      ]
     },
     {
       "name": "aggregate - using $index variable",
       "expression": "(10 | 20 | 30).aggregate($total + $this * $index, 0)",
       "input": [],
-      "expected": [80],
-      "tags": ["aggregate", "index"]
+      "expected": [
+        80
+      ],
+      "tags": [
+        "aggregate",
+        "index"
+      ]
     },
     {
       "name": "aggregate - collect items into array",
       "expression": "(1 | 2 | 3).aggregate($total | $this, { })",
       "input": [],
-      "expected": [1, 2, 3],
-      "tags": ["aggregate", "collect"]
+      "expected": [
+        1,
+        2,
+        3
+      ],
+      "tags": [
+        "aggregate",
+        "collect"
+      ]
     },
     {
       "name": "aggregate - count using aggregate",
       "expression": "(1 | 2 | 3 | 4 | 5).aggregate($total + 1, 0)",
       "input": [],
-      "expected": [5],
-      "tags": ["aggregate", "count"]
+      "expected": [
+        5
+      ],
+      "tags": [
+        "aggregate",
+        "count"
+      ]
     },
     {
       "name": "aggregate - product calculation",
       "expression": "(2 | 3 | 4).aggregate($this * $total, 1)",
       "input": [],
-      "expected": [24],
-      "tags": ["aggregate", "product"]
+      "expected": [
+        24
+      ],
+      "tags": [
+        "aggregate",
+        "product"
+      ]
     },
     {
       "name": "aggregate - on property path",
@@ -85,11 +143,23 @@
       "input": {
         "resourceType": "Patient",
         "name": [
-          { "given": ["John", "James"], "family": "Smith" }
+          {
+            "given": [
+              "John",
+              "James"
+            ],
+            "family": "Smith"
+          }
         ]
       },
-      "expected": ["John, James"],
-      "tags": ["aggregate", "path", "string"]
+      "expected": [
+        "John, James"
+      ],
+      "tags": [
+        "aggregate",
+        "path",
+        "string"
+      ]
     },
     {
       "name": "aggregate - error on missing aggregator",
@@ -97,38 +167,63 @@
       "input": [],
       "error": {
         "type": "ArgumentError",
-        "message": "aggregate\\(\\) requires at least one argument",
-        "phase": "evaluate"
+        "message": "aggregate requires at least one argument",
+        "phase": "evaluate",
+        "code": "FP6005"
       },
-      "tags": ["aggregate", "error", "arguments"]
+      "tags": [
+        "aggregate",
+        "error",
+        "arguments"
+      ]
     },
     {
       "name": "aggregate - FHIRPath Lab test 1",
       "expression": "(1|2|3|4|5|6|7|8|9).aggregate($this+$total, 0) = 45",
       "input": [],
-      "expected": [true],
-      "tags": ["aggregate", "fhirpath-lab"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "aggregate",
+        "fhirpath-lab"
+      ]
     },
     {
       "name": "aggregate - FHIRPath Lab test 2",
       "expression": "(1|2|3|4|5|6|7|8|9).aggregate($this+$total, 2) = 47",
       "input": [],
-      "expected": [true],
-      "tags": ["aggregate", "fhirpath-lab"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "aggregate",
+        "fhirpath-lab"
+      ]
     },
     {
       "name": "aggregate - FHIRPath Lab test 3",
       "expression": "(1|2|3|4|5|6|7|8|9).aggregate(iif($total.empty(), $this, iif($this < $total, $this, $total))) = 1",
       "input": [],
-      "expected": [true],
-      "tags": ["aggregate", "fhirpath-lab"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "aggregate",
+        "fhirpath-lab"
+      ]
     },
     {
       "name": "aggregate - FHIRPath Lab test 4",
       "expression": "(1|2|3|4|5|6|7|8|9).aggregate(iif($total.empty(), $this, iif($this > $total, $this, $total))) = 9",
       "input": [],
-      "expected": [true],
-      "tags": ["aggregate", "fhirpath-lab"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "aggregate",
+        "fhirpath-lab"
+      ]
     }
   ]
 }

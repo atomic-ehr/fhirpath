@@ -1,4 +1,5 @@
 import type { FunctionDefinition } from '../types';
+import { Errors } from '../errors';
 import { RuntimeContextManager } from '../interpreter';
 import { type FunctionEvaluator } from '../types';
 import { unbox } from '../boxing';
@@ -6,12 +7,12 @@ import { unbox } from '../boxing';
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // Select requires exactly one argument
   if (args.length !== 1) {
-    throw new Error('select() requires exactly 1 argument');
+    throw Errors.wrongArgumentCount('select', 1, args.length);
   }
 
   const expression = args[0];
   if (!expression) {
-    throw new Error('select() requires a projection expression');
+    throw Errors.invalidOperation('select requires a projection expression');
   }
   
   const results: any[] = [];

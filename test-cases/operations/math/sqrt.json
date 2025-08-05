@@ -6,57 +6,94 @@
       "name": "sqrt - perfect square",
       "expression": "81.sqrt()",
       "input": [],
-      "expected": [9],
-      "tags": ["math", "sqrt"]
+      "expected": [
+        9
+      ],
+      "tags": [
+        "math",
+        "sqrt"
+      ]
     },
     {
       "name": "sqrt - decimal result",
       "expression": "2.sqrt()",
       "input": [],
-      "expected": [1.4142135623730951],
-      "tags": ["math", "sqrt"]
+      "expected": [
+        1.4142135623730951
+      ],
+      "tags": [
+        "math",
+        "sqrt"
+      ]
     },
     {
       "name": "sqrt - zero",
       "expression": "0.sqrt()",
       "input": [],
-      "expected": [0],
-      "tags": ["math", "sqrt"]
+      "expected": [
+        0
+      ],
+      "tags": [
+        "math",
+        "sqrt"
+      ]
     },
     {
       "name": "sqrt - one",
       "expression": "1.sqrt()",
       "input": [],
-      "expected": [1],
-      "tags": ["math", "sqrt"]
+      "expected": [
+        1
+      ],
+      "tags": [
+        "math",
+        "sqrt"
+      ]
     },
     {
       "name": "sqrt - small number",
       "expression": "0.25.sqrt()",
       "input": [],
-      "expected": [0.5],
-      "tags": ["math", "sqrt"]
+      "expected": [
+        0.5
+      ],
+      "tags": [
+        "math",
+        "sqrt"
+      ]
     },
     {
       "name": "sqrt - negative returns empty",
       "expression": "(-1).sqrt()",
       "input": [],
       "expected": [],
-      "tags": ["math", "sqrt", "negative"]
+      "tags": [
+        "math",
+        "sqrt",
+        "negative"
+      ]
     },
     {
       "name": "sqrt - negative decimal returns empty",
       "expression": "(-4.5).sqrt()",
       "input": [],
       "expected": [],
-      "tags": ["math", "sqrt", "negative"]
+      "tags": [
+        "math",
+        "sqrt",
+        "negative"
+      ]
     },
     {
       "name": "sqrt - empty input",
       "expression": "{ }.sqrt()",
       "input": [],
       "expected": [],
-      "tags": ["math", "sqrt", "empty"]
+      "tags": [
+        "math",
+        "sqrt",
+        "empty"
+      ]
     },
     {
       "name": "sqrt - multiple items error",
@@ -64,9 +101,13 @@
       "input": [],
       "error": {
         "type": "Error",
-        "message": "sqrt\\(\\) can only be applied to a single item"
+        "message": "sqrt requires a single item, but collection has \\d+ items"
       },
-      "tags": ["math", "sqrt", "error"]
+      "tags": [
+        "math",
+        "sqrt",
+        "error"
+      ]
     },
     {
       "name": "sqrt - with arguments error",
@@ -74,9 +115,13 @@
       "input": [],
       "error": {
         "type": "Error",
-        "message": "sqrt\\(\\) takes no arguments"
+        "message": "sqrt expects 0 arguments, got \\d+"
       },
-      "tags": ["math", "sqrt", "error"]
+      "tags": [
+        "math",
+        "sqrt",
+        "error"
+      ]
     },
     {
       "name": "sqrt - on string error",
@@ -84,9 +129,15 @@
       "input": [],
       "error": {
         "type": "Error",
-        "message": "Cannot apply sqrt\\(\\) to string"
+        "message": "Cannot apply sqrt to string",
+        "code": "FP3006"
       },
-      "tags": ["math", "sqrt", "error", "type"]
+      "tags": [
+        "math",
+        "sqrt",
+        "error",
+        "type"
+      ]
     }
   ]
 }

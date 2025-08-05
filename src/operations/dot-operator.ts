@@ -1,4 +1,5 @@
 import type { OperatorDefinition } from '../types';
+import { Errors } from '../errors';
 import { PRECEDENCE } from '../types';
 import type { OperationEvaluator } from '../types';
 import { box, unbox } from '../boxing';
@@ -8,7 +9,7 @@ import { box, unbox } from '../boxing';
 export const evaluate: OperationEvaluator = (input, context, left, right) => {
   // This should not be called directly - dot operator needs special handling
   // in the interpreter to properly sequence evaluation
-  throw new Error('Dot operator requires special handling in the interpreter');
+  throw Errors.invalidOperation('Dot operator requires special handling in the interpreter');
 };
 
 export const dotOperator: OperatorDefinition & { evaluate: OperationEvaluator } = {

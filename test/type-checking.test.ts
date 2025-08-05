@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'bun:test';
 import { analyze } from '../src/index';
 import { DiagnosticSeverity } from '../src/types';
+import { ErrorCodes } from "../src/index";
 
 describe('Type Checking', () => {
   describe('Basic type inference', () => {
@@ -35,7 +36,7 @@ describe('Type Checking', () => {
       const result = analyze('"hello" + 42');
       const errors = result.diagnostics.filter(d => d.severity === DiagnosticSeverity.Error);
       expect(errors.length).toBeGreaterThan(0);
-      expect(errors[0]?.code).toBe('TYPE_MISMATCH');
+      expect(errors[0]?.code).toBe(ErrorCodes.OPERATOR_TYPE_MISMATCH);
       expect(errors[0]?.message).toContain("cannot be applied to types String and Integer");
     });
 
@@ -43,7 +44,7 @@ describe('Type Checking', () => {
       const result = analyze('"hello".substring("not a number")');
       const errors = result.diagnostics.filter(d => d.severity === DiagnosticSeverity.Error);
       expect(errors.length).toBeGreaterThan(0);
-      expect(errors[0]?.code).toBe('ARGUMENT_TYPE_MISMATCH');
+      expect(errors[0]?.code).toBe(ErrorCodes.ARGUMENT_TYPE_MISMATCH);
     });
 
     it('should allow compatible numeric types', () => {
@@ -104,7 +105,7 @@ describe('Type Checking', () => {
       
       const errors = result.diagnostics.filter(d => d.severity === DiagnosticSeverity.Error);
       expect(errors.length).toBeGreaterThan(0);
-      expect(errors[0]?.code).toBe('TYPE_MISMATCH');
+      expect(errors[0]?.code).toBe(ErrorCodes.OPERATOR_TYPE_MISMATCH);
     });
 
     it('should handle built-in variables', () => {

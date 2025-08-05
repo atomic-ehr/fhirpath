@@ -1,10 +1,11 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { Errors } from '../errors';
 import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // sqrt() takes no arguments
   if (args.length !== 0) {
-    throw new Error('sqrt() takes no arguments');
+    throw Errors.wrongArgumentCount('sqrt', 0, args.length);
   }
 
   // If input is empty, return empty
@@ -14,7 +15,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
 
   // If input has multiple items, error
   if (input.length > 1) {
-    throw new Error('sqrt() can only be applied to a single item');
+    throw Errors.singletonRequired('sqrt', input.length);
   }
 
   const boxedValue = input[0];
@@ -23,7 +24,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
 
   // Must be a number
   if (typeof value !== 'number') {
-    throw new Error(`Cannot apply sqrt() to ${typeof value}`);
+    throw Errors.invalidOperandType('sqrt', `${typeof value}`);
   }
 
   // If negative, return empty (cannot represent square root of negative)

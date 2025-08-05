@@ -1,15 +1,16 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { Errors } from '../errors';
 import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   if (args.length !== 1) {
-    throw new Error('intersect() requires exactly 1 argument');
+    throw Errors.wrongArgumentCount('intersect', 1, args.length);
   }
 
   // Evaluate the argument to get the other collection
   const argNode = args[0];
   if (!argNode) {
-    throw new Error('intersect() requires an argument');
+    throw Errors.invalidOperation('intersect requires an argument');
   }
   const otherResult = evaluator(argNode, input, context);
   const other = otherResult.value;

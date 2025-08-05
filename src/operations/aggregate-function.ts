@@ -1,11 +1,12 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { Errors } from '../errors';
 import { RuntimeContextManager } from '../interpreter';
 import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // aggregator expression is required
   if (args.length < 1) {
-    throw new Error('aggregate() requires at least one argument (aggregator expression)');
+    throw Errors.invalidOperation('aggregate requires at least one argument (aggregator expression)');
   }
 
   const aggregatorExpr = args[0]!;

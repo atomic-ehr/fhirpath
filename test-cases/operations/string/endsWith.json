@@ -6,7 +6,9 @@
       "name": "endsWith - basic true case",
       "expression": "'abcdefg'.endsWith('efg')",
       "input": null,
-      "expected": [true],
+      "expected": [
+        true
+      ],
       "tags": [
         "function",
         "string",
@@ -18,7 +20,9 @@
       "name": "endsWith - basic false case",
       "expression": "'abcdefg'.endsWith('abc')",
       "input": null,
-      "expected": [false],
+      "expected": [
+        false
+      ],
       "tags": [
         "function",
         "string",
@@ -30,7 +34,9 @@
       "name": "endsWith - empty suffix returns true",
       "expression": "'hello'.endsWith('')",
       "input": null,
-      "expected": [true],
+      "expected": [
+        true
+      ],
       "tags": [
         "function",
         "string",
@@ -43,7 +49,9 @@
       "name": "endsWith - full string match",
       "expression": "'test'.endsWith('test')",
       "input": null,
-      "expected": [true],
+      "expected": [
+        true
+      ],
       "tags": [
         "function",
         "string",
@@ -55,7 +63,9 @@
       "name": "endsWith - longer suffix",
       "expression": "'short'.endsWith('longer')",
       "input": null,
-      "expected": [false],
+      "expected": [
+        false
+      ],
       "tags": [
         "function",
         "string",
@@ -67,7 +77,9 @@
       "name": "endsWith - case sensitive",
       "expression": "'Hello'.endsWith('hello')",
       "input": null,
-      "expected": [false],
+      "expected": [
+        false
+      ],
       "tags": [
         "function",
         "string",
@@ -97,7 +109,9 @@
       "name": "endsWith - single character suffix",
       "expression": "'filename.txt'.endsWith('t')",
       "input": null,
-      "expected": [true],
+      "expected": [
+        true
+      ],
       "tags": [
         "function",
         "string",
@@ -113,7 +127,9 @@
           "name": "document.pdf"
         }
       ],
-      "expected": [true],
+      "expected": [
+        true
+      ],
       "tags": [
         "function",
         "string",
@@ -126,7 +142,9 @@
       "name": "endsWith - with spaces",
       "expression": "'hello world '.endsWith(' ')",
       "input": null,
-      "expected": [true],
+      "expected": [
+        true
+      ],
       "tags": [
         "function",
         "string",
@@ -139,13 +157,16 @@
       "expression": "names.endsWith('test')",
       "input": [
         {
-          "names": ["first", "second"]
+          "names": [
+            "first",
+            "second"
+          ]
         }
       ],
       "expected": [],
       "error": {
         "type": "Error",
-        "message": "endsWith\\(\\) can only be used on single string values"
+        "message": "endsWith requires a single item, but collection has \\d+ items"
       },
       "tags": [
         "function",
@@ -162,7 +183,8 @@
       "expected": [],
       "error": {
         "type": "Error",
-        "message": "endsWith\\(\\) can only be used on string values"
+        "message": "endsWith can only be used on string values",
+        "code": "FP3007"
       },
       "tags": [
         "function",
@@ -179,7 +201,8 @@
       "expected": [],
       "error": {
         "type": "Error",
-        "message": "endsWith\\(\\) suffix argument must be a string"
+        "message": "endsWith suffix argument must be a string",
+        "code": "FP6007"
       },
       "tags": [
         "function",
@@ -196,7 +219,8 @@
       "expected": [],
       "error": {
         "type": "Error",
-        "message": "endsWith\\(\\) requires exactly 1 argument"
+        "message": "endsWith expects 1 argument",
+        "code": "FP2001"
       },
       "tags": [
         "function",
@@ -213,7 +237,8 @@
       "expected": [],
       "error": {
         "type": "Error",
-        "message": "endsWith\\(\\) suffix argument must be a single value"
+        "message": "endsWith suffix argument must be a single value",
+        "code": "FP6005"
       },
       "tags": [
         "function",
@@ -227,7 +252,9 @@
       "name": "endsWith - with expression argument",
       "expression": "'hello world'.endsWith('wor' + 'ld')",
       "input": null,
-      "expected": [true],
+      "expected": [
+        true
+      ],
       "tags": [
         "function",
         "string",

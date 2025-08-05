@@ -1,10 +1,11 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { Errors } from '../errors';
 import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // Validate arguments
   if (args.length !== 1) {
-    throw new Error('take() requires exactly 1 argument');
+    throw Errors.wrongArgumentCount('take', 1, args.length);
   }
 
   // If input is empty, return empty collection
@@ -14,25 +15,25 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
 
   // Evaluate the num argument
   if (!args[0]) {
-    throw new Error('take() requires a number argument');
+    throw Errors.argumentRequired('take', 'number argument');
   }
   const numResult = evaluator(args[0], input, context);
   
   // Validate that num is a singleton integer
   if (numResult.value.length !== 1) {
-    throw new Error('take() argument must be a single value');
+    throw Errors.invalidOperation('take argument must be a single value');
   }
   
   const boxedNum = numResult.value[0];
   if (!boxedNum) {
-    throw new Error('take() argument must be a single value');
+    throw Errors.invalidOperation('take argument must be a single value');
   }
   
   const num = unbox(boxedNum);
   
   // Check that num is an integer
   if (!Number.isInteger(num)) {
-    throw new Error('take() argument must be an integer');
+    throw Errors.invalidOperation('take argument must be an integer');
   }
   
   // If num is less than or equal to 0, return empty collection

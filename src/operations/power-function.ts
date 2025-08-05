@@ -1,10 +1,11 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { Errors } from '../errors';
 import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // power() takes exactly one argument (exponent)
   if (args.length !== 1) {
-    throw new Error('power() requires exactly 1 argument');
+    throw Errors.wrongArgumentCount('power', 1, args.length);
   }
 
   // If input is empty, return empty
@@ -14,7 +15,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
 
   // If input has multiple items, error
   if (input.length > 1) {
-    throw new Error('power() can only be applied to a single item');
+    throw Errors.singletonRequired('power', input.length);
   }
 
   const boxedBase = input[0];
@@ -26,7 +27,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
 
   // Base must be a number
   if (typeof base !== 'number') {
-    throw new Error(`Cannot apply power() to ${typeof base}`);
+    throw Errors.invalidOperandType('power', `${typeof base}`);
   }
 
   // Evaluate exponent
@@ -35,7 +36,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     return { value: [], context };
   }
   if (exponentResult.value.length > 1) {
-    throw new Error('power() exponent must be a single value');
+    throw Errors.invalidOperation('power exponent must be a single value');
   }
 
   const boxedExponent = exponentResult.value[0];
@@ -45,7 +46,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   
   const exponent = unbox(boxedExponent);
   if (typeof exponent !== 'number') {
-    throw new Error('power() exponent must be a number');
+    throw Errors.invalidOperation('power exponent must be a number');
   }
 
   // Calculate power

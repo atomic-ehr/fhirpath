@@ -1,33 +1,34 @@
 import type { FunctionDefinition } from '../types';
+import { Errors } from '../errors';
 import type { FunctionEvaluator } from '../types';
 import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   if (args.length !== 1) {
-    throw new Error('skip() requires exactly one argument');
+    throw Errors.invalidOperation('skip requires exactly one argument');
   }
   
   const numNode = args[0];
   if (!numNode) {
-    throw new Error('skip() requires an argument');
+    throw Errors.invalidOperation('skip requires an argument');
   }
   
   // Evaluate the argument to get the number
   const numResult = evaluator(numNode, input, context);
   
   if (numResult.value.length === 0) {
-    throw new Error('skip() argument cannot be empty');
+    throw Errors.invalidOperation('skip argument cannot be empty');
   }
   
   const boxedSkipValue = numResult.value[0];
   if (!boxedSkipValue) {
-    throw new Error('skip() argument must be a single value');
+    throw Errors.invalidOperation('skip argument must be a single value');
   }
   
   const skipValue = unbox(boxedSkipValue);
   
   if (typeof skipValue !== 'number' || !Number.isInteger(skipValue)) {
-    throw new Error('skip() argument must be an integer');
+    throw Errors.invalidOperation('skip argument must be an integer');
   }
   
   // If num <= 0, return the input collection as is

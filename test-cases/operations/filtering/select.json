@@ -5,16 +5,47 @@
     {
       "name": "select - property extraction",
       "expression": "select(name)",
-      "input": [ { "name": "John", "age": 30 }, { "name": "Jane", "age": 25 } ],
-      "expected": [ "John", "Jane" ],
-      "tags": [ "function", "select", "transform", "function:select" ]
+      "input": [
+        {
+          "name": "John",
+          "age": 30
+        },
+        {
+          "name": "Jane",
+          "age": 25
+        }
+      ],
+      "expected": [
+        "John",
+        "Jane"
+      ],
+      "tags": [
+        "function",
+        "select",
+        "transform",
+        "function:select"
+      ]
     },
     {
       "name": "select - expression",
       "expression": "select($this * 2)",
-      "input": [ 1, 2, 3 ],
-      "expected": [ 2, 4, 6 ],
-      "tags": [ "function", "select", "transform", "expression", "function:select" ]
+      "input": [
+        1,
+        2,
+        3
+      ],
+      "expected": [
+        2,
+        4,
+        6
+      ],
+      "tags": [
+        "function",
+        "select",
+        "transform",
+        "expression",
+        "function:select"
+      ]
     },
     {
       "name": "select - flattening",
@@ -138,7 +169,8 @@
       "error": {
         "type": "EvaluationError",
         "message": "Variable.*%inner.*not.*defined",
-        "phase": "evaluate"
+        "phase": "evaluate",
+        "code": "FP1008"
       },
       "tags": [
         "function",
@@ -159,7 +191,8 @@
       "error": {
         "type": "EvaluationError",
         "message": "Variable.*%y.*not.*defined",
-        "phase": "evaluate"
+        "phase": "evaluate",
+        "code": "FP1008"
       },
       "tags": [
         "function",
@@ -180,7 +213,8 @@
       "error": {
         "type": "EvaluationError",
         "message": "Variable.*%y.*not.*defined",
-        "phase": "evaluate"
+        "phase": "evaluate",
+        "code": "FP1008"
       },
       "tags": [
         "function",
@@ -257,15 +291,23 @@
       "input": [
         {
           "name": "John",
-          "tags": ["active", "admin"]
+          "tags": [
+            "active",
+            "admin"
+          ]
         },
         {
           "name": "Jane",
-          "tags": ["user"]
+          "tags": [
+            "user"
+          ]
         },
         {
           "name": "Bob",
-          "tags": ["active", "user"]
+          "tags": [
+            "active",
+            "user"
+          ]
         }
       ],
       "expected": [
@@ -315,11 +357,16 @@
         {
           "name": [
             {
-              "given": ["John", "James"],
+              "given": [
+                "John",
+                "James"
+              ],
               "family": "Doe"
             },
             {
-              "given": ["Jane"],
+              "given": [
+                "Jane"
+              ],
               "family": "Smith"
             }
           ]

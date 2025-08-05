@@ -1,4 +1,5 @@
 import type { FunctionDefinition } from '../types';
+import { Errors } from '../errors';
 import { RuntimeContextManager } from '../interpreter';
 import { type FunctionEvaluator } from '../types';
 import { box, unbox } from '../boxing';
@@ -11,7 +12,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
 
   const condition = args[0];
   if (!condition) {
-    throw new Error('exists function requires a condition argument');
+    throw Errors.invalidOperation('exists function requires a condition argument');
   }
 
   // Process each item with modified context

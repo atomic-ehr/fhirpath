@@ -25,6 +25,7 @@ import type {
   ParseResult,
   ParseError
 } from './types';
+import { Errors, FHIRPathError, toDiagnostic } from './errors';
 
 // Re-export types for backward compatibility
 export {
@@ -154,7 +155,7 @@ export class Parser {
       ast = this.expression();
       if (!this.isAtEnd()) {
         const token = this.peek();
-        throw new Error(`Unexpected token: ${token.value || TokenType[token.type]}`);
+        throw Errors.unexpectedToken(token.value || TokenType[token.type], this.getRangeFromToken(token));
       }
     } catch (error) {
       // In simple mode, we still collect the error but also throw
@@ -195,7 +196,7 @@ export class Parser {
       
       if (!this.isAtEnd()) {
         const token = this.peek();
-        this.addError(`Unexpected token: ${token.value || TokenType[token.type]}`, token);
+        this.addError(Errors.unexpectedToken(token.value || TokenType[token.type], this.getRangeFromToken(token)).message, token);
       }
     } catch (error) {
       // In LSP mode, create error node on fatal errors
@@ -411,7 +412,10 @@ export class Parser {
       return this.createUnaryNode(token, operand);
     }
 
-    return this.handleError(`Unexpected token: ${token.value || TokenType[token.type]}`, token);
+    const tokenStr = token.value || TokenType[token.type];
+    const range = this.getRangeFromToken(token);
+    const error = Errors.unexpectedToken(tokenStr, range);
+    return this.handleError(error.message, token);
   }
   
   protected parseInvocation(): ASTNode {
@@ -441,7 +445,10 @@ export class Parser {
       return this.createVariableNode(token.value, token);
     }
 
-    return this.handleError(`Expected identifier after '.', got: ${token.value || TokenType[token.type]}`, token);
+    const tokenStr = token.value || TokenType[token.type];
+    const range = this.getRangeFromToken(token);
+    const error = Errors.expectedIdentifier('.', tokenStr, range);
+    return this.handleError(error.message, token);
   }
   
   protected parseArgumentList(): ASTNode[] {
@@ -479,7 +486,10 @@ export class Parser {
   protected parseTypeName(): string {
     const token = this.advance();
     if (token.type !== TokenType.IDENTIFIER) {
-      this.handleError(`Expected type name, got: ${token.value || TokenType[token.type]}`, token);
+      const tokenStr = token.value || TokenType[token.type];
+      const range = this.getRangeFromToken(token);
+      const error = Errors.expectedTypeName(tokenStr, range);
+      this.handleError(error.message, token);
       return ''; // For TypeScript, though handleError should throw/return error node
     }
     return this.parseIdentifierValue(token.value);
@@ -581,7 +591,10 @@ export class Parser {
   protected consume(type: TokenType, message: string): Token {
     if (this.check(type)) return this.advance();
     const token = this.peek();
-    return this.handleError(message + ` at token: ${token.value || TokenType[token.type]}`, token) as any;
+    const tokenStr = token.value || TokenType[token.type];
+    const range = this.getRangeFromToken(token);
+    const error = Errors.expectedToken(TokenType[type], tokenStr, range);
+    return this.handleError(error.message, token) as any;
   }
 
   // Implement node creation methods
@@ -829,7 +842,8 @@ export class Parser {
     }
     
     // In simple mode, throw error
-    throw new Error(message);
+    const range = token ? this.getRangeFromToken(token) : undefined;
+    throw Errors.invalidSyntax(message, range);
   }
   
   // LSP mode helper methods

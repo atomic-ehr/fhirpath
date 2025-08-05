@@ -1,15 +1,16 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { Errors } from '../errors';
 import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   if (args.length !== 1) {
-    throw new Error('exclude() requires exactly 1 argument');
+    throw Errors.wrongArgumentCount('exclude', 1, args.length);
   }
 
   // Evaluate the argument to get the other collection
   const argNode = args[0];
   if (!argNode) {
-    throw new Error('exclude() requires an argument');
+    throw Errors.invalidOperation('exclude requires an argument');
   }
   const otherResult = evaluator(argNode, input, context);
   const other = otherResult.value;

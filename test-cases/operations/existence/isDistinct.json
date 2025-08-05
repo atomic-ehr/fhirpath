@@ -200,13 +200,17 @@
       "expression": "values.isDistinct('test')",
       "input": [
         {
-          "values": [1, 2, 3]
+          "values": [
+            1,
+            2,
+            3
+          ]
         }
       ],
       "expected": [],
       "error": {
         "type": "Error",
-        "message": "isDistinct\\(\\) takes no arguments"
+        "message": "isDistinct expects 0 arguments, got \\d+"
       },
       "tags": [
         "function",

@@ -6,64 +6,112 @@
       "name": "truncate - integer",
       "expression": "101.truncate()",
       "input": [],
-      "expected": [101],
-      "tags": ["math", "truncate"]
+      "expected": [
+        101
+      ],
+      "tags": [
+        "math",
+        "truncate"
+      ]
     },
     {
       "name": "truncate - positive decimal",
       "expression": "1.00000001.truncate()",
       "input": [],
-      "expected": [1],
-      "tags": ["math", "truncate"]
+      "expected": [
+        1
+      ],
+      "tags": [
+        "math",
+        "truncate"
+      ]
     },
     {
       "name": "truncate - negative decimal",
       "expression": "(-1.56).truncate()",
       "input": [],
-      "expected": [-1],
-      "tags": ["math", "truncate"]
+      "expected": [
+        -1
+      ],
+      "tags": [
+        "math",
+        "truncate"
+      ]
     },
     {
       "name": "truncate - positive large decimal",
       "expression": "2.99999.truncate()",
       "input": [],
-      "expected": [2],
-      "tags": ["math", "truncate"]
+      "expected": [
+        2
+      ],
+      "tags": [
+        "math",
+        "truncate"
+      ]
     },
     {
       "name": "truncate - negative large decimal",
       "expression": "(-2.99999).truncate()",
       "input": [],
-      "expected": [-2],
-      "tags": ["math", "truncate"]
+      "expected": [
+        -2
+      ],
+      "tags": [
+        "math",
+        "truncate"
+      ]
     },
     {
       "name": "truncate - zero",
       "expression": "0.truncate()",
       "input": [],
-      "expected": [0],
-      "tags": ["math", "truncate"]
+      "expected": [
+        0
+      ],
+      "tags": [
+        "math",
+        "truncate"
+      ]
     },
     {
       "name": "truncate - compare with floor positive",
       "expression": "2.7.truncate() = 2.7.floor()",
       "input": [],
-      "expected": [true],
-      "tags": ["math", "truncate", "floor", "comparison"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "math",
+        "truncate",
+        "floor",
+        "comparison"
+      ]
     },
     {
       "name": "truncate - compare with floor negative different",
       "expression": "(-2.7).truncate() != (-2.7).floor()",
       "input": [],
-      "expected": [true],
-      "tags": ["math", "truncate", "floor", "comparison"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "math",
+        "truncate",
+        "floor",
+        "comparison"
+      ]
     },
     {
       "name": "truncate - empty input",
       "expression": "{ }.truncate()",
       "input": [],
       "expected": [],
-      "tags": ["math", "truncate", "empty"]
+      "tags": [
+        "math",
+        "truncate",
+        "empty"
+      ]
     },
     {
       "name": "truncate - multiple items error",
@@ -71,9 +119,13 @@
       "input": [],
       "error": {
         "type": "Error",
-        "message": "truncate\\(\\) can only be applied to a single item"
+        "message": "truncate requires a single item, but collection has \\d+ items"
       },
-      "tags": ["math", "truncate", "error"]
+      "tags": [
+        "math",
+        "truncate",
+        "error"
+      ]
     },
     {
       "name": "truncate - with arguments error",
@@ -81,9 +133,13 @@
       "input": [],
       "error": {
         "type": "Error",
-        "message": "truncate\\(\\) takes no arguments"
+        "message": "truncate expects 0 arguments, got \\d+"
       },
-      "tags": ["math", "truncate", "error"]
+      "tags": [
+        "math",
+        "truncate",
+        "error"
+      ]
     },
     {
       "name": "truncate - on string error",
@@ -91,9 +147,15 @@
       "input": [],
       "error": {
         "type": "Error",
-        "message": "Cannot apply truncate\\(\\) to string"
+        "message": "Cannot apply truncate to string",
+        "code": "FP3006"
       },
-      "tags": ["math", "truncate", "error", "type"]
+      "tags": [
+        "math",
+        "truncate",
+        "error",
+        "type"
+      ]
     }
   ]
 }

@@ -3,6 +3,7 @@ import { Interpreter, RuntimeContextManager } from './interpreter';
 import { Analyzer } from './analyzer';
 import type { AnalysisResult } from './types';
 import { unbox } from './boxing';
+import { FHIRPathError, Errors } from './errors';
 
 export interface EvaluateOptions {
   input?: unknown;
@@ -22,7 +23,7 @@ export function evaluate(
   if (parseResult.errors.length > 0) {
     // For backward compatibility, throw the first error
     const firstError = parseResult.errors[0]!;
-    throw new Error(firstError.message);
+    throw Errors.invalidSyntax(firstError.message);
   }
   
   // ALWAYS analyze the AST
@@ -77,7 +78,7 @@ export function analyze(
   if (!options.errorRecovery && parseResult.errors.length > 0) {
     // For backward compatibility, throw the first error
     const firstError = parseResult.errors[0]!;
-    throw new Error(firstError.message);
+    throw Errors.invalidSyntax(firstError.message);
   }
   
   const ast = parseResult.ast;
@@ -121,3 +122,6 @@ export type { FHIRModelContext, FHIRModelProviderConfig } from './model-provider
 // Export inspect API
 export { inspect } from './inspect';
 export type { InspectOptions, InspectResult, TraceEntry } from './inspect';
+
+// Export error system
+export { FHIRPathError, Errors, ErrorCodes } from './errors';

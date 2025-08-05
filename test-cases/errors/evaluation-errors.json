@@ -15,7 +15,8 @@
       "error": {
         "type": "EvaluationError",
         "message": "Division by zero",
-        "phase": "evaluate"
+        "phase": "evaluate",
+        "code": "FP6001"
       },
       "pending": "Division by zero error handling needs implementation"
     },
@@ -35,8 +36,9 @@
       ],
       "error": {
         "type": "EvaluationError",
-        "message": "single\\(\\) can only be used on collections with 0 or 1 item",
-        "phase": "evaluate"
+        "message": "single can only be used on collections with 0 or 1 item",
+        "phase": "evaluate",
+        "code": "FP2003"
       },
       "pending": "single() error handling needs proper error message"
     }

@@ -6,50 +6,85 @@
       "name": "indexOf - found at beginning",
       "expression": "'abcdefg'.indexOf('abc')",
       "input": [],
-      "expected": [0],
-      "tags": ["string", "indexOf"]
+      "expected": [
+        0
+      ],
+      "tags": [
+        "string",
+        "indexOf"
+      ]
     },
     {
-      "name": "indexOf - found in middle", 
+      "name": "indexOf - found in middle",
       "expression": "'abcdefg'.indexOf('bc')",
       "input": [],
-      "expected": [1],
-      "tags": ["string", "indexOf"]
+      "expected": [
+        1
+      ],
+      "tags": [
+        "string",
+        "indexOf"
+      ]
     },
     {
       "name": "indexOf - found at end",
       "expression": "'abcdefg'.indexOf('efg')",
       "input": [],
-      "expected": [4],
-      "tags": ["string", "indexOf"]
+      "expected": [
+        4
+      ],
+      "tags": [
+        "string",
+        "indexOf"
+      ]
     },
     {
       "name": "indexOf - not found",
       "expression": "'abcdefg'.indexOf('x')",
       "input": [],
-      "expected": [-1],
-      "tags": ["string", "indexOf"]
+      "expected": [
+        -1
+      ],
+      "tags": [
+        "string",
+        "indexOf"
+      ]
     },
     {
       "name": "indexOf - whole string",
       "expression": "'abcdefg'.indexOf('abcdefg')",
       "input": [],
-      "expected": [0],
-      "tags": ["string", "indexOf"]
+      "expected": [
+        0
+      ],
+      "tags": [
+        "string",
+        "indexOf"
+      ]
     },
     {
       "name": "indexOf - empty substring",
       "expression": "'abcdefg'.indexOf('')",
       "input": [],
-      "expected": [0],
-      "tags": ["string", "indexOf", "empty"]
+      "expected": [
+        0
+      ],
+      "tags": [
+        "string",
+        "indexOf",
+        "empty"
+      ]
     },
     {
       "name": "indexOf - empty input",
       "expression": "{}.indexOf('abc')",
       "input": [],
       "expected": [],
-      "tags": ["string", "indexOf", "empty"]
+      "tags": [
+        "string",
+        "indexOf",
+        "empty"
+      ]
     },
     {
       "name": "indexOf - with navigation",
@@ -57,26 +92,46 @@
       "input": [
         {
           "name": {
-            "given": ["John", "James"]
+            "given": [
+              "John",
+              "James"
+            ]
           }
         }
       ],
-      "expected": [1],
-      "tags": ["string", "indexOf", "navigation"]
+      "expected": [
+        1
+      ],
+      "tags": [
+        "string",
+        "indexOf",
+        "navigation"
+      ]
     },
     {
       "name": "indexOf - case sensitive",
       "expression": "'Hello World'.indexOf('hello')",
       "input": [],
-      "expected": [-1],
-      "tags": ["string", "indexOf", "case-sensitive"]
+      "expected": [
+        -1
+      ],
+      "tags": [
+        "string",
+        "indexOf",
+        "case-sensitive"
+      ]
     },
     {
       "name": "indexOf - repeated substring",
       "expression": "'abc abc'.indexOf('abc')",
       "input": [],
-      "expected": [0],
-      "tags": ["string", "indexOf"]
+      "expected": [
+        0
+      ],
+      "tags": [
+        "string",
+        "indexOf"
+      ]
     },
     {
       "name": "indexOf - multiple items error",
@@ -86,9 +141,14 @@
       "error": {
         "type": "EvaluationError",
         "message": "indexOf.*single.*string",
-        "phase": "evaluate"
+        "phase": "evaluate",
+        "code": "FP2003"
       },
-      "tags": ["string", "indexOf", "error"]
+      "tags": [
+        "string",
+        "indexOf",
+        "error"
+      ]
     },
     {
       "name": "indexOf - non-string input error",
@@ -96,11 +156,17 @@
       "input": [],
       "expected": [],
       "error": {
-        "type": "EvaluationError", 
+        "type": "EvaluationError",
         "message": "indexOf.*string.*values",
-        "phase": "evaluate"
+        "phase": "evaluate",
+        "code": "FP3007"
       },
-      "tags": ["string", "indexOf", "error", "type"]
+      "tags": [
+        "string",
+        "indexOf",
+        "error",
+        "type"
+      ]
     }
   ]
 }

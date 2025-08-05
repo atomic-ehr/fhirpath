@@ -1,20 +1,21 @@
 import type { FunctionDefinition } from '../types';
+import { Errors } from '../errors';
 import type { FunctionEvaluator } from '../types';
 import { box, unbox } from '../boxing';
 import { RuntimeContextManager } from '../interpreter';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   if (args.length < 2) {
-    throw new Error('iif requires at least 2 arguments');
+    throw Errors.invalidOperation('iif requires at least 2 arguments');
   }
   
   if (args.length > 3) {
-    throw new Error('iif takes at most 3 arguments');
+    throw Errors.invalidOperation('iif takes at most 3 arguments');
   }
 
   // Check for multiple items in input collection
   if (input.length > 1) {
-    throw new Error('iif() can only be used on single item or empty collections');
+    throw Errors.invalidOperation('iif can only be used on single item or empty collections');
   }
 
   // Always evaluate condition
@@ -23,7 +24,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   const elseExpr = args[2]; // Optional
   
   if (!condExpr || !thenExpr) {
-    throw new Error('iif requires condition and true-result arguments');
+    throw Errors.invalidOperation('iif requires condition and true-result arguments');
   }
   
   // When evaluating expressions within iif, ensure $this refers to the input

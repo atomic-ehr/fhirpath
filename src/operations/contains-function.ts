@@ -1,16 +1,17 @@
 import type { FunctionDefinition } from '../types';
+import { Errors } from '../errors';
 import type { FunctionEvaluator } from '../types';
 import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // contains() requires exactly 1 argument
   if (args.length !== 1) {
-    throw new Error('contains() requires exactly 1 argument');
+    throw Errors.wrongArgumentCount('contains', 1, args.length);
   }
 
   const substringExpr = args[0];
   if (!substringExpr) {
-    throw new Error('contains() requires a substring argument');
+    throw Errors.argumentRequired('contains', 'substring argument');
   }
 
   // If input collection is empty, result is empty
@@ -20,7 +21,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
 
   // If input collection contains multiple items, signal an error
   if (input.length > 1) {
-    throw new Error('contains() can only be applied to a single string');
+    throw Errors.invalidOperation('contains can only be applied to a single string');
   }
 
   // Input must be a string
@@ -45,7 +46,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   
   // Substring must be a single string
   if (substringResult.value.length > 1) {
-    throw new Error('contains() substring argument must evaluate to a single value');
+    throw Errors.invalidOperation('contains substring argument must evaluate to a single value');
   }
   
   const boxedSubstring = substringResult.value[0];

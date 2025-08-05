@@ -1,4 +1,5 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { Errors } from '../errors';
 import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
@@ -9,7 +10,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
 
   // Validate singleton input
   if (input.length !== 1) {
-    throw new Error('split() requires a singleton input');
+    throw Errors.invalidOperation('split requires a singleton input');
   }
 
   const boxedInputValue = input[0];
@@ -21,34 +22,34 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   
   // Type check the input - must be a string
   if (typeof inputValue !== 'string') {
-    throw new Error('split() can only be applied to string values');
+    throw Errors.stringOperationOnNonString('split');
   }
 
   // Validate arguments - requires exactly one argument
   if (!args || args.length !== 1) {
-    throw new Error('split() requires exactly one argument');
+    throw Errors.invalidOperation('split requires exactly one argument');
   }
 
   // Evaluate the separator argument
   const separatorArg = args[0];
   if (!separatorArg) {
-    throw new Error('split() requires exactly one argument');
+    throw Errors.invalidOperation('split requires exactly one argument');
   }
   const separatorResult = evaluator(separatorArg, input, context);
   
   if (separatorResult.value.length !== 1) {
-    throw new Error('split() separator must be a singleton');
+    throw Errors.invalidOperation('split separator must be a singleton');
   }
   
   const boxedSeparator = separatorResult.value[0];
   if (!boxedSeparator) {
-    throw new Error('split() separator must be a string');
+    throw Errors.invalidOperation('split separator must be a string');
   }
   
   const separator = unbox(boxedSeparator);
   
   if (typeof separator !== 'string') {
-    throw new Error('split() separator must be a string');
+    throw Errors.invalidOperation('split separator must be a string');
   }
 
   // Perform the split operation

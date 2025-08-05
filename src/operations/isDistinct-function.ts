@@ -1,10 +1,11 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { Errors } from '../errors';
 import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // isDistinct takes no arguments
   if (args.length !== 0) {
-    throw new Error('isDistinct() takes no arguments');
+    throw Errors.wrongArgumentCount('isDistinct', 0, args.length);
   }
 
   // If input is empty, return true

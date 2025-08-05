@@ -1,10 +1,11 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { Errors } from '../errors';
 import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // single takes no arguments
   if (args.length !== 0) {
-    throw new Error('single() takes no arguments');
+    throw Errors.wrongArgumentCount('single', 0, args.length);
   }
 
   // If input is empty, return empty
@@ -18,7 +19,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   }
 
   // If there are multiple items, signal an error
-  throw new Error('single() requires collection to have exactly one item');
+  throw Errors.singletonRequired('single', input.length);
 };
 
 export const singleFunction: FunctionDefinition & { evaluate: FunctionEvaluator } = {

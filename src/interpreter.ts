@@ -19,6 +19,7 @@ import * as operations from './operations';
 import type { EvaluationResult, FunctionEvaluator, NodeEvaluator, OperationEvaluator, RuntimeContext } from './types';
 import { createQuantity } from './quantity-value';
 import { box, unbox, ensureBoxed, type FHIRPathValue } from './boxing';
+import { Errors } from './errors';
 
 /**
  * Runtime context manager that provides efficient prototype-based context operations
@@ -236,7 +237,7 @@ export class Interpreter {
     // Dispatch to appropriate evaluator
     const evaluator = this.nodeEvaluators[node.type];
     if (!evaluator) {
-      throw new Error(`Unknown node type: ${node.type}`);
+      throw Errors.unknownNodeType(node.type);
     }
 
     return evaluator(node, boxedInput, contextWithNode);
@@ -378,7 +379,7 @@ export class Interpreter {
     }
 
     // If no evaluator found, throw error
-    throw new Error(`No evaluator found for binary operator: ${operator}`);
+    throw Errors.noEvaluatorFound('binary operator', operator);
   }
 
   // Unary operator evaluator
@@ -401,7 +402,7 @@ export class Interpreter {
     }
 
     // If no evaluator found, throw error
-    throw new Error(`No evaluator found for unary operator: ${operator}`);
+    throw Errors.noEvaluatorFound('unary operator', operator);
   }
 
   // Variable evaluator
@@ -420,7 +421,7 @@ export class Interpreter {
     }
 
     // According to FHIRPath spec: attempting to access an undefined environment variable will result in an error
-    throw new Error(`Variable '${name}' is not defined in the current scope`);
+    throw Errors.variableNotDefined(name);
   }
 
   // Collection evaluator
@@ -448,7 +449,7 @@ export class Interpreter {
     }
 
     // No function found in registry
-    throw new Error(`Unknown function: ${funcName}`);
+    throw Errors.unknownFunction(funcName);
   }
 
   // Index evaluator

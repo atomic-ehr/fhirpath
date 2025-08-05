@@ -116,10 +116,16 @@
       "expression": "values.take(1)",
       "input": [
         {
-          "values": ["a", "b", "c"]
+          "values": [
+            "a",
+            "b",
+            "c"
+          ]
         }
       ],
-      "expected": ["a"],
+      "expected": [
+        "a"
+      ],
       "tags": [
         "function",
         "subsetting",
@@ -131,7 +137,10 @@
       "name": "take - on direct collection",
       "expression": "(1 | 2 | 3 | 4 | 5).take(2)",
       "input": null,
-      "expected": [1, 2],
+      "expected": [
+        1,
+        2
+      ],
       "tags": [
         "function",
         "subsetting",
@@ -144,13 +153,18 @@
       "expression": "values.take(3.5)",
       "input": [
         {
-          "values": [1, 2, 3]
+          "values": [
+            1,
+            2,
+            3
+          ]
         }
       ],
       "expected": [],
       "error": {
         "type": "Error",
-        "message": "take\\(\\) argument must be an integer"
+        "message": "argument must be.*integer",
+        "code": "FP6005"
       },
       "tags": [
         "function",
@@ -165,13 +179,18 @@
       "expression": "values.take('3')",
       "input": [
         {
-          "values": [1, 2, 3]
+          "values": [
+            1,
+            2,
+            3
+          ]
         }
       ],
       "expected": [],
       "error": {
         "type": "Error",
-        "message": "take\\(\\) argument must be an integer"
+        "message": "argument must be.*integer",
+        "code": "FP6005"
       },
       "tags": [
         "function",
@@ -186,13 +205,18 @@
       "expression": "values.take(({}))",
       "input": [
         {
-          "values": [1, 2, 3]
+          "values": [
+            1,
+            2,
+            3
+          ]
         }
       ],
       "expected": [],
       "error": {
         "type": "Error",
-        "message": "take\\(\\) argument must be a single value"
+        "message": "argument must be a single value",
+        "code": "FP6005"
       },
       "tags": [
         "function",
@@ -207,13 +231,18 @@
       "expression": "values.take()",
       "input": [
         {
-          "values": [1, 2, 3]
+          "values": [
+            1,
+            2,
+            3
+          ]
         }
       ],
       "expected": [],
       "error": {
         "type": "Error",
-        "message": "take\\(\\) requires exactly 1 argument"
+        "message": "take expects 1 argument",
+        "code": "FP2001"
       },
       "tags": [
         "function",
@@ -228,10 +257,20 @@
       "expression": "values.take(1 + 2)",
       "input": [
         {
-          "values": ["a", "b", "c", "d", "e"]
+          "values": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e"
+          ]
         }
       ],
-      "expected": ["a", "b", "c"],
+      "expected": [
+        "a",
+        "b",
+        "c"
+      ],
       "tags": [
         "function",
         "subsetting",

@@ -214,7 +214,9 @@
     {
       "name": "iif - $this in condition",
       "expression": "('context').iif($this = 'context','true-result', 'false-result')",
-      "input": [{}],
+      "input": [
+        {}
+      ],
       "expected": [
         "true-result"
       ],
@@ -303,7 +305,9 @@
           "resourceType": "Patient",
           "name": [
             {
-              "given": ["John"],
+              "given": [
+                "John"
+              ],
               "family": "Doe"
             }
           ]
@@ -330,7 +334,9 @@
           "resourceType": "Patient",
           "name": [
             {
-              "given": ["John"],
+              "given": [
+                "John"
+              ],
               "family": "Doe"
             }
           ]
@@ -357,7 +363,9 @@
           "resourceType": "Patient",
           "name": [
             {
-              "given": ["John"],
+              "given": [
+                "John"
+              ],
               "family": "Doe"
             }
           ]
@@ -384,7 +392,8 @@
       "expected": [],
       "error": {
         "type": "Error",
-        "message": "iif\\(\\) can only be used on single item or empty collections"
+        "message": "iif can only be used on single item or empty collections",
+        "code": "FP6005"
       },
       "tags": [
         "function",

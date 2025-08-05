@@ -6,78 +6,156 @@
       "name": "contains - substring found at beginning",
       "expression": "'abc'.contains('a')",
       "input": [],
-      "expected": [true],
-      "tags": ["function", "string", "contains", "function:contains"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "string",
+        "contains",
+        "function:contains"
+      ]
     },
     {
       "name": "contains - substring found in middle",
       "expression": "'abc'.contains('b')",
       "input": [],
-      "expected": [true],
-      "tags": ["function", "string", "contains", "function:contains"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "string",
+        "contains",
+        "function:contains"
+      ]
     },
     {
       "name": "contains - substring found at end",
       "expression": "'abc'.contains('c')",
       "input": [],
-      "expected": [true],
-      "tags": ["function", "string", "contains", "function:contains"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "string",
+        "contains",
+        "function:contains"
+      ]
     },
     {
       "name": "contains - multiple character substring",
       "expression": "'abc'.contains('bc')",
       "input": [],
-      "expected": [true],
-      "tags": ["function", "string", "contains", "function:contains"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "string",
+        "contains",
+        "function:contains"
+      ]
     },
     {
       "name": "contains - entire string",
       "expression": "'abc'.contains('abc')",
       "input": [],
-      "expected": [true],
-      "tags": ["function", "string", "contains", "function:contains"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "string",
+        "contains",
+        "function:contains"
+      ]
     },
     {
       "name": "contains - substring not found",
       "expression": "'abc'.contains('d')",
       "input": [],
-      "expected": [false],
-      "tags": ["function", "string", "contains", "function:contains"]
+      "expected": [
+        false
+      ],
+      "tags": [
+        "function",
+        "string",
+        "contains",
+        "function:contains"
+      ]
     },
     {
       "name": "contains - empty substring returns true",
       "expression": "'abc'.contains('')",
       "input": [],
-      "expected": [true],
-      "tags": ["function", "string", "contains", "empty", "function:contains"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "string",
+        "contains",
+        "empty",
+        "function:contains"
+      ]
     },
     {
       "name": "contains - empty string contains empty",
       "expression": "''.contains('')",
       "input": [],
-      "expected": [true],
-      "tags": ["function", "string", "contains", "empty", "function:contains"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "string",
+        "contains",
+        "empty",
+        "function:contains"
+      ]
     },
     {
       "name": "contains - empty string does not contain non-empty",
       "expression": "''.contains('a')",
       "input": [],
-      "expected": [false],
-      "tags": ["function", "string", "contains", "empty", "function:contains"]
+      "expected": [
+        false
+      ],
+      "tags": [
+        "function",
+        "string",
+        "contains",
+        "empty",
+        "function:contains"
+      ]
     },
     {
       "name": "contains - empty input returns empty",
       "expression": "contains('test')",
       "input": [],
       "expected": [],
-      "tags": ["function", "string", "contains", "empty", "function:contains"]
+      "tags": [
+        "function",
+        "string",
+        "contains",
+        "empty",
+        "function:contains"
+      ]
     },
     {
       "name": "contains - non-string input returns empty",
       "expression": "(123).contains('2')",
       "input": [],
       "expected": [],
-      "tags": ["function", "string", "contains", "type", "function:contains"]
+      "tags": [
+        "function",
+        "string",
+        "contains",
+        "type",
+        "function:contains"
+      ]
     },
     {
       "name": "contains - multiple input items throws error",
@@ -87,144 +165,322 @@
       "error": {
         "type": "EvaluationError",
         "message": "contains.*single.*string",
-        "phase": "evaluate"
+        "phase": "evaluate",
+        "code": "FP6005"
       },
-      "tags": ["function", "string", "contains", "error", "function:contains"]
+      "tags": [
+        "function",
+        "string",
+        "contains",
+        "error",
+        "function:contains"
+      ]
     },
     {
       "name": "contains - empty substring collection returns empty",
       "expression": "'abc'.contains({})",
       "input": [],
       "expected": [],
-      "tags": ["function", "string", "contains", "empty", "function:contains"]
+      "tags": [
+        "function",
+        "string",
+        "contains",
+        "empty",
+        "function:contains"
+      ]
     },
     {
       "name": "contains - non-string substring returns empty",
       "expression": "'abc'.contains(123)",
       "input": [],
       "expected": [],
-      "tags": ["function", "string", "contains", "type", "function:contains"]
+      "tags": [
+        "function",
+        "string",
+        "contains",
+        "type",
+        "function:contains"
+      ]
     },
     {
       "name": "contains - case sensitive",
       "expression": "'Hello'.contains('hello')",
       "input": [],
-      "expected": [false],
-      "tags": ["function", "string", "contains", "case", "function:contains"]
+      "expected": [
+        false
+      ],
+      "tags": [
+        "function",
+        "string",
+        "contains",
+        "case",
+        "function:contains"
+      ]
     },
     {
       "name": "contains - on input property",
       "expression": "text.contains('world')",
-      "input": [{"text": "hello world"}],
-      "expected": [true],
-      "tags": ["function", "string", "contains", "navigation", "function:contains"]
+      "input": [
+        {
+          "text": "hello world"
+        }
+      ],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "string",
+        "contains",
+        "navigation",
+        "function:contains"
+      ]
     },
     {
       "name": "contains - special characters",
       "expression": "'a.b.c'.contains('.')",
       "input": [],
-      "expected": [true],
-      "tags": ["function", "string", "contains", "special", "function:contains"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "string",
+        "contains",
+        "special",
+        "function:contains"
+      ]
     },
     {
       "name": "contains - multiple occurrence",
       "expression": "'abcabc'.contains('bc')",
       "input": [],
-      "expected": [true],
-      "tags": ["function", "string", "contains", "function:contains"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "string",
+        "contains",
+        "function:contains"
+      ]
     },
     {
       "name": "contains - substring longer than string",
       "expression": "'ab'.contains('abc')",
       "input": [],
-      "expected": [false],
-      "tags": ["function", "string", "contains", "function:contains"]
+      "expected": [
+        false
+      ],
+      "tags": [
+        "function",
+        "string",
+        "contains",
+        "function:contains"
+      ]
     },
     {
       "name": "contains - with where clause",
       "expression": "name.where($this.contains('John'))",
-      "input": [{"name": ["John Doe", "Jane Smith", "Johnny"]}],
-      "expected": ["John Doe", "Johnny"],
-      "tags": ["function", "string", "contains", "where", "function:contains"]
+      "input": [
+        {
+          "name": [
+            "John Doe",
+            "Jane Smith",
+            "Johnny"
+          ]
+        }
+      ],
+      "expected": [
+        "John Doe",
+        "Johnny"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "contains",
+        "where",
+        "function:contains"
+      ]
     },
     {
       "name": "[FHIRPath Lab] contains - not in string",
       "expression": "'12345'.contains('6') = false",
       "input": [],
-      "expected": [true],
-      "tags": ["function", "string", "contains", "fhirpath-lab", "function:contains"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "string",
+        "contains",
+        "fhirpath-lab",
+        "function:contains"
+      ]
     },
     {
       "name": "[FHIRPath Lab] contains - at end",
       "expression": "'12345'.contains('5') = true",
       "input": [],
-      "expected": [true],
-      "tags": ["function", "string", "contains", "fhirpath-lab", "function:contains"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "string",
+        "contains",
+        "fhirpath-lab",
+        "function:contains"
+      ]
     },
     {
       "name": "[FHIRPath Lab] contains - consecutive chars",
       "expression": "'12345'.contains('45') = true",
       "input": [],
-      "expected": [true],
-      "tags": ["function", "string", "contains", "fhirpath-lab", "function:contains"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "string",
+        "contains",
+        "fhirpath-lab",
+        "function:contains"
+      ]
     },
     {
       "name": "[FHIRPath Lab] contains - non-consecutive chars",
       "expression": "'12345'.contains('35') = false",
       "input": [],
-      "expected": [true],
-      "tags": ["function", "string", "contains", "fhirpath-lab", "function:contains"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "string",
+        "contains",
+        "fhirpath-lab",
+        "function:contains"
+      ]
     },
     {
       "name": "[FHIRPath Lab] contains - entire string",
       "expression": "'12345'.contains('12345') = true",
       "input": [],
-      "expected": [true],
-      "tags": ["function", "string", "contains", "fhirpath-lab", "function:contains"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "string",
+        "contains",
+        "fhirpath-lab",
+        "function:contains"
+      ]
     },
     {
       "name": "[FHIRPath Lab] contains - longer than string",
       "expression": "'12345'.contains('012345') = false",
       "input": [],
-      "expected": [true],
-      "tags": ["function", "string", "contains", "fhirpath-lab", "function:contains"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "string",
+        "contains",
+        "fhirpath-lab",
+        "function:contains"
+      ]
     },
     {
       "name": "[FHIRPath Lab] contains - empty string",
       "expression": "'12345'.contains('') = true",
       "input": [],
-      "expected": [true],
-      "tags": ["function", "string", "contains", "empty", "fhirpath-lab", "function:contains"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "string",
+        "contains",
+        "empty",
+        "fhirpath-lab",
+        "function:contains"
+      ]
     },
     {
       "name": "[FHIRPath Lab] empty contains non-empty",
       "expression": "{}.contains('a').empty() = true",
       "input": [],
-      "expected": [true],
-      "tags": ["function", "string", "contains", "empty", "fhirpath-lab", "function:contains"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "string",
+        "contains",
+        "empty",
+        "fhirpath-lab",
+        "function:contains"
+      ]
     },
     {
       "name": "[FHIRPath Lab] empty contains empty",
       "expression": "{}.contains('').empty() = true",
       "input": [],
-      "expected": [true],
-      "tags": ["function", "string", "contains", "empty", "fhirpath-lab", "function:contains"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "string",
+        "contains",
+        "empty",
+        "fhirpath-lab",
+        "function:contains"
+      ]
     },
     {
       "name": "[FHIRPath Lab] contains with expression argument",
       "expression": "'123456789'.contains(length().toString())",
       "input": [],
-      "expected": [true],
-      "tags": ["function", "string", "contains", "expression", "fhirpath-lab", "function:contains"],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "string",
+        "contains",
+        "expression",
+        "fhirpath-lab",
+        "function:contains"
+      ],
       "description": "Tests using an expression as the substring argument - length() returns 9, toString() converts to '9'",
       "pending": "toString() function not yet implemented"
     },
     {
       "name": "contains - navigation to non-string returns empty",
       "expression": "identifier.contains('rand')",
-      "input": [{"identifier": [{"system": "http://example.org", "value": "123"}]}],
+      "input": [
+        {
+          "identifier": [
+            {
+              "system": "http://example.org",
+              "value": "123"
+            }
+          ]
+        }
+      ],
       "expected": [],
-      "tags": ["function", "string", "contains", "navigation", "type", "function:contains"],
+      "tags": [
+        "function",
+        "string",
+        "contains",
+        "navigation",
+        "type",
+        "function:contains"
+      ],
       "description": "When navigating to non-string properties, contains() should return empty"
     }
   ]

@@ -1,4 +1,5 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { Errors } from '../errors';
 import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
@@ -11,7 +12,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   for (let i = 0; i < input.length; i++) {
     const unboxedValue = unbox(input[i]!);
     if (typeof unboxedValue !== 'boolean') {
-      throw new Error(`allTrue() expects all items to be Boolean values, but item at index ${i} is ${typeof unboxedValue}`);
+      throw Errors.booleanOperationOnNonBoolean('allTrue', i, `${typeof unboxedValue}`);
     }
   }
   

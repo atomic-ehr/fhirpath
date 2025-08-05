@@ -393,7 +393,9 @@
     {
       "name": "[FHIRPath Lab] defineVariable8",
       "expression": "defineVariable('v1', 'value1').select(%v1).trace('data').defineVariable('v2', 'value2').select($this & ':' & %v1 & '-' & %v2) | defineVariable('v3', 'value3').select(%v3)",
-      "input": [{}],
+      "input": [
+        {}
+      ],
       "expected": [
         "value1:value1-value2",
         "value3"
@@ -435,7 +437,8 @@
       "error": {
         "type": "EvaluationError",
         "message": "Variable.*n1.*not.*defined.*scope",
-        "phase": "evaluate"
+        "phase": "evaluate",
+        "code": "FP1008"
       },
       "tags": [
         "defineVariable",
@@ -459,7 +462,8 @@
       "error": {
         "type": "EvaluationError",
         "message": "Variable.*fam.*not.*defined",
-        "phase": "evaluate"
+        "phase": "evaluate",
+        "code": "FP1008"
       },
       "tags": [
         "defineVariable",
@@ -479,7 +483,8 @@
       "error": {
         "type": "EvaluationError",
         "message": "Variable.*v1.*already.*defined",
-        "phase": "evaluate"
+        "phase": "evaluate",
+        "code": "FP6005"
       },
       "tags": [
         "defineVariable",
@@ -672,7 +677,8 @@
       "error": {
         "type": "EvaluationError",
         "message": "Cannot.*override.*system.*variable.*context",
-        "phase": "evaluate"
+        "phase": "evaluate",
+        "code": "FP6005"
       },
       "tags": [
         "defineVariable",
@@ -728,7 +734,8 @@
       "error": {
         "type": "EvaluationError",
         "message": "Variable.*n1.*not.*defined.*scope",
-        "phase": "evaluate"
+        "phase": "evaluate",
+        "code": "FP1008"
       },
       "tags": [
         "defineVariable",

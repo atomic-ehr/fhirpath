@@ -1,10 +1,11 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { Errors } from '../errors';
 import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // round() takes 0 or 1 argument (precision)
   if (args.length > 1) {
-    throw new Error('round() takes at most 1 argument');
+    throw Errors.wrongArgumentCountRange('round', 0, 1, args.length);
   }
 
   // If input is empty, return empty
@@ -14,7 +15,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
 
   // If input has multiple items, error
   if (input.length > 1) {
-    throw new Error('round() can only be applied to a single item');
+    throw Errors.singletonRequired('round', input.length);
   }
 
   const boxedValue = input[0];
@@ -23,7 +24,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
 
   // Must be a number
   if (typeof value !== 'number') {
-    throw new Error(`Cannot apply round() to ${typeof value}`);
+    throw Errors.invalidOperandType('round', `${typeof value}`);
   }
 
   // Get precision if provided
@@ -34,7 +35,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
       return { value: [], context };
     }
     if (precisionResult.value.length > 1) {
-      throw new Error('round() precision must be a single value');
+      throw Errors.invalidOperation('round precision must be a single value');
     }
     const boxedPrecision = precisionResult.value[0];
     if (!boxedPrecision) {
@@ -42,7 +43,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     }
     precision = unbox(boxedPrecision);
     if (!Number.isInteger(precision) || precision < 0) {
-      throw new Error('round() precision must be a non-negative integer');
+      throw Errors.invalidOperation('round precision must be a non-negative integer');
     }
   }
 

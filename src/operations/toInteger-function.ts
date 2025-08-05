@@ -1,10 +1,11 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { Errors } from '../errors';
 import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // toInteger() takes no arguments
   if (args.length !== 0) {
-    throw new Error('toInteger() takes no arguments');
+    throw Errors.wrongArgumentCount('toInteger', 0, args.length);
   }
 
   // If input collection is empty, result is empty
@@ -14,7 +15,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
 
   // If input collection contains multiple items, signal an error
   if (input.length > 1) {
-    throw new Error('toInteger() can only be applied to a single item');
+    throw Errors.singletonRequired('toInteger', input.length);
   }
 
   const boxedInputValue = input[0];

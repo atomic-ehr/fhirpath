@@ -1,10 +1,11 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { Errors } from '../errors';
 import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // floor() takes no arguments
   if (args.length !== 0) {
-    throw new Error('floor() takes no arguments');
+    throw Errors.wrongArgumentCount('floor', 0, args.length);
   }
 
   // If input is empty, return empty
@@ -14,7 +15,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
 
   // If input has multiple items, error
   if (input.length > 1) {
-    throw new Error('floor() can only be applied to a single item');
+    throw Errors.singletonRequired('floor', input.length);
   }
 
   const boxedValue = input[0];
@@ -23,7 +24,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
 
   // Must be a number
   if (typeof value !== 'number') {
-    throw new Error(`Cannot apply floor() to ${typeof value}`);
+    throw Errors.invalidOperandType('floor', `${typeof value}`);
   }
 
   return { value: [box(Math.floor(value), { type: 'Integer', singleton: true })], context };

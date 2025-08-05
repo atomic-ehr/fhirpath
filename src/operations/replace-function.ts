@@ -1,11 +1,12 @@
 import type { FunctionDefinition } from '../types';
+import { Errors } from '../errors';
 import type { FunctionEvaluator } from '../types';
 import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // Check if we have exactly 2 arguments
   if (args.length !== 2) {
-    throw new Error('replace() requires exactly 2 arguments: pattern and substitution');
+    throw Errors.invalidOperation('replace requires exactly 2 arguments: pattern and substitution');
   }
   
   // If input is empty, return empty
@@ -15,7 +16,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   
   // If input has multiple items, signal an error
   if (input.length > 1) {
-    throw new Error('replace() can only be used on a single string value');
+    throw Errors.invalidOperation('replace can only be used on a single string value');
   }
   
   const boxedInput = input[0];
@@ -44,7 +45,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   
   // Pattern must be single string
   if (patternResult.value.length > 1) {
-    throw new Error('replace() pattern must be a single string value');
+    throw Errors.invalidOperation('replace pattern must be a single string value');
   }
   
   const boxedPattern = patternResult.value[0];
@@ -71,7 +72,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   
   // Substitution must be single string
   if (substitutionResult.value.length > 1) {
-    throw new Error('replace() substitution must be a single string value');
+    throw Errors.invalidOperation('replace substitution must be a single string value');
   }
   
   const boxedSubstitution = substitutionResult.value[0];

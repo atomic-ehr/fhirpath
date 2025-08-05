@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll } from "bun:test";
 import { analyze } from "../src/index";
 import { DiagnosticSeverity } from "../src/types";
 import { FHIRModelProvider } from "../src/model-provider";
+import { ErrorCodes } from "../src/index";
 
 describe("Analyzer", () => {
   describe("basic expressions", () => {
@@ -29,9 +30,9 @@ describe("Analyzer", () => {
       expect(result.diagnostics).toHaveLength(1);
       expect(result.diagnostics[0]).toMatchObject({
         severity: DiagnosticSeverity.Error,
-        code: "UNKNOWN_VARIABLE",
+        code: ErrorCodes.UNKNOWN_VARIABLE,
         message: "Unknown variable: $unknown",
-        source: "fhirpath-analyzer",
+        source: "fhirpath",
       });
       expect(result.diagnostics[0]?.range).toBeDefined();
     });
@@ -46,9 +47,9 @@ describe("Analyzer", () => {
       expect(result.diagnostics).toHaveLength(1);
       expect(result.diagnostics[0]).toMatchObject({
         severity: DiagnosticSeverity.Error,
-        code: "UNKNOWN_USER_VARIABLE",
+        code: ErrorCodes.UNKNOWN_USER_VARIABLE,
         message: "Unknown user variable: %unknown",
-        source: "fhirpath-analyzer",
+        source: "fhirpath",
       });
     });
   });
@@ -64,9 +65,9 @@ describe("Analyzer", () => {
       expect(result.diagnostics).toHaveLength(1);
       expect(result.diagnostics[0]).toMatchObject({
         severity: DiagnosticSeverity.Error,
-        code: "UNKNOWN_FUNCTION",
+        code: ErrorCodes.UNKNOWN_FUNCTION,
         message: "Unknown function: unknownFunc",
-        source: "fhirpath-analyzer",
+        source: "fhirpath",
       });
     });
 
@@ -75,7 +76,7 @@ describe("Analyzer", () => {
       expect(result.diagnostics).toHaveLength(1);
       expect(result.diagnostics[0]).toMatchObject({
         severity: DiagnosticSeverity.Error,
-        code: "TOO_FEW_ARGS",
+        code: ErrorCodes.WRONG_ARGUMENT_COUNT,
       });
     });
 
@@ -84,7 +85,7 @@ describe("Analyzer", () => {
       expect(result.diagnostics).toHaveLength(1);
       expect(result.diagnostics[0]).toMatchObject({
         severity: DiagnosticSeverity.Error,
-        code: "TOO_MANY_ARGS",
+        code: ErrorCodes.WRONG_ARGUMENT_COUNT,
       });
     });
   });
@@ -99,8 +100,8 @@ describe("Analyzer", () => {
       const result = analyze("$unknown + unknownFunc()");
       expect(result.diagnostics).toHaveLength(2);
       expect(result.diagnostics.map((d) => d.code)).toEqual([
-        "UNKNOWN_VARIABLE",
-        "UNKNOWN_FUNCTION",
+        ErrorCodes.UNKNOWN_VARIABLE,
+        ErrorCodes.UNKNOWN_FUNCTION,
       ]);
     });
   });
@@ -120,8 +121,8 @@ describe("Analyzer", () => {
 
       // Check optional fields
       expect(diagnostic?.severity).toBe(DiagnosticSeverity.Error);
-      expect(diagnostic?.code).toBe("UNKNOWN_VARIABLE");
-      expect(diagnostic?.source).toBe("fhirpath-analyzer");
+      expect(diagnostic?.code).toBe(ErrorCodes.UNKNOWN_VARIABLE);
+      expect(diagnostic?.source).toBe("fhirpath");
     });
 
     it("should use default range when position is not available", () => {
@@ -197,8 +198,8 @@ describe("Analyzer", () => {
       expect(result.diagnostics).toHaveLength(1);
       expect(result.diagnostics[0]).toMatchObject({
         severity: DiagnosticSeverity.Error,
-        code: "INPUT_TYPE_MISMATCH",
-        message: expect.stringContaining("expects input type String"),
+        code: ErrorCodes.TYPE_NOT_ASSIGNABLE,
+        message: expect.stringContaining("is not assignable to type String"),
       });
     });
 
@@ -228,9 +229,9 @@ describe("Analyzer", () => {
       expect(result.diagnostics).toHaveLength(1);
       expect(result.diagnostics[0]).toMatchObject({
         severity: DiagnosticSeverity.Error,
-        code: "TYPE_MISMATCH",
+        code: ErrorCodes.OPERATOR_TYPE_MISMATCH,
         message: expect.stringContaining(
-          "operator '+' cannot be applied to types",
+          "Operator '+' cannot be applied to types",
         ),
       });
     });
@@ -288,7 +289,7 @@ describe("Analyzer", () => {
       // The where condition should expect a Boolean, but we're providing a number
       expect(result.diagnostics).toHaveLength(1);
       expect(result.diagnostics[0]).toMatchObject({
-        code: "TYPE_MISMATCH",
+        code: ErrorCodes.OPERATOR_TYPE_MISMATCH,
       });
     });
 
@@ -330,8 +331,8 @@ describe("Analyzer", () => {
       expect(result.diagnostics).toHaveLength(1);
       expect(result.diagnostics[0]).toMatchObject({
         severity: DiagnosticSeverity.Error,
-        code: "ARGUMENT_TYPE_MISMATCH",
-        message: expect.stringContaining("expects Integer"),
+        code: ErrorCodes.ARGUMENT_TYPE_MISMATCH,
+        message: expect.stringContaining("expected Integer"),
       });
     });
 
@@ -368,7 +369,7 @@ describe("Analyzer", () => {
       expect(result.diagnostics).toHaveLength(1);
       expect(result.diagnostics[0]).toMatchObject({
         severity: DiagnosticSeverity.Error,
-        code: "TYPE_MISMATCH",
+        code: ErrorCodes.OPERATOR_TYPE_MISMATCH,
       });
     });
 
@@ -417,7 +418,7 @@ describe("Analyzer", () => {
       expect(result.diagnostics).toHaveLength(1);
       expect(result.diagnostics[0]).toMatchObject({
         severity: DiagnosticSeverity.Error,
-        code: "TYPE_MISMATCH",
+        code: ErrorCodes.OPERATOR_TYPE_MISMATCH,
       });
     });
 
@@ -460,7 +461,7 @@ describe("Analyzer", () => {
         modelProvider,
       });
       expect(result.diagnostics[0]).toBeDefined();
-      expect(result.diagnostics[0]?.message).toContain("Type mismatch");
+      expect(result.diagnostics[0]?.message).toContain("is not assignable to type String");
     });
 
     it("should handle operators type mismatch", () => {
@@ -474,7 +475,7 @@ describe("Analyzer", () => {
       });
       expect(result.diagnostics[0]).toBeDefined();
       // console.log(result.diagnostics);
-      expect(result.diagnostics[0]?.message).toContain("Type mismatch");
+      expect(result.diagnostics[0]?.message).toContain("Operator '+' cannot be applied to types");
     });
 
     it("should handle syntactic errors", () => {

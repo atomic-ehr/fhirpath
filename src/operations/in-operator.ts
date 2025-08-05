@@ -1,4 +1,5 @@
 import type { OperatorDefinition } from '../types';
+import { Errors } from '../errors';
 import { PRECEDENCE } from '../types';
 import type { OperationEvaluator } from '../types';
 import { box, unbox } from '../boxing';
@@ -11,7 +12,7 @@ export const evaluate: OperationEvaluator = (input, context, left, right) => {
   
   // Left must have single item
   if (left.length > 1) {
-    throw new Error('in operator: left operand must be a single item');
+    throw Errors.invalidOperation('in operator: left operand must be a single item');
   }
   
   // If right is empty, result is false

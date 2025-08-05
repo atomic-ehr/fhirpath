@@ -6,64 +6,108 @@
       "name": "ceiling - integer",
       "expression": "1.ceiling()",
       "input": [],
-      "expected": [1],
-      "tags": ["math", "ceiling"]
+      "expected": [
+        1
+      ],
+      "tags": [
+        "math",
+        "ceiling"
+      ]
     },
     {
       "name": "ceiling - positive decimal rounds up",
       "expression": "1.1.ceiling()",
       "input": [],
-      "expected": [2],
-      "tags": ["math", "ceiling"]
+      "expected": [
+        2
+      ],
+      "tags": [
+        "math",
+        "ceiling"
+      ]
     },
     {
       "name": "ceiling - negative decimal rounds up",
       "expression": "(-1.1).ceiling()",
       "input": [],
-      "expected": [-1],
-      "tags": ["math", "ceiling"]
+      "expected": [
+        -1
+      ],
+      "tags": [
+        "math",
+        "ceiling"
+      ]
     },
     {
       "name": "ceiling - positive large decimal",
       "expression": "2.9.ceiling()",
       "input": [],
-      "expected": [3],
-      "tags": ["math", "ceiling"]
+      "expected": [
+        3
+      ],
+      "tags": [
+        "math",
+        "ceiling"
+      ]
     },
     {
       "name": "ceiling - negative large decimal",
       "expression": "(-2.9).ceiling()",
       "input": [],
-      "expected": [-2],
-      "tags": ["math", "ceiling"]
+      "expected": [
+        -2
+      ],
+      "tags": [
+        "math",
+        "ceiling"
+      ]
     },
     {
       "name": "ceiling - zero",
       "expression": "0.ceiling()",
       "input": [],
-      "expected": [0],
-      "tags": ["math", "ceiling"]
+      "expected": [
+        0
+      ],
+      "tags": [
+        "math",
+        "ceiling"
+      ]
     },
     {
       "name": "ceiling - very small positive",
       "expression": "0.0001.ceiling()",
       "input": [],
-      "expected": [1],
-      "tags": ["math", "ceiling"]
+      "expected": [
+        1
+      ],
+      "tags": [
+        "math",
+        "ceiling"
+      ]
     },
     {
       "name": "ceiling - very small negative",
       "expression": "(-0.0001).ceiling()",
       "input": [],
-      "expected": [0],
-      "tags": ["math", "ceiling"]
+      "expected": [
+        0
+      ],
+      "tags": [
+        "math",
+        "ceiling"
+      ]
     },
     {
       "name": "ceiling - empty input",
       "expression": "{ }.ceiling()",
       "input": [],
       "expected": [],
-      "tags": ["math", "ceiling", "empty"]
+      "tags": [
+        "math",
+        "ceiling",
+        "empty"
+      ]
     },
     {
       "name": "ceiling - multiple items error",
@@ -71,9 +115,13 @@
       "input": [],
       "error": {
         "type": "Error",
-        "message": "ceiling\\(\\) can only be applied to a single item"
+        "message": "ceiling requires a single item, but collection has \\d+ items"
       },
-      "tags": ["math", "ceiling", "error"]
+      "tags": [
+        "math",
+        "ceiling",
+        "error"
+      ]
     },
     {
       "name": "ceiling - with arguments error",
@@ -81,9 +129,13 @@
       "input": [],
       "error": {
         "type": "Error",
-        "message": "ceiling\\(\\) takes no arguments"
+        "message": "ceiling expects 0 arguments, got \\d+"
       },
-      "tags": ["math", "ceiling", "error"]
+      "tags": [
+        "math",
+        "ceiling",
+        "error"
+      ]
     },
     {
       "name": "ceiling - on string error",
@@ -91,9 +143,15 @@
       "input": [],
       "error": {
         "type": "Error",
-        "message": "Cannot apply ceiling\\(\\) to string"
+        "message": "Cannot apply ceiling to string",
+        "code": "FP3006"
       },
-      "tags": ["math", "ceiling", "error", "type"]
+      "tags": [
+        "math",
+        "ceiling",
+        "error",
+        "type"
+      ]
     }
   ]
 }

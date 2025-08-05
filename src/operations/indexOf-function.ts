@@ -1,4 +1,5 @@
 import type { FunctionDefinition, FunctionEvaluator, LiteralNode } from '../types';
+import { Errors } from '../errors';
 import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
@@ -8,7 +9,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   }
   
   if (input.length > 1) {
-    throw new Error('indexOf() can only be used on single string values');
+    throw Errors.stringSingletonRequired('indexOf', input.length);
   }
 
   const boxedInputValue = input[0];
@@ -18,18 +19,18 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   
   const inputValue = unbox(boxedInputValue);
   if (typeof inputValue !== 'string') {
-    throw new Error('indexOf() can only be used on string values');
+    throw Errors.stringOperationOnNonString('indexOf');
   }
 
   // Check arguments
   if (args.length !== 1) {
-    throw new Error('indexOf() requires exactly 1 argument');
+    throw Errors.wrongArgumentCount('indexOf', 1, args.length);
   }
 
   // Evaluate substring argument
   const substringArg = args[0];
   if (!substringArg) {
-    throw new Error('indexOf() requires a substring argument');
+    throw Errors.argumentRequired('indexOf', 'substring argument');
   }
   
   const substringResult = evaluator(substringArg, input, context);
@@ -39,7 +40,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   }
   
   if (substringResult.value.length > 1) {
-    throw new Error('indexOf() substring argument must be a single value');
+    throw Errors.singletonRequired('indexOf substring', substringResult.value.length);
   }
   
   const boxedSubstring = substringResult.value[0];
@@ -49,7 +50,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   
   const substring = unbox(boxedSubstring);
   if (typeof substring !== 'string') {
-    throw new Error('indexOf() substring argument must be a string');
+    throw Errors.invalidStringOperation('indexOf', 'substring argument');
   }
 
   // Handle empty substring - returns 0 per spec

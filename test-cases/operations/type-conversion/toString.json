@@ -157,13 +157,17 @@
       "expression": "values.toString()",
       "input": [
         {
-          "values": [1, 2]
+          "values": [
+            1,
+            2
+          ]
         }
       ],
       "expected": [],
       "error": {
         "type": "Error",
-        "message": "toString\\(\\) can only be used on single values"
+        "message": "toString can only be used on single values",
+        "code": "FP6005"
       },
       "tags": [
         "function",
@@ -180,7 +184,7 @@
       "expected": [],
       "error": {
         "type": "Error",
-        "message": "toString\\(\\) takes no arguments"
+        "message": "toString expects 0 arguments, got \\d+"
       },
       "tags": [
         "function",
@@ -261,7 +265,9 @@
       "expression": "value.toString()",
       "input": [
         {
-          "value": {"foo": "bar"}
+          "value": {
+            "foo": "bar"
+          }
         }
       ],
       "expected": [],
@@ -278,7 +284,13 @@
       "expression": "value.first().toString()",
       "input": [
         {
-          "value": [[1, 2, 3]]
+          "value": [
+            [
+              1,
+              2,
+              3
+            ]
+          ]
         }
       ],
       "expected": [],

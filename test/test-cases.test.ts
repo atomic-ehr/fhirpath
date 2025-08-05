@@ -2,7 +2,7 @@ import { describe, it, expect } from 'bun:test';
 import { readdirSync, statSync } from 'fs';
 import { join, basename } from 'path';
 import { loadTestSuite } from '../tools/lib/test-helpers';
-import { evaluate } from '../src/index';
+import { evaluate, FHIRPathError } from '../src/index';
 import type { EvaluateOptions } from '../src/index';
 
 const TEST_CASES_DIR = join(__dirname, '../test-cases');
@@ -61,9 +61,28 @@ function createTestFunction(test: any) {
 
     if (test.error) {
       // Expecting an error
-      expect(() => {
-        evaluate(test.expression, options);
-      }).toThrow(new RegExp(test.error.message));
+      if (test.error.code) {
+        // New format: check error code
+        try {
+          evaluate(test.expression, options);
+          throw new Error('Expected an error but none was thrown');
+        } catch (error: any) {
+          if (error instanceof FHIRPathError && error.code) {
+            expect(error.code).toBe(test.error.code);
+          } else if (error instanceof Error) {
+            // For now, if we have a code in the test but the error isn't a FHIRPathError,
+            // fall back to checking the message pattern
+            expect(() => { throw error; }).toThrow(new RegExp(test.error.message));
+          } else {
+            throw error;
+          }
+        }
+      } else if (test.error.message) {
+        // Legacy format: check error message with regex
+        expect(() => {
+          evaluate(test.expression, options);
+        }).toThrow(new RegExp(test.error.message));
+      }
     } else {
       // Expecting a result
       const result = evaluate(test.expression, options);

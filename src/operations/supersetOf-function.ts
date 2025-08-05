@@ -1,15 +1,16 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { Errors } from '../errors';
 import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   if (args.length !== 1) {
-    throw new Error('supersetOf() requires exactly 1 argument');
+    throw Errors.wrongArgumentCount('supersetOf', 1, args.length);
   }
 
   // Evaluate the other collection argument
   const argNode = args[0];
   if (!argNode) {
-    throw new Error('supersetOf() requires an argument');
+    throw Errors.invalidOperation('supersetOf requires an argument');
   }
   // Evaluate the argument with the root context ($this), not the current input
   // This allows expressions like Patient.name.given to work correctly

@@ -6,64 +6,124 @@
       "name": "replace - basic substitution",
       "expression": "'abcdefg'.replace('cde', '123')",
       "input": [],
-      "expected": ["ab123fg"],
-      "tags": ["function", "string", "replace", "function:replace"]
+      "expected": [
+        "ab123fg"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "replace",
+        "function:replace"
+      ]
     },
     {
       "name": "replace - remove pattern",
       "expression": "'abcdefg'.replace('cde', '')",
       "input": [],
-      "expected": ["abfg"],
-      "tags": ["function", "string", "replace", "function:replace"]
+      "expected": [
+        "abfg"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "replace",
+        "function:replace"
+      ]
     },
     {
       "name": "replace - empty pattern",
       "expression": "'abc'.replace('', 'x')",
       "input": [],
-      "expected": ["xaxbxcx"],
-      "tags": ["function", "string", "replace", "empty", "function:replace"]
+      "expected": [
+        "xaxbxcx"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "replace",
+        "empty",
+        "function:replace"
+      ]
     },
     {
       "name": "replace - multiple occurrences",
       "expression": "'banana'.replace('a', 'o')",
       "input": [],
-      "expected": ["bonono"],
-      "tags": ["function", "string", "replace", "function:replace"]
+      "expected": [
+        "bonono"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "replace",
+        "function:replace"
+      ]
     },
     {
       "name": "replace - pattern not found",
       "expression": "'hello'.replace('xyz', 'abc')",
       "input": [],
-      "expected": ["hello"],
-      "tags": ["function", "string", "replace", "function:replace"]
+      "expected": [
+        "hello"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "replace",
+        "function:replace"
+      ]
     },
     {
       "name": "replace - empty input returns empty",
       "expression": "replace('a', 'b')",
       "input": [],
       "expected": [],
-      "tags": ["function", "string", "replace", "empty", "function:replace"]
+      "tags": [
+        "function",
+        "string",
+        "replace",
+        "empty",
+        "function:replace"
+      ]
     },
     {
       "name": "replace - non-string input returns empty",
       "expression": "(123).replace('2', '5')",
       "input": [],
       "expected": [],
-      "tags": ["function", "string", "replace", "type", "function:replace"]
+      "tags": [
+        "function",
+        "string",
+        "replace",
+        "type",
+        "function:replace"
+      ]
     },
     {
       "name": "replace - empty pattern collection returns empty",
       "expression": "'abc'.replace({}, 'x')",
       "input": [],
       "expected": [],
-      "tags": ["function", "string", "replace", "empty", "function:replace"]
+      "tags": [
+        "function",
+        "string",
+        "replace",
+        "empty",
+        "function:replace"
+      ]
     },
     {
       "name": "replace - empty substitution collection returns empty",
       "expression": "'abc'.replace('a', {})",
       "input": [],
       "expected": [],
-      "tags": ["function", "string", "replace", "empty", "function:replace"]
+      "tags": [
+        "function",
+        "string",
+        "replace",
+        "empty",
+        "function:replace"
+      ]
     },
     {
       "name": "replace - multiple input items throws error",
@@ -73,79 +133,173 @@
       "error": {
         "type": "EvaluationError",
         "message": "replace.*single.*string",
-        "phase": "evaluate"
+        "phase": "evaluate",
+        "code": "FP6005"
       },
-      "tags": ["function", "string", "replace", "error", "function:replace"]
+      "tags": [
+        "function",
+        "string",
+        "replace",
+        "error",
+        "function:replace"
+      ]
     },
     {
       "name": "replace - on input property",
       "expression": "text.replace('old', 'new')",
-      "input": [{"text": "old value old"}],
-      "expected": ["new value new"],
-      "tags": ["function", "string", "replace", "navigation", "function:replace"]
+      "input": [
+        {
+          "text": "old value old"
+        }
+      ],
+      "expected": [
+        "new value new"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "replace",
+        "navigation",
+        "function:replace"
+      ]
     },
     {
       "name": "replace - special characters",
       "expression": "'a.b.c'.replace('.', '-')",
       "input": [],
-      "expected": ["a-b-c"],
-      "tags": ["function", "string", "replace", "special", "function:replace"]
+      "expected": [
+        "a-b-c"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "replace",
+        "special",
+        "function:replace"
+      ]
     },
     {
       "name": "replace - whole string",
       "expression": "'hello'.replace('hello', 'goodbye')",
       "input": [],
-      "expected": ["goodbye"],
-      "tags": ["function", "string", "replace", "function:replace"]
+      "expected": [
+        "goodbye"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "replace",
+        "function:replace"
+      ]
     },
     {
       "name": "replace - case sensitive",
       "expression": "'Hello'.replace('hello', 'hi')",
       "input": [],
-      "expected": ["Hello"],
-      "tags": ["function", "string", "replace", "case", "function:replace"]
+      "expected": [
+        "Hello"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "replace",
+        "case",
+        "function:replace"
+      ]
     },
     {
       "name": "[FHIRPath Lab] testReplace1",
       "expression": "'123456'.replace('234', 'X')",
       "input": [],
-      "expected": ["1X56"],
-      "tags": ["function", "string", "replace", "fhirpath-lab", "function:replace"]
+      "expected": [
+        "1X56"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "replace",
+        "fhirpath-lab",
+        "function:replace"
+      ]
     },
     {
       "name": "[FHIRPath Lab] testReplace2",
       "expression": "'abc'.replace('', 'x')",
       "input": [],
-      "expected": ["xaxbxcx"],
-      "tags": ["function", "string", "replace", "empty", "fhirpath-lab", "function:replace"]
+      "expected": [
+        "xaxbxcx"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "replace",
+        "empty",
+        "fhirpath-lab",
+        "function:replace"
+      ]
     },
     {
       "name": "[FHIRPath Lab] testReplace3",
       "expression": "'123456'.replace('234', '')",
       "input": [],
-      "expected": ["156"],
-      "tags": ["function", "string", "replace", "fhirpath-lab", "function:replace"]
+      "expected": [
+        "156"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "replace",
+        "fhirpath-lab",
+        "function:replace"
+      ]
     },
     {
       "name": "[FHIRPath Lab] testReplace4",
       "expression": "{}.replace('234', 'X').empty() = true",
       "input": [],
-      "expected": [true],
-      "tags": ["function", "string", "replace", "empty", "fhirpath-lab", "function:replace"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "string",
+        "replace",
+        "empty",
+        "fhirpath-lab",
+        "function:replace"
+      ]
     },
     {
       "name": "[FHIRPath Lab] testReplace5",
       "expression": "'123'.replace({}, 'X').empty() = true",
       "input": [],
-      "expected": [true],
-      "tags": ["function", "string", "replace", "empty", "fhirpath-lab", "function:replace"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "string",
+        "replace",
+        "empty",
+        "fhirpath-lab",
+        "function:replace"
+      ]
     },
     {
       "name": "[FHIRPath Lab] testReplace6",
       "expression": "'123'.replace('2', {}).empty() = true",
       "input": [],
-      "expected": [true],
-      "tags": ["function", "string", "replace", "empty", "fhirpath-lab", "function:replace"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "string",
+        "replace",
+        "empty",
+        "fhirpath-lab",
+        "function:replace"
+      ]
     }
   ]
 }

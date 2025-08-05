@@ -6,85 +6,151 @@
       "name": "power - integer base and exponent",
       "expression": "2.power(3)",
       "input": [],
-      "expected": [8],
-      "tags": ["math", "power", "integer"]
+      "expected": [
+        8
+      ],
+      "tags": [
+        "math",
+        "power",
+        "integer"
+      ]
     },
     {
       "name": "power - decimal base",
       "expression": "2.5.power(2)",
       "input": [],
-      "expected": [6.25],
-      "tags": ["math", "power", "decimal"]
+      "expected": [
+        6.25
+      ],
+      "tags": [
+        "math",
+        "power",
+        "decimal"
+      ]
     },
     {
       "name": "power - negative exponent",
       "expression": "2.power(-1)",
       "input": [],
-      "expected": [0.5],
-      "tags": ["math", "power", "negative"]
+      "expected": [
+        0.5
+      ],
+      "tags": [
+        "math",
+        "power",
+        "negative"
+      ]
     },
     {
       "name": "power - zero exponent",
       "expression": "5.power(0)",
       "input": [],
-      "expected": [1],
-      "tags": ["math", "power", "zero"]
+      "expected": [
+        1
+      ],
+      "tags": [
+        "math",
+        "power",
+        "zero"
+      ]
     },
     {
       "name": "power - zero base",
       "expression": "0.power(5)",
       "input": [],
-      "expected": [0],
-      "tags": ["math", "power", "zero"]
+      "expected": [
+        0
+      ],
+      "tags": [
+        "math",
+        "power",
+        "zero"
+      ]
     },
     {
       "name": "power - one base",
       "expression": "1.power(100)",
       "input": [],
-      "expected": [1],
-      "tags": ["math", "power"]
+      "expected": [
+        1
+      ],
+      "tags": [
+        "math",
+        "power"
+      ]
     },
     {
       "name": "power - fractional exponent",
       "expression": "4.power(0.5)",
       "input": [],
-      "expected": [2],
-      "tags": ["math", "power", "fractional"]
+      "expected": [
+        2
+      ],
+      "tags": [
+        "math",
+        "power",
+        "fractional"
+      ]
     },
     {
       "name": "power - negative base with fractional exponent returns empty",
       "expression": "(-1).power(0.5)",
       "input": [],
       "expected": [],
-      "tags": ["math", "power", "negative", "fractional"]
+      "tags": [
+        "math",
+        "power",
+        "negative",
+        "fractional"
+      ]
     },
     {
       "name": "power - negative base with integer exponent",
       "expression": "(-2).power(3)",
       "input": [],
-      "expected": [-8],
-      "tags": ["math", "power", "negative"]
+      "expected": [
+        -8
+      ],
+      "tags": [
+        "math",
+        "power",
+        "negative"
+      ]
     },
     {
       "name": "power - negative base with even exponent",
       "expression": "(-3).power(2)",
       "input": [],
-      "expected": [9],
-      "tags": ["math", "power", "negative"]
+      "expected": [
+        9
+      ],
+      "tags": [
+        "math",
+        "power",
+        "negative"
+      ]
     },
     {
       "name": "power - empty input",
       "expression": "{ }.power(2)",
       "input": [],
       "expected": [],
-      "tags": ["math", "power", "empty"]
+      "tags": [
+        "math",
+        "power",
+        "empty"
+      ]
     },
     {
       "name": "power - empty exponent",
       "expression": "2.power({ })",
       "input": [],
       "expected": [],
-      "tags": ["math", "power", "empty"]
+      "tags": [
+        "math",
+        "power",
+        "empty"
+      ]
     },
     {
       "name": "power - multiple items error",
@@ -92,9 +158,13 @@
       "input": [],
       "error": {
         "type": "Error",
-        "message": "power\\(\\) can only be applied to a single item"
+        "message": "power requires a single item, but collection has \\d+ items"
       },
-      "tags": ["math", "power", "error"]
+      "tags": [
+        "math",
+        "power",
+        "error"
+      ]
     },
     {
       "name": "power - no arguments error",
@@ -102,9 +172,14 @@
       "input": [],
       "error": {
         "type": "Error",
-        "message": "power\\(\\) requires exactly 1 argument"
+        "message": "power expects 1 argument",
+        "code": "FP2001"
       },
-      "tags": ["math", "power", "error"]
+      "tags": [
+        "math",
+        "power",
+        "error"
+      ]
     },
     {
       "name": "power - too many arguments error",
@@ -112,9 +187,14 @@
       "input": [],
       "error": {
         "type": "Error",
-        "message": "power\\(\\) requires exactly 1 argument"
+        "message": "power expects 1 argument",
+        "code": "FP2001"
       },
-      "tags": ["math", "power", "error"]
+      "tags": [
+        "math",
+        "power",
+        "error"
+      ]
     },
     {
       "name": "power - on string error",
@@ -122,9 +202,15 @@
       "input": [],
       "error": {
         "type": "Error",
-        "message": "Cannot apply power\\(\\) to string"
+        "message": "Cannot apply power to string",
+        "code": "FP3006"
       },
-      "tags": ["math", "power", "error", "type"]
+      "tags": [
+        "math",
+        "power",
+        "error",
+        "type"
+      ]
     },
     {
       "name": "power - non-numeric exponent error",
@@ -132,9 +218,15 @@
       "input": [],
       "error": {
         "type": "Error",
-        "message": "power\\(\\) exponent must be a number"
+        "message": "exponent must be",
+        "code": "FP6005"
       },
-      "tags": ["math", "power", "error", "type"]
+      "tags": [
+        "math",
+        "power",
+        "error",
+        "type"
+      ]
     }
   ]
 }

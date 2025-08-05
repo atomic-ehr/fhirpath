@@ -20,21 +20,8 @@ import type {
 } from './types';
 import { NodeType, DiagnosticSeverity } from './types';
 import { registry } from './registry';
+import { Errors, toDiagnostic } from './errors';
 
-// Diagnostic codes as constants to avoid magic strings
-const DiagnosticCode = {
-  UnknownOperator: 'UNKNOWN_OPERATOR',
-  UnknownVariable: 'UNKNOWN_VARIABLE',
-  UnknownUserVariable: 'UNKNOWN_USER_VARIABLE',
-  UnknownFunction: 'UNKNOWN_FUNCTION',
-  TooFewArgs: 'TOO_FEW_ARGS',
-  TooManyArgs: 'TOO_MANY_ARGS',
-  TypeMismatch: 'TYPE_MISMATCH',
-  InputTypeMismatch: 'INPUT_TYPE_MISMATCH',
-  ArgumentTypeMismatch: 'ARGUMENT_TYPE_MISMATCH',
-  ParseError: 'PARSE_ERROR',
-  ModelRequiredForTypeOperation: 'MODEL_REQUIRED_FOR_TYPE_OPERATION',
-} as const;
 
 export class Analyzer {
   private diagnostics: Diagnostic[] = [];
@@ -123,13 +110,8 @@ export class Analyzer {
     
     // Check if this is a type operation that requires ModelProvider
     if ((node.operator === 'is' || node.operator === 'as') && !this.modelProvider) {
-      this.addDiagnostic(
-        DiagnosticSeverity.Error,
-        `Operation '${node.operator}' requires a ModelProvider to handle type checking correctly. ` +
-        `Even primitive types like Boolean can fail due to choice types ` +
-        `(e.g., Patient.deceased is actually deceasedBoolean in FHIR data).`,
-        node,
-        DiagnosticCode.ModelRequiredForTypeOperation
+      this.diagnostics.push(
+        toDiagnostic(Errors.modelProviderRequired(node.operator, node.range))
       );
     }
     
@@ -143,11 +125,8 @@ export class Analyzer {
           if (!this.isTypeCompatible(node.left.typeInfo, func.signature.input)) {
             const inputTypeStr = this.typeToString(node.left.typeInfo);
             const expectedTypeStr = this.typeToString(func.signature.input);
-            this.addDiagnostic(
-              DiagnosticSeverity.Error,
-              `Type mismatch: function '${func.name}' expects input type ${expectedTypeStr} but got ${inputTypeStr}`,
-              funcNode,
-              DiagnosticCode.InputTypeMismatch
+            this.diagnostics.push(
+              toDiagnostic(Errors.typeNotAssignable(inputTypeStr, expectedTypeStr, funcNode.range))
             );
           }
         }
@@ -163,7 +142,9 @@ export class Analyzer {
     
     const op = registry.getOperatorDefinition(node.operator);
     if (!op) {
-      this.addDiagnostic(DiagnosticSeverity.Error, `Unknown operator: ${node.operator}`, node, DiagnosticCode.UnknownOperator);
+      this.diagnostics.push(
+        toDiagnostic(Errors.unknownOperator(node.operator, node.range))
+      );
       return;
     }
     
@@ -183,20 +164,17 @@ export class Analyzer {
       
       // Check if this is a type operation that requires ModelProvider
       if (funcName === 'ofType' && !this.modelProvider) {
-        this.addDiagnostic(
-          DiagnosticSeverity.Error,
-          `Operation 'ofType' requires a ModelProvider to handle type checking correctly. ` +
-          `Even primitive types like Boolean can fail due to choice types ` +
-          `(e.g., Patient.deceased is actually deceasedBoolean in FHIR data).`,
-          node,
-          DiagnosticCode.ModelRequiredForTypeOperation
+        this.diagnostics.push(
+          toDiagnostic(Errors.modelProviderRequired('ofType', node.range))
         );
       }
       
       const func = registry.getFunction(funcName);
       
       if (!func) {
-        this.addDiagnostic(DiagnosticSeverity.Error, `Unknown function: ${funcName}`, node, DiagnosticCode.UnknownFunction);
+        this.diagnostics.push(
+          toDiagnostic(Errors.unknownFunction(funcName, node.range))
+        );
       } else {
         // Check argument count based on signature
         const params = func.signature.parameters;
@@ -204,9 +182,13 @@ export class Analyzer {
         const maxParams = params.length;
         
         if (node.arguments.length < requiredParams) {
-          this.addDiagnostic(DiagnosticSeverity.Error, `Function '${funcName}' requires at least ${requiredParams} arguments, got ${node.arguments.length}`, node, DiagnosticCode.TooFewArgs);
+          this.diagnostics.push(
+            toDiagnostic(Errors.wrongArgumentCount(funcName, requiredParams, node.arguments.length, node.range))
+          );
         } else if (node.arguments.length > maxParams) {
-          this.addDiagnostic(DiagnosticSeverity.Error, `Function '${funcName}' accepts at most ${maxParams} arguments, got ${node.arguments.length}`, node, DiagnosticCode.TooManyArgs);
+          this.diagnostics.push(
+            toDiagnostic(Errors.wrongArgumentCount(funcName, maxParams, node.arguments.length, node.range))
+          );
         }
         
         // Type check arguments if we have type information
@@ -222,13 +204,8 @@ export class Analyzer {
   private visitMembershipTest(node: MembershipTestNode): void {
     // Check if ModelProvider is required
     if (!this.modelProvider) {
-      this.addDiagnostic(
-        DiagnosticSeverity.Error,
-        `Operation 'is' requires a ModelProvider to handle type checking correctly. ` +
-        `Even primitive types like Boolean can fail due to choice types ` +
-        `(e.g., Patient.deceased is actually deceasedBoolean in FHIR data).`,
-        node,
-        DiagnosticCode.ModelRequiredForTypeOperation
+      this.diagnostics.push(
+        toDiagnostic(Errors.modelProviderRequired('is', node.range))
       );
     }
     
@@ -238,13 +215,8 @@ export class Analyzer {
   private visitTypeCast(node: TypeCastNode): void {
     // Check if ModelProvider is required
     if (!this.modelProvider) {
-      this.addDiagnostic(
-        DiagnosticSeverity.Error,
-        `Operation 'as' requires a ModelProvider to handle type checking correctly. ` +
-        `Even primitive types like Boolean can fail due to choice types ` +
-        `(e.g., Patient.deceased is actually deceasedBoolean in FHIR data).`,
-        node,
-        DiagnosticCode.ModelRequiredForTypeOperation
+      this.diagnostics.push(
+        toDiagnostic(Errors.modelProviderRequired('as', node.range))
       );
     }
     
@@ -255,25 +227,20 @@ export class Analyzer {
   private validateVariable(name: string, node: ASTNode): void {
     if (name.startsWith('$')) {
       if (!this.variables.has(name)) {
-        this.addDiagnostic(DiagnosticSeverity.Error, `Unknown variable: ${name}`, node, DiagnosticCode.UnknownVariable);
+        this.diagnostics.push(
+          toDiagnostic(Errors.unknownVariable(name, node.range))
+        );
       }
     } else if (name.startsWith('%')) {
       const varName = name.substring(1);
       if (!this.variables.has(varName)) {
-        this.addDiagnostic(DiagnosticSeverity.Error, `Unknown user variable: ${name}`, node, DiagnosticCode.UnknownUserVariable);
+        this.diagnostics.push(
+          toDiagnostic(Errors.unknownUserVariable(name, node.range))
+        );
       }
     }
   }
 
-  private addDiagnostic(severity: DiagnosticSeverity, message: string, node: ASTNode, code: string): void {
-    this.diagnostics.push({
-      range: node.range,
-      severity,
-      message,
-      code,
-      source: 'fhirpath-analyzer'
-    });
-  }
 
   // Type inference methods
   private inferType(node: ASTNode, inputType?: TypeInfo): TypeInfo {
@@ -399,11 +366,8 @@ export class Analyzer {
       // Skip diagnostics for union types - they may have dynamic properties
       if (leftType.namespace && leftType.name && leftType.modelContext && 
           !(leftType.modelContext as any).isUnion) {
-        this.addDiagnostic(
-          DiagnosticSeverity.Error,
-          `Unknown property '${propertyName}' on type ${leftType.namespace}.${leftType.name}`,
-          node.right,
-          'UNKNOWN_PROPERTY'
+        this.diagnostics.push(
+          toDiagnostic(Errors.unknownProperty(propertyName, `${leftType.namespace}.${leftType.name}`, node.right.range))
         );
       }
     }
@@ -684,11 +648,8 @@ export class Analyzer {
     if (!foundMatch) {
       const leftTypeStr = this.typeToString(leftType);
       const rightTypeStr = this.typeToString(rightType);
-      this.addDiagnostic(
-        DiagnosticSeverity.Error,
-        `Type mismatch: operator '${node.operator}' cannot be applied to types ${leftTypeStr} and ${rightTypeStr}`,
-        node,
-        DiagnosticCode.TypeMismatch
+      this.diagnostics.push(
+        toDiagnostic(Errors.operatorTypeMismatch(node.operator, leftTypeStr, rightTypeStr, node.range))
       );
     }
   }
@@ -705,11 +666,8 @@ export class Analyzer {
         if (!this.isTypeCompatible(arg.typeInfo, param.type)) {
           const argTypeStr = this.typeToString(arg.typeInfo);
           const paramTypeStr = this.typeToString(param.type);
-          this.addDiagnostic(
-            DiagnosticSeverity.Error,
-            `Type mismatch: argument ${i + 1} of function '${func.name}' expects ${paramTypeStr} but got ${argTypeStr}`,
-            arg,
-            DiagnosticCode.ArgumentTypeMismatch
+          this.diagnostics.push(
+            toDiagnostic(Errors.argumentTypeMismatch(i + 1, func.name, paramTypeStr, argTypeStr, arg.range))
           );
         }
       }
@@ -734,12 +692,13 @@ export class Analyzer {
       // Infer a reasonable type for error nodes
       node.typeInfo = this.inferErrorNodeType(errorNode, inputType);
       // Add diagnostic for the error
-      this.addDiagnostic(
-        errorNode.severity || DiagnosticSeverity.Error,
-        errorNode.message,
-        errorNode,
-        errorNode.code?.toString() || DiagnosticCode.ParseError
-      );
+      this.diagnostics.push({
+        severity: errorNode.severity || DiagnosticSeverity.Error,
+        message: errorNode.message,
+        range: errorNode.range,
+        code: errorNode.code?.toString() || 'FP5003',
+        source: 'fhirpath'
+      });
       return;
     }
     

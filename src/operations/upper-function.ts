@@ -1,4 +1,5 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { Errors } from '../errors';
 import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
@@ -9,7 +10,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   
   // If input contains multiple items, signal an error
   if (input.length > 1) {
-    throw new Error('upper() can only be applied to a singleton string');
+    throw Errors.invalidOperation('upper can only be applied to a singleton string');
   }
   
   const boxedInputValue = input[0];
@@ -21,12 +22,12 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   
   // Type check the input - must be a string
   if (typeof inputValue !== 'string') {
-    throw new Error('upper() can only be applied to string values');
+    throw Errors.stringOperationOnNonString('upper');
   }
   
   // upper() takes no arguments
   if (args && args.length > 0) {
-    throw new Error('upper() does not take any arguments');
+    throw Errors.invalidOperation('upper does not take any arguments');
   }
   
   // Convert to uppercase

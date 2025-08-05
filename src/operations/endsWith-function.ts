@@ -1,10 +1,11 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import { Errors } from '../errors';
 import { box, unbox } from '../boxing';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   // Validate arguments
   if (args.length !== 1) {
-    throw new Error('endsWith() requires exactly 1 argument');
+    throw Errors.wrongArgumentCount('endsWith', 1, args.length);
   }
 
   // If input is empty, return empty
@@ -14,7 +15,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
 
   // If input has multiple items, signal an error
   if (input.length > 1) {
-    throw new Error('endsWith() can only be used on single string values');
+    throw Errors.singletonRequired('endsWith', input.length);
   }
 
   const boxedInputValue = input[0];
@@ -26,18 +27,18 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
 
   // Check that input is a string
   if (typeof inputValue !== 'string') {
-    throw new Error('endsWith() can only be used on string values');
+    throw Errors.stringOperationOnNonString('endsWith');
   }
 
   // Evaluate the suffix argument
   if (!args[0]) {
-    throw new Error('endsWith() requires a suffix argument');
+    throw Errors.argumentRequired('endsWith', 'suffix argument');
   }
   const suffixResult = evaluator(args[0], input, context);
   
   // Validate that suffix is a singleton string
   if (suffixResult.value.length !== 1) {
-    throw new Error('endsWith() suffix argument must be a single value');
+    throw Errors.invalidOperation('endsWith suffix argument must be a single value');
   }
   
   const boxedSuffix = suffixResult.value[0];
@@ -49,7 +50,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   
   // Check that suffix is a string
   if (typeof suffix !== 'string') {
-    throw new Error('endsWith() suffix argument must be a string');
+    throw Errors.invalidStringOperation('endsWith', 'suffix argument');
   }
   
   // If suffix is empty string, result is true

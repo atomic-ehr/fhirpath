@@ -144,7 +144,11 @@
       "expression": "values.where($this > 90).select(true).allTrue()",
       "input": [
         {
-          "values": [91, 92, 93]
+          "values": [
+            91,
+            92,
+            93
+          ]
         }
       ],
       "expected": [
@@ -166,7 +170,8 @@
       "expected": [],
       "error": {
         "type": "Error",
-        "message": "allTrue\\(\\) expects all items to be Boolean values"
+        "message": "allTrue expects all items to be Boolean values, but item at index \\d+ is",
+        "code": "FP3009"
       },
       "tags": [
         "function",
@@ -182,13 +187,18 @@
       "expression": "mixed.allTrue()",
       "input": [
         {
-          "mixed": [true, "string", false]
+          "mixed": [
+            true,
+            "string",
+            false
+          ]
         }
       ],
       "expected": [],
       "error": {
         "type": "Error",
-        "message": "allTrue\\(\\) expects all items to be Boolean values"
+        "message": "allTrue expects all items to be Boolean values, but item at index \\d+ is",
+        "code": "FP3009"
       },
       "tags": [
         "function",
