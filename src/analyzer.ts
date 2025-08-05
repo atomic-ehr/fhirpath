@@ -25,7 +25,7 @@ import { Errors, toDiagnostic } from './errors';
 
 export class Analyzer {
   private diagnostics: Diagnostic[] = [];
-  private variables: Set<string> = new Set(['$this', '$index', '$total']);
+  private variables: Set<string> = new Set(['$this', '$index', '$total', 'context', 'resource', 'rootResource']);
   private modelProvider?: ModelProvider;
   private userVariableTypes: Map<string, TypeInfo> = new Map();
 
@@ -108,11 +108,30 @@ export class Analyzer {
   private visitBinaryOperator(node: BinaryNode): void {
     this.visitNode(node.left);
     
-    // Check if this is a type operation that requires ModelProvider
-    if ((node.operator === 'is' || node.operator === 'as') && !this.modelProvider) {
-      this.diagnostics.push(
-        toDiagnostic(Errors.modelProviderRequired(node.operator, node.range))
-      );
+    // Track defineVariable for validation - collect all variables defined in the chain
+    if (node.operator === '.') {
+      const definedVars = this.collectDefinedVariables(node.left);
+      if (definedVars.size > 0) {
+        // Track which variables were already known
+        const previouslyKnown = new Set<string>();
+        definedVars.forEach(varName => {
+          if (this.variables.has(varName)) {
+            previouslyKnown.add(varName);
+          }
+          this.variables.add(varName);
+        });
+        
+        // Visit right side with new variables in scope
+        this.visitNode(node.right);
+        
+        // Restore previous state
+        definedVars.forEach(varName => {
+          if (!previouslyKnown.has(varName)) {
+            this.variables.delete(varName);
+          }
+        });
+        return;
+      }
     }
     
     // Special handling for dot operator with function on right side
@@ -203,7 +222,9 @@ export class Analyzer {
 
   private visitMembershipTest(node: MembershipTestNode): void {
     // Check if ModelProvider is required
-    if (!this.modelProvider) {
+    // Basic primitive types can be checked without ModelProvider
+    const primitiveTypes = ['String', 'Integer', 'Decimal', 'Boolean', 'Date', 'DateTime', 'Time', 'Quantity'];
+    if (!this.modelProvider && !primitiveTypes.includes(node.targetType)) {
       this.diagnostics.push(
         toDiagnostic(Errors.modelProviderRequired('is', node.range))
       );
@@ -214,7 +235,9 @@ export class Analyzer {
 
   private visitTypeCast(node: TypeCastNode): void {
     // Check if ModelProvider is required
-    if (!this.modelProvider) {
+    // Basic primitive types can be checked without ModelProvider
+    const primitiveTypes = ['String', 'Integer', 'Decimal', 'Boolean', 'Date', 'DateTime', 'Time', 'Quantity'];
+    if (!this.modelProvider && !primitiveTypes.includes(node.targetType)) {
       this.diagnostics.push(
         toDiagnostic(Errors.modelProviderRequired('as', node.range))
       );
@@ -239,6 +262,114 @@ export class Analyzer {
         );
       }
     }
+  }
+  
+  private collectDefinedVariables(node: ASTNode): Set<string> {
+    const vars = new Set<string>();
+    
+    // If this is a defineVariable call, extract the variable name
+    if (node.type === NodeType.Function) {
+      const funcNode = node as FunctionNode;
+      if (funcNode.name.type === NodeType.Identifier && 
+          (funcNode.name as IdentifierNode).name === 'defineVariable' &&
+          funcNode.arguments.length >= 1) {
+        const nameArg = funcNode.arguments[0];
+        if (nameArg && nameArg.type === NodeType.Literal && nameArg.valueType === 'string') {
+          vars.add(nameArg.value as string);
+        }
+      }
+    }
+    
+    // If this is a binary dot operator, collect from left side recursively
+    if (node.type === NodeType.Binary) {
+      const binaryNode = node as BinaryNode;
+      if (binaryNode.operator === '.') {
+        // Collect from left side
+        const leftVars = this.collectDefinedVariables(binaryNode.left);
+        leftVars.forEach(v => vars.add(v));
+        
+        // Check if right side is also defineVariable
+        if (binaryNode.right.type === NodeType.Function) {
+          const rightFunc = binaryNode.right as FunctionNode;
+          if (rightFunc.name.type === NodeType.Identifier && 
+              (rightFunc.name as IdentifierNode).name === 'defineVariable' &&
+              rightFunc.arguments.length >= 1) {
+            const nameArg = rightFunc.arguments[0];
+            if (nameArg && nameArg.type === NodeType.Literal && nameArg.valueType === 'string') {
+              vars.add(nameArg.value as string);
+            }
+          }
+        }
+      }
+    }
+    
+    return vars;
+  }
+  
+  private collectDefinedVariablesWithTypes(node: ASTNode): Map<string, TypeInfo> {
+    const varsWithTypes = new Map<string, TypeInfo>();
+    
+    // If this is a defineVariable call, extract the variable name and type
+    if (node.type === NodeType.Function) {
+      const funcNode = node as FunctionNode;
+      if (funcNode.name.type === NodeType.Identifier && 
+          (funcNode.name as IdentifierNode).name === 'defineVariable' &&
+          funcNode.arguments.length >= 1) {
+        const nameArg = funcNode.arguments[0];
+        if (nameArg && nameArg.type === NodeType.Literal && nameArg.valueType === 'string') {
+          const varName = nameArg.value as string;
+          let varType: TypeInfo;
+          
+          if (funcNode.arguments.length >= 2 && funcNode.arguments[1]!.typeInfo) {
+            // Has value expression - use its type
+            varType = funcNode.arguments[1]!.typeInfo;
+          } else if (node.typeInfo) {
+            // No value expression - uses input as value (defineVariable returns input)
+            varType = node.typeInfo;
+          } else {
+            varType = { type: 'Any', singleton: false };
+          }
+          
+          varsWithTypes.set(varName, varType);
+        }
+      }
+    }
+    
+    // If this is a binary dot operator, collect from entire chain
+    if (node.type === NodeType.Binary) {
+      const binaryNode = node as BinaryNode;
+      if (binaryNode.operator === '.') {
+        // Collect from left side recursively
+        const leftVars = this.collectDefinedVariablesWithTypes(binaryNode.left);
+        leftVars.forEach((type, name) => varsWithTypes.set(name, type));
+        
+        // Check if right side is also defineVariable
+        if (binaryNode.right.type === NodeType.Function) {
+          const rightFunc = binaryNode.right as FunctionNode;
+          if (rightFunc.name.type === NodeType.Identifier && 
+              (rightFunc.name as IdentifierNode).name === 'defineVariable' &&
+              rightFunc.arguments.length >= 1) {
+            const nameArg = rightFunc.arguments[0];
+            if (nameArg && nameArg.type === NodeType.Literal && nameArg.valueType === 'string') {
+              const varName = nameArg.value as string;
+              let varType: TypeInfo;
+              
+              if (rightFunc.arguments.length >= 2 && rightFunc.arguments[1]!.typeInfo) {
+                varType = rightFunc.arguments[1]!.typeInfo;
+              } else if (binaryNode.typeInfo) {
+                varType = binaryNode.typeInfo;
+              } else {
+                varType = { type: 'Any', singleton: false };
+              }
+              
+              varsWithTypes.set(varName, varType);
+            }
+          }
+        }
+      }
+    }
+    
+    return varsWithTypes;
   }
 
 
@@ -403,6 +534,75 @@ export class Analyzer {
       return { type: 'Any', singleton: false };
     }
     
+    // Special handling for iif function
+    if (funcName === 'iif') {
+      // iif returns the common type of the true and false branches
+      if (node.arguments.length >= 2) {
+        const trueBranchType = this.inferType(node.arguments[1]!, inputType);
+        if (node.arguments.length >= 3) {
+          const falseBranchType = this.inferType(node.arguments[2]!, inputType);
+          // If both branches have the same type, use that
+          if (trueBranchType.type === falseBranchType.type && 
+              trueBranchType.singleton === falseBranchType.singleton) {
+            return trueBranchType;
+          }
+          // If types are the same but singleton differs, return as collection
+          if (trueBranchType.type === falseBranchType.type) {
+            // One is singleton, one is collection - result must be collection
+            return { type: trueBranchType.type, singleton: false };
+          }
+          // Otherwise, check if one is a subtype of the other
+          if (this.isTypeCompatible(trueBranchType, falseBranchType)) {
+            return falseBranchType;
+          }
+          if (this.isTypeCompatible(falseBranchType, trueBranchType)) {
+            return trueBranchType;
+          }
+        } else {
+          // Only true branch, result can be that type or empty
+          return { ...trueBranchType, singleton: false };
+        }
+      }
+      return { type: 'Any', singleton: false };
+    }
+    
+    // Special handling for defineVariable function
+    if (funcName === 'defineVariable') {
+      // defineVariable returns its input type unchanged
+      return inputType || { type: 'Any', singleton: false };
+    }
+    
+    // Special handling for aggregate function
+    if (funcName === 'aggregate') {
+      // If init parameter is provided, use its type to infer result type
+      if (node.arguments.length >= 2) {
+        const initType = this.inferType(node.arguments[1]!, inputType);
+        // The result type is the same as init type
+        return initType;
+      }
+      // Without init, analyze the aggregator expression to infer result type
+      if (node.arguments.length >= 1) {
+        // Temporarily set $total to Any for the aggregator expression analysis
+        const savedTotalType = this.userVariableTypes.get('$total');
+        this.userVariableTypes.set('$total', { type: 'Any', singleton: false });
+        
+        // Analyze the aggregator expression
+        const aggregatorType = this.inferType(node.arguments[0]!, inputType);
+        
+        // Restore previous $total type
+        if (savedTotalType) {
+          this.userVariableTypes.set('$total', savedTotalType);
+        } else {
+          this.userVariableTypes.delete('$total');
+        }
+        
+        // The result type is what the aggregator expression returns
+        return aggregatorType;
+      }
+      // No arguments at all
+      return { type: 'Any', singleton: false };
+    }
+    
     // Special handling for functions with dynamic result types
     if (func.signature.result === 'inputType') {
       // Functions like where() return the same type as input but always as collection
@@ -465,11 +665,25 @@ export class Analyzer {
   }
   
   private inferVariableType(node: VariableNode): TypeInfo {
+    // Check if we have a temporary type set (e.g., for $total in aggregate)
+    const tempType = this.userVariableTypes.get(node.name);
+    if (tempType) {
+      return tempType;
+    }
+    
     // Built-in variables
     if (node.name === '$this') {
       return { type: 'Any', singleton: false }; // $this is usually a collection
-    } else if (node.name === '$index' || node.name === '$total') {
+    } else if (node.name === '$index') {
       return { type: 'Integer', singleton: true };
+    } else if (node.name === '$total') {
+      // Default $total type when not in aggregate context
+      return { type: 'Integer', singleton: true };
+    }
+    
+    // Special FHIRPath environment variables
+    if (node.name === '%context' || node.name === '%resource' || node.name === '%rootResource') {
+      return { type: 'Any', singleton: false }; // These return the original input
     }
     
     // User-defined variables - check with or without % prefix
@@ -713,7 +927,36 @@ export class Analyzer {
         
         // For navigation, pass the left's type as input to the right
         if (binaryNode.operator === '.') {
-          this.annotateAST(binaryNode.right, binaryNode.left.typeInfo);
+          // Collect all variables defined in the left side chain
+          const definedVarsWithTypes = this.collectDefinedVariablesWithTypes(binaryNode.left);
+          
+          if (definedVarsWithTypes.size > 0) {
+            // Save current variable types
+            const savedTypes = new Map<string, TypeInfo>();
+            definedVarsWithTypes.forEach((type, varName) => {
+              const currentType = this.userVariableTypes.get(varName);
+              if (currentType) {
+                savedTypes.set(varName, currentType);
+              }
+              this.userVariableTypes.set(varName, type);
+            });
+            
+            // Annotate right side with new variables in scope
+            this.annotateAST(binaryNode.right, binaryNode.left.typeInfo);
+            
+            // Restore previous types
+            definedVarsWithTypes.forEach((_, varName) => {
+              const savedType = savedTypes.get(varName);
+              if (savedType) {
+                this.userVariableTypes.set(varName, savedType);
+              } else {
+                this.userVariableTypes.delete(varName);
+              }
+            });
+          } else {
+            // No defineVariable in chain, proceed normally
+            this.annotateAST(binaryNode.right, binaryNode.left.typeInfo);
+          }
         } else {
           this.annotateAST(binaryNode.right, inputType);
         }
@@ -727,7 +970,54 @@ export class Analyzer {
       case NodeType.Function:
         const funcNode = node as FunctionNode;
         this.annotateAST(funcNode.name, inputType);
-        funcNode.arguments.forEach(arg => this.annotateAST(arg, inputType));
+        
+        // Special handling for aggregate function arguments
+        if (funcNode.name.type === NodeType.Identifier && 
+            (funcNode.name as IdentifierNode).name === 'aggregate') {
+          // For aggregate, we need to set up context with $total type
+          if (funcNode.arguments.length >= 1) {
+            // First argument is the aggregator expression
+            let aggregatorInputType = inputType;
+            const savedTotalType = this.userVariableTypes.get('$total');
+            
+            if (funcNode.arguments.length >= 2) {
+              // With init: infer init type first
+              this.annotateAST(funcNode.arguments[1]!, inputType);
+              const initType = funcNode.arguments[1]!.typeInfo;
+              if (initType) {
+                // Temporarily set $total type for aggregator expression
+                this.userVariableTypes.set('$total', initType);
+                this.annotateAST(funcNode.arguments[0]!, aggregatorInputType);
+              } else {
+                this.annotateAST(funcNode.arguments[0]!, aggregatorInputType);
+              }
+              // Skip the init argument as we already annotated it
+              funcNode.arguments.slice(2).forEach(arg => this.annotateAST(arg, inputType));
+            } else {
+              // Without init: First pass with $total as Any to get aggregator type
+              this.userVariableTypes.set('$total', { type: 'Any', singleton: false });
+              this.annotateAST(funcNode.arguments[0]!, aggregatorInputType);
+              
+              // Second pass: use the inferred aggregator type for $total
+              const aggregatorType = funcNode.arguments[0]!.typeInfo;
+              if (aggregatorType) {
+                this.userVariableTypes.set('$total', aggregatorType);
+                // Re-annotate with the proper $total type
+                this.annotateAST(funcNode.arguments[0]!, aggregatorInputType);
+              }
+            }
+            
+            // Restore previous $total type
+            if (savedTotalType) {
+              this.userVariableTypes.set('$total', savedTotalType);
+            } else {
+              this.userVariableTypes.delete('$total');
+            }
+          }
+        } else {
+          // Regular function argument annotation
+          funcNode.arguments.forEach(arg => this.annotateAST(arg, inputType));
+        }
         break;
         
       case NodeType.Collection:

@@ -5,122 +5,496 @@
     {
       "name": "split - basic comma separation",
       "expression": "('A,B,C').split(',')",
-      "expected": ["A", "B", "C"],
-      "tags": ["function", "string", "split", "function:split"]
+      "expected": [
+        "A",
+        "B",
+        "C"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "split",
+        "function:split"
+      ]
     },
     {
       "name": "split - no separator found",
       "expression": "('ABC').split(',')",
-      "expected": ["ABC"],
-      "tags": ["function", "string", "split", "function:split"]
+      "expected": [
+        "ABC"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "split",
+        "function:split"
+      ]
     },
     {
       "name": "split - empty elements",
       "expression": "'A,,C'.split(',')",
-      "expected": ["A", "", "C"],
-      "tags": ["function", "string", "split", "function:split", "empty-elements"]
+      "expected": [
+        "A",
+        "",
+        "C"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "split",
+        "function:split",
+        "empty-elements"
+      ]
     },
     {
       "name": "split - empty input",
       "expression": "({}).split(',')",
       "expected": [],
-      "tags": ["function", "string", "split", "function:split", "empty"]
+      "tags": [
+        "function",
+        "string",
+        "split",
+        "function:split",
+        "empty"
+      ]
     },
     {
       "name": "split - empty string input",
       "expression": "''.split(',')",
-      "expected": [""],
-      "tags": ["function", "string", "split", "function:split", "empty-string"]
+      "expected": [
+        ""
+      ],
+      "tags": [
+        "function",
+        "string",
+        "split",
+        "function:split",
+        "empty-string"
+      ]
     },
     {
       "name": "split - single character separator",
       "expression": "'one:two:three'.split(':')",
-      "expected": ["one", "two", "three"],
-      "tags": ["function", "string", "split", "function:split"]
+      "expected": [
+        "one",
+        "two",
+        "three"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "split",
+        "function:split"
+      ]
     },
     {
       "name": "split - multi-character separator",
       "expression": "'one<=>two<=>three'.split('<=>')",
-      "expected": ["one", "two", "three"],
-      "tags": ["function", "string", "split", "function:split", "multi-char"]
+      "expected": [
+        "one",
+        "two",
+        "three"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "split",
+        "function:split",
+        "multi-char"
+      ]
     },
     {
       "name": "split - space separator",
       "expression": "'hello world test'.split(' ')",
-      "expected": ["hello", "world", "test"],
-      "tags": ["function", "string", "split", "function:split", "space"]
+      "expected": [
+        "hello",
+        "world",
+        "test"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "split",
+        "function:split",
+        "space"
+      ]
     },
     {
       "name": "split - newline separator",
       "expression": "'line1\\nline2\\nline3'.split('\\n')",
-      "expected": ["line1", "line2", "line3"],
-      "tags": ["function", "string", "split", "function:split", "newline"]
+      "expected": [
+        "line1",
+        "line2",
+        "line3"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "split",
+        "function:split",
+        "newline"
+      ]
     },
     {
       "name": "split - separator at start",
       "expression": "',A,B,C'.split(',')",
-      "expected": ["", "A", "B", "C"],
-      "tags": ["function", "string", "split", "function:split", "edge-case"]
+      "expected": [
+        "",
+        "A",
+        "B",
+        "C"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "split",
+        "function:split",
+        "edge-case"
+      ]
     },
     {
       "name": "split - separator at end",
       "expression": "'A,B,C,'.split(',')",
-      "expected": ["A", "B", "C", ""],
-      "tags": ["function", "string", "split", "function:split", "edge-case"]
+      "expected": [
+        "A",
+        "B",
+        "C",
+        ""
+      ],
+      "tags": [
+        "function",
+        "string",
+        "split",
+        "function:split",
+        "edge-case"
+      ]
     },
     {
       "name": "split - only separators",
       "expression": "',,'.split(',')",
-      "expected": ["", "", ""],
-      "tags": ["function", "string", "split", "function:split", "edge-case"]
+      "expected": [
+        "",
+        "",
+        ""
+      ],
+      "tags": [
+        "function",
+        "string",
+        "split",
+        "function:split",
+        "edge-case"
+      ]
     },
     {
       "name": "split - empty separator",
       "expression": "'ABC'.split('')",
-      "expected": ["A", "B", "C"],
-      "tags": ["function", "string", "split", "function:split", "empty-separator"]
+      "expected": [
+        "A",
+        "B",
+        "C"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "split",
+        "function:split",
+        "empty-separator"
+      ]
     },
     {
       "name": "split - path example",
       "expression": "'/path/to/file'.split('/')",
-      "expected": ["", "path", "to", "file"],
-      "tags": ["function", "string", "split", "function:split", "path"]
+      "expected": [
+        "",
+        "path",
+        "to",
+        "file"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "split",
+        "function:split",
+        "path"
+      ]
     },
     {
       "name": "split - CSV row",
       "expression": "'John,Doe,30,Engineer'.split(',')",
-      "expected": ["John", "Doe", "30", "Engineer"],
-      "tags": ["function", "string", "split", "function:split", "csv"]
+      "expected": [
+        "John",
+        "Doe",
+        "30",
+        "Engineer"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "split",
+        "function:split",
+        "csv"
+      ]
     },
     {
       "name": "split - error on non-string input",
       "expression": "(123).split(',')",
-      "error": "split() can only be applied to string values",
-      "tags": ["function", "string", "split", "function:split", "error", "type-error"]
+      "error": {
+        "0": "s",
+        "1": "p",
+        "2": "l",
+        "3": "i",
+        "4": "t",
+        "5": "(",
+        "6": ")",
+        "7": " ",
+        "8": "c",
+        "9": "a",
+        "10": "n",
+        "11": " ",
+        "12": "o",
+        "13": "n",
+        "14": "l",
+        "15": "y",
+        "16": " ",
+        "17": "b",
+        "18": "e",
+        "19": " ",
+        "20": "a",
+        "21": "p",
+        "22": "p",
+        "23": "l",
+        "24": "i",
+        "25": "e",
+        "26": "d",
+        "27": " ",
+        "28": "t",
+        "29": "o",
+        "30": " ",
+        "31": "s",
+        "32": "t",
+        "33": "r",
+        "34": "i",
+        "35": "n",
+        "36": "g",
+        "37": " ",
+        "38": "v",
+        "39": "a",
+        "40": "l",
+        "41": "u",
+        "42": "e",
+        "43": "s",
+        "phase": "analyze"
+      },
+      "tags": [
+        "function",
+        "string",
+        "split",
+        "function:split",
+        "error",
+        "type-error"
+      ]
     },
     {
       "name": "split - error on collection input",
       "expression": "('A' | 'B').split(',')",
-      "error": "split() requires a singleton input",
-      "tags": ["function", "string", "split", "function:split", "error", "singleton"]
+      "error": {
+        "0": "s",
+        "1": "p",
+        "2": "l",
+        "3": "i",
+        "4": "t",
+        "5": "(",
+        "6": ")",
+        "7": " ",
+        "8": "r",
+        "9": "e",
+        "10": "q",
+        "11": "u",
+        "12": "i",
+        "13": "r",
+        "14": "e",
+        "15": "s",
+        "16": " ",
+        "17": "a",
+        "18": " ",
+        "19": "s",
+        "20": "i",
+        "21": "n",
+        "22": "g",
+        "23": "l",
+        "24": "e",
+        "25": "t",
+        "26": "o",
+        "27": "n",
+        "28": " ",
+        "29": "i",
+        "30": "n",
+        "31": "p",
+        "32": "u",
+        "33": "t",
+        "phase": "analyze"
+      },
+      "tags": [
+        "function",
+        "string",
+        "split",
+        "function:split",
+        "error",
+        "singleton"
+      ]
     },
     {
       "name": "split - error on non-string separator",
       "expression": "'A,B,C'.split(123)",
-      "error": "split() separator must be a string",
-      "tags": ["function", "string", "split", "function:split", "error", "type-error"]
+      "error": {
+        "0": "s",
+        "1": "p",
+        "2": "l",
+        "3": "i",
+        "4": "t",
+        "5": "(",
+        "6": ")",
+        "7": " ",
+        "8": "s",
+        "9": "e",
+        "10": "p",
+        "11": "a",
+        "12": "r",
+        "13": "a",
+        "14": "t",
+        "15": "o",
+        "16": "r",
+        "17": " ",
+        "18": "m",
+        "19": "u",
+        "20": "s",
+        "21": "t",
+        "22": " ",
+        "23": "b",
+        "24": "e",
+        "25": " ",
+        "26": "a",
+        "27": " ",
+        "28": "s",
+        "29": "t",
+        "30": "r",
+        "31": "i",
+        "32": "n",
+        "33": "g",
+        "phase": "analyze"
+      },
+      "tags": [
+        "function",
+        "string",
+        "split",
+        "function:split",
+        "error",
+        "type-error"
+      ]
     },
     {
       "name": "split - error on missing separator",
       "expression": "'A,B,C'.split()",
-      "error": "split() requires exactly one argument",
-      "tags": ["function", "string", "split", "function:split", "error", "arguments"]
+      "error": {
+        "0": "s",
+        "1": "p",
+        "2": "l",
+        "3": "i",
+        "4": "t",
+        "5": "(",
+        "6": ")",
+        "7": " ",
+        "8": "r",
+        "9": "e",
+        "10": "q",
+        "11": "u",
+        "12": "i",
+        "13": "r",
+        "14": "e",
+        "15": "s",
+        "16": " ",
+        "17": "e",
+        "18": "x",
+        "19": "a",
+        "20": "c",
+        "21": "t",
+        "22": "l",
+        "23": "y",
+        "24": " ",
+        "25": "o",
+        "26": "n",
+        "27": "e",
+        "28": " ",
+        "29": "a",
+        "30": "r",
+        "31": "g",
+        "32": "u",
+        "33": "m",
+        "34": "e",
+        "35": "n",
+        "36": "t",
+        "phase": "analyze"
+      },
+      "tags": [
+        "function",
+        "string",
+        "split",
+        "function:split",
+        "error",
+        "arguments"
+      ]
     },
     {
       "name": "split - error on multiple separators",
       "expression": "'A,B,C'.split(',', ';')",
-      "error": "split() requires exactly one argument",
-      "tags": ["function", "string", "split", "function:split", "error", "arguments"]
+      "error": {
+        "0": "s",
+        "1": "p",
+        "2": "l",
+        "3": "i",
+        "4": "t",
+        "5": "(",
+        "6": ")",
+        "7": " ",
+        "8": "r",
+        "9": "e",
+        "10": "q",
+        "11": "u",
+        "12": "i",
+        "13": "r",
+        "14": "e",
+        "15": "s",
+        "16": " ",
+        "17": "e",
+        "18": "x",
+        "19": "a",
+        "20": "c",
+        "21": "t",
+        "22": "l",
+        "23": "y",
+        "24": " ",
+        "25": "o",
+        "26": "n",
+        "27": "e",
+        "28": " ",
+        "29": "a",
+        "30": "r",
+        "31": "g",
+        "32": "u",
+        "33": "m",
+        "34": "e",
+        "35": "n",
+        "36": "t",
+        "phase": "analyze"
+      },
+      "tags": [
+        "function",
+        "string",
+        "split",
+        "function:split",
+        "error",
+        "arguments"
+      ]
     }
   ]
 }

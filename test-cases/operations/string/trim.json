@@ -5,105 +5,287 @@
     {
       "name": "trim - leading and trailing spaces",
       "expression": "'  hello  '.trim()",
-      "expected": ["hello"],
-      "tags": ["function", "string", "trim", "function:trim", "spaces"]
+      "expected": [
+        "hello"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "trim",
+        "function:trim",
+        "spaces"
+      ]
     },
     {
       "name": "trim - tabs",
       "expression": "'\\thello\\t'.trim()",
-      "expected": ["hello"],
-      "tags": ["function", "string", "trim", "function:trim", "tabs"]
+      "expected": [
+        "hello"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "trim",
+        "function:trim",
+        "tabs"
+      ]
     },
     {
       "name": "trim - newlines",
       "expression": "'\\nhello\\n'.trim()",
-      "expected": ["hello"],
-      "tags": ["function", "string", "trim", "function:trim", "newlines"]
+      "expected": [
+        "hello"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "trim",
+        "function:trim",
+        "newlines"
+      ]
     },
     {
       "name": "trim - carriage returns",
       "expression": "'\\rhello\\r'.trim()",
-      "expected": ["hello"],
-      "tags": ["function", "string", "trim", "function:trim", "carriage-return"]
+      "expected": [
+        "hello"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "trim",
+        "function:trim",
+        "carriage-return"
+      ]
     },
     {
       "name": "trim - mixed whitespace",
       "expression": "'  \\t\\n\\rhello\\r\\n\\t  '.trim()",
-      "expected": ["hello"],
-      "tags": ["function", "string", "trim", "function:trim", "mixed"]
+      "expected": [
+        "hello"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "trim",
+        "function:trim",
+        "mixed"
+      ]
     },
     {
       "name": "trim - no whitespace",
       "expression": "'hello'.trim()",
-      "expected": ["hello"],
-      "tags": ["function", "string", "trim", "function:trim", "no-trim"]
+      "expected": [
+        "hello"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "trim",
+        "function:trim",
+        "no-trim"
+      ]
     },
     {
       "name": "trim - only whitespace",
       "expression": "'   \\t\\n\\r   '.trim()",
-      "expected": [""],
-      "tags": ["function", "string", "trim", "function:trim", "only-whitespace"]
+      "expected": [
+        ""
+      ],
+      "tags": [
+        "function",
+        "string",
+        "trim",
+        "function:trim",
+        "only-whitespace"
+      ]
     },
     {
       "name": "trim - empty string",
       "expression": "''.trim()",
-      "expected": [""],
-      "tags": ["function", "string", "trim", "function:trim", "empty-string"]
+      "expected": [
+        ""
+      ],
+      "tags": [
+        "function",
+        "string",
+        "trim",
+        "function:trim",
+        "empty-string"
+      ]
     },
     {
       "name": "trim - whitespace in middle preserved",
       "expression": "'  hello   world  '.trim()",
-      "expected": ["hello   world"],
-      "tags": ["function", "string", "trim", "function:trim", "preserve-middle"]
+      "expected": [
+        "hello   world"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "trim",
+        "function:trim",
+        "preserve-middle"
+      ]
     },
     {
       "name": "trim - empty input collection",
       "expression": "({}).trim()",
       "expected": [],
-      "tags": ["function", "string", "trim", "function:trim", "empty"]
+      "tags": [
+        "function",
+        "string",
+        "trim",
+        "function:trim",
+        "empty"
+      ]
     },
     {
-      "name": "trim - non-string input",
+      "name": "trim - non-string input throws error",
       "expression": "(123).trim()",
       "expected": [],
-      "tags": ["function", "string", "trim", "function:trim", "non-string"]
+      "error": {
+        "type": "EvaluationError",
+        "message": "Type.*not.*assignable.*String",
+        "phase": "analyze",
+        "code": "FP3001"
+      },
+      "tags": [
+        "function",
+        "string",
+        "trim",
+        "function:trim",
+        "non-string",
+        "error"
+      ]
     },
     {
       "name": "trim - multiple input items error",
       "expression": "('  hello  ' | '  world  ').trim()",
-      "error": "trim() can only be applied to a single string",
-      "tags": ["function", "string", "trim", "function:trim", "error", "multiple-items"]
+      "error": {
+        "0": "t",
+        "1": "r",
+        "2": "i",
+        "3": "m",
+        "4": "(",
+        "5": ")",
+        "6": " ",
+        "7": "c",
+        "8": "a",
+        "9": "n",
+        "10": " ",
+        "11": "o",
+        "12": "n",
+        "13": "l",
+        "14": "y",
+        "15": " ",
+        "16": "b",
+        "17": "e",
+        "18": " ",
+        "19": "a",
+        "20": "p",
+        "21": "p",
+        "22": "l",
+        "23": "i",
+        "24": "e",
+        "25": "d",
+        "26": " ",
+        "27": "t",
+        "28": "o",
+        "29": " ",
+        "30": "a",
+        "31": " ",
+        "32": "s",
+        "33": "i",
+        "34": "n",
+        "35": "g",
+        "36": "l",
+        "37": "e",
+        "38": " ",
+        "39": "s",
+        "40": "t",
+        "41": "r",
+        "42": "i",
+        "43": "n",
+        "44": "g",
+        "phase": "analyze"
+      },
+      "tags": [
+        "function",
+        "string",
+        "trim",
+        "function:trim",
+        "error",
+        "multiple-items"
+      ]
     },
     {
       "name": "trim - with path expression",
       "expression": "Patient.name.given.first().trim()",
       "input": {
         "resourceType": "Patient",
-        "name": [{
-          "given": ["  John  ", "James"],
-          "family": "Doe"
-        }]
+        "name": [
+          {
+            "given": [
+              "  John  ",
+              "James"
+            ],
+            "family": "Doe"
+          }
+        ]
       },
-      "expected": ["John"],
-      "tags": ["function", "string", "trim", "function:trim", "path"]
+      "expected": [
+        "John"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "trim",
+        "function:trim",
+        "path"
+      ]
     },
     {
       "name": "trim - unicode whitespace also trimmed",
       "expression": "' hello '.trim()",
-      "expected": ["hello"],
-      "tags": ["function", "string", "trim", "function:trim", "unicode-space"]
+      "expected": [
+        "hello"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "trim",
+        "function:trim",
+        "unicode-space"
+      ]
     },
     {
       "name": "trim - single space",
       "expression": "' '.trim()",
-      "expected": [""],
-      "tags": ["function", "string", "trim", "function:trim", "single-space"]
+      "expected": [
+        ""
+      ],
+      "tags": [
+        "function",
+        "string",
+        "trim",
+        "function:trim",
+        "single-space"
+      ]
     },
     {
       "name": "trim - real world example",
       "expression": "'  Patient/123  '.trim()",
-      "expected": ["Patient/123"],
-      "tags": ["function", "string", "trim", "function:trim", "real-world"]
+      "expected": [
+        "Patient/123"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "trim",
+        "function:trim",
+        "real-world"
+      ]
     }
   ]
 }

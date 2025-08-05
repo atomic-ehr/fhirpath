@@ -2,7 +2,7 @@ import { describe, it, expect } from 'bun:test';
 import { readdirSync, statSync } from 'fs';
 import { join, basename } from 'path';
 import { loadTestSuite } from '../tools/lib/test-helpers';
-import { evaluate, FHIRPathError } from '../src/index';
+import { evaluate, FHIRPathError, FHIRModelProvider } from '../src/index';
 import type { EvaluateOptions } from '../src/index';
 
 const TEST_CASES_DIR = join(__dirname, '../test-cases');
@@ -57,6 +57,26 @@ function createTestFunction(test: any) {
 
     if (test.context?.variables) {
       options.variables = test.context.variables;
+    } else if (test.context?.env) {
+      // Support legacy env format
+      options.variables = test.context.env;
+    }
+
+    // Automatically add ModelProvider for tests that use type operations
+    // unless the test is specifically testing the absence of ModelProvider
+    const usesTypeOperations = /\b(is|as|ofType)\s*\(/.test(test.expression) ||
+                              /\s+(is|as)\s+[A-Z]/.test(test.expression);
+    const isTestingModelProviderAbsence = test.error?.message?.includes('ModelProvider') ||
+                                          test.name?.toLowerCase().includes('modelprovider');
+    
+    // Also add ModelProvider if input contains FHIR resources
+    const hasFHIRResource = test.input && (
+      (Array.isArray(test.input) && test.input.some((i: any) => i?.resourceType)) ||
+      (!Array.isArray(test.input) && (test.input as any)?.resourceType)
+    );
+    
+    if ((usesTypeOperations || hasFHIRResource) && !isTestingModelProviderAbsence) {
+      options.modelProvider = new FHIRModelProvider();
     }
 
     if (test.error) {

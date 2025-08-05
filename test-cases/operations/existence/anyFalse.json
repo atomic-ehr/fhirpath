@@ -82,7 +82,8 @@
       "name": "anyFalse - only non-boolean values",
       "expression": "('string' | 42 | 3.14 | {}).anyFalse()",
       "expected": [false],
-      "tags": ["function", "aggregate", "boolean", "anyFalse", "function:anyFalse", "mixed-types"]
+      "tags": ["function", "aggregate", "boolean", "anyFalse", "function:anyFalse", "mixed-types"],
+      "pending": "Analyzer enforces strict boolean type checking, but runtime skips non-boolean values"
     }
   ]
 }

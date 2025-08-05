@@ -5,107 +5,372 @@
     {
       "name": "upper - lowercase string",
       "expression": "'abcdefg'.upper()",
-      "expected": ["ABCDEFG"],
-      "tags": ["function", "string", "upper", "function:upper"]
+      "expected": [
+        "ABCDEFG"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "upper",
+        "function:upper"
+      ]
     },
     {
       "name": "upper - mixed case string",
       "expression": "'AbCdefg'.upper()",
-      "expected": ["ABCDEFG"],
-      "tags": ["function", "string", "upper", "function:upper"]
+      "expected": [
+        "ABCDEFG"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "upper",
+        "function:upper"
+      ]
     },
     {
       "name": "upper - already uppercase",
       "expression": "'ABCDEFG'.upper()",
-      "expected": ["ABCDEFG"],
-      "tags": ["function", "string", "upper", "function:upper"]
+      "expected": [
+        "ABCDEFG"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "upper",
+        "function:upper"
+      ]
     },
     {
       "name": "upper - empty string",
       "expression": "''.upper()",
-      "expected": [""],
-      "tags": ["function", "string", "upper", "function:upper", "empty-string"]
+      "expected": [
+        ""
+      ],
+      "tags": [
+        "function",
+        "string",
+        "upper",
+        "function:upper",
+        "empty-string"
+      ]
     },
     {
       "name": "upper - string with numbers",
       "expression": "'abc123def'.upper()",
-      "expected": ["ABC123DEF"],
-      "tags": ["function", "string", "upper", "function:upper", "alphanumeric"]
+      "expected": [
+        "ABC123DEF"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "upper",
+        "function:upper",
+        "alphanumeric"
+      ]
     },
     {
       "name": "upper - string with special characters",
       "expression": "'hello-world_123!'.upper()",
-      "expected": ["HELLO-WORLD_123!"],
-      "tags": ["function", "string", "upper", "function:upper", "special-chars"]
+      "expected": [
+        "HELLO-WORLD_123!"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "upper",
+        "function:upper",
+        "special-chars"
+      ]
     },
     {
       "name": "upper - string with spaces",
       "expression": "'hello world'.upper()",
-      "expected": ["HELLO WORLD"],
-      "tags": ["function", "string", "upper", "function:upper", "spaces"]
+      "expected": [
+        "HELLO WORLD"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "upper",
+        "function:upper",
+        "spaces"
+      ]
     },
     {
       "name": "upper - unicode characters",
       "expression": "'café'.upper()",
-      "expected": ["CAFÉ"],
-      "tags": ["function", "string", "upper", "function:upper", "unicode"]
+      "expected": [
+        "CAFÉ"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "upper",
+        "function:upper",
+        "unicode"
+      ]
     },
     {
       "name": "upper - empty input collection",
       "expression": "({}).upper()",
       "expected": [],
-      "tags": ["function", "string", "upper", "function:upper", "empty"]
+      "tags": [
+        "function",
+        "string",
+        "upper",
+        "function:upper",
+        "empty"
+      ]
     },
     {
       "name": "upper - single character",
       "expression": "'a'.upper()",
-      "expected": ["A"],
-      "tags": ["function", "string", "upper", "function:upper", "single-char"]
+      "expected": [
+        "A"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "upper",
+        "function:upper",
+        "single-char"
+      ]
     },
     {
       "name": "upper - newlines and tabs",
       "expression": "'hello\\nworld\\ttab'.upper()",
-      "expected": ["HELLO\nWORLD\tTAB"],
-      "tags": ["function", "string", "upper", "function:upper", "whitespace"]
+      "expected": [
+        "HELLO\nWORLD\tTAB"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "upper",
+        "function:upper",
+        "whitespace"
+      ]
     },
     {
       "name": "upper - error on non-string input",
       "expression": "(123).upper()",
-      "error": "upper() can only be applied to string values",
-      "tags": ["function", "string", "upper", "function:upper", "error", "type-error"]
+      "error": {
+        "0": "u",
+        "1": "p",
+        "2": "p",
+        "3": "e",
+        "4": "r",
+        "5": "(",
+        "6": ")",
+        "7": " ",
+        "8": "c",
+        "9": "a",
+        "10": "n",
+        "11": " ",
+        "12": "o",
+        "13": "n",
+        "14": "l",
+        "15": "y",
+        "16": " ",
+        "17": "b",
+        "18": "e",
+        "19": " ",
+        "20": "a",
+        "21": "p",
+        "22": "p",
+        "23": "l",
+        "24": "i",
+        "25": "e",
+        "26": "d",
+        "27": " ",
+        "28": "t",
+        "29": "o",
+        "30": " ",
+        "31": "s",
+        "32": "t",
+        "33": "r",
+        "34": "i",
+        "35": "n",
+        "36": "g",
+        "37": " ",
+        "38": "v",
+        "39": "a",
+        "40": "l",
+        "41": "u",
+        "42": "e",
+        "43": "s",
+        "phase": "analyze"
+      },
+      "tags": [
+        "function",
+        "string",
+        "upper",
+        "function:upper",
+        "error",
+        "type-error"
+      ]
     },
     {
       "name": "upper - error on multiple items",
       "expression": "('abc' | 'def').upper()",
-      "error": "upper() can only be applied to a singleton string",
-      "tags": ["function", "string", "upper", "function:upper", "error", "singleton"]
+      "error": {
+        "0": "u",
+        "1": "p",
+        "2": "p",
+        "3": "e",
+        "4": "r",
+        "5": "(",
+        "6": ")",
+        "7": " ",
+        "8": "c",
+        "9": "a",
+        "10": "n",
+        "11": " ",
+        "12": "o",
+        "13": "n",
+        "14": "l",
+        "15": "y",
+        "16": " ",
+        "17": "b",
+        "18": "e",
+        "19": " ",
+        "20": "a",
+        "21": "p",
+        "22": "p",
+        "23": "l",
+        "24": "i",
+        "25": "e",
+        "26": "d",
+        "27": " ",
+        "28": "t",
+        "29": "o",
+        "30": " ",
+        "31": "a",
+        "32": " ",
+        "33": "s",
+        "34": "i",
+        "35": "n",
+        "36": "g",
+        "37": "l",
+        "38": "e",
+        "39": "t",
+        "40": "o",
+        "41": "n",
+        "42": " ",
+        "43": "s",
+        "44": "t",
+        "45": "r",
+        "46": "i",
+        "47": "n",
+        "48": "g",
+        "phase": "analyze"
+      },
+      "tags": [
+        "function",
+        "string",
+        "upper",
+        "function:upper",
+        "error",
+        "singleton"
+      ]
     },
     {
       "name": "upper - error with arguments",
       "expression": "'abc'.upper('arg')",
-      "error": "upper() does not take any arguments",
-      "tags": ["function", "string", "upper", "function:upper", "error", "arguments"]
+      "error": {
+        "0": "u",
+        "1": "p",
+        "2": "p",
+        "3": "e",
+        "4": "r",
+        "5": "(",
+        "6": ")",
+        "7": " ",
+        "8": "d",
+        "9": "o",
+        "10": "e",
+        "11": "s",
+        "12": " ",
+        "13": "n",
+        "14": "o",
+        "15": "t",
+        "16": " ",
+        "17": "t",
+        "18": "a",
+        "19": "k",
+        "20": "e",
+        "21": " ",
+        "22": "a",
+        "23": "n",
+        "24": "y",
+        "25": " ",
+        "26": "a",
+        "27": "r",
+        "28": "g",
+        "29": "u",
+        "30": "m",
+        "31": "e",
+        "32": "n",
+        "33": "t",
+        "34": "s",
+        "phase": "analyze"
+      },
+      "tags": [
+        "function",
+        "string",
+        "upper",
+        "function:upper",
+        "error",
+        "arguments"
+      ]
     },
     {
       "name": "upper - path-based example",
       "expression": "Patient.name.given.first().upper()",
       "input": {
         "resourceType": "Patient",
-        "name": [{
-          "given": ["john", "james"]
-        }]
+        "name": [
+          {
+            "given": [
+              "john",
+              "james"
+            ]
+          }
+        ]
       },
-      "expected": ["JOHN"],
-      "tags": ["function", "string", "upper", "function:upper", "path"]
+      "expected": [
+        "JOHN"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "upper",
+        "function:upper",
+        "path"
+      ]
     },
     {
       "name": "upper - with select",
       "expression": "names.select(upper())",
       "input": {
-        "names": ["alice", "bob", "charlie"]
+        "names": [
+          "alice",
+          "bob",
+          "charlie"
+        ]
       },
-      "expected": ["ALICE", "BOB", "CHARLIE"],
-      "tags": ["function", "string", "upper", "function:upper", "select"]
+      "expected": [
+        "ALICE",
+        "BOB",
+        "CHARLIE"
+      ],
+      "tags": [
+        "function",
+        "string",
+        "upper",
+        "function:upper",
+        "select"
+      ]
     }
   ]
 }

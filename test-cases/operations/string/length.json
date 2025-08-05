@@ -104,9 +104,8 @@
       "expected": [],
       "error": {
         "type": "EvaluationError",
-        "message": "length.*single.*string",
-        "phase": "evaluate",
-        "code": "FP2003"
+        "phase": "analyze",
+        "code": "FP3001"
       },
       "tags": [
         "string",
@@ -121,9 +120,8 @@
       "expected": [],
       "error": {
         "type": "EvaluationError",
-        "message": "length.*string.*values",
-        "phase": "evaluate",
-        "code": "FP3007"
+        "phase": "analyze",
+        "code": "FP3001"
       },
       "tags": [
         "string",
@@ -140,7 +138,7 @@
       "error": {
         "type": "EvaluationError",
         "message": "length.*expects 0 arguments, got",
-        "phase": "evaluate"
+        "phase": "analyze"
       },
       "tags": [
         "string",

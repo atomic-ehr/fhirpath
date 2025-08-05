@@ -145,15 +145,22 @@
       ]
     },
     {
-      "name": "contains - non-string input returns empty",
+      "name": "contains - non-string input throws error",
       "expression": "(123).contains('2')",
       "input": [],
       "expected": [],
+      "error": {
+        "type": "EvaluationError",
+        "message": "Type.*not.*assignable.*String",
+        "phase": "analyze",
+        "code": "FP3001"
+      },
       "tags": [
         "function",
         "string",
         "contains",
         "type",
+        "error",
         "function:contains"
       ]
     },
@@ -164,9 +171,8 @@
       "expected": [],
       "error": {
         "type": "EvaluationError",
-        "message": "contains.*single.*string",
-        "phase": "evaluate",
-        "code": "FP6005"
+        "phase": "analyze",
+        "code": "FP3001"
       },
       "tags": [
         "function",
@@ -190,15 +196,22 @@
       ]
     },
     {
-      "name": "contains - non-string substring returns empty",
+      "name": "contains - non-string substring throws error",
       "expression": "'abc'.contains(123)",
       "input": [],
       "expected": [],
+      "error": {
+        "type": "EvaluationError",
+        "message": "Argument.*contains.*expected.*String.*got.*Integer",
+        "phase": "analyze",
+        "code": "FP3003"
+      },
       "tags": [
         "function",
         "string",
         "contains",
         "type",
+        "error",
         "function:contains"
       ]
     },

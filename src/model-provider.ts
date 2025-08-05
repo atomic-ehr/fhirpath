@@ -83,7 +83,9 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
     'Address', 'Attachment', 'Meta', 'Narrative'
   ];
   
-  constructor(private config: FHIRModelProviderConfig) {
+  constructor(private config: FHIRModelProviderConfig = {
+    packages: [{ name: 'hl7.fhir.r4.core', version: '4.0.1' }]
+  }) {
     const canonicalConfig: Config = {
       packages: config.packages.map(p => `${p.name}@${p.version}`),
       workingDir: config.cacheDir || './tmp/.fhir-cache'

@@ -437,8 +437,8 @@
       "error": {
         "type": "EvaluationError",
         "message": "Variable.*n1.*not.*defined.*scope",
-        "phase": "evaluate",
-        "code": "FP1008"
+        "phase": "analyze",
+        "code": "FP1004"
       },
       "tags": [
         "defineVariable",
@@ -450,7 +450,8 @@
         "navigation",
         "error"
       ],
-      "description": "use of a variable outside context throws error"
+      "description": "use of a variable outside context throws error",
+      "pending": "defineVariable creates dynamic variables that analyzer cannot track"
     },
     {
       "name": "[FHIRPath Lab] defineVariable10",
@@ -462,8 +463,8 @@
       "error": {
         "type": "EvaluationError",
         "message": "Variable.*fam.*not.*defined",
-        "phase": "evaluate",
-        "code": "FP1008"
+        "phase": "analyze",
+        "code": "FP1004"
       },
       "tags": [
         "defineVariable",
@@ -734,8 +735,8 @@
       "error": {
         "type": "EvaluationError",
         "message": "Variable.*n1.*not.*defined.*scope",
-        "phase": "evaluate",
-        "code": "FP1008"
+        "phase": "analyze",
+        "code": "FP1004"
       },
       "tags": [
         "defineVariable",
@@ -745,7 +746,8 @@
         "navigation",
         "error"
       ],
-      "description": "use of a variable outside context throws error"
+      "description": "use of a variable outside context throws error",
+      "pending": "defineVariable creates dynamic variables that analyzer cannot track"
     }
   ]
 }

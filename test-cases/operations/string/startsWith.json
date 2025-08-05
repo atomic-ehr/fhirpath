@@ -5,111 +5,369 @@
     {
       "name": "startsWith - matching prefix",
       "expression": "'abcdefg'.startsWith('abc')",
-      "expected": [true],
-      "tags": ["function", "string", "startsWith", "function:startsWith"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "string",
+        "startsWith",
+        "function:startsWith"
+      ]
     },
     {
       "name": "startsWith - non-matching prefix",
       "expression": "'abcdefg'.startsWith('xyz')",
-      "expected": [false],
-      "tags": ["function", "string", "startsWith", "function:startsWith"]
+      "expected": [
+        false
+      ],
+      "tags": [
+        "function",
+        "string",
+        "startsWith",
+        "function:startsWith"
+      ]
     },
     {
       "name": "startsWith - empty prefix",
       "expression": "'hello'.startsWith('')",
-      "expected": [true],
-      "tags": ["function", "string", "startsWith", "function:startsWith", "empty-prefix"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "string",
+        "startsWith",
+        "function:startsWith",
+        "empty-prefix"
+      ]
     },
     {
       "name": "startsWith - exact match",
       "expression": "'hello'.startsWith('hello')",
-      "expected": [true],
-      "tags": ["function", "string", "startsWith", "function:startsWith", "exact-match"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "string",
+        "startsWith",
+        "function:startsWith",
+        "exact-match"
+      ]
     },
     {
       "name": "startsWith - prefix longer than string",
       "expression": "'hi'.startsWith('hello')",
-      "expected": [false],
-      "tags": ["function", "string", "startsWith", "function:startsWith", "long-prefix"]
+      "expected": [
+        false
+      ],
+      "tags": [
+        "function",
+        "string",
+        "startsWith",
+        "function:startsWith",
+        "long-prefix"
+      ]
     },
     {
       "name": "startsWith - case sensitive",
       "expression": "'Hello'.startsWith('hello')",
-      "expected": [false],
-      "tags": ["function", "string", "startsWith", "function:startsWith", "case-sensitive"]
+      "expected": [
+        false
+      ],
+      "tags": [
+        "function",
+        "string",
+        "startsWith",
+        "function:startsWith",
+        "case-sensitive"
+      ]
     },
     {
       "name": "startsWith - single character prefix",
       "expression": "'test'.startsWith('t')",
-      "expected": [true],
-      "tags": ["function", "string", "startsWith", "function:startsWith", "single-char"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "string",
+        "startsWith",
+        "function:startsWith",
+        "single-char"
+      ]
     },
     {
       "name": "startsWith - empty input collection",
       "expression": "({}).startsWith('test')",
       "expected": [],
-      "tags": ["function", "string", "startsWith", "function:startsWith", "empty"]
+      "tags": [
+        "function",
+        "string",
+        "startsWith",
+        "function:startsWith",
+        "empty"
+      ]
     },
     {
-      "name": "startsWith - non-string input",
+      "name": "startsWith - non-string input throws error",
       "expression": "(123).startsWith('1')",
       "expected": [],
-      "tags": ["function", "string", "startsWith", "function:startsWith", "non-string"]
+      "error": {
+        "type": "EvaluationError",
+        "message": "Type.*not.*assignable.*String",
+        "phase": "analyze",
+        "code": "FP3001"
+      },
+      "tags": [
+        "function",
+        "string",
+        "startsWith",
+        "function:startsWith",
+        "non-string",
+        "error"
+      ]
     },
     {
       "name": "startsWith - multiple input items error",
       "expression": "('hello' | 'world').startsWith('h')",
-      "error": "startsWith() can only be applied to a single string",
-      "tags": ["function", "string", "startsWith", "function:startsWith", "error", "multiple-items"]
+      "error": {
+        "0": "s",
+        "1": "t",
+        "2": "a",
+        "3": "r",
+        "4": "t",
+        "5": "s",
+        "6": "W",
+        "7": "i",
+        "8": "t",
+        "9": "h",
+        "10": "(",
+        "11": ")",
+        "12": " ",
+        "13": "c",
+        "14": "a",
+        "15": "n",
+        "16": " ",
+        "17": "o",
+        "18": "n",
+        "19": "l",
+        "20": "y",
+        "21": " ",
+        "22": "b",
+        "23": "e",
+        "24": " ",
+        "25": "a",
+        "26": "p",
+        "27": "p",
+        "28": "l",
+        "29": "i",
+        "30": "e",
+        "31": "d",
+        "32": " ",
+        "33": "t",
+        "34": "o",
+        "35": " ",
+        "36": "a",
+        "37": " ",
+        "38": "s",
+        "39": "i",
+        "40": "n",
+        "41": "g",
+        "42": "l",
+        "43": "e",
+        "44": " ",
+        "45": "s",
+        "46": "t",
+        "47": "r",
+        "48": "i",
+        "49": "n",
+        "50": "g",
+        "phase": "analyze"
+      },
+      "tags": [
+        "function",
+        "string",
+        "startsWith",
+        "function:startsWith",
+        "error",
+        "multiple-items"
+      ]
     },
     {
       "name": "startsWith - empty prefix argument evaluation",
       "expression": "'test'.startsWith({})",
       "expected": [],
-      "tags": ["function", "string", "startsWith", "function:startsWith", "empty-arg"]
+      "tags": [
+        "function",
+        "string",
+        "startsWith",
+        "function:startsWith",
+        "empty-arg"
+      ]
     },
     {
-      "name": "startsWith - non-string prefix",
+      "name": "startsWith - non-string prefix throws error",
       "expression": "'test'.startsWith(123)",
       "expected": [],
-      "tags": ["function", "string", "startsWith", "function:startsWith", "non-string-arg"]
+      "error": {
+        "type": "EvaluationError",
+        "message": "Argument.*startsWith.*expected.*String.*got.*Integer",
+        "phase": "analyze",
+        "code": "FP3003"
+      },
+      "tags": [
+        "function",
+        "string",
+        "startsWith",
+        "function:startsWith",
+        "non-string-arg",
+        "error"
+      ]
     },
     {
       "name": "startsWith - multiple prefix values error",
       "expression": "'test'.startsWith('t' | 'e')",
-      "error": "startsWith() prefix argument must evaluate to a single value",
-      "tags": ["function", "string", "startsWith", "function:startsWith", "error", "multiple-prefix"]
+      "error": {
+        "0": "s",
+        "1": "t",
+        "2": "a",
+        "3": "r",
+        "4": "t",
+        "5": "s",
+        "6": "W",
+        "7": "i",
+        "8": "t",
+        "9": "h",
+        "10": "(",
+        "11": ")",
+        "12": " ",
+        "13": "p",
+        "14": "r",
+        "15": "e",
+        "16": "f",
+        "17": "i",
+        "18": "x",
+        "19": " ",
+        "20": "a",
+        "21": "r",
+        "22": "g",
+        "23": "u",
+        "24": "m",
+        "25": "e",
+        "26": "n",
+        "27": "t",
+        "28": " ",
+        "29": "m",
+        "30": "u",
+        "31": "s",
+        "32": "t",
+        "33": " ",
+        "34": "e",
+        "35": "v",
+        "36": "a",
+        "37": "l",
+        "38": "u",
+        "39": "a",
+        "40": "t",
+        "41": "e",
+        "42": " ",
+        "43": "t",
+        "44": "o",
+        "45": " ",
+        "46": "a",
+        "47": " ",
+        "48": "s",
+        "49": "i",
+        "50": "n",
+        "51": "g",
+        "52": "l",
+        "53": "e",
+        "54": " ",
+        "55": "v",
+        "56": "a",
+        "57": "l",
+        "58": "u",
+        "59": "e",
+        "phase": "analyze"
+      },
+      "tags": [
+        "function",
+        "string",
+        "startsWith",
+        "function:startsWith",
+        "error",
+        "multiple-prefix"
+      ]
     },
     {
       "name": "startsWith - with path expression",
       "expression": "Patient.name.given.first().startsWith('J')",
       "input": {
         "resourceType": "Patient",
-        "name": [{
-          "given": ["John", "James"],
-          "family": "Doe"
-        }]
+        "name": [
+          {
+            "given": [
+              "John",
+              "James"
+            ],
+            "family": "Doe"
+          }
+        ]
       },
-      "expected": [true],
-      "tags": ["function", "string", "startsWith", "function:startsWith", "path"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "string",
+        "startsWith",
+        "function:startsWith",
+        "path"
+      ]
     },
     {
       "name": "startsWith - whitespace handling",
       "expression": "'  hello'.startsWith('  ')",
-      "expected": [true],
-      "tags": ["function", "string", "startsWith", "function:startsWith", "whitespace"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "string",
+        "startsWith",
+        "function:startsWith",
+        "whitespace"
+      ]
     },
     {
       "name": "startsWith - special characters",
       "expression": "'$special-chars_123'.startsWith('$special')",
-      "expected": [true],
-      "tags": ["function", "string", "startsWith", "function:startsWith", "special-chars"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "string",
+        "startsWith",
+        "function:startsWith",
+        "special-chars"
+      ]
     },
     {
       "name": "startsWith - unicode",
       "expression": "'café'.startsWith('caf')",
-      "expected": [true],
-      "tags": ["function", "string", "startsWith", "function:startsWith", "unicode"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "string",
+        "startsWith",
+        "function:startsWith",
+        "unicode"
+      ]
     }
   ]
 }

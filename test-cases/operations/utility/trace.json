@@ -65,7 +65,12 @@
       "expression": "(1 | 2 | 3).trace()",
       "input": [],
       "expected": [1, 2, 3],
-      "tags": ["function", "utility", "trace", "function:trace"]
+      "error": {
+        "type": "Error",
+        "phase": "analyze",
+        "code": "FP2001"
+      },
+      "tags": ["function", "utility", "trace", "function:trace", "error"]
     },
     {
       "name": "trace - in chain",

@@ -166,7 +166,8 @@
       "expected": [],
       "error": {
         "type": "Error",
-        "message": "endsWith requires a single item, but collection has \\d+ items"
+        "message": "endsWith requires a single item, but collection has \\d+ items",
+        "phase": "analyze"
       },
       "tags": [
         "function",
@@ -183,8 +184,8 @@
       "expected": [],
       "error": {
         "type": "Error",
-        "message": "endsWith can only be used on string values",
-        "code": "FP3007"
+        "code": "FP3001",
+        "phase": "analyze"
       },
       "tags": [
         "function",
@@ -201,8 +202,8 @@
       "expected": [],
       "error": {
         "type": "Error",
-        "message": "endsWith suffix argument must be a string",
-        "code": "FP6007"
+        "code": "FP3003",
+        "phase": "analyze"
       },
       "tags": [
         "function",
@@ -220,7 +221,8 @@
       "error": {
         "type": "Error",
         "message": "endsWith expects 1 argument",
-        "code": "FP2001"
+        "code": "FP2001",
+        "phase": "analyze"
       },
       "tags": [
         "function",
@@ -237,8 +239,8 @@
       "expected": [],
       "error": {
         "type": "Error",
-        "message": "endsWith suffix argument must be a single value",
-        "code": "FP6005"
+        "code": "FP3003",
+        "phase": "analyze"
       },
       "tags": [
         "function",

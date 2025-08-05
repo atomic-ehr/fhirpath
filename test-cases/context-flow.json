@@ -18,8 +18,7 @@
       ],
       "tags": [
         "select"
-      ],
-      "pending": "Environment variables not provided in test context"
+      ]
     },
     {
       "name": "test basic flow through . operator",
@@ -40,8 +39,7 @@
       "tags": [
         "dot",
         "env"
-      ],
-      "pending": "Environment variables not provided in test context"
+      ]
     },
     {
       "name": "test basic flow through 2 . operators",
@@ -64,8 +62,7 @@
       "tags": [
         "dot",
         "env"
-      ],
-      "pending": "Environment variables not provided in test context"
+      ]
     },
     {
       "name": "defineVariable changes context",
@@ -141,8 +138,7 @@
         "env",
         "select",
         "."
-      ],
-      "pending": "Environment variables not provided in test context"
+      ]
     },
     {
       "name": "context flows from into nested expressions in select",
@@ -166,8 +162,7 @@
         "env",
         "select",
         "."
-      ],
-      "pending": "Environment variables not provided in test context"
+      ]
     }
   ]
 }

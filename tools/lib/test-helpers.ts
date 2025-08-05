@@ -63,8 +63,19 @@ function createOptions(test: UnifiedTest): EvaluateOptions {
     input: test.input
   };
 
+  // Merge both variables and env into the variables object
+  const allVariables: Record<string, any> = {};
+  
   if (test.context?.variables) {
-    options.variables = test.context.variables;
+    Object.assign(allVariables, test.context.variables);
+  }
+  
+  if (test.context?.env) {
+    Object.assign(allVariables, test.context.env);
+  }
+  
+  if (Object.keys(allVariables).length > 0) {
+    options.variables = allVariables;
   }
 
   return options;
@@ -73,8 +84,20 @@ function createOptions(test: UnifiedTest): EvaluateOptions {
 function matchesError(error: Error, expectedError: UnifiedTest['error']): boolean {
   if (!expectedError) return false;
   
-  // Check error phase (we'll check this based on error type/message patterns)
-  // Check error message matches regex
+  // Check if error has a code property (FHIRPathError)
+  const errorWithCode = error as any;
+  
+  // If error has a code and expected has a code, match by code
+  if (errorWithCode.code && expectedError.code) {
+    const codeMatches = errorWithCode.code === expectedError.code;
+    
+    // If code matches, we're good (even if phase is different - analyze is earlier than evaluate)
+    if (codeMatches) {
+      return true;
+    }
+  }
+  
+  // Fallback to message regex matching
   const messageRegex = new RegExp(expectedError.message);
   return messageRegex.test(error.message);
 }

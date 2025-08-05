@@ -169,8 +169,8 @@
       "error": {
         "type": "EvaluationError",
         "message": "Variable.*%inner.*not.*defined",
-        "phase": "evaluate",
-        "code": "FP1008"
+        "phase": "analyze",
+        "code": "FP1004"
       },
       "tags": [
         "function",
@@ -191,8 +191,8 @@
       "error": {
         "type": "EvaluationError",
         "message": "Variable.*%y.*not.*defined",
-        "phase": "evaluate",
-        "code": "FP1008"
+        "phase": "analyze",
+        "code": "FP1004"
       },
       "tags": [
         "function",
@@ -213,8 +213,8 @@
       "error": {
         "type": "EvaluationError",
         "message": "Variable.*%y.*not.*defined",
-        "phase": "evaluate",
-        "code": "FP1008"
+        "phase": "analyze",
+        "code": "FP1004"
       },
       "tags": [
         "function",

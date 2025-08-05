@@ -9,17 +9,16 @@
       "expected": [],
       "error": {
         "type": "EvaluationError",
-        "message": "Undefined.*variable.*undefinedEnvVar",
-        "phase": "evaluate",
-        "code": "FP1008"
+        "message": "Unknown.*variable.*undefinedEnvVar",
+        "phase": "analyze",
+        "code": "FP1004"
       },
       "tags": [
         "error",
         "variable",
         "environment",
         "undefined"
-      ],
-      "pending": "This is an error test - environment variable should be undefined"
+      ]
     },
     {
       "name": "undefined variable in expression",
@@ -28,17 +27,16 @@
       "expected": [],
       "error": {
         "type": "EvaluationError",
-        "message": "Undefined.*variable.*x",
-        "phase": "evaluate",
-        "code": "FP1008"
+        "message": "Unknown.*variable.*x",
+        "phase": "analyze",
+        "code": "FP1004"
       },
       "tags": [
         "error",
         "variable",
         "undefined",
         "operator:+"
-      ],
-      "pending": "This is an error test - variable should be undefined"
+      ]
     },
     {
       "name": "undefined variable in function",
@@ -51,17 +49,16 @@
       "expected": [],
       "error": {
         "type": "EvaluationError",
-        "message": "Undefined.*variable.*filter",
-        "phase": "evaluate",
-        "code": "FP1008"
+        "message": "Unknown.*variable.*filter",
+        "phase": "analyze",
+        "code": "FP1004"
       },
       "tags": [
         "error",
         "variable",
         "undefined",
         "function:where"
-      ],
-      "pending": "This is an error test - variable should be undefined"
+      ]
     },
     {
       "name": "redefining variable in same scope",
@@ -150,16 +147,15 @@
       "error": {
         "type": "EvaluationError",
         "message": "Variable.*x.*not.*defined.*scope",
-        "phase": "evaluate",
-        "code": "FP1008"
+        "phase": "analyze",
+        "code": "FP1004"
       },
       "tags": [
         "error",
         "variable",
         "scope",
         "operator:|"
-      ],
-      "pending": "Variable scoping enforcement not implemented"
+      ]
     },
     {
       "name": "variable out of scope - separate select",
@@ -186,16 +182,15 @@
       "error": {
         "type": "EvaluationError",
         "message": "Variable.*n.*not.*defined.*scope",
-        "phase": "evaluate",
-        "code": "FP1008"
+        "phase": "analyze",
+        "code": "FP1004"
       },
       "tags": [
         "error",
         "variable",
         "scope",
         "select"
-      ],
-      "pending": "Variable scoping enforcement not implemented"
+      ]
     },
     {
       "name": "nested scope variable leakage",
@@ -210,16 +205,15 @@
       "error": {
         "type": "EvaluationError",
         "message": "Variable.*inner.*not.*defined.*scope",
-        "phase": "evaluate",
-        "code": "FP1008"
+        "phase": "analyze",
+        "code": "FP1004"
       },
       "tags": [
         "error",
         "variable",
         "scope",
         "nested"
-      ],
-      "pending": "Variable scoping enforcement not implemented"
+      ]
     }
   ]
 }

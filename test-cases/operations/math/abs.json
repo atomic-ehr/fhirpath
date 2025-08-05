@@ -123,7 +123,8 @@
       "input": [],
       "error": {
         "type": "Error",
-        "message": "abs requires a single item, but collection has \\d+ items"
+        "phase": "analyze",
+        "code": "FP2003"
       },
       "tags": [
         "math",
@@ -137,7 +138,8 @@
       "input": [],
       "error": {
         "type": "Error",
-        "message": "abs expects 0 arguments, got \\d+"
+        "phase": "analyze",
+        "code": "FP2001"
       },
       "tags": [
         "math",
@@ -151,8 +153,8 @@
       "input": [],
       "error": {
         "type": "Error",
-        "message": "Cannot apply abs to string",
-        "code": "FP3006"
+        "code": "FP3006",
+        "phase": "analyze"
       },
       "tags": [
         "math",

@@ -32,12 +32,9 @@ describe('Type Operation Validation', () => {
   });
 
   describe('is operator', () => {
-    it('should require ModelProvider for is operator with primitive types', () => {
+    it('should not require ModelProvider for is operator with primitive types', () => {
       const result = analyze('data is Boolean');
-      expect(result.diagnostics).toHaveLength(1);
-      expect(result.diagnostics[0]?.code).toBe(ErrorCodes.MODEL_PROVIDER_REQUIRED);
-      expect(result.diagnostics[0]?.message).toContain('is');
-      expect(result.diagnostics[0]?.message).toContain('ModelProvider');
+      expect(result.diagnostics.filter(d => d.code === ErrorCodes.MODEL_PROVIDER_REQUIRED)).toHaveLength(0);
     });
 
     it('should require ModelProvider for is operator with complex types', () => {
@@ -48,12 +45,9 @@ describe('Type Operation Validation', () => {
   });
 
   describe('as operator', () => {
-    it('should require ModelProvider for as operator with primitive types', () => {
+    it('should not require ModelProvider for as operator with primitive types', () => {
       const result = analyze('data as Integer');
-      expect(result.diagnostics).toHaveLength(1);
-      expect(result.diagnostics[0]?.code).toBe(ErrorCodes.MODEL_PROVIDER_REQUIRED);
-      expect(result.diagnostics[0]?.message).toContain('as');
-      expect(result.diagnostics[0]?.message).toContain('ModelProvider');
+      expect(result.diagnostics.filter(d => d.code === ErrorCodes.MODEL_PROVIDER_REQUIRED)).toHaveLength(0);
     });
 
     it('should require ModelProvider for as operator with complex types', () => {
@@ -64,9 +58,10 @@ describe('Type Operation Validation', () => {
   });
 
   describe('multiple type operations', () => {
-    it('should report errors for each type operation without ModelProvider', () => {
+    it('should only report errors for non-primitive type operations without ModelProvider', () => {
       const result = analyze('data.ofType(String) | value is Boolean | item as Integer');
-      expect(result.diagnostics.filter(d => d.code === ErrorCodes.MODEL_PROVIDER_REQUIRED)).toHaveLength(3);
+      // ofType requires ModelProvider, but 'is Boolean' and 'as Integer' don't (primitive types)
+      expect(result.diagnostics.filter(d => d.code === ErrorCodes.MODEL_PROVIDER_REQUIRED)).toHaveLength(1);
     });
   });
 });

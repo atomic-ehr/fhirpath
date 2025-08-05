@@ -80,8 +80,7 @@ export function addQuantities(left: QuantityValue, right: QuantityValue): Quanti
     const result = ucum.add(leftUcum, rightUcum);
     return {
       value: result.value,
-      unit: result.unit,
-      _ucumQuantity: result
+      unit: result.unit
     };
   } catch (e) {
     // Incompatible dimensions
@@ -104,8 +103,7 @@ export function subtractQuantities(left: QuantityValue, right: QuantityValue): Q
     const result = ucum.subtract(leftUcum, rightUcum);
     return {
       value: result.value,
-      unit: result.unit,
-      _ucumQuantity: result
+      unit: result.unit
     };
   } catch (e) {
     // Incompatible dimensions
@@ -128,8 +126,7 @@ export function multiplyQuantities(left: QuantityValue, right: QuantityValue): Q
     const result = ucum.multiply(leftUcum, rightUcum);
     return {
       value: result.value,
-      unit: result.unit,
-      _ucumQuantity: result
+      unit: result.unit
     };
   } catch (e) {
     return null;
@@ -151,8 +148,7 @@ export function divideQuantities(left: QuantityValue, right: QuantityValue): Qua
     const result = ucum.divide(leftUcum, rightUcum);
     return {
       value: result.value,
-      unit: result.unit,
-      _ucumQuantity: result
+      unit: result.unit
     };
   } catch (e) {
     return null;

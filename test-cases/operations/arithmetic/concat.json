@@ -55,39 +55,41 @@
       ]
     },
     {
-      "name": "concatenation with empty returns empty",
+      "name": "concatenation with empty treats empty as empty string",
       "expression": "name & ' ' & missing",
       "input": [
         {
           "name": "John"
         }
       ],
-      "expected": [],
+      "expected": [
+        "John "
+      ],
       "tags": [
         "operator",
         "string",
         "concatenation",
         "empty",
         "operator:&"
-      ],
-      "pending": "String concatenation with empty should return empty - not implemented"
+      ]
     },
     {
       "name": "concatenation with empty left operand",
       "expression": "{} & 'test'",
       "input": [],
-      "expected": [],
+      "expected": [
+        "test"
+      ],
       "tags": [
         "operator",
         "string",
         "concatenation",
         "empty",
         "operator:&"
-      ],
-      "pending": "String concatenation with empty should return empty - not implemented"
+      ]
     },
     {
-      "name": "concatenation with multiple items",
+      "name": "concatenation with multiple items joins all values",
       "expression": "names & ' and '",
       "input": [
         {
@@ -97,15 +99,16 @@
           ]
         }
       ],
-      "expected": [],
+      "expected": [
+        "AliceBob and "
+      ],
       "tags": [
         "operator",
         "string",
         "concatenation",
         "collection",
         "operator:&"
-      ],
-      "pending": "String concatenation with collections not implemented correctly"
+      ]
     }
   ]
 }

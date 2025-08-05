@@ -87,15 +87,22 @@
       ]
     },
     {
-      "name": "replace - non-string input returns empty",
+      "name": "replace - non-string input throws error",
       "expression": "(123).replace('2', '5')",
       "input": [],
       "expected": [],
+      "error": {
+        "type": "EvaluationError",
+        "message": "Type.*not.*assignable.*String",
+        "phase": "analyze",
+        "code": "FP3001"
+      },
       "tags": [
         "function",
         "string",
         "replace",
         "type",
+        "error",
         "function:replace"
       ]
     },
@@ -132,9 +139,8 @@
       "expected": [],
       "error": {
         "type": "EvaluationError",
-        "message": "replace.*single.*string",
-        "phase": "evaluate",
-        "code": "FP6005"
+        "phase": "analyze",
+        "code": "FP3001"
       },
       "tags": [
         "function",

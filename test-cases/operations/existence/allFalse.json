@@ -170,8 +170,8 @@
       "expected": [],
       "error": {
         "type": "Error",
-        "message": "allFalse expects all items to be Boolean values, but item at index \\d+ is",
-        "code": "FP3009"
+        "code": "FP3001",
+        "phase": "analyze"
       },
       "tags": [
         "function",
@@ -197,8 +197,8 @@
       "expected": [],
       "error": {
         "type": "Error",
-        "message": "allFalse expects all items to be Boolean values, but item at index \\d+ is",
-        "code": "FP3009"
+        "code": "FP3009",
+        "phase": "analyze"
       },
       "tags": [
         "function",

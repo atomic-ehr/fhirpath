@@ -5,106 +5,249 @@
     {
       "name": "all - all even numbers",
       "expression": "(2 | 4 | 6 | 8).all($this mod 2 = 0)",
-      "expected": [true],
-      "tags": ["function", "existence", "all", "function:all"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "existence",
+        "all",
+        "function:all"
+      ]
     },
     {
       "name": "all - not all greater than 5",
       "expression": "(2 | 4 | 6 | 8).all($this > 5)",
-      "expected": [false],
-      "tags": ["function", "existence", "all", "function:all"]
+      "expected": [
+        false
+      ],
+      "tags": [
+        "function",
+        "existence",
+        "all",
+        "function:all"
+      ]
     },
     {
       "name": "all - empty collection returns true",
       "expression": "({}).all($this > 0)",
-      "expected": [true],
-      "tags": ["function", "existence", "all", "function:all", "empty"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "existence",
+        "all",
+        "function:all",
+        "empty"
+      ]
     },
     {
       "name": "all - single item true",
       "expression": "(5).all($this > 0)",
-      "expected": [true],
-      "tags": ["function", "existence", "all", "function:all", "singleton"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "existence",
+        "all",
+        "function:all",
+        "singleton"
+      ]
     },
     {
       "name": "all - single item false",
       "expression": "(5).all($this > 10)",
-      "expected": [false],
-      "tags": ["function", "existence", "all", "function:all", "singleton"]
+      "expected": [
+        false
+      ],
+      "tags": [
+        "function",
+        "existence",
+        "all",
+        "function:all",
+        "singleton"
+      ]
     },
     {
       "name": "all - string length check",
       "expression": "('hello' | 'world' | 'test').all($this.length() >= 4)",
-      "expected": [true],
-      "tags": ["function", "existence", "all", "function:all", "string"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "existence",
+        "all",
+        "function:all",
+        "string"
+      ]
     },
     {
       "name": "all - type check example from spec",
       "expression": "generalPractitioner.all($this.resolve() is Practitioner)",
       "input": {
         "generalPractitioner": [
-          {"reference": "Practitioner/1", "resolve": {"resourceType": "Practitioner"}},
-          {"reference": "Practitioner/2", "resolve": {"resourceType": "Practitioner"}}
+          {
+            "reference": "Practitioner/1",
+            "resolve": {
+              "resourceType": "Practitioner"
+            }
+          },
+          {
+            "reference": "Practitioner/2",
+            "resolve": {
+              "resourceType": "Practitioner"
+            }
+          }
         ]
       },
-      "expected": [true],
-      "tags": ["function", "existence", "all", "function:all", "spec-example"],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "existence",
+        "all",
+        "function:all",
+        "spec-example"
+      ],
       "pending": "resolve() function not implemented"
     },
     {
       "name": "all - mixed types check",
       "expression": "(1 | 2 | 3).all($this is Integer)",
-      "expected": [true],
-      "tags": ["function", "existence", "all", "function:all", "type-check"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "existence",
+        "all",
+        "function:all",
+        "type-check"
+      ],
+      "input": []
     },
     {
       "name": "all - with index",
       "expression": "('a' | 'b' | 'c').all($index < 3)",
-      "expected": [true],
-      "tags": ["function", "existence", "all", "function:all", "index"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "existence",
+        "all",
+        "function:all",
+        "index"
+      ]
     },
     {
       "name": "all - complex criteria",
       "expression": "(1 | 2 | 3 | 4 | 5).all($this * 2 < 11)",
-      "expected": [true],
-      "tags": ["function", "existence", "all", "function:all", "arithmetic"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "existence",
+        "all",
+        "function:all",
+        "arithmetic"
+      ]
     },
     {
       "name": "all - nested collections",
       "expression": "items.all(values.exists($this > 0))",
       "input": {
         "items": [
-          {"values": [1, 2, 3]},
-          {"values": [4, 5, 6]},
-          {"values": [7, 8, 9]}
+          {
+            "values": [
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "values": [
+              4,
+              5,
+              6
+            ]
+          },
+          {
+            "values": [
+              7,
+              8,
+              9
+            ]
+          }
         ]
       },
-      "expected": [true],
-      "tags": ["function", "existence", "all", "function:all", "nested"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "existence",
+        "all",
+        "function:all",
+        "nested"
+      ]
     },
     {
       "name": "all - boolean values",
       "expression": "(true | true | true).all($this)",
-      "expected": [true],
-      "tags": ["function", "existence", "all", "function:all", "boolean"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "function",
+        "existence",
+        "all",
+        "function:all",
+        "boolean"
+      ]
     },
     {
       "name": "all - boolean with false",
       "expression": "(true | false | true).all($this)",
-      "expected": [false],
-      "tags": ["function", "existence", "all", "function:all", "boolean"]
+      "expected": [
+        false
+      ],
+      "tags": [
+        "function",
+        "existence",
+        "all",
+        "function:all",
+        "boolean"
+      ]
     },
     {
       "name": "all - error on missing argument",
       "expression": "(1 | 2 | 3).all()",
       "error": "all() requires exactly one argument",
-      "tags": ["function", "existence", "all", "function:all", "error"]
+      "tags": [
+        "function",
+        "existence",
+        "all",
+        "function:all",
+        "error"
+      ]
     },
     {
       "name": "all - error on multiple arguments",
       "expression": "(1 | 2 | 3).all($this > 0, $this < 10)",
       "error": "all() requires exactly one argument",
-      "tags": ["function", "existence", "all", "function:all", "error"]
+      "tags": [
+        "function",
+        "existence",
+        "all",
+        "function:all",
+        "error"
+      ]
     },
     {
       "name": "allTrue - all true",

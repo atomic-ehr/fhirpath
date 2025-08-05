@@ -23,6 +23,19 @@ export const combineOperator: OperatorDefinition & { evaluate: OperationEvaluato
   associativity: 'left',
   description: 'String concatenation operator',
   examples: ['first & " " & last'],
-  signatures: [],
+  signatures: [
+    {
+      name: 'string-combine',
+      left: { type: 'String', singleton: true },
+      right: { type: 'String', singleton: true },
+      result: { type: 'String', singleton: true },
+    },
+    {
+      name: 'any-combine',
+      left: { type: 'Any' },
+      right: { type: 'Any' },
+      result: { type: 'String', singleton: true },
+    }
+  ],
   evaluate
 };

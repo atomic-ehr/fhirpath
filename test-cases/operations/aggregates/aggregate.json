@@ -168,8 +168,8 @@
       "error": {
         "type": "ArgumentError",
         "message": "aggregate requires at least one argument",
-        "phase": "evaluate",
-        "code": "FP6005"
+        "phase": "analyze",
+        "code": "FP2001"
       },
       "tags": [
         "aggregate",
@@ -224,6 +224,120 @@
         "aggregate",
         "fhirpath-lab"
       ]
+    },
+    {
+      "name": "aggregate - string concatenation without init",
+      "expression": "name.given.aggregate(iif($total.empty(), $this, $total + ', ' + $this))",
+      "input": {
+        "resourceType": "Patient",
+        "name": [
+          {
+            "given": [
+              "John",
+              "James"
+            ],
+            "family": "Smith"
+          }
+        ]
+      },
+      "expected": [
+        "John, James"
+      ],
+      "tags": [
+        "aggregate",
+        "string",
+        "no-init"
+      ]
+    },
+    {
+      "name": "aggregate - build object without init",
+      "expression": "Observation.component.aggregate(iif($total.empty(), {}, $total.where(code = $this.code).aggregate($total | {code: $this.code, values: (value | $this.value)})))",
+      "input": {
+        "resourceType": "Observation",
+        "component": [
+          {
+            "code": "A",
+            "value": 1
+          },
+          {
+            "code": "B",
+            "value": 2
+          },
+          {
+            "code": "A",
+            "value": 3
+          }
+        ]
+      },
+      "expected": [
+        {
+          "code": "A",
+          "values": [
+            1,
+            3
+          ]
+        },
+        {
+          "code": "B",
+          "values": [
+            2
+          ]
+        }
+      ],
+      "tags": [
+        "aggregate",
+        "complex",
+        "no-init"
+      ],
+      "pending": "Cannot infer aggregate result type without init parameter"
+    },
+    {
+      "name": "aggregate - type-dependent operations without init",
+      "expression": "(1 | 2 | 3).aggregate(iif($total.empty(), $this.toString(), $total + ',' + $this.toString())).split(',')",
+      "input": [],
+      "expected": [
+        "1",
+        "2",
+        "3"
+      ],
+      "tags": [
+        "aggregate",
+        "type-conversion",
+        "no-init"
+      ]
+    },
+    {
+      "name": "aggregate - polymorphic result without init",
+      "expression": "Patient.contact.aggregate(iif($total.empty(), $this.name, $total | $this.name))",
+      "input": {
+        "resourceType": "Patient",
+        "contact": [
+          {
+            "name": {
+              "text": "John Doe"
+            }
+          },
+          {
+            "name": {
+              "text": "Jane Doe"
+            }
+          }
+        ]
+      },
+      "expected": [
+        {
+          "text": "John Doe"
+        },
+        {
+          "text": "Jane Doe"
+        }
+      ],
+      "tags": [
+        "aggregate",
+        "polymorphic",
+        "no-init"
+      ],
+      "pending": "Cannot determine if result is single item or collection without init"
     }
   ]
 }

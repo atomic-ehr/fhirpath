@@ -34,6 +34,20 @@ export function evaluate(
     options.inputType
   );
   
+  // Check for analysis errors
+  const errors = analysisResult.diagnostics.filter(d => d.severity === 1); // DiagnosticSeverity.Error
+  if (errors.length > 0) {
+    // Throw the first error
+    const firstError = errors[0]!;
+    if (firstError.code) {
+      // Always throw as FHIRPathError if we have a code
+      throw new FHIRPathError(firstError.code, firstError.message, firstError.range);
+    } else {
+      // Otherwise throw a generic error
+      throw new Error(firstError.message);
+    }
+  }
+  
   // Use the analyzed AST with type information
   const interpreter = new Interpreter();
   const input = options.input === undefined ? [] : Array.isArray(options.input) ? options.input : [options.input];

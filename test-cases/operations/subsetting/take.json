@@ -163,8 +163,8 @@
       "expected": [],
       "error": {
         "type": "Error",
-        "message": "argument must be.*integer",
-        "code": "FP6005"
+        "code": "FP3003",
+        "phase": "analyze"
       },
       "tags": [
         "function",
@@ -189,8 +189,8 @@
       "expected": [],
       "error": {
         "type": "Error",
-        "message": "argument must be.*integer",
-        "code": "FP6005"
+        "code": "FP3003",
+        "phase": "analyze"
       },
       "tags": [
         "function",

@@ -101,7 +101,8 @@
       "input": [],
       "error": {
         "type": "Error",
-        "message": "sqrt requires a single item, but collection has \\d+ items"
+        "phase": "analyze",
+        "code": "FP3001"
       },
       "tags": [
         "math",
@@ -115,7 +116,8 @@
       "input": [],
       "error": {
         "type": "Error",
-        "message": "sqrt expects 0 arguments, got \\d+"
+        "phase": "analyze",
+        "code": "FP2001"
       },
       "tags": [
         "math",
@@ -129,8 +131,8 @@
       "input": [],
       "error": {
         "type": "Error",
-        "message": "Cannot apply sqrt to string",
-        "code": "FP3006"
+        "code": "FP3001",
+        "phase": "analyze"
       },
       "tags": [
         "math",

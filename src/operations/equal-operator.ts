@@ -22,8 +22,12 @@ export const evaluate: OperationEvaluator = (input, context, left, right) => {
   // Check if both are quantities
   if (l && typeof l === 'object' && 'unit' in l && 
       r && typeof r === 'object' && 'unit' in r) {
-    const result = equalQuantities(l as QuantityValue, r as QuantityValue);
-    return { value: [box(result, { type: 'Boolean', singleton: true })], context };
+    const comparison = compareQuantities(l as QuantityValue, r as QuantityValue);
+    // If quantities are incomparable (different dimensions), return empty
+    if (comparison === null) {
+      return { value: [], context };
+    }
+    return { value: [box(comparison === 0, { type: 'Boolean', singleton: true })], context };
   }
   
   return { value: [box(l === r, { type: 'Boolean', singleton: true })], context };

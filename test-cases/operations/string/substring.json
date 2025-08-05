@@ -239,9 +239,8 @@
       "expected": [],
       "error": {
         "type": "EvaluationError",
-        "message": "substring.*single.*string",
-        "phase": "evaluate",
-        "code": "FP2003"
+        "phase": "analyze",
+        "code": "FP3001"
       },
       "tags": [
         "string",
@@ -256,9 +255,8 @@
       "expected": [],
       "error": {
         "type": "EvaluationError",
-        "message": "substring.*string.*values",
-        "phase": "evaluate",
-        "code": "FP3007"
+        "phase": "analyze",
+        "code": "FP3001"
       },
       "tags": [
         "string",
@@ -274,9 +272,8 @@
       "expected": [],
       "error": {
         "type": "EvaluationError",
-        "message": "substring.*start.*integer",
-        "phase": "evaluate",
-        "code": "FP6008"
+        "phase": "analyze",
+        "code": "FP3003"
       },
       "tags": [
         "string",
@@ -292,9 +289,8 @@
       "expected": [],
       "error": {
         "type": "EvaluationError",
-        "message": "substring.*length.*integer",
-        "phase": "evaluate",
-        "code": "FP6008"
+        "phase": "analyze",
+        "code": "FP3003"
       },
       "tags": [
         "string",
