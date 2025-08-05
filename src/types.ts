@@ -284,6 +284,7 @@ export interface RuntimeContext {
   input: any[];
   focus: any[];
   variables: Record<string, any>;
+  currentNode?: ASTNode;
 }
 
 // Evaluation result - everything is a collection of boxed values

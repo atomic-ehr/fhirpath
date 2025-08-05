@@ -33,6 +33,7 @@ const DiagnosticCode = {
   InputTypeMismatch: 'INPUT_TYPE_MISMATCH',
   ArgumentTypeMismatch: 'ARGUMENT_TYPE_MISMATCH',
   ParseError: 'PARSE_ERROR',
+  ModelRequiredForTypeOperation: 'MODEL_REQUIRED_FOR_TYPE_OPERATION',
 } as const;
 
 export class Analyzer {
@@ -101,10 +102,10 @@ export class Analyzer {
         this.visitNode((node as UnaryNode).operand);
         break;
       case NodeType.MembershipTest:
-        this.visitNode((node as MembershipTestNode).expression);
+        this.visitMembershipTest(node as MembershipTestNode);
         break;
       case NodeType.TypeCast:
-        this.visitNode((node as TypeCastNode).expression);
+        this.visitTypeCast(node as TypeCastNode);
         break;
       case NodeType.Variable:
         this.validateVariable((node as VariableNode).name, node);
@@ -119,6 +120,18 @@ export class Analyzer {
 
   private visitBinaryOperator(node: BinaryNode): void {
     this.visitNode(node.left);
+    
+    // Check if this is a type operation that requires ModelProvider
+    if ((node.operator === 'is' || node.operator === 'as') && !this.modelProvider) {
+      this.addDiagnostic(
+        DiagnosticSeverity.Error,
+        `Operation '${node.operator}' requires a ModelProvider to handle type checking correctly. ` +
+        `Even primitive types like Boolean can fail due to choice types ` +
+        `(e.g., Patient.deceased is actually deceasedBoolean in FHIR data).`,
+        node,
+        DiagnosticCode.ModelRequiredForTypeOperation
+      );
+    }
     
     // Special handling for dot operator with function on right side
     if (node.operator === '.' && node.right.type === NodeType.Function) {
@@ -167,6 +180,19 @@ export class Analyzer {
   private visitFunctionCall(node: FunctionNode): void {
     if (node.name.type === NodeType.Identifier) {
       const funcName = (node.name as IdentifierNode).name;
+      
+      // Check if this is a type operation that requires ModelProvider
+      if (funcName === 'ofType' && !this.modelProvider) {
+        this.addDiagnostic(
+          DiagnosticSeverity.Error,
+          `Operation 'ofType' requires a ModelProvider to handle type checking correctly. ` +
+          `Even primitive types like Boolean can fail due to choice types ` +
+          `(e.g., Patient.deceased is actually deceasedBoolean in FHIR data).`,
+          node,
+          DiagnosticCode.ModelRequiredForTypeOperation
+        );
+      }
+      
       const func = registry.getFunction(funcName);
       
       if (!func) {
@@ -191,6 +217,38 @@ export class Analyzer {
     }
     
     node.arguments.forEach(arg => this.visitNode(arg));
+  }
+
+  private visitMembershipTest(node: MembershipTestNode): void {
+    // Check if ModelProvider is required
+    if (!this.modelProvider) {
+      this.addDiagnostic(
+        DiagnosticSeverity.Error,
+        `Operation 'is' requires a ModelProvider to handle type checking correctly. ` +
+        `Even primitive types like Boolean can fail due to choice types ` +
+        `(e.g., Patient.deceased is actually deceasedBoolean in FHIR data).`,
+        node,
+        DiagnosticCode.ModelRequiredForTypeOperation
+      );
+    }
+    
+    this.visitNode(node.expression);
+  }
+
+  private visitTypeCast(node: TypeCastNode): void {
+    // Check if ModelProvider is required
+    if (!this.modelProvider) {
+      this.addDiagnostic(
+        DiagnosticSeverity.Error,
+        `Operation 'as' requires a ModelProvider to handle type checking correctly. ` +
+        `Even primitive types like Boolean can fail due to choice types ` +
+        `(e.g., Patient.deceased is actually deceasedBoolean in FHIR data).`,
+        node,
+        DiagnosticCode.ModelRequiredForTypeOperation
+      );
+    }
+    
+    this.visitNode(node.expression);
   }
 
   // Unified variable validation to eliminate duplication

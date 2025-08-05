@@ -41,3 +41,8 @@ export const isOperator: OperatorDefinition & { evaluate: OperationEvaluator } =
   signatures: [],
   evaluate
 };
+
+// TypeInfo unionType of all attribute types on current level:
+// gender: {type: code}
+// 
+// children() -> 

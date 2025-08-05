@@ -33,6 +33,7 @@ export { containsOperator } from './contains-operator';
 // Type operators
 export { isOperator } from './is-operator';
 export { asOperator } from './as-operator';
+export { ofTypeFunction } from './ofType-function';
 
 // Other operators
 export { unionOperator } from './union-operator';

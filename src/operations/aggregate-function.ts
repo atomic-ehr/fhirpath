@@ -23,8 +23,14 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   // For each item in the input collection, evaluate the aggregator expression
   input.forEach((item, index) => {
     // Create a new context with $this, $index, and $total
-    let aggregatorContext = RuntimeContextManager.withIterator(context, item, index);
-    aggregatorContext = RuntimeContextManager.setVariable(aggregatorContext, '$total', total);
+    // Note: $this needs unboxed value, but we pass boxed item to evaluator
+    const unboxedItem = unbox(item);
+    let aggregatorContext = RuntimeContextManager.withIterator(context, unboxedItem, index);
+    
+    // For the first iteration without init, $total should be empty (not undefined)
+    // $total needs to be unboxed values for variable access
+    const unboxedTotal = total.map(v => unbox(v));
+    aggregatorContext = RuntimeContextManager.setVariable(aggregatorContext, '$total', unboxedTotal);
 
     // Evaluate the aggregator expression
     const result = evaluator(aggregatorExpr, [item], aggregatorContext);

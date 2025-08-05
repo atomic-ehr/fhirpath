@@ -1,6 +1,7 @@
 import type { FunctionDefinition } from '../types';
 import type { FunctionEvaluator } from '../types';
 import { box, unbox } from '../boxing';
+import { RuntimeContextManager } from '../interpreter';
 
 export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
   if (args.length < 2) {
@@ -26,16 +27,10 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   }
   
   // When evaluating expressions within iif, ensure $this refers to the input
-  // Create a new context with $this set to the current input
-  const evalContext = {
-    ...context,
-    variables: {
-      ...context.variables,
-      '$this': input
-    },
-    input: input,
-    focus: input
-  };
+  // We need to preserve context variables but set $this to the iif input
+  // Use RuntimeContextManager to properly handle prototype chain
+  let evalContext = RuntimeContextManager.copy(context);
+  evalContext = RuntimeContextManager.setVariable(evalContext, '$this', input.map(v => unbox(v)), true);
   
   const condResult = evaluator(condExpr, input, evalContext);
   
@@ -62,7 +57,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     return { value: [], context };
   }
   
-  // Evaluate only the needed branch (using the same context with $this set)
+  // Evaluate only the needed branch
   if (condition === true) {
     return evaluator(thenExpr, input, evalContext);
   } else {

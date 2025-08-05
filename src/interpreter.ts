@@ -229,13 +229,17 @@ export class Interpreter {
     // Box the initial input values
     const boxedInput = input.map(value => ensureBoxed(value));
 
+    // Set current node in context
+    const contextWithNode = RuntimeContextManager.copy(context);
+    contextWithNode.currentNode = node;
+
     // Dispatch to appropriate evaluator
     const evaluator = this.nodeEvaluators[node.type];
     if (!evaluator) {
       throw new Error(`Unknown node type: ${node.type}`);
     }
 
-    return evaluator(node, boxedInput, context);
+    return evaluator(node, boxedInput, contextWithNode);
   }
 
   private createInitialContext(input: any[]): RuntimeContext {
@@ -474,15 +478,52 @@ export class Interpreter {
     const test = node as MembershipTestNode;
     const exprResult = this.evaluate(test.expression, input, context);
     
-    // Simple type checking on unboxed values
+    // If expression evaluates to empty, return empty
+    if (exprResult.value.length === 0) {
+      return { value: [], context };
+    }
+    
+    // If we have type information from analyzer (with ModelProvider), use it
+    if (context.currentNode?.typeInfo?.modelContext) {
+      const modelContext = context.currentNode.typeInfo.modelContext as any;
+      
+      // For union types, check if the target type is valid
+      if (modelContext.isUnion && modelContext.choices) {
+        const hasValidChoice = modelContext.choices.some((c: any) => 
+          c.type === test.targetType || c.elementType === test.targetType
+        );
+        
+        if (!hasValidChoice) {
+          // Type system knows this will always be false
+          return { 
+            value: exprResult.value.map(() => box(false, { type: 'Boolean', singleton: true })), 
+            context 
+          };
+        }
+      }
+    }
+    
+    // Type checking on unboxed values
     const results = exprResult.value.map(boxedItem => {
       const item = unbox(boxedItem);
+      
+      // Check for FHIR resource types
+      if (item && typeof item === 'object' && 'resourceType' in item) {
+        return box(item.resourceType === test.targetType, { type: 'Boolean', singleton: true });
+      }
+      
+      // Check primitive types
       const isMatch = (() => {
         switch (test.targetType) {
           case 'String': return typeof item === 'string';
           case 'Boolean': return typeof item === 'boolean';
           case 'Integer': return Number.isInteger(item);
           case 'Decimal': return typeof item === 'number';
+          case 'Date':
+          case 'DateTime':
+          case 'Time':
+            // Simple check for date-like strings
+            return typeof item === 'string' && !isNaN(Date.parse(item));
           default: return false;
         }
       })();
@@ -497,9 +538,48 @@ export class Interpreter {
     const cast = node as TypeCastNode;
     const exprResult = this.evaluate(cast.expression, input, context);
     
-    // For now, just return the values as-is
-    // In a real implementation, would perform type conversion
-    return { value: exprResult.value, context };
+    // If we have type information from analyzer (with ModelProvider), use it
+    if (context.currentNode?.typeInfo?.modelContext) {
+      const modelContext = context.currentNode.typeInfo.modelContext as any;
+      
+      // For union types, check if the cast is valid
+      if (modelContext.isUnion && modelContext.choices) {
+        const validChoice = modelContext.choices.find((c: any) => 
+          c.type === cast.targetType || c.elementType === cast.targetType
+        );
+        
+        if (!validChoice) {
+          // Invalid cast - return empty
+          return { value: [], context };
+        }
+      }
+    }
+    
+    // Filter values that match the target type
+    const filtered = exprResult.value.filter(boxedItem => {
+      const item = unbox(boxedItem);
+      
+      // Check for FHIR resource types
+      if (item && typeof item === 'object' && 'resourceType' in item) {
+        return item.resourceType === cast.targetType;
+      }
+      
+      // Check primitive types
+      switch (cast.targetType) {
+        case 'String': return typeof item === 'string';
+        case 'Boolean': return typeof item === 'boolean';
+        case 'Integer': return Number.isInteger(item);
+        case 'Decimal': return typeof item === 'number';
+        case 'Date':
+        case 'DateTime':
+        case 'Time':
+          // Simple check for date-like strings
+          return typeof item === 'string' && !isNaN(Date.parse(item));
+        default: return false;
+      }
+    });
+    
+    return { value: filtered, context };
   }
   
   private evaluateQuantity(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): EvaluationResult {

@@ -7,6 +7,8 @@ import { unbox } from './boxing';
 export interface EvaluateOptions {
   input?: unknown;
   variables?: Record<string, unknown>;
+  modelProvider?: import('./types').ModelProvider;
+  inputType?: import('./types').TypeInfo;
 }
 
 export function evaluate(
@@ -23,8 +25,15 @@ export function evaluate(
     throw new Error(firstError.message);
   }
   
-  const ast = parseResult.ast;
+  // ALWAYS analyze the AST
+  const analyzer = new Analyzer(options.modelProvider);
+  const analysisResult = analyzer.analyze(
+    parseResult.ast, 
+    options.variables,
+    options.inputType
+  );
   
+  // Use the analyzed AST with type information
   const interpreter = new Interpreter();
   const input = options.input === undefined ? [] : Array.isArray(options.input) ? options.input : [options.input];
   
@@ -41,7 +50,7 @@ export function evaluate(
     }
   }
   
-  const result = interpreter.evaluate(ast, input, context);
+  const result = interpreter.evaluate(analysisResult.ast, input, context);
   
   // Unbox the results before returning
   return result.value.map(unbox);
