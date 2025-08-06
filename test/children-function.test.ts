@@ -154,6 +154,7 @@ describe('children() function', () => {
       await modelProvider.initialize();
       
       const analyzer = new Analyzer(modelProvider);
+      // TODO: WE IGNORE CONTAINED INTENTIONALLY
       const parseResult = parse('Patient.children().where($this is Procedure)');
       if (parseResult.errors?.length) {
         throw new Error('Parse failed');

@@ -28,6 +28,7 @@ export class Analyzer {
   private variables: Set<string> = new Set(['$this', '$index', '$total', 'context', 'resource', 'rootResource']);
   private modelProvider?: ModelProvider;
   private userVariableTypes: Map<string, TypeInfo> = new Map();
+  private systemVariableTypes: Map<string, TypeInfo> = new Map();
 
   constructor(modelProvider?: ModelProvider) {
     this.modelProvider = modelProvider;
@@ -689,24 +690,12 @@ export class Analyzer {
         // The result type is the same as init type
         return initType;
       }
-      // Without init, analyze the aggregator expression to infer result type
+      // Without init, we can't fully infer the type without running annotation
+      // This is a limitation - the actual type will be set during annotateAST
       if (node.arguments.length >= 1) {
-        // Temporarily set $total to Any for the aggregator expression analysis
-        const savedTotalType = this.userVariableTypes.get('$total');
-        this.userVariableTypes.set('$total', { type: 'Any', singleton: false });
-        
-        // Analyze the aggregator expression
-        const aggregatorType = this.inferType(node.arguments[0]!, inputType);
-        
-        // Restore previous $total type
-        if (savedTotalType) {
-          this.userVariableTypes.set('$total', savedTotalType);
-        } else {
-          this.userVariableTypes.delete('$total');
-        }
-        
-        // The result type is what the aggregator expression returns
-        return aggregatorType;
+        // We could try to infer, but it would require setting up system variables
+        // For now, return Any and let annotateAST handle proper typing
+        return { type: 'Any', singleton: false };
       }
       // No arguments at all
       return { type: 'Any', singleton: false };
@@ -786,20 +775,23 @@ export class Analyzer {
   }
   
   private inferVariableType(node: VariableNode): TypeInfo {
-    // Check if we have a temporary type set (e.g., for $total in aggregate)
-    const tempType = this.userVariableTypes.get(node.name);
-    if (tempType) {
-      return tempType;
-    }
-    
-    // Built-in variables
-    if (node.name === '$this') {
-      return { type: 'Any', singleton: false }; // $this is usually a collection
-    } else if (node.name === '$index') {
-      return { type: 'Integer', singleton: true };
-    } else if (node.name === '$total') {
-      // Default $total type when not in aggregate context
-      return { type: 'Integer', singleton: true };
+    // System variables - check temporary context
+    if (node.name.startsWith('$')) {
+      const systemType = this.systemVariableTypes.get(node.name);
+      if (systemType) {
+        return systemType;
+      }
+      // Fallback defaults for system variables
+      switch (node.name) {
+        case '$this':
+          return { type: 'Any', singleton: false };
+        case '$index':
+          return { type: 'Integer', singleton: true };
+        case '$total':
+          return { type: 'Any', singleton: false };
+        default:
+          return { type: 'Any', singleton: false };
+      }
     }
     
     // Special FHIRPath environment variables
@@ -1095,44 +1087,58 @@ export class Analyzer {
         // Special handling for aggregate function arguments
         if (funcNode.name.type === NodeType.Identifier && 
             (funcNode.name as IdentifierNode).name === 'aggregate') {
-          // For aggregate, we need to set up context with $total type
+          // Aggregate establishes both $this and $total
           if (funcNode.arguments.length >= 1) {
-            // First argument is the aggregator expression
-            let aggregatorInputType = inputType;
-            const savedTotalType = this.userVariableTypes.get('$total');
+            const itemType = inputType ? { ...inputType, singleton: true } : { type: 'Any' as TypeName, singleton: true };
+            
+            // Save current system variable context
+            const savedThis = this.systemVariableTypes.get('$this');
+            const savedTotal = this.systemVariableTypes.get('$total');
+            
+            // Set $this for iteration
+            this.systemVariableTypes.set('$this', itemType);
             
             if (funcNode.arguments.length >= 2) {
-              // With init: infer init type first
+              // Has init parameter - evaluate it first
               this.annotateAST(funcNode.arguments[1]!, inputType);
               const initType = funcNode.arguments[1]!.typeInfo;
+              
+              // Set $total to init type
               if (initType) {
-                // Temporarily set $total type for aggregator expression
-                this.userVariableTypes.set('$total', initType);
-                this.annotateAST(funcNode.arguments[0]!, aggregatorInputType);
+                this.systemVariableTypes.set('$total', initType);
               } else {
-                this.annotateAST(funcNode.arguments[0]!, aggregatorInputType);
+                this.systemVariableTypes.set('$total', { type: 'Any', singleton: false });
               }
-              // Skip the init argument as we already annotated it
+              
+              // Process aggregator with both variables set
+              this.annotateAST(funcNode.arguments[0]!, inputType);
+              
+              // Process remaining arguments
               funcNode.arguments.slice(2).forEach(arg => this.annotateAST(arg, inputType));
             } else {
-              // Without init: First pass with $total as Any to get aggregator type
-              this.userVariableTypes.set('$total', { type: 'Any', singleton: false });
-              this.annotateAST(funcNode.arguments[0]!, aggregatorInputType);
+              // No init - first pass to infer aggregator type
+              this.systemVariableTypes.set('$total', { type: 'Any', singleton: false });
+              this.annotateAST(funcNode.arguments[0]!, inputType);
               
-              // Second pass: use the inferred aggregator type for $total
+              // Second pass with inferred type
               const aggregatorType = funcNode.arguments[0]!.typeInfo;
               if (aggregatorType) {
-                this.userVariableTypes.set('$total', aggregatorType);
-                // Re-annotate with the proper $total type
-                this.annotateAST(funcNode.arguments[0]!, aggregatorInputType);
+                this.systemVariableTypes.set('$total', aggregatorType);
+                // Re-annotate with proper $total type
+                this.annotateAST(funcNode.arguments[0]!, inputType);
               }
             }
             
-            // Restore previous $total type
-            if (savedTotalType) {
-              this.userVariableTypes.set('$total', savedTotalType);
+            // Restore previous context
+            if (savedThis) {
+              this.systemVariableTypes.set('$this', savedThis);
             } else {
-              this.userVariableTypes.delete('$total');
+              this.systemVariableTypes.delete('$this');
+            }
+            if (savedTotal) {
+              this.systemVariableTypes.set('$total', savedTotal);
+            } else {
+              this.systemVariableTypes.delete('$total');
             }
           }
         } else {
@@ -1141,10 +1147,31 @@ export class Analyzer {
             (funcNode.name as IdentifierNode).name : null;
           
           if (funcName && ['where', 'select', 'all', 'exists'].includes(funcName)) {
-            // These functions pass each element of input collection as context to their expression arguments
-            // The inputType here is the type of the collection being filtered/mapped
-            const elementType = inputType ? { ...inputType, singleton: true } : inputType;
-            funcNode.arguments.forEach(arg => this.annotateAST(arg, elementType));
+            // These functions establish $this as each element of the input collection
+            const elementType = inputType ? { ...inputType, singleton: true } : { type: 'Any' as TypeName, singleton: true };
+            
+            // Save current system variable context
+            const savedThis = this.systemVariableTypes.get('$this');
+            const savedIndex = this.systemVariableTypes.get('$index');
+            
+            // Set system variables for expression evaluation
+            this.systemVariableTypes.set('$this', elementType);
+            this.systemVariableTypes.set('$index', { type: 'Integer', singleton: true });
+            
+            // Process arguments with system variables in scope
+            funcNode.arguments.forEach(arg => this.annotateAST(arg, inputType));
+            
+            // Restore previous context
+            if (savedThis) {
+              this.systemVariableTypes.set('$this', savedThis);
+            } else {
+              this.systemVariableTypes.delete('$this');
+            }
+            if (savedIndex) {
+              this.systemVariableTypes.set('$index', savedIndex);
+            } else {
+              this.systemVariableTypes.delete('$index');
+            }
           } else {
             // Regular function argument annotation
             funcNode.arguments.forEach(arg => this.annotateAST(arg, inputType));
