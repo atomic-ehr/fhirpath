@@ -345,13 +345,24 @@ export class Interpreter {
             const elementTypeInfo = nodeTypeInfo ? { ...nodeTypeInfo, singleton: true } : undefined;
             for (const v of value) {
               // Special handling for FHIR resources - use their resourceType
-              // Only do this if the property navigation has type 'Any' (polymorphic reference)
-              if (v && typeof v === 'object' && 'resourceType' in v && typeof v.resourceType === 'string' &&
-                  nodeTypeInfo?.type === 'Any') {
-                const resourceTypeInfo = {
-                  type: v.resourceType as import('./types').TypeName,
-                  singleton: true
-                };
+              // Do this if the property navigation has type 'Any' (polymorphic reference) or no type info
+              if (v && typeof v === 'object' && 'resourceType' in v && typeof v.resourceType === 'string') {
+                // Get full type info from model provider if available
+                let resourceTypeInfo;
+                if (context.modelProvider) {
+                  resourceTypeInfo = context.modelProvider.getType(v.resourceType);
+                  if (resourceTypeInfo) {
+                    // Make it singleton since it's a single element in the array
+                    resourceTypeInfo = { ...resourceTypeInfo, singleton: true };
+                  }
+                }
+                if (!resourceTypeInfo) {
+                  // Fallback to basic type info
+                  resourceTypeInfo = {
+                    type: v.resourceType as import('./types').TypeName,
+                    singleton: true
+                  };
+                }
                 results.push(box(v, resourceTypeInfo, primitiveElement));
               } else {
                 results.push(box(v, elementTypeInfo, primitiveElement));
@@ -359,13 +370,24 @@ export class Interpreter {
             }
           } else if (value !== null && value !== undefined) {
             // Special handling for FHIR resources - use their resourceType
-            // Only do this if the property navigation has type 'Any' (polymorphic reference)
-            if (value && typeof value === 'object' && 'resourceType' in value && typeof value.resourceType === 'string' &&
-                nodeTypeInfo?.type === 'Any') {
-              const resourceTypeInfo = {
-                type: value.resourceType as import('./types').TypeName,
-                singleton: !Array.isArray(value)
-              };
+            // Do this if the property navigation has type 'Any' (polymorphic reference) or no type info
+            if (value && typeof value === 'object' && 'resourceType' in value && typeof value.resourceType === 'string') {
+              // Get full type info from model provider if available
+              let resourceTypeInfo;
+              if (context.modelProvider) {
+                resourceTypeInfo = context.modelProvider.getType(value.resourceType);
+                if (resourceTypeInfo) {
+                  // Preserve singleton status
+                  resourceTypeInfo = { ...resourceTypeInfo, singleton: !Array.isArray(value) };
+                }
+              }
+              if (!resourceTypeInfo) {
+                // Fallback to basic type info
+                resourceTypeInfo = {
+                  type: value.resourceType as import('./types').TypeName,
+                  singleton: !Array.isArray(value)
+                };
+              }
               results.push(box(value, resourceTypeInfo, primitiveElement));
             } else {
               // Box single value with primitive element if available

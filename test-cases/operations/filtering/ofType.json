@@ -226,6 +226,301 @@
         "function:ofType"
       ],
       "modelProvider": "r4"
+    },
+    {
+      "name": "ofType - SimpleQuantity filtered by Quantity (subtype test)",
+      "expression": "Observation.referenceRange.low.ofType(Quantity)",
+      "input": [
+        {
+          "resourceType": "Observation",
+          "referenceRange": [
+            {
+              "low": {
+                "value": 98.6,
+                "unit": "F",
+                "system": "http://unitsofmeasure.org",
+                "code": "[degF]"
+              }
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "value": 98.6,
+          "unit": "F",
+          "system": "http://unitsofmeasure.org",
+          "code": "[degF]"
+        }
+      ],
+      "tags": [
+        "function",
+        "type",
+        "ofType",
+        "filter",
+        "subtype",
+        "function:ofType"
+      ],
+      "modelProvider": "r4"
+    },
+    {
+      "name": "ofType - filter Bundle resources by DomainResource",
+      "expression": "Bundle.entry.resource.ofType(DomainResource)",
+      "input": [
+        {
+          "resourceType": "Bundle",
+          "entry": [
+            {
+              "resource": {
+                "resourceType": "Patient",
+                "id": "p1"
+              }
+            },
+            {
+              "resource": {
+                "resourceType": "Observation",
+                "id": "o1",
+                "status": "final"
+              }
+            },
+            {
+              "resource": {
+                "resourceType": "OperationOutcome",
+                "id": "oo1",
+                "issue": []
+              }
+            },
+            {
+              "resource": {
+                "resourceType": "Medication",
+                "id": "m1"
+              }
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "resourceType": "Patient",
+          "id": "p1"
+        },
+        {
+          "resourceType": "Observation",
+          "id": "o1",
+          "status": "final"
+        },
+        {
+          "resourceType": "OperationOutcome",
+          "id": "oo1",
+          "issue": []
+        },
+        {
+          "resourceType": "Medication",
+          "id": "m1"
+        }
+      ],
+      "tags": [
+        "function",
+        "type",
+        "ofType",
+        "filter",
+        "subtype",
+        "function:ofType"
+      ],
+      "modelProvider": "r4"
+    },
+    {
+      "name": "ofType - filter Bundle resources by Resource (all should match)",
+      "expression": "Bundle.entry.resource.ofType(Resource)",
+      "input": [
+        {
+          "resourceType": "Bundle",
+          "entry": [
+            {
+              "resource": {
+                "resourceType": "Patient",
+                "id": "p1"
+              }
+            },
+            {
+              "resource": {
+                "resourceType": "Binary",
+                "id": "b1",
+                "contentType": "application/pdf"
+              }
+            },
+            {
+              "resource": {
+                "resourceType": "Parameters",
+                "id": "param1"
+              }
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "resourceType": "Patient",
+          "id": "p1"
+        },
+        {
+          "resourceType": "Binary",
+          "id": "b1",
+          "contentType": "application/pdf"
+        },
+        {
+          "resourceType": "Parameters",
+          "id": "param1"
+        }
+      ],
+      "tags": [
+        "function",
+        "type",
+        "ofType",
+        "filter",
+        "subtype",
+        "function:ofType"
+      ],
+      "modelProvider": "r4"
+    },
+    {
+      "name": "ofType - filter for specific resource type from DomainResource collection",
+      "expression": "Bundle.entry.resource.ofType(DomainResource).ofType(Observation)",
+      "input": [
+        {
+          "resourceType": "Bundle",
+          "entry": [
+            {
+              "resource": {
+                "resourceType": "Patient",
+                "id": "p1"
+              }
+            },
+            {
+              "resource": {
+                "resourceType": "Observation",
+                "id": "o1",
+                "status": "final"
+              }
+            },
+            {
+              "resource": {
+                "resourceType": "Observation",
+                "id": "o2",
+                "status": "preliminary"
+              }
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "resourceType": "Observation",
+          "id": "o1",
+          "status": "final"
+        },
+        {
+          "resourceType": "Observation",
+          "id": "o2",
+          "status": "preliminary"
+        }
+      ],
+      "tags": [
+        "function",
+        "type",
+        "ofType",
+        "filter",
+        "subtype",
+        "chained",
+        "function:ofType"
+      ],
+      "modelProvider": "r4"
+    },
+    {
+      "name": "ofType - filter BackboneElement subtypes",
+      "expression": "Patient.contact.ofType(BackboneElement)",
+      "input": [
+        {
+          "resourceType": "Patient",
+          "contact": [
+            {
+              "relationship": [
+                {
+                  "coding": [
+                    {
+                      "system": "http://terminology.hl7.org/CodeSystem/v2-0131",
+                      "code": "E"
+                    }
+                  ]
+                }
+              ],
+              "name": {
+                "family": "Smith"
+              }
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "relationship": [
+            {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/v2-0131",
+                  "code": "E"
+                }
+              ]
+            }
+          ],
+          "name": {
+            "family": "Smith"
+          }
+        }
+      ],
+      "tags": [
+        "function",
+        "type",
+        "ofType",
+        "filter",
+        "subtype",
+        "backbone",
+        "function:ofType"
+      ],
+      "modelProvider": "r4"
+    },
+    {
+      "name": "ofType - Element subtype filtering (HumanName is Element)",
+      "expression": "Patient.name.ofType(Element)",
+      "input": [
+        {
+          "resourceType": "Patient",
+          "name": [
+            {
+              "use": "official",
+              "family": "Chalmers",
+              "given": ["Peter", "James"]
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "use": "official",
+          "family": "Chalmers",
+          "given": ["Peter", "James"]
+        }
+      ],
+      "tags": [
+        "function",
+        "type",
+        "ofType",
+        "filter",
+        "subtype",
+        "element",
+        "function:ofType"
+      ],
+      "modelProvider": "r4"
     }
   ]
 }

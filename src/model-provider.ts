@@ -76,11 +76,49 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
     'Count': 'Quantity'
   };
   
-  // Common FHIR types to preload
+  // Common FHIR types to preload - load all resource types and common data types
   private readonly commonTypes = [
-    'Patient', 'HumanName', 'Observation', 'CodeableConcept', 'Coding', 
-    'Extension', 'Reference', 'Identifier', 'Period', 'ContactPoint',
-    'Address', 'Attachment', 'Meta', 'Narrative'
+    // Base resources
+    'Resource', 'DomainResource',
+    // All FHIR R4 resources (alphabetical)
+    'Account', 'ActivityDefinition', 'AdverseEvent', 'AllergyIntolerance', 'Appointment',
+    'AppointmentResponse', 'AuditEvent', 'Basic', 'Binary', 'BiologicallyDerivedProduct',
+    'BodyStructure', 'Bundle', 'CapabilityStatement', 'CarePlan', 'CareTeam',
+    'CatalogEntry', 'ChargeItem', 'ChargeItemDefinition', 'Claim', 'ClaimResponse',
+    'ClinicalImpression', 'CodeSystem', 'Communication', 'CommunicationRequest', 'CompartmentDefinition',
+    'Composition', 'ConceptMap', 'Condition', 'Consent', 'Contract',
+    'Coverage', 'CoverageEligibilityRequest', 'CoverageEligibilityResponse', 'DetectedIssue', 'Device',
+    'DeviceDefinition', 'DeviceMetric', 'DeviceRequest', 'DeviceUseStatement', 'DiagnosticReport',
+    'DocumentManifest', 'DocumentReference', 'EffectEvidenceSynthesis', 'Encounter', 'Endpoint',
+    'EnrollmentRequest', 'EnrollmentResponse', 'EpisodeOfCare', 'EventDefinition', 'Evidence',
+    'EvidenceVariable', 'ExampleScenario', 'ExplanationOfBenefit', 'FamilyMemberHistory', 'Flag',
+    'Goal', 'GraphDefinition', 'Group', 'GuidanceResponse', 'HealthcareService',
+    'ImagingStudy', 'Immunization', 'ImmunizationEvaluation', 'ImmunizationRecommendation', 'ImplementationGuide',
+    'InsurancePlan', 'Invoice', 'Library', 'Linkage', 'List',
+    'Location', 'Measure', 'MeasureReport', 'Media', 'Medication',
+    'MedicationAdministration', 'MedicationDispense', 'MedicationKnowledge', 'MedicationRequest', 'MedicationStatement',
+    'MedicinalProduct', 'MedicinalProductAuthorization', 'MedicinalProductContraindication', 'MedicinalProductIndication', 'MedicinalProductIngredient',
+    'MedicinalProductInteraction', 'MedicinalProductManufactured', 'MedicinalProductPackaged', 'MedicinalProductPharmaceutical', 'MedicinalProductUndesirableEffect',
+    'MessageDefinition', 'MessageHeader', 'MolecularSequence', 'NamingSystem', 'NutritionOrder',
+    'Observation', 'ObservationDefinition', 'OperationDefinition', 'OperationOutcome', 'Organization',
+    'OrganizationAffiliation', 'Parameters', 'Patient', 'PaymentNotice', 'PaymentReconciliation',
+    'Person', 'PlanDefinition', 'Practitioner', 'PractitionerRole', 'Procedure',
+    'Provenance', 'Questionnaire', 'QuestionnaireResponse', 'RelatedPerson', 'RequestGroup',
+    'ResearchDefinition', 'ResearchElementDefinition', 'ResearchStudy', 'ResearchSubject', 'RiskAssessment',
+    'RiskEvidenceSynthesis', 'Schedule', 'SearchParameter', 'ServiceRequest', 'Slot',
+    'Specimen', 'SpecimenDefinition', 'StructureDefinition', 'StructureMap', 'Subscription',
+    'Substance', 'SubstanceNucleicAcid', 'SubstancePolymer', 'SubstanceProtein', 'SubstanceReferenceInformation',
+    'SubstanceSourceMaterial', 'SubstanceSpecification', 'SupplyDelivery', 'SupplyRequest', 'Task',
+    'TerminologyCapabilities', 'TestReport', 'TestScript', 'ValueSet', 'VerificationResult',
+    'VisionPrescription',
+    // Common data types
+    'HumanName', 'CodeableConcept', 'Coding', 'Extension', 'Reference', 
+    'Identifier', 'Period', 'ContactPoint', 'Address', 'Attachment', 
+    'Meta', 'Narrative', 'Quantity', 'SimpleQuantity', 'Age', 'Distance',
+    'Duration', 'Count', 'Money', 'Range', 'Ratio', 'SampledData',
+    'Timing', 'Annotation', 'Signature', 'ContactDetail', 'Contributor',
+    'DataRequirement', 'ParameterDefinition', 'RelatedArtifact', 'TriggerDefinition',
+    'UsageContext', 'Dosage', 'ElementDefinition'
   ];
   
   constructor(private config: FHIRModelProviderConfig = {
@@ -380,8 +418,27 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
       return undefined;
     }
     
-    // For non-union types, check direct match
-    return type.type === typeName ? type : undefined;
+    // For non-union types, check if the type matches or is a subtype
+    // First check direct match on FHIRPath type
+    if (type.type === typeName) {
+      return type;
+    }
+    
+    // Check if the type name matches
+    if (type.name === typeName) {
+      return type;
+    }
+    
+    // Check if any of the schemas in the hierarchy match
+    if (context?.schemaHierarchy) {
+      for (const schema of context.schemaHierarchy) {
+        if (schema.type === typeName || schema.name === typeName) {
+          return type;
+        }
+      }
+    }
+    
+    return undefined;
   }
   
   getElementNames(parentType: TypeInfo<FHIRModelContext>): string[] {

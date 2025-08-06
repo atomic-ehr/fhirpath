@@ -1,8 +1,13 @@
-import { describe, it, expect } from 'bun:test';
+import { describe, it, expect, beforeAll } from 'bun:test';
 import { evaluate, FHIRModelProvider } from '../src/index';
 
 describe('Type Operations', () => {
-  const modelProvider = new FHIRModelProvider();
+  let modelProvider: FHIRModelProvider;
+  
+  beforeAll(async () => {
+    modelProvider = new FHIRModelProvider();
+    await modelProvider.initialize();
+  });
   
   describe('ofType function', () => {
     it('should filter strings', () => {

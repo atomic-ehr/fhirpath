@@ -19,8 +19,8 @@ export const ofTypeFunction: FunctionDefinition = {
     parameters: [
       { 
         name: 'type', 
-        type: { type: 'String', singleton: true },
-        expression: false
+        type: { type: 'Any', singleton: true },
+        expression: true
       }
     ],
     result: 'inputType'
@@ -82,6 +82,8 @@ export const ofTypeFunction: FunctionDefinition = {
 
     // Filter using ModelProvider if available, otherwise fall back to type info and runtime checks
     const filtered = input.filter(boxedItem => {
+      const item = unbox(boxedItem);
+      
       // If we have a ModelProvider in context, use it for accurate type checking
       if (context.modelProvider && boxedItem.typeInfo) {
         const matchingType = context.modelProvider.ofType(boxedItem.typeInfo, targetTypeName as import('../types').TypeName);
@@ -94,8 +96,15 @@ export const ofTypeFunction: FunctionDefinition = {
         return boxedItem.typeInfo.type === targetTypeName;
       }
       
-      // Fall back to runtime type checking
-      const item = unbox(boxedItem);
+      // For FHIR resources without typeInfo, try to get it from modelProvider
+      if (context.modelProvider && item && typeof item === 'object' && 'resourceType' in item && typeof item.resourceType === 'string') {
+        const typeInfo = context.modelProvider.getType(item.resourceType);
+        if (typeInfo) {
+          const matchingType = context.modelProvider.ofType(typeInfo, targetTypeName as import('../types').TypeName);
+          return matchingType !== undefined;
+        }
+        return false;
+      }
       
       // Check primitive types
       switch (targetTypeName) {

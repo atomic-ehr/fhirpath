@@ -58,6 +58,11 @@ export function evaluate(
   // Set $this to the input (required for expressions like $this.where(...))
   context = RuntimeContextManager.setVariable(context, '$this', input);
   
+  // Add model provider to context if available
+  if (options.modelProvider) {
+    context.modelProvider = options.modelProvider;
+  }
+  
   if (options.variables) {
     for (const [key, value] of Object.entries(options.variables)) {
       const varValue = Array.isArray(value) ? value : [value];
