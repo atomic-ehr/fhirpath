@@ -1,0 +1,181 @@
+{
+  "description": "Tests for descendants() function",
+  "tags": ["descendants", "navigation"],
+  "tests": [
+    {
+      "name": "empty input returns empty",
+      "expression": "{}.descendants()",
+      "expected": []
+    },
+    {
+      "name": "primitive value returns empty",
+      "expression": "5.descendants()",
+      "expected": []
+    },
+    {
+      "name": "string value returns empty",
+      "expression": "'hello'.descendants()",
+      "expected": []
+    },
+    {
+      "name": "simple object - one level",
+      "expression": "descendants()",
+      "input": { "a": 1, "b": 2 },
+      "expected": [1, 2]
+    },
+    {
+      "name": "nested object - two levels",
+      "expression": "descendants()",
+      "input": { 
+        "a": 1, 
+        "b": { 
+          "c": 2, 
+          "d": 3 
+        } 
+      },
+      "expected": [1, { "c": 2, "d": 3 }, 2, 3]
+    },
+    {
+      "name": "deeply nested object",
+      "expression": "descendants()",
+      "input": {
+        "level1": {
+          "level2": {
+            "level3": {
+              "value": "deep"
+            }
+          }
+        }
+      },
+      "expected": [
+        { "level2": { "level3": { "value": "deep" } } },
+        { "level3": { "value": "deep" } },
+        { "value": "deep" },
+        "deep"
+      ]
+    },
+    {
+      "name": "array handling",
+      "expression": "descendants()",
+      "input": {
+        "items": [
+          { "id": 1 },
+          { "id": 2 }
+        ]
+      },
+      "expected": [
+        { "id": 1 },
+        { "id": 2 },
+        1,
+        2
+      ]
+    },
+    {
+      "name": "FHIR Patient resource",
+      "expression": "descendants().count()",
+      "input": {
+        "resourceType": "Patient",
+        "id": "123",
+        "active": true,
+        "name": [{
+          "use": "official",
+          "given": ["John"],
+          "family": "Doe"
+        }]
+      },
+      "expected": [6]
+    },
+    {
+      "name": "filter descendants by type",
+      "expression": "descendants().ofType(String)",
+      "input": {
+        "resourceType": "Patient",
+        "id": "123",
+        "active": true,
+        "name": [{
+          "use": "official",
+          "given": ["John"],
+          "family": "Doe"
+        }]
+      },
+      "expected": ["123", "official", "John", "Doe"]
+    },
+    {
+      "name": "filter descendants with where",
+      "expression": "descendants().where(use = 'official')",
+      "input": {
+        "resourceType": "Patient",
+        "name": [
+          { "use": "official", "family": "Smith" },
+          { "use": "nickname", "family": "Smithy" }
+        ]
+      },
+      "expected": [{ "use": "official", "family": "Smith" }]
+    },
+    {
+      "name": "descendants excludes input",
+      "expression": "descendants().count() > 0 and descendants().where($this.a.exists()).empty()",
+      "input": { "a": { "b": 1 } },
+      "expected": [true]
+    },
+    {
+      "name": "Questionnaire.descendants().linkId.isDistinct()",
+      "expression": "descendants().linkId.isDistinct()",
+      "input": {
+        "resourceType": "Questionnaire",
+        "item": [
+          { "linkId": "q1", "text": "Question 1" },
+          { "linkId": "q2", "text": "Question 2",
+            "item": [
+              { "linkId": "q2.1", "text": "Sub question" }
+            ]
+          }
+        ]
+      },
+      "expected": [true]
+    },
+    {
+      "name": "Questionnaire.descendants().linkId.distinct().count()",
+      "expression": "descendants().linkId.distinct().count()",
+      "input": {
+        "resourceType": "Questionnaire",
+        "item": [
+          { "linkId": "q1" },
+          { "linkId": "q2", "item": [{ "linkId": "q2.1" }] },
+          { "linkId": "q3" }
+        ]
+      },
+      "expected": [4]
+    },
+    {
+      "name": "descendants with code count",
+      "expression": "descendants().code.count()",
+      "input": {
+        "resourceType": "Questionnaire",
+        "item": [
+          { "code": [{ "system": "http://loinc.org", "code": "1234" }] },
+          { "code": [{ "system": "http://loinc.org", "code": "5678" }] }
+        ]
+      },
+      "expected": [4]
+    },
+    {
+      "name": "mixed types in collection",
+      "expression": "descendants().count()",
+      "input": {
+        "mixed": [1, "two", true, { "nested": "value" }]
+      },
+      "expected": [5]
+    },
+    {
+      "name": "empty arrays and objects",
+      "expression": "descendants().count()",
+      "input": {
+        "empty": {},
+        "emptyArray": [],
+        "hasValue": { "a": 1 }
+      },
+      "expected": [3]
+    }
+  ]
+}

@@ -713,6 +713,12 @@ export class Analyzer {
       return { type: 'Any', singleton: false };
     }
     
+    // Special handling for descendants function
+    // Returns Any type due to combinatorial explosion of possible types
+    if (funcName === 'descendants') {
+      return { type: 'Any', singleton: false };
+    }
+    
     // Special handling for functions with dynamic result types
     if (func.signature.result === 'inputType') {
       // Functions like where() return the same type as input but always as collection

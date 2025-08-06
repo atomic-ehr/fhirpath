@@ -46,6 +46,7 @@ export { selectFunction } from './select-function';
 export { firstFunction } from './first-function';
 export { lastFunction } from './last-function';
 export { childrenFunction } from './children-function';
+export { descendantsFunction } from './descendants-function';
 export { skipFunction } from './skip-function';
 export { takeFunction } from './take-function';
 export { tailFunction } from './tail-function';
