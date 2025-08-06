@@ -203,6 +203,44 @@ export class Analyzer {
         }
       }
       
+      // Check ofType with union types
+      if (funcName === 'ofType' && node.typeInfo) {
+        const inputType = node.typeInfo;
+        if (node.arguments.length > 0 && inputType.modelContext && 
+            typeof inputType.modelContext === 'object' &&
+            'isUnion' in inputType.modelContext && 
+            inputType.modelContext.isUnion &&
+            'choices' in inputType.modelContext &&
+            Array.isArray(inputType.modelContext.choices)) {
+          
+          // Extract target type from argument
+          let targetType: string | undefined;
+          const typeArg = node.arguments[0]!;
+          if (typeArg.type === NodeType.Identifier) {
+            targetType = (typeArg as IdentifierNode).name;
+          } else if ((typeArg as any).type === NodeType.TypeOrIdentifier || (typeArg as any).type === NodeType.TypeReference) {
+            targetType = (typeArg as any).name;
+          }
+          
+          if (targetType) {
+            const validChoice = inputType.modelContext.choices.find((choice: any) => 
+              choice.type === targetType || choice.code === targetType
+            );
+            
+            if (!validChoice) {
+              this.diagnostics.push({
+                severity: DiagnosticSeverity.Warning,
+                code: 'invalid-type-filter',
+                message: `Type '${targetType}' is not present in the union type. Available types: ${
+                  inputType.modelContext.choices.map((c: any) => c.type || c.code).join(', ')
+                }`,
+                range: node.range
+              });
+            }
+          }
+        }
+      }
+      
       const func = registry.getFunction(funcName);
       
       if (!func) {
@@ -245,6 +283,34 @@ export class Analyzer {
       );
     }
     
+    // Check 'is' with union types
+    if (node.expression.typeInfo) {
+      const leftType = node.expression.typeInfo;
+      if (leftType.modelContext && 
+          typeof leftType.modelContext === 'object' &&
+          'isUnion' in leftType.modelContext && 
+          leftType.modelContext.isUnion &&
+          'choices' in leftType.modelContext &&
+          Array.isArray(leftType.modelContext.choices)) {
+        
+        const targetTypeName = node.targetType;
+        const validChoice = leftType.modelContext.choices.find((choice: any) =>
+          choice.type === targetTypeName || choice.code === targetTypeName
+        );
+        
+        if (!validChoice) {
+          this.diagnostics.push({
+            severity: DiagnosticSeverity.Warning,
+            code: 'invalid-type-test',
+            message: `Type test 'is ${targetTypeName}' will always be false. Type '${targetTypeName}' is not in the union. Available types: ${
+              leftType.modelContext.choices.map((c: any) => c.type || c.code).join(', ')
+            }`,
+            range: node.range
+          });
+        }
+      }
+    }
+    
     this.visitNode(node.expression);
   }
 
@@ -256,6 +322,34 @@ export class Analyzer {
       this.diagnostics.push(
         toDiagnostic(Errors.modelProviderRequired('as', node.range))
       );
+    }
+    
+    // Check 'as' with union types
+    if (node.expression.typeInfo) {
+      const leftType = node.expression.typeInfo;
+      if (leftType.modelContext && 
+          typeof leftType.modelContext === 'object' &&
+          'isUnion' in leftType.modelContext && 
+          leftType.modelContext.isUnion &&
+          'choices' in leftType.modelContext &&
+          Array.isArray(leftType.modelContext.choices)) {
+        
+        const targetTypeName = node.targetType;
+        const validChoice = leftType.modelContext.choices.find((choice: any) =>
+          choice.type === targetTypeName || choice.code === targetTypeName
+        );
+        
+        if (!validChoice) {
+          this.diagnostics.push({
+            severity: DiagnosticSeverity.Warning,
+            code: 'invalid-type-cast',
+            message: `Type cast 'as ${targetTypeName}' may fail. Type '${targetTypeName}' is not guaranteed in the union. Available types: ${
+              leftType.modelContext.choices.map((c: any) => c.type || c.code).join(', ')
+            }`,
+            range: node.range
+          });
+        }
+      }
     }
     
     this.visitNode(node.expression);
@@ -615,6 +709,18 @@ export class Analyzer {
         return aggregatorType;
       }
       // No arguments at all
+      return { type: 'Any', singleton: false };
+    }
+    
+    // Special handling for children function
+    if (funcName === 'children') {
+      if (inputType && this.modelProvider && 'getChildrenType' in this.modelProvider) {
+        const childrenType = this.modelProvider.getChildrenType(inputType);
+        if (childrenType) {
+          return childrenType;
+        }
+      }
+      // Fallback to Any collection
       return { type: 'Any', singleton: false };
     }
     
@@ -1030,8 +1136,19 @@ export class Analyzer {
             }
           }
         } else {
-          // Regular function argument annotation
-          funcNode.arguments.forEach(arg => this.annotateAST(arg, inputType));
+          // Special handling for functions that pass their input as context to arguments
+          const funcName = funcNode.name.type === NodeType.Identifier ? 
+            (funcNode.name as IdentifierNode).name : null;
+          
+          if (funcName && ['where', 'select', 'all', 'exists'].includes(funcName)) {
+            // These functions pass each element of input collection as context to their expression arguments
+            // The inputType here is the type of the collection being filtered/mapped
+            const elementType = inputType ? { ...inputType, singleton: true } : inputType;
+            funcNode.arguments.forEach(arg => this.annotateAST(arg, elementType));
+          } else {
+            // Regular function argument annotation
+            funcNode.arguments.forEach(arg => this.annotateAST(arg, inputType));
+          }
         }
         break;
         

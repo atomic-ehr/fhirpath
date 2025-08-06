@@ -47,6 +47,8 @@ export interface ModelProvider<TypeContext = unknown> {
   // get element names from complex type
   getElementNames(parentType: TypeInfo<TypeContext>): string[];
 
+  // Returns a union type of all possible child element types
+  getChildrenType(parentType: TypeInfo<TypeContext>): TypeInfo<TypeContext> | undefined;
 }
 
 export interface OperatorSignature {

@@ -462,6 +462,44 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
     
     return Array.from(names);
   }
+
+  getChildrenType(parentType: TypeInfo<FHIRModelContext>): TypeInfo<FHIRModelContext> | undefined {
+    const elementNames = this.getElementNames(parentType);
+    if (elementNames.length === 0) return undefined;
+    
+    // Collect all unique child types
+    const childTypes = new Map<string, TypeInfo<FHIRModelContext>>();
+    
+    for (const elementName of elementNames) {
+      const elementType = this.getElementType(parentType, elementName);
+      if (elementType) {
+        // Use a combination of namespace and name as key to deduplicate
+        const key = `${elementType.namespace || ''}.${elementType.name || elementType.type}`;
+        childTypes.set(key, elementType);
+      }
+    }
+    
+    if (childTypes.size === 0) return undefined;
+    
+    // Create a union type representing all possible children
+    return {
+      type: 'Any',
+      namespace: parentType.namespace,
+      name: 'ChildrenUnion',
+      singleton: false, // children() always returns a collection
+      modelContext: {
+        path: `${parentType.modelContext?.path || ''}.children()`,
+        schemaHierarchy: [],
+        isUnion: true,
+        choices: Array.from(childTypes.values()).map(type => ({
+          type: type.type as TypeName,
+          code: type.name || type.type,
+          namespace: type.namespace,
+          modelContext: type.modelContext
+        }))
+      } as FHIRModelContext
+    };
+  }
   
   // Async helper methods for loading additional schemas
   async loadType(typeName: string): Promise<TypeInfo<FHIRModelContext> | undefined> {
