@@ -591,11 +591,28 @@ export class Interpreter {
       }
     }
     
-    // Type checking on unboxed values
+    // Type checking with subtype support via ModelProvider
     const results = exprResult.value.map(boxedItem => {
       const item = unbox(boxedItem);
       
-      // Check for FHIR resource types
+      // If we have a ModelProvider and typeInfo, use it for accurate subtype checking
+      if (context.modelProvider && boxedItem.typeInfo) {
+        const matchingType = context.modelProvider.ofType(boxedItem.typeInfo, test.targetType as import('./types').TypeName);
+        return box(matchingType !== undefined, { type: 'Boolean', singleton: true });
+      }
+      
+      // For FHIR resources without typeInfo, try to get it from modelProvider
+      if (context.modelProvider && item && typeof item === 'object' && 'resourceType' in item && typeof item.resourceType === 'string') {
+        const typeInfo = context.modelProvider.getType(item.resourceType);
+        if (typeInfo) {
+          const matchingType = context.modelProvider.ofType(typeInfo, test.targetType as import('./types').TypeName);
+          return box(matchingType !== undefined, { type: 'Boolean', singleton: true });
+        }
+        // Fall back to exact match
+        return box(item.resourceType === test.targetType, { type: 'Boolean', singleton: true });
+      }
+      
+      // Check for FHIR resource types (no ModelProvider available)
       if (item && typeof item === 'object' && 'resourceType' in item) {
         return box(item.resourceType === test.targetType, { type: 'Boolean', singleton: true });
       }

@@ -1,31 +1,74 @@
-import type { OperatorDefinition } from '../types';
+import type { OperatorDefinition, TypeName } from '../types';
 import { PRECEDENCE } from '../types';
 import type { OperationEvaluator } from '../types';
 import { box, unbox } from '../boxing';
 
 export const evaluate: OperationEvaluator = (input, context, left, right) => {
-  // Note: 'is' operator requires special handling for type checking
   // Right operand should be a type identifier
-  // For now, implementing basic type checking
+  // Empty collection returns empty (not false)
   if (left.length === 0) {
-    return { value: [box(false, { type: 'Boolean', singleton: true })], context };
+    return { value: [], context };
   }
   
-  // TODO: Implement proper FHIRPath type checking
-  // This is a simplified version
-  const item = left[0];
-  const typeName = right[0]; // Should be a type name like 'String', 'Integer', etc.
+  const boxedItem = left[0];
+  const item = unbox(boxedItem);
+  const typeName = right[0] as string; // Should be a type name like 'String', 'Integer', etc.
   
+  // If we have a ModelProvider in context, use it for accurate type checking
+  if (context.modelProvider && boxedItem?.typeInfo) {
+    const matchingType = context.modelProvider.ofType(boxedItem.typeInfo, typeName as TypeName);
+    return { 
+      value: [box(matchingType !== undefined, { type: 'Boolean', singleton: true })], 
+      context 
+    };
+  }
+  
+  // Check if the box has type information
+  if (boxedItem?.typeInfo) {
+    // For now, just check exact type match (no subtype support without ModelProvider)
+    return { 
+      value: [box(boxedItem.typeInfo.type === typeName, { type: 'Boolean', singleton: true })], 
+      context 
+    };
+  }
+  
+  // For FHIR resources without typeInfo, try to get it from modelProvider
+  if (context.modelProvider && item && typeof item === 'object' && 'resourceType' in item && typeof item.resourceType === 'string') {
+    const typeInfo = context.modelProvider.getType(item.resourceType);
+    if (typeInfo) {
+      const matchingType = context.modelProvider.ofType(typeInfo, typeName as TypeName);
+      return { 
+        value: [box(matchingType !== undefined, { type: 'Boolean', singleton: true })], 
+        context 
+      };
+    }
+    // If we can't get type info, fall back to exact resourceType match
+    return { 
+      value: [box(item.resourceType === typeName, { type: 'Boolean', singleton: true })], 
+      context 
+    };
+  }
+  
+  // Check primitive types
   switch (typeName) {
     case 'String':
       return { value: [box(typeof item === 'string', { type: 'Boolean', singleton: true })], context };
     case 'Boolean':
       return { value: [box(typeof item === 'boolean', { type: 'Boolean', singleton: true })], context };
     case 'Integer':
-      return { value: [box(Number.isInteger(item), { type: 'Any', singleton: true })], context };
+      return { value: [box(typeof item === 'number' && Number.isInteger(item), { type: 'Boolean', singleton: true })], context };
     case 'Decimal':
       return { value: [box(typeof item === 'number', { type: 'Boolean', singleton: true })], context };
+    case 'Date':
+    case 'DateTime':
+    case 'Time':
+      // Simple check for date-like strings
+      return { value: [box(typeof item === 'string' && !isNaN(Date.parse(item)), { type: 'Boolean', singleton: true })], context };
     default:
+      // For complex types, check resourceType
+      if (item && typeof item === 'object' && 'resourceType' in item) {
+        return { value: [box(item.resourceType === typeName, { type: 'Boolean', singleton: true })], context };
+      }
       return { value: [box(false, { type: 'Boolean', singleton: true })], context };
   }
 };

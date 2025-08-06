@@ -36,6 +36,7 @@ interface UnifiedTest {
 interface TestSuite {
   name: string;
   description?: string;
+  modelProvider?: string; // Model provider type: 'r4', 'r5', etc.
   beforeEach?: {
     context?: any;
   };
@@ -221,6 +222,11 @@ export async function runTestFromFile(filePath: string, testName: string) {
     return;
   }
   
+  // Inherit suite-level modelProvider if test doesn't have one
+  if (suite.modelProvider && !test.modelProvider) {
+    test.modelProvider = suite.modelProvider;
+  }
+  
   return await runSingleTest(test);
 }
 
@@ -240,6 +246,11 @@ export async function runAllTestsFromFile(filePath: string) {
   const startTime = performance.now();
   
   for (const test of suite.tests) {
+    // Inherit suite-level modelProvider if test doesn't have one
+    if (suite.modelProvider && !test.modelProvider) {
+      test.modelProvider = suite.modelProvider;
+    }
+    
     const result = await runSingleTest(test);
     
     if (result.pending) {

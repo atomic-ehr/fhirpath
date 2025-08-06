@@ -2,7 +2,7 @@ import { Parser } from './parser';
 import { Interpreter, RuntimeContextManager } from './interpreter';
 import { Analyzer } from './analyzer';
 import type { AnalysisResult } from './types';
-import { unbox } from './boxing';
+import { box, unbox } from './boxing';
 import { FHIRPathError, Errors } from './errors';
 
 export interface EvaluateOptions {
@@ -52,11 +52,25 @@ export function evaluate(
   const interpreter = new Interpreter(undefined, options.modelProvider);
   const input = options.input === undefined ? [] : Array.isArray(options.input) ? options.input : [options.input];
   
+  // Box input with typeInfo if we have a modelProvider and the input is a FHIR resource
+  let boxedInput = input;
+  if (options.modelProvider) {
+    boxedInput = input.map(item => {
+      if (item && typeof item === 'object' && 'resourceType' in item && typeof item.resourceType === 'string') {
+        const typeInfo = options.modelProvider!.getType(item.resourceType);
+        if (typeInfo) {
+          return box(item, typeInfo);
+        }
+      }
+      return item;
+    });
+  }
+  
   // Create context with variables if provided
   let context = RuntimeContextManager.create(input);
   
-  // Set $this to the input (required for expressions like $this.where(...))
-  context = RuntimeContextManager.setVariable(context, '$this', input);
+  // Set $this to the boxed input (required for expressions like $this.where(...))
+  context = RuntimeContextManager.setVariable(context, '$this', boxedInput);
   
   // Add model provider to context if available
   if (options.modelProvider) {

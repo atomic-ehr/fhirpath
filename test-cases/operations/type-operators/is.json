@@ -1,6 +1,7 @@
 {
   "name": "Is Operator Tests",
   "description": "Tests for the is (type checking) operator",
+  "modelProvider": "r4",
   "tests": [
     {
       "name": "is - string type",
@@ -89,7 +90,10 @@
     {
       "name": "is - FHIR resource type true",
       "expression": "$this is Patient",
-      "input": [],
+      "input": {
+        "resourceType": "Patient",
+        "id": "example"
+      },
       "expected": [
         true
       ],
@@ -99,13 +103,15 @@
         "is",
         "fhir",
         "operator:is"
-      ],
-      "pending": "Need to provide proper FHIR Patient resource as input"
+      ]
     },
     {
       "name": "is - FHIR resource type false",
       "expression": "$this is Observation",
-      "input": [],
+      "input": {
+        "resourceType": "Patient",
+        "id": "example"
+      },
       "expected": [
         false
       ],
@@ -115,8 +121,308 @@
         "is",
         "fhir",
         "operator:is"
+      ]
+    },
+    {
+      "name": "is - SimpleQuantity is Quantity (subtype)",
+      "expression": "Observation.referenceRange.low is Quantity",
+      "input": {
+        "resourceType": "Observation",
+        "referenceRange": [
+          {
+            "low": {
+              "value": 36.5,
+              "unit": "C",
+              "system": "http://unitsofmeasure.org",
+              "code": "Cel"
+            }
+          }
+        ]
+      },
+      "expected": [
+        true
       ],
-      "pending": "Need to provide proper FHIR Patient resource as input"
+      "tags": [
+        "operator",
+        "type",
+        "is",
+        "fhir",
+        "subtype",
+        "operator:is"
+      ]
+    },
+    {
+      "name": "is - Patient is DomainResource (subtype)",
+      "expression": "$this is DomainResource",
+      "input": {
+        "resourceType": "Patient",
+        "id": "example",
+        "active": true
+      },
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "type",
+        "is",
+        "fhir",
+        "subtype",
+        "operator:is"
+      ]
+    },
+    {
+      "name": "is - Patient is Resource (subtype)",
+      "expression": "$this is Resource",
+      "input": {
+        "resourceType": "Patient",
+        "id": "example",
+        "active": true
+      },
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "type",
+        "is",
+        "fhir",
+        "subtype",
+        "operator:is"
+      ]
+    },
+    {
+      "name": "is - Observation is DomainResource (subtype)",
+      "expression": "$this is DomainResource",
+      "input": {
+        "resourceType": "Observation",
+        "id": "example",
+        "status": "final"
+      },
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "type",
+        "is",
+        "fhir",
+        "subtype",
+        "operator:is"
+      ]
+    },
+    {
+      "name": "is - Bundle is Resource but not DomainResource",
+      "expression": "$this is DomainResource",
+      "input": {
+        "resourceType": "Bundle",
+        "type": "searchset"
+      },
+      "expected": [
+        false
+      ],
+      "tags": [
+        "operator",
+        "type",
+        "is",
+        "fhir",
+        "subtype",
+        "operator:is"
+      ]
+    },
+    {
+      "name": "is - Bundle is Resource (subtype)",
+      "expression": "$this is Resource",
+      "input": {
+        "resourceType": "Bundle",
+        "type": "searchset"
+      },
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "type",
+        "is",
+        "fhir",
+        "subtype",
+        "operator:is"
+      ]
+    },
+    {
+      "name": "is - HumanName is Element (subtype)",
+      "expression": "Patient.name is Element",
+      "input": {
+        "resourceType": "Patient",
+        "name": [
+          {
+            "use": "official",
+            "family": "Smith",
+            "given": ["John"]
+          }
+        ]
+      },
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "type",
+        "is",
+        "fhir",
+        "subtype",
+        "operator:is"
+      ]
+    },
+    {
+      "name": "is - ContactPoint is Element (subtype)",
+      "expression": "Patient.telecom is Element",
+      "input": {
+        "resourceType": "Patient",
+        "telecom": [
+          {
+            "system": "phone",
+            "value": "555-1234"
+          }
+        ]
+      },
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "type",
+        "is",
+        "fhir",
+        "subtype",
+        "operator:is"
+      ]
+    },
+    {
+      "name": "is - OperationOutcome is DomainResource (subtype)",
+      "expression": "$this is DomainResource",
+      "input": {
+        "resourceType": "OperationOutcome",
+        "issue": [
+          {
+            "severity": "error",
+            "code": "invalid"
+          }
+        ]
+      },
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "type",
+        "is",
+        "fhir",
+        "subtype",
+        "operator:is"
+      ]
+    },
+    {
+      "name": "is - navigated resource type check",
+      "expression": "Bundle.entry.resource is Patient",
+      "input": {
+        "resourceType": "Bundle",
+        "entry": [
+          {
+            "resource": {
+              "resourceType": "Patient",
+              "id": "p1"
+            }
+          }
+        ]
+      },
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "type",
+        "is",
+        "fhir",
+        "navigation",
+        "operator:is"
+      ]
+    },
+    {
+      "name": "is - navigated resource subtype check",
+      "expression": "Bundle.entry.resource is DomainResource",
+      "input": {
+        "resourceType": "Bundle",
+        "entry": [
+          {
+            "resource": {
+              "resourceType": "Patient",
+              "id": "p1"
+            }
+          }
+        ]
+      },
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "type",
+        "is",
+        "fhir",
+        "navigation",
+        "subtype",
+        "operator:is"
+      ]
+    },
+    {
+      "name": "is - empty collection",
+      "expression": "(1 | 2).where(false) is String",
+      "input": [],
+      "expected": [],
+      "tags": [
+        "operator",
+        "type",
+        "is",
+        "empty",
+        "operator:is"
+      ]
+    },
+    {
+      "name": "is - singleton true",
+      "expression": "Patient.active is Boolean",
+      "input": {
+        "resourceType": "Patient",
+        "active": true
+      },
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "type",
+        "is",
+        "fhir",
+        "operator:is"
+      ]
+    },
+    {
+      "name": "is - singleton false",
+      "expression": "Patient.active is String",
+      "input": {
+        "resourceType": "Patient",
+        "active": true
+      },
+      "expected": [
+        false
+      ],
+      "tags": [
+        "operator",
+        "type",
+        "is",
+        "fhir",
+        "operator:is"
+      ]
     }
   ]
 }
