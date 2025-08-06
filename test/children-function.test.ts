@@ -64,7 +64,7 @@ describe('children() function', () => {
       await modelProvider.initialize();
       
       const stringType: TypeInfo = { type: 'String', singleton: true };
-      const childrenType = modelProvider.getChildrenType(stringType);
+      const childrenType = modelProvider.getChildrenType(stringType as any);
       expect(childrenType).toBeUndefined();
     });
 

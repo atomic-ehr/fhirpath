@@ -1,0 +1,473 @@
+{
+  "name": "Children Function Tests",
+  "description": "Tests for the children() function that returns all immediate child nodes",
+  "tests": [
+    {
+      "name": "children - empty for primitive values",
+      "expression": "5.children()",
+      "input": 5,
+      "expected": [],
+      "tags": ["function", "navigation", "children", "primitive", "function:children"]
+    },
+    {
+      "name": "children - empty for strings",
+      "expression": "'hello'.children()",
+      "input": "hello",
+      "expected": [],
+      "tags": ["function", "navigation", "children", "string", "function:children"]
+    },
+    {
+      "name": "children - simple object properties",
+      "expression": "children()",
+      "input": {
+        "name": "John",
+        "age": 30,
+        "active": true
+      },
+      "expected": ["John", 30, true],
+      "tags": ["function", "navigation", "children", "object", "function:children"]
+    },
+    {
+      "name": "children - arrays in properties",
+      "expression": "children()",
+      "input": {
+        "names": ["John", "Jane"],
+        "codes": [1, 2, 3]
+      },
+      "expected": ["John", "Jane", 1, 2, 3],
+      "tags": ["function", "navigation", "children", "array", "function:children"]
+    },
+    {
+      "name": "children - skip null and undefined",
+      "expression": "children()",
+      "input": {
+        "name": "John",
+        "age": null,
+        "status": null,
+        "active": true
+      },
+      "expected": ["John", true],
+      "tags": ["function", "navigation", "children", "null", "function:children"]
+    },
+    {
+      "name": "children - skip underscore properties",
+      "expression": "children()",
+      "input": {
+        "name": "John",
+        "_name": { "extension": [] },
+        "age": 30,
+        "_internal": "should be skipped"
+      },
+      "expected": ["John", 30],
+      "tags": ["function", "navigation", "children", "underscore", "fhir", "function:children"]
+    },
+    {
+      "name": "children - include id and meta but skip resourceType",
+      "expression": "children()",
+      "input": {
+        "resourceType": "Patient",
+        "id": "123",
+        "meta": { "versionId": "1" },
+        "active": true,
+        "name": [{ "given": ["John"], "family": "Doe" }]
+      },
+      "expected": [
+        "123",
+        { "versionId": "1" },
+        true,
+        { "given": ["John"], "family": "Doe" }
+      ],
+      "tags": ["function", "navigation", "children", "fhir", "resource", "function:children"]
+    },
+    {
+      "name": "children - nested objects from FHIR resources",
+      "expression": "children()",
+      "input": {
+        "resourceType": "Patient",
+        "name": [
+          { "use": "official", "given": ["John"], "family": "Doe" },
+          { "use": "nickname", "given": ["Johnny"] }
+        ],
+        "telecom": [
+          { "system": "phone", "value": "555-1234" }
+        ]
+      },
+      "expected": [
+        { "use": "official", "given": ["John"], "family": "Doe" },
+        { "use": "nickname", "given": ["Johnny"] },
+        { "system": "phone", "value": "555-1234" }
+      ],
+      "tags": ["function", "navigation", "children", "fhir", "nested", "function:children"]
+    },
+    {
+      "name": "children - choice types",
+      "expression": "children()",
+      "input": {
+        "resourceType": "Patient",
+        "deceasedBoolean": false,
+        "multipleBirthInteger": 2
+      },
+      "expected": [false, 2],
+      "tags": ["function", "navigation", "children", "fhir", "choice", "function:children"]
+    },
+    {
+      "name": "children - with where filtering",
+      "expression": "children().where(use.exists())",
+      "input": {
+        "resourceType": "Patient",
+        "active": true,
+        "name": [
+          { "use": "official", "given": ["John"] },
+          { "use": "nickname", "given": ["Johnny"] }
+        ]
+      },
+      "expected": [
+        { "use": "official", "given": ["John"] },
+        { "use": "nickname", "given": ["Johnny"] }
+      ],
+      "tags": ["function", "navigation", "children", "where", "filtering", "function:children"]
+    },
+    {
+      "name": "children - with count",
+      "expression": "children().count()",
+      "input": {
+        "resourceType": "Patient",
+        "active": true,
+        "gender": "male",
+        "birthDate": "1990-01-01",
+        "name": [{ "given": ["John"], "family": "Doe" }]
+      },
+      "expected": [4],
+      "tags": ["function", "navigation", "children", "count", "aggregate", "function:children"]
+    },
+    {
+      "name": "children - multiple items in input collection",
+      "expression": "children()",
+      "input": [
+        { "resourceType": "Patient", "active": true, "gender": "male" },
+        { "resourceType": "Patient", "active": false, "gender": "female" }
+      ],
+      "expected": [true, "male", false, "female"],
+      "tags": ["function", "navigation", "children", "collection", "function:children"]
+    },
+    {
+      "name": "children - immediate children only",
+      "expression": "children()",
+      "input": {
+        "resourceType": "Patient",
+        "name": [{
+          "given": ["John"],
+          "family": "Doe"
+        }]
+      },
+      "expected": [
+        { "given": ["John"], "family": "Doe" }
+      ],
+      "tags": ["function", "navigation", "children", "immediate", "depth", "function:children"]
+    },
+    {
+      "name": "children - empty for empty object",
+      "expression": "children()",
+      "input": {},
+      "expected": [],
+      "tags": ["function", "navigation", "children", "empty", "function:children"]
+    },
+    {
+      "name": "children - empty for empty collection",
+      "expression": "children()",
+      "input": [],
+      "expected": [],
+      "tags": ["function", "navigation", "children", "empty", "collection", "function:children"]
+    },
+    {
+      "name": "children - with ofType String",
+      "expression": "children().ofType(String)",
+      "input": {
+        "resourceType": "Observation",
+        "status": "final",
+        "code": { "text": "Blood pressure" },
+        "valueQuantity": { "value": 120, "unit": "mmHg" },
+        "issued": "2024-01-01T12:00:00Z"
+      },
+      "expected": ["final"],
+      "tags": ["function", "navigation", "children", "ofType", "string", "function:children"],
+      "requiresModelProvider": true,
+      "note": "issued is type instant/DateTime, not String"
+    },
+    {
+      "name": "children - preserve primitive extensions",
+      "expression": "children()",
+      "input": {
+        "resourceType": "Patient",
+        "birthDate": "1990-01-01",
+        "_birthDate": {
+          "extension": [{
+            "url": "http://example.org/precision",
+            "valueString": "year"
+          }]
+        }
+      },
+      "expected": ["1990-01-01"],
+      "tags": ["function", "navigation", "children", "primitive", "extension", "fhir", "function:children"]
+    },
+    {
+      "name": "children - with where and property access",
+      "expression": "children().where(use = 'official').given",
+      "input": {
+        "resourceType": "Patient",
+        "name": [
+          { "use": "official", "given": ["John", "James"] },
+          { "use": "nickname", "given": ["Johnny"] }
+        ],
+        "active": true
+      },
+      "expected": ["John", "James"],
+      "tags": ["function", "navigation", "children", "where", "property", "function:children"]
+    },
+    {
+      "name": "children - complex filtering chain",
+      "expression": "children().where(system = 'phone').value",
+      "input": {
+        "resourceType": "Patient",
+        "telecom": [
+          { "system": "phone", "value": "555-1234" },
+          { "system": "email", "value": "john@example.com" },
+          { "system": "phone", "value": "555-5678" }
+        ]
+      },
+      "expected": ["555-1234", "555-5678"],
+      "tags": ["function", "navigation", "children", "where", "chain", "function:children"]
+    },
+    {
+      "name": "children - with exists check",
+      "expression": "children().exists()",
+      "input": {
+        "active": true,
+        "name": "John"
+      },
+      "expected": [true],
+      "tags": ["function", "navigation", "children", "exists", "function:children"]
+    },
+    {
+      "name": "children - empty exists check",
+      "expression": "children().exists()",
+      "input": {},
+      "expected": [false],
+      "tags": ["function", "navigation", "children", "exists", "empty", "function:children"]
+    },
+    {
+      "name": "children - with first",
+      "expression": "children().first()",
+      "input": {
+        "a": 1,
+        "b": 2,
+        "c": 3
+      },
+      "expected": [1],
+      "tags": ["function", "navigation", "children", "first", "function:children"],
+      "note": "Order is undefined per spec, but we return first property value"
+    },
+    {
+      "name": "children - with last",
+      "expression": "children().last()",
+      "input": {
+        "a": 1,
+        "b": 2,
+        "c": 3
+      },
+      "expected": [3],
+      "tags": ["function", "navigation", "children", "last", "function:children"],
+      "note": "Order is undefined per spec, but we return last property value"
+    },
+    {
+      "name": "children - with distinct",
+      "expression": "children().distinct()",
+      "input": {
+        "a": 1,
+        "b": 2,
+        "c": 1,
+        "d": 2,
+        "e": 3
+      },
+      "expected": [1, 2, 3],
+      "tags": ["function", "navigation", "children", "distinct", "function:children"]
+    },
+    {
+      "name": "children - with ofType for FHIR CodeableConcept",
+      "expression": "children().ofType(CodeableConcept)",
+      "input": {
+        "resourceType": "Observation",
+        "status": "final",
+        "code": {
+          "coding": [{
+            "system": "http://loinc.org",
+            "code": "85354-9",
+            "display": "Blood pressure"
+          }],
+          "text": "Blood pressure"
+        },
+        "interpretation": [{
+          "coding": [{
+            "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+            "code": "N",
+            "display": "Normal"
+          }]
+        }],
+        "bodySite": {
+          "coding": [{
+            "system": "http://snomed.info/sct",
+            "code": "368209003",
+            "display": "Right arm"
+          }]
+        },
+        "valueQuantity": {
+          "value": 120,
+          "unit": "mmHg",
+          "system": "http://unitsofmeasure.org",
+          "code": "mm[Hg]"
+        }
+      },
+      "expected": [
+        {
+          "coding": [{
+            "system": "http://loinc.org",
+            "code": "85354-9",
+            "display": "Blood pressure"
+          }],
+          "text": "Blood pressure"
+        },
+        {
+          "coding": [{
+            "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+            "code": "N",
+            "display": "Normal"
+          }]
+        },
+        {
+          "coding": [{
+            "system": "http://snomed.info/sct",
+            "code": "368209003",
+            "display": "Right arm"
+          }]
+        }
+      ],
+      "tags": ["function", "navigation", "children", "ofType", "fhir", "CodeableConcept", "function:children"],
+      "requiresModelProvider": true
+    },
+    {
+      "name": "children - with ofType for FHIR Quantity",
+      "expression": "children().ofType(Quantity)",
+      "input": {
+        "resourceType": "Observation",
+        "status": "final",
+        "code": {
+          "text": "Blood pressure"
+        },
+        "valueQuantity": {
+          "value": 120,
+          "unit": "mmHg",
+          "system": "http://unitsofmeasure.org",
+          "code": "mm[Hg]"
+        },
+        "referenceRange": [{
+          "low": {
+            "value": 90,
+            "unit": "mmHg"
+          },
+          "high": {
+            "value": 140,
+            "unit": "mmHg"
+          }
+        }]
+      },
+      "expected": [
+        {
+          "value": 120,
+          "unit": "mmHg",
+          "system": "http://unitsofmeasure.org",
+          "code": "mm[Hg]"
+        }
+      ],
+      "tags": ["function", "navigation", "children", "ofType", "fhir", "Quantity", "function:children"],
+      "requiresModelProvider": true
+    },
+    {
+      "name": "children - with ofType for FHIR Reference",
+      "expression": "children().ofType(Reference)",
+      "input": {
+        "resourceType": "Observation",
+        "status": "final",
+        "subject": {
+          "reference": "Patient/123",
+          "display": "John Doe"
+        },
+        "performer": [{
+          "reference": "Practitioner/456",
+          "display": "Dr. Smith"
+        }],
+        "device": {
+          "reference": "Device/789",
+          "display": "Blood Pressure Monitor"
+        }
+      },
+      "expected": [
+        {
+          "reference": "Patient/123",
+          "display": "John Doe"
+        },
+        {
+          "reference": "Practitioner/456",
+          "display": "Dr. Smith"
+        },
+        {
+          "reference": "Device/789",
+          "display": "Blood Pressure Monitor"
+        }
+      ],
+      "tags": ["function", "navigation", "children", "ofType", "fhir", "Reference", "function:children"],
+      "requiresModelProvider": true
+    },
+    {
+      "name": "children - mixed types with ofType filtering",
+      "expression": "children().ofType(CodeableConcept).coding.code",
+      "input": {
+        "resourceType": "Condition",
+        "clinicalStatus": {
+          "coding": [{
+            "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+            "code": "active"
+          }]
+        },
+        "verificationStatus": {
+          "coding": [{
+            "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
+            "code": "confirmed"
+          }]
+        },
+        "category": [{
+          "coding": [{
+            "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+            "code": "problem-list-item"
+          }]
+        }],
+        "severity": {
+          "coding": [{
+            "system": "http://snomed.info/sct",
+            "code": "6736007",
+            "display": "Moderate"
+          }]
+        },
+        "code": {
+          "coding": [{
+            "system": "http://snomed.info/sct",
+            "code": "386661006",
+            "display": "Fever"
+          }]
+        }
+      },
+      "expected": ["active", "confirmed", "problem-list-item", "6736007", "386661006"],
+      "tags": ["function", "navigation", "children", "ofType", "fhir", "CodeableConcept", "chain", "function:children"],
+      "requiresModelProvider": true
+    }
+  ]
+}
