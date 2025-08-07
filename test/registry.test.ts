@@ -295,7 +295,7 @@ describe('FHIRPath Registry', () => {
       testRegistry.registerFunction(whereFunction);
       
       expect(testRegistry.isFunction('where')).toBe(true);
-      expect(testRegistry.isFunction('WHERE')).toBe(true); // case-insensitive
+      expect(testRegistry.isFunction('WHERE')).toBe(false); // case-sensitive per spec
       
       const retrieved = testRegistry.getFunction('where');
       expect(retrieved).toBeDefined();
@@ -303,7 +303,7 @@ describe('FHIRPath Registry', () => {
       expect(retrieved!.description).toBe('Filters a collection');
     });
 
-    it('should handle case-insensitive function lookup', () => {
+    it('should handle case-sensitive function lookup', () => {
       const testRegistry = new Registry();
       
       const testFunc: FunctionDefinition = {
@@ -321,13 +321,17 @@ describe('FHIRPath Registry', () => {
       
       testRegistry.registerFunction(testFunc);
       
-      expect(testRegistry.isFunction('testfunction')).toBe(true);
-      expect(testRegistry.isFunction('TESTFUNCTION')).toBe(true);
+      // Functions should be case-sensitive per FHIRPath spec
+      expect(testRegistry.isFunction('testfunction')).toBe(false);
+      expect(testRegistry.isFunction('TESTFUNCTION')).toBe(false);
       expect(testRegistry.isFunction('TestFunction')).toBe(true);
       
-      const retrieved = testRegistry.getFunction('TESTFUNCTION');
+      const retrieved = testRegistry.getFunction('TestFunction');
       expect(retrieved).toBeDefined();
       expect(retrieved!.name).toBe('TestFunction');
+      
+      // Wrong case should return undefined
+      expect(testRegistry.getFunction('TESTFUNCTION')).toBeUndefined();
     });
 
     it('should return false/undefined for non-existent functions', () => {

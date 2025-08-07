@@ -118,15 +118,15 @@ export class Registry {
   
   // Function methods
   registerFunction(def: FunctionDefinition): void {
-    this.functions.set(def.name.toLowerCase(), def);
+    this.functions.set(def.name, def);
   }
   
   getFunction(name: string): FunctionDefinition | undefined {
-    return this.functions.get(name.toLowerCase());
+    return this.functions.get(name);
   }
   
   isFunction(name: string): boolean {
-    return this.functions.has(name.toLowerCase());
+    return this.functions.has(name);
   }
   
   // List methods for registry-lookup tool
