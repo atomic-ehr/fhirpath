@@ -233,6 +233,53 @@ function getGeneralCompletions(): CompletionItem[] {
 }
 
 /**
+ * Check if a function is applicable to a given type
+ */
+function isFunctionApplicable(funcDef: any, typeInfo: TypeInfo): boolean {
+  // For now, be permissive - most functions can work with any type
+  // In the future, we could check funcDef.signature.input against typeInfo
+  return true;
+}
+
+/**
+ * Check if an operator is applicable to a given type
+ */
+function isOperatorApplicable(opDef: any, typeInfo: TypeInfo): boolean {
+  // If no type info, show all operators
+  if (!typeInfo) return true;
+  
+  // If operator has signatures, check if any match the type
+  if (opDef.signatures && opDef.signatures.length > 0) {
+    for (const sig of opDef.signatures) {
+      // Check if left type matches
+      if (sig.left) {
+        if (sig.left.type === typeInfo.type || sig.left.type === 'Any') {
+          return true;
+        }
+      }
+    }
+    // If no signatures match, only show if it's a general operator
+    return opDef.signatures.some((sig: any) => sig.left?.type === 'Any');
+  }
+  
+  // No signatures means it's a general operator
+  return true;
+}
+
+/**
+ * Get sort text for operator to ensure common operators appear first
+ */
+function getSortTextForOperator(opDef: any): string {
+  // Common operators should appear first
+  const commonOps = ['.', '=', '!=', '<', '>', '<=', '>=', '+', '-', 'and', 'or'];
+  const index = commonOps.indexOf(opDef.symbol);
+  if (index >= 0) {
+    return `0${index.toString().padStart(2, '0')}_${opDef.symbol}`;
+  }
+  return `1_${opDef.symbol}`;
+}
+
+/**
  * Find function name for a cursor node in an argument position
  */
 function findFunctionName(ast: any, cursorNode: any): string | null {
@@ -314,40 +361,26 @@ function getIdentifierCompletions(
     }
   }
   
-  // Add common FHIRPath functions
-  const functions = [
-    { name: 'where', detail: 'Filter collection by condition' },
-    { name: 'select', detail: 'Transform each item' },
-    { name: 'first', detail: 'Get first item' },
-    { name: 'last', detail: 'Get last item' },
-    { name: 'tail', detail: 'Get all except first' },
-    { name: 'take', detail: 'Take first N items' },
-    { name: 'skip', detail: 'Skip first N items' },
-    { name: 'count', detail: 'Count items' },
-    { name: 'distinct', detail: 'Remove duplicates' },
-    { name: 'exists', detail: 'Check if any items exist' },
-    { name: 'empty', detail: 'Check if empty' },
-    { name: 'all', detail: 'Check if all items match' },
-    { name: 'single', detail: 'Get single item' },
-    { name: 'ofType', detail: 'Filter by type' },
-    { name: 'as', detail: 'Cast to type' },
-    { name: 'is', detail: 'Check type' },
-    { name: 'toString', detail: 'Convert to string' },
-    { name: 'toInteger', detail: 'Convert to integer' },
-    { name: 'toDecimal', detail: 'Convert to decimal' },
-    { name: 'toBoolean', detail: 'Convert to boolean' },
-    { name: 'toDateTime', detail: 'Convert to datetime' },
-    { name: 'toTime', detail: 'Convert to time' },
-    { name: 'toQuantity', detail: 'Convert to quantity' }
-  ];
-  
-  for (const func of functions) {
-    completions.push({
-      label: func.name,
-      kind: CompletionKind.Function,
-      detail: func.detail,
-      insertText: func.name + '()'
-    });
+  // Add FHIRPath functions from registry
+  const functionNames = registry.listFunctions();
+  for (const name of functionNames) {
+    const funcDef = registry.getFunction(name);
+    if (funcDef) {
+      // Check if function is appropriate for the current type context
+      const isApplicable = !typeBeforeCursor || isFunctionApplicable(funcDef, typeBeforeCursor);
+      
+      if (isApplicable) {
+        // Determine if function takes parameters
+        const hasParams = funcDef.signature?.parameters && funcDef.signature.parameters.length > 0;
+        
+        completions.push({
+          label: name,
+          kind: CompletionKind.Function,
+          detail: funcDef.description || `FHIRPath ${name} function`,
+          insertText: name + (hasParams ? '()' : '()')
+        });
+      }
+    }
   }
   
   // Add type-specific functions
@@ -371,130 +404,28 @@ function getIdentifierCompletions(
  */
 function getOperatorCompletions(typeBeforeCursor?: TypeInfo): CompletionItem[] {
   const completions: CompletionItem[] = [];
+  const addedOperators = new Set<string>();
   
-  // Always include navigation operator
-  completions.push({
-    label: '.',
-    kind: CompletionKind.Operator,
-    detail: 'Navigation'
-  });
+  // Get all operators from registry
+  const operatorNames = registry.listOperators();
   
-  // Always include comparison operators
-  const comparisonOps = [
-    { op: '=', detail: 'Equal' },
-    { op: '!=', detail: 'Not equal' },
-    { op: '<', detail: 'Less than' },
-    { op: '>', detail: 'Greater than' },
-    { op: '<=', detail: 'Less than or equal' },
-    { op: '>=', detail: 'Greater than or equal' }
-  ];
-  
-  for (const op of comparisonOps) {
-    completions.push({
-      label: op.op,
-      kind: CompletionKind.Operator,
-      detail: op.detail
-    });
-  }
-  
-  // Type-specific operators
-  if (typeBeforeCursor) {
-    const typeName = typeBeforeCursor.type;
-    
-    // Arithmetic operators for numeric types
-    if (typeName === 'Integer' || typeName === 'Decimal' || typeName === 'Quantity') {
-      const arithmeticOps = [
-        { op: '+', detail: 'Addition' },
-        { op: '-', detail: 'Subtraction' },
-        { op: '*', detail: 'Multiplication' },
-        { op: '/', detail: 'Division' },
-        { op: 'div', detail: 'Integer division' },
-        { op: 'mod', detail: 'Modulo' }
-      ];
+  for (const opName of operatorNames) {
+    const opDef = registry.getOperatorDefinition(opName);
+    if (opDef) {
+      // Check if operator is applicable to the current type
+      const isApplicable = !typeBeforeCursor || isOperatorApplicable(opDef, typeBeforeCursor);
       
-      for (const op of arithmeticOps) {
+      if (isApplicable && !addedOperators.has(opDef.symbol)) {
         completions.push({
-          label: op.op,
+          label: opDef.symbol,
           kind: CompletionKind.Operator,
-          detail: op.detail
+          detail: opDef.description || `${opDef.name} operator`,
+          sortText: getSortTextForOperator(opDef)
         });
-      }
-    }
-    
-    // String operators
-    if (typeName === 'String') {
-      completions.push({
-        label: '+',
-        kind: CompletionKind.Operator,
-        detail: 'String concatenation'
-      });
-      completions.push({
-        label: '&',
-        kind: CompletionKind.Operator,
-        detail: 'String concatenation'
-      });
-      completions.push({
-        label: '~',
-        kind: CompletionKind.Operator,
-        detail: 'String contains'
-      });
-      completions.push({
-        label: '!~',
-        kind: CompletionKind.Operator,
-        detail: 'String not contains'
-      });
-    }
-    
-    // Boolean operators
-    if (typeName === 'Boolean') {
-      const booleanOps = [
-        { op: 'and', detail: 'Logical AND' },
-        { op: 'or', detail: 'Logical OR' },
-        { op: 'xor', detail: 'Logical XOR' },
-        { op: 'implies', detail: 'Logical implication' }
-      ];
-      
-      for (const op of booleanOps) {
-        completions.push({
-          label: op.op,
-          kind: CompletionKind.Operator,
-          detail: op.detail
-        });
-      }
-    }
-    
-    // Collection operators
-    if (!typeBeforeCursor.singleton) {
-      const collectionOps = [
-        { op: '|', detail: 'Union' },
-        { op: 'union', detail: 'Union collections' },
-        { op: 'intersect', detail: 'Intersection' },
-        { op: 'exclude', detail: 'Exclude items' },
-        { op: 'in', detail: 'Membership test' },
-        { op: 'contains', detail: 'Contains item' }
-      ];
-      
-      for (const op of collectionOps) {
-        completions.push({
-          label: op.op,
-          kind: CompletionKind.Operator,
-          detail: op.detail
-        });
+        addedOperators.add(opDef.symbol);
       }
     }
   }
-  
-  // Type operators
-  completions.push({
-    label: 'is',
-    kind: CompletionKind.Operator,
-    detail: 'Type check'
-  });
-  completions.push({
-    label: 'as',
-    kind: CompletionKind.Operator,
-    detail: 'Type cast'
-  });
   
   return completions;
 }
