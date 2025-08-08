@@ -120,7 +120,7 @@
       "error": {
         "type": "Error",
         "phase": "analyze",
-        "code": "FP3001"
+        "code": "FP2003"
       },
       "tags": [
         "math",

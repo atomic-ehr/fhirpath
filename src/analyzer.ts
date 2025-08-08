@@ -145,9 +145,26 @@ export class Analyzer {
           if (!this.isTypeCompatible(node.left.typeInfo, func.signature.input)) {
             const inputTypeStr = this.typeToString(node.left.typeInfo);
             const expectedTypeStr = this.typeToString(func.signature.input);
-            this.diagnostics.push(
-              toDiagnostic(Errors.typeNotAssignable(inputTypeStr, expectedTypeStr, funcNode.range))
-            );
+            
+            // Check if this is specifically a singleton/collection mismatch
+            const inputIsCollection = !node.left.typeInfo.singleton;
+            const expectedIsSingleton = func.signature.input.singleton;
+            
+            // Check if the base types are compatible (same type or subtype)
+            const typesCompatible = node.left.typeInfo.type === func.signature.input.type ||
+                                   this.isSubtypeOf(node.left.typeInfo.type, func.signature.input.type);
+            
+            if (inputIsCollection && expectedIsSingleton && typesCompatible) {
+              // Compatible base types but collection vs singleton mismatch
+              this.diagnostics.push(
+                toDiagnostic(Errors.singletonTypeRequired(funcName, inputTypeStr, funcNode.range))
+              );
+            } else {
+              // General type mismatch
+              this.diagnostics.push(
+                toDiagnostic(Errors.typeNotAssignable(inputTypeStr, expectedTypeStr, funcNode.range))
+              );
+            }
           }
         }
       }

@@ -95,6 +95,10 @@ export const Errors = {
     return new FHIRPathError(ErrorCodes.ARGUMENT_REQUIRED, `${funcName} requires ${argumentName}`, location);
   },
   
+  singletonTypeRequired(funcName: string, actualType: string, location?: Range): FHIRPathError {
+    return new FHIRPathError(ErrorCodes.SINGLETON_REQUIRED, `${funcName} expects a singleton value, but received collection type ${actualType}`, location);
+  },
+  
   // Type errors (3000-3999)
   typeNotAssignable(sourceType: string, targetType: string, location?: Range): FHIRPathError {
     return new FHIRPathError(ErrorCodes.TYPE_NOT_ASSIGNABLE, `Type ${sourceType} is not assignable to type ${targetType}`, location);
