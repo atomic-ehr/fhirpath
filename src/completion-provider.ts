@@ -345,8 +345,13 @@ function extractPartialText(expression: string, cursorPosition: number): string 
   let start = cursorPosition;
   
   // Move back to find start of identifier
-  while (start > 0 && /[a-zA-Z0-9_$%]/.test(expression[start - 1])) {
-    start--;
+  while (start > 0) {
+    const char = expression[start - 1];
+    if (char && /[a-zA-Z0-9_$%]/.test(char)) {
+      start--;
+    } else {
+      break;
+    }
   }
   
   return expression.substring(start, cursorPosition);

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'bun:test';
 import { parse } from '../src/parser';
 import { CursorContext, isCursorNode } from '../src/cursor-nodes';
+import { NodeType } from '../src/types';
 
 describe('Cursor Nodes', () => {
   describe('cursor after dot', () => {
@@ -127,7 +128,7 @@ describe('Cursor Nodes', () => {
       
       expect(result.ast).toBeDefined();
       // Cursor is in Binary node to preserve left context
-      expect(result.ast?.type).toBe('Binary');
+      expect(result.ast?.type).toBe(NodeType.Binary);
       const binaryAst = result.ast as any;
       expect(isCursorNode(binaryAst.right)).toBe(true);
       expect(binaryAst.right.context).toBe(CursorContext.Operator);
@@ -143,7 +144,7 @@ describe('Cursor Nodes', () => {
       
       expect(result.ast).toBeDefined();
       // Cursor is in Binary node to preserve left context
-      expect(result.ast?.type).toBe('Binary');
+      expect(result.ast?.type).toBe(NodeType.Binary);
       const binaryAst = result.ast as any;
       expect(isCursorNode(binaryAst.right)).toBe(true);
       expect(binaryAst.right.context).toBe(CursorContext.Operator);

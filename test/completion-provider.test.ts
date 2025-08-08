@@ -5,7 +5,7 @@ import type { TypeInfo, ModelProvider } from '../src/types';
 
 // Mock ModelProvider for testing
 class MockModelProvider implements Partial<ModelProvider> {
-  getElementType(parentType: any, elementName: string) {
+  getElementType(parentType: any, elementName: string): any {
     if (parentType.type === 'Patient') {
       if (elementName === 'name') return { type: 'HumanName', singleton: false };
       if (elementName === 'birthDate') return { type: 'date', singleton: true };
@@ -18,13 +18,13 @@ class MockModelProvider implements Partial<ModelProvider> {
       if (elementName === 'given') return { type: 'string', singleton: false };
       if (elementName === 'text') return { type: 'string', singleton: true };
     }
-    return null;
+    return undefined;
   }
   
-  getType(typeName: string) {
+  getType(typeName: string): any {
     if (typeName === 'Patient') return { type: 'Patient', singleton: true };
     if (typeName === 'HumanName') return { type: 'HumanName', singleton: true };
-    return null;
+    return undefined;
   }
   
   getProperties(typeName: string) {
@@ -62,7 +62,7 @@ describe('Completion Provider', () => {
       const expression = 'Patient.';
       const cursorPosition = 8;
       const options: CompletionOptions = {
-        modelProvider: mockProvider as ModelProvider,
+        modelProvider: mockProvider as any,
         inputType: { type: 'Patient' as any, singleton: true }
       };
       
@@ -186,7 +186,7 @@ describe('Completion Provider', () => {
       const expression = 'Bundle.entry.resource.ofType(';
       const cursorPosition = 30;
       const options: CompletionOptions = {
-        modelProvider: mockProvider as ModelProvider
+        modelProvider: mockProvider as any
       };
       
       const completions = provideCompletions(expression, cursorPosition, options);
@@ -245,7 +245,7 @@ describe('Completion Provider', () => {
       const expression = 'Patient.name.where(';
       const cursorPosition = 19;
       const options: CompletionOptions = {
-        modelProvider: mockProvider as ModelProvider,
+        modelProvider: mockProvider as any,
         inputType: { type: 'Patient' as any, singleton: true }
       };
       
@@ -290,7 +290,7 @@ describe('Completion Provider', () => {
       const expression = 'Patient.na';
       const cursorPosition = 10;
       const options: CompletionOptions = {
-        modelProvider: mockProvider as ModelProvider,
+        modelProvider: mockProvider as any,
         inputType: { type: 'Patient' as any, singleton: true }
       };
       
@@ -309,7 +309,7 @@ describe('Completion Provider', () => {
       const expression = 'Patient.';
       const cursorPosition = 8;
       const options: CompletionOptions = {
-        modelProvider: mockProvider as ModelProvider,
+        modelProvider: mockProvider as any,
         inputType: { type: 'Patient' as any, singleton: true }
       };
       
@@ -328,7 +328,7 @@ describe('Completion Provider', () => {
       const expression = 'Patient.';
       const cursorPosition = 8;
       const options: CompletionOptions = {
-        modelProvider: mockProvider as ModelProvider,
+        modelProvider: mockProvider as any,
         inputType: { type: 'Patient' as any, singleton: true },
         maxCompletions: 5
       };
@@ -374,7 +374,7 @@ describe('Completion Provider', () => {
       const expression = 'Patient.name.where(use = "official").';
       const cursorPosition = 38;
       const options: CompletionOptions = {
-        modelProvider: mockProvider as ModelProvider,
+        modelProvider: mockProvider as any,
         inputType: { type: 'Patient' as any, singleton: true }
       };
       
