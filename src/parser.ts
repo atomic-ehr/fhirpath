@@ -2,6 +2,15 @@ import { Lexer, TokenType, Channel } from './lexer';
 import type { Token, LexerOptions } from './lexer';
 import { registry } from './registry';
 import { NodeType } from './types';
+import type { AnyCursorNode } from './cursor-nodes';
+import {
+  CursorContext,
+  createCursorOperatorNode,
+  createCursorIdentifierNode,
+  createCursorArgumentNode,
+  createCursorIndexNode,
+  createCursorTypeNode,
+} from './cursor-nodes';
 import type {
   Position,
   Range,
@@ -62,6 +71,7 @@ export interface ParserOptions {
   partialParse?: {              // For partial parsing
     cursorPosition: number;
   };
+  cursorPosition?: number;      // Cursor position for LSP support
 }
 
 export class Parser {
@@ -104,6 +114,11 @@ export class Parser {
       );
     }
     
+    // Inject cursor token if cursor position is provided
+    if (options.cursorPosition !== undefined) {
+      this.tokens = this.injectCursorToken(this.tokens, options.cursorPosition);
+    }
+    
     this.input = input;
     this.mode = mode;
     this.options = options;
@@ -117,6 +132,63 @@ export class Parser {
       this.identifierIndex = new Map();
       this.currentParent = null;
     }
+  }
+  
+  private checkCursor(): AnyCursorNode | null {
+    if (this.peek().type === TokenType.CURSOR) {
+      return null; // Will be handled contextually
+    }
+    return null;
+  }
+  
+  private injectCursorToken(tokens: Token[], cursorPosition: number): Token[] {
+    // Find the position to inject the cursor token
+    let insertIndex = 0;
+    
+    for (let i = 0; i < tokens.length; i++) {
+      const token = tokens[i];
+      if (!token) continue;
+      
+      // Skip EOF token
+      if (token.type === TokenType.EOF) {
+        break;
+      }
+      
+      // Check if cursor is before this token
+      if (cursorPosition <= token.start) {
+        insertIndex = i;
+        break;
+      }
+      
+      // Check if cursor is within this token (we ignore mid-token cursors)
+      if (cursorPosition > token.start && cursorPosition < token.end) {
+        // Cursor is mid-token, ignore it
+        return tokens;
+      }
+      
+      // Cursor is after this token
+      insertIndex = i + 1;
+    }
+    
+    // Create cursor token
+    const cursorToken: Token = {
+      type: TokenType.CURSOR,
+      value: '',
+      start: cursorPosition,
+      end: cursorPosition,
+      line: 1,
+      column: cursorPosition + 1,
+      range: {
+        start: { line: 0, character: cursorPosition, offset: cursorPosition },
+        end: { line: 0, character: cursorPosition, offset: cursorPosition }
+      }
+    };
+    
+    // Insert cursor token
+    const result = [...tokens];
+    result.splice(insertIndex, 0, cursorToken);
+    
+    return result;
   }
   
   private getRangeFromToken(token: Token): Range {
@@ -243,13 +315,27 @@ export class Parser {
       const token = this.tokens[this.current];
       if (!token || token.type === TokenType.EOF) break;
       
+      // Check for cursor between expressions (expecting operator)
+      if (token.type === TokenType.CURSOR) {
+        this.advance();
+        // Create a partial binary node to preserve left context
+        const cursorNode = createCursorOperatorNode(token.start) as any;
+        return this.createBinaryNode(token, left, cursorNode);
+      }
+      
       // Check for postfix operations that don't have precedence requirements
       if (token.type === TokenType.LBRACKET) {
         // Array indexing - always binds tightly
         this.current++; // inline advance()
-        const index = this.expression();
-        this.consume(TokenType.RBRACKET, "Expected ']'");
-        left = this.createIndexNode(left, index, token);
+        // Check for cursor in indexer
+        if (this.peek().type === TokenType.CURSOR) {
+          this.advance();
+          left = createCursorIndexNode(this.previous().start) as any;
+        } else {
+          const index = this.expression();
+          this.consume(TokenType.RBRACKET, "Expected ']'");
+          left = this.createIndexNode(left, index, token);
+        }
         continue;
       }
       
@@ -290,12 +376,24 @@ export class Parser {
         left = this.createBinaryNode(token, left, right);
       } else if (token.type === TokenType.IDENTIFIER && token.value === 'is') {
         this.current++; // inline advance()
-        const typeName = this.parseTypeName();
-        left = this.createMembershipTestNode(left, typeName, token);
+        // Check for cursor after 'is'
+        if (this.peek().type === TokenType.CURSOR) {
+          this.advance();
+          left = createCursorTypeNode(this.previous().start, 'is') as any;
+        } else {
+          const typeName = this.parseTypeName();
+          left = this.createMembershipTestNode(left, typeName, token);
+        }
       } else if (token.type === TokenType.IDENTIFIER && token.value === 'as') {
         this.current++; // inline advance()
-        const typeName = this.parseTypeName();
-        left = this.createTypeCastNode(left, typeName, token);
+        // Check for cursor after 'as'
+        if (this.peek().type === TokenType.CURSOR) {
+          this.advance();
+          left = createCursorTypeNode(this.previous().start, 'as') as any;
+        } else {
+          const typeName = this.parseTypeName();
+          left = this.createTypeCastNode(left, typeName, token);
+        }
       } else if (operator && registry.isBinaryOperator(operator)) {
         this.current++; // inline advance()
         const associativity = registry.getAssociativity(operator);
@@ -314,6 +412,12 @@ export class Parser {
   protected parsePrimary(): ASTNode {
     // Inline peek() for hot path
     const token = this.current < this.tokens.length ? this.tokens[this.current]! : { type: TokenType.EOF, value: '', start: 0, end: 0, line: 1, column: 1 };
+
+    // Handle cursor at expression start
+    if (token.type === TokenType.CURSOR) {
+      this.advance();
+      return createCursorOperatorNode(token.start) as any;
+    }
 
     if (token.type === TokenType.NUMBER) {
       this.current++; // inline advance()
@@ -421,6 +525,12 @@ export class Parser {
   protected parseInvocation(): ASTNode {
     const token = this.peek();
     
+    // Handle cursor after dot
+    if (token.type === TokenType.CURSOR) {
+      this.advance();
+      return createCursorIdentifierNode(token.start) as any;
+    }
+    
     // Allow identifiers and keywords that can be used as member names
     if (token.type === TokenType.IDENTIFIER) {
       this.advance();
@@ -454,6 +564,14 @@ export class Parser {
   protected parseArgumentList(): ASTNode[] {
     const args: ASTNode[] = [];
     
+    // Check for cursor at start of arguments
+    if (this.peek().type === TokenType.CURSOR) {
+      this.advance();
+      // Need to get function name from context - for now use empty string
+      args.push(createCursorArgumentNode(this.previous().start, '', 0) as any);
+      return args;
+    }
+    
     if (this.peek().type === TokenType.RPAREN) {
       return args;
     }
@@ -461,6 +579,12 @@ export class Parser {
     args.push(this.expression());
     
     while (this.match(TokenType.COMMA)) {
+      // Check for cursor after comma
+      if (this.peek().type === TokenType.CURSOR) {
+        this.advance();
+        args.push(createCursorArgumentNode(this.previous().start, '', args.length) as any);
+        return args;
+      }
       args.push(this.expression());
     }
 
@@ -590,6 +714,18 @@ export class Parser {
   
   protected consume(type: TokenType, message: string): Token {
     if (this.check(type)) return this.advance();
+    
+    // Be lenient when cursor is present and we're at EOF
+    if (this.options.cursorPosition !== undefined && this.isAtEnd()) {
+      // Return a synthetic token to allow parsing to continue
+      return {
+        type,
+        value: '',
+        start: this.input.length,
+        end: this.input.length
+      } as Token;
+    }
+    
     const token = this.peek();
     const tokenStr = token.value || TokenType[token.type];
     const range = this.getRangeFromToken(token);

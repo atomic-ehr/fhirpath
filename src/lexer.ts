@@ -40,6 +40,7 @@ export enum TokenType {
   // Special tokens
   SPECIAL_IDENTIFIER = 60,     // $...
   ENVIRONMENT_VARIABLE = 70,   // %identifier, %`delimited`, %'string'
+  CURSOR = 71,                 // Virtual cursor token for LSP support
   
   // Trivia tokens
   WHITESPACE = 80,

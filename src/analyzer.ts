@@ -21,7 +21,22 @@ import type {
 import { NodeType, DiagnosticSeverity } from './types';
 import { registry } from './registry';
 import { Errors, toDiagnostic } from './errors';
+import { isCursorNode, CursorContext } from './cursor-nodes';
+import type { AnyCursorNode } from './cursor-nodes';
 
+
+export interface AnalyzerOptions {
+  cursorMode?: boolean;
+}
+
+export interface AnalysisResultWithCursor extends AnalysisResult {
+  stoppedAtCursor?: boolean;
+  cursorContext?: {
+    typeBeforeCursor?: TypeInfo;
+    expectedType?: TypeInfo;
+    cursorNode?: AnyCursorNode;
+  };
+}
 
 export class Analyzer {
   private diagnostics: Diagnostic[] = [];
@@ -29,14 +44,29 @@ export class Analyzer {
   private modelProvider?: ModelProvider;
   private userVariableTypes: Map<string, TypeInfo> = new Map();
   private systemVariableTypes: Map<string, TypeInfo> = new Map();
+  private cursorMode: boolean = false;
+  private stoppedAtCursor: boolean = false;
+  private cursorContext?: {
+    typeBeforeCursor?: TypeInfo;
+    expectedType?: TypeInfo;
+    cursorNode?: AnyCursorNode;
+  };
 
   constructor(modelProvider?: ModelProvider) {
     this.modelProvider = modelProvider;
   }
 
-  analyze(ast: ASTNode, userVariables?: Record<string, any>, inputType?: TypeInfo): AnalysisResult {
+  analyze(
+    ast: ASTNode, 
+    userVariables?: Record<string, any>, 
+    inputType?: TypeInfo,
+    options?: AnalyzerOptions
+  ): AnalysisResultWithCursor {
     this.diagnostics = [];
     this.userVariableTypes.clear();
+    this.cursorMode = options?.cursorMode ?? false;
+    this.stoppedAtCursor = false;
+    this.cursorContext = undefined;
     
     if (userVariables) {
       Object.keys(userVariables).forEach(name => {
@@ -52,19 +82,38 @@ export class Analyzer {
     // Annotate AST with type information
     this.annotateAST(ast, inputType);
     
-    // Perform validation with type checking
-    this.visitNode(ast);
+    // Perform validation with type checking (if not stopped at cursor)
+    if (!this.stoppedAtCursor) {
+      this.visitNode(ast);
+    }
     
     return {
       diagnostics: this.diagnostics,
-      ast
+      ast,
+      stoppedAtCursor: this.cursorMode ? this.stoppedAtCursor : undefined,
+      cursorContext: this.cursorMode ? this.cursorContext : undefined
     };
   }
 
   private visitNode(node: ASTNode): void {
+    // Check for cursor node in cursor mode
+    if (this.cursorMode && isCursorNode(node)) {
+      this.stoppedAtCursor = true;
+      this.cursorContext = {
+        cursorNode: node as AnyCursorNode,
+        typeBeforeCursor: (node as any).typeInfo
+      };
+      return; // Short-circuit
+    }
+    
     // Handle error nodes - process them for diagnostics but don't traverse
     if (node.type === 'Error') {
       // Diagnostics already added in annotateAST
+      return;
+    }
+    
+    // If we've already stopped at cursor, don't continue
+    if (this.stoppedAtCursor) {
       return;
     }
     
@@ -1033,9 +1082,61 @@ export class Analyzer {
   }
   
   /**
+   * Infer the expected type at a cursor position based on context
+   */
+  private inferExpectedTypeForCursor(cursorNode: AnyCursorNode, inputType?: TypeInfo): TypeInfo | undefined {
+    const context = cursorNode.context;
+    
+    switch (context) {
+      case CursorContext.Identifier:
+        // After dot, expecting a member of the input type
+        return inputType;
+        
+      case CursorContext.Type:
+        // After is/as/ofType, expecting a type name
+        return { type: 'System.String' as TypeName, singleton: true };
+        
+      case CursorContext.Argument:
+        // In function argument, would need to look up function signature
+        // For now, return Any
+        return { type: 'Any' as TypeName, singleton: false };
+        
+      case CursorContext.Index:
+        // In indexer, expecting Integer
+        return { type: 'Integer' as TypeName, singleton: true };
+        
+      case CursorContext.Operator:
+        // Between expressions, could be any operator
+        // Return the input type as context
+        return inputType;
+        
+      default:
+        return undefined;
+    }
+  }
+
+  /**
    * Annotate AST with type information
    */
   private annotateAST(node: ASTNode, inputType?: TypeInfo): void {
+    // Check for cursor node in cursor mode
+    if (this.cursorMode && isCursorNode(node)) {
+      this.stoppedAtCursor = true;
+      this.cursorContext = {
+        cursorNode: node as AnyCursorNode,
+        typeBeforeCursor: inputType,
+        expectedType: this.inferExpectedTypeForCursor(node as AnyCursorNode, inputType)
+      };
+      // Still attach a type to the cursor node for consistency
+      (node as any).typeInfo = inputType || { type: 'Any', singleton: false };
+      return; // Short-circuit
+    }
+    
+    // If we've already stopped at cursor, don't continue
+    if (this.stoppedAtCursor) {
+      return;
+    }
+    
     // Handle error nodes
     if (node.type === 'Error') {
       const errorNode = node as ErrorNode;
@@ -1060,6 +1161,24 @@ export class Analyzer {
       case NodeType.Binary:
         const binaryNode = node as BinaryNode;
         this.annotateAST(binaryNode.left, inputType);
+        
+        // If we stopped at cursor, don't continue
+        if (this.stoppedAtCursor) {
+          break;
+        }
+        
+        // Check if right side is a cursor node - if so, set type from left
+        if (this.cursorMode && isCursorNode(binaryNode.right)) {
+          this.stoppedAtCursor = true;
+          this.cursorContext = {
+            cursorNode: binaryNode.right as AnyCursorNode,
+            typeBeforeCursor: binaryNode.left.typeInfo,
+            expectedType: this.inferExpectedTypeForCursor(binaryNode.right as AnyCursorNode, binaryNode.left.typeInfo)
+          };
+          // Still attach type to cursor node
+          (binaryNode.right as any).typeInfo = binaryNode.left.typeInfo || { type: 'Any', singleton: false };
+          break;
+        }
         
         // For navigation, pass the left's type as input to the right
         if (binaryNode.operator === '.') {
@@ -1137,7 +1256,10 @@ export class Analyzer {
               this.annotateAST(funcNode.arguments[0]!, inputType);
               
               // Process remaining arguments
-              funcNode.arguments.slice(2).forEach(arg => this.annotateAST(arg, inputType));
+              for (const arg of funcNode.arguments.slice(2)) {
+                this.annotateAST(arg, inputType);
+                if (this.stoppedAtCursor) break;
+              }
             } else {
               // No init - first pass to infer aggregator type
               this.systemVariableTypes.set('$total', { type: 'Any', singleton: false });
@@ -1182,7 +1304,10 @@ export class Analyzer {
             this.systemVariableTypes.set('$index', { type: 'Integer', singleton: true });
             
             // Process arguments with system variables in scope
-            funcNode.arguments.forEach(arg => this.annotateAST(arg, inputType));
+            for (const arg of funcNode.arguments) {
+              this.annotateAST(arg, inputType);
+              if (this.stoppedAtCursor) break;
+            }
             
             // Restore previous context
             if (savedThis) {
@@ -1197,14 +1322,20 @@ export class Analyzer {
             }
           } else {
             // Regular function argument annotation
-            funcNode.arguments.forEach(arg => this.annotateAST(arg, inputType));
+            for (const arg of funcNode.arguments) {
+              this.annotateAST(arg, inputType);
+              if (this.stoppedAtCursor) break;
+            }
           }
         }
         break;
         
       case NodeType.Collection:
         const collNode = node as CollectionNode;
-        collNode.elements.forEach(el => this.annotateAST(el, inputType));
+        for (const el of collNode.elements) {
+          this.annotateAST(el, inputType);
+          if (this.stoppedAtCursor) break;
+        }
         break;
         
       case NodeType.TypeCast:
@@ -1220,7 +1351,9 @@ export class Analyzer {
       case NodeType.Index:
         const indexNode = node as IndexNode;
         this.annotateAST(indexNode.expression, inputType);
-        this.annotateAST(indexNode.index, inputType);
+        if (!this.stoppedAtCursor) {
+          this.annotateAST(indexNode.index, inputType);
+        }
         break;
         
       case NodeType.TypeOrIdentifier:
