@@ -158,3 +158,38 @@ export type { InspectOptions, InspectResult, ASTMetadata } from './inspect';
 
 // Export error system
 export { FHIRPathError, Errors, ErrorCodes } from './errors';
+
+// Export LSP support - completion provider and cursor nodes
+/**
+ * Provides context-aware code completions for FHIRPath expressions.
+ * @param expression - The FHIRPath expression being edited
+ * @param cursorPosition - The cursor position (0-based offset)
+ * @param options - Optional configuration including modelProvider and variables
+ * @returns Array of completion items with labels, kinds, and documentation
+ * 
+ * @example
+ * ```typescript
+ * import { provideCompletions } from 'fhirpath';
+ * 
+ * const completions = provideCompletions('Patient.', 8);
+ * // Returns completions for properties and functions after 'Patient.'
+ * ```
+ */
+export { provideCompletions, CompletionKind } from './completion-provider';
+export type { 
+  CompletionItem, 
+  CompletionOptions,
+  ExtendedModelProvider 
+} from './completion-provider';
+
+// Export cursor node types for LSP integration
+export { CursorContext, isCursorNode } from './cursor-nodes';
+export type {
+  CursorNode,
+  CursorOperatorNode,
+  CursorIdentifierNode,
+  CursorArgumentNode,
+  CursorIndexNode,
+  CursorTypeNode,
+  AnyCursorNode
+} from './cursor-nodes';

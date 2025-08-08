@@ -1,6 +1,20 @@
 import { parse } from './parser';
 import { Analyzer } from './analyzer';
 import type { TypeInfo, ModelProvider } from './types';
+
+/**
+ * Extended ModelProvider interface with optional methods for richer completions
+ */
+export interface ExtendedModelProvider extends ModelProvider {
+  /** Get properties of a type for completion suggestions */
+  getProperties?(typeName: string): Array<{
+    name: string;
+    type: string;
+    documentation?: string;
+  }>;
+  /** Get list of all resource types */
+  getResourceTypes?(): string[];
+}
 import { CursorContext, isCursorNode } from './cursor-nodes';
 import type { AnyCursorNode } from './cursor-nodes';
 import { registry } from './registry';
@@ -40,8 +54,8 @@ export interface CompletionItem {
  * Options for completion provider
  */
 export interface CompletionOptions {
-  /** Model provider for FHIR types */
-  modelProvider?: ModelProvider;
+  /** Model provider for FHIR types (with optional extended methods for richer completions) */
+  modelProvider?: ModelProvider | ExtendedModelProvider;
   /** Variables in scope */
   variables?: Record<string, any>;
   /** Input type for the expression */
@@ -103,7 +117,8 @@ export function provideCompletions(
                 // Try to get properties from the type before the identifier
                 const baseType = ast.left.left?.typeInfo;
                 if (baseType) {
-                  const properties = modelProvider.getProperties?.(baseType.type);
+                  const extProvider = modelProvider as ExtendedModelProvider;
+                  const properties = extProvider.getProperties?.(baseType.type);
                   if (properties) {
                     // Check if any properties start with the partial text
                     const hasMatches = properties.some(p => 
@@ -348,7 +363,8 @@ function getIdentifierCompletions(
   
   // Add properties from type if available
   if (typeBeforeCursor && modelProvider) {
-    const properties = modelProvider.getProperties?.(typeBeforeCursor.type);
+    const extProvider = modelProvider as ExtendedModelProvider;
+    const properties = extProvider.getProperties?.(typeBeforeCursor.type);
     if (properties) {
       for (const prop of properties) {
         completions.push({
@@ -372,11 +388,12 @@ function getIdentifierCompletions(
       if (isApplicable) {
         // Determine if function takes parameters
         const hasParams = funcDef.signature?.parameters && funcDef.signature.parameters.length > 0;
+      const funcDescription = funcDef.description || `FHIRPath ${name} function`;
         
         completions.push({
           label: name,
           kind: CompletionKind.Function,
-          detail: funcDef.description || `FHIRPath ${name} function`,
+          detail: funcDescription,
           insertText: name + (hasParams ? '()' : '()')
         });
       }
@@ -384,7 +401,7 @@ function getIdentifierCompletions(
   }
   
   // Add type-specific functions
-  if (typeBeforeCursor) {
+  if (typeBeforeCursor && typeBeforeCursor.type) {
     const typeSpecificFunctions = getTypeSpecificFunctions(typeBeforeCursor.type);
     for (const func of typeSpecificFunctions) {
       completions.push({
@@ -486,7 +503,8 @@ function getTypeCompletions(
   // For ofType, add resource types
   const typeOperator = (cursorNode as any).typeOperator;
   if (typeOperator === 'ofType' && modelProvider) {
-    const resourceTypes = modelProvider.getResourceTypes?.() || [];
+    const extProvider = modelProvider as ExtendedModelProvider;
+    const resourceTypes = extProvider.getResourceTypes?.() || [];
     for (const type of resourceTypes) {
       completions.push({
         label: type,
@@ -541,7 +559,8 @@ function getArgumentCompletions(
     // In lambda function, provide properties of item type
     if (typeBeforeCursor && modelProvider) {
       const itemType = { ...typeBeforeCursor, singleton: true };
-      const properties = modelProvider.getProperties?.(itemType.type);
+      const extProvider = modelProvider as ExtendedModelProvider;
+      const properties = extProvider.getProperties?.(itemType.type);
       if (properties) {
         for (const prop of properties) {
           completions.push({
