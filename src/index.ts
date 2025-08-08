@@ -154,7 +154,7 @@ export type { FHIRModelContext, FHIRModelProviderConfig } from './model-provider
 
 // Export inspect API
 export { inspect } from './inspect';
-export type { InspectOptions, InspectResult, TraceEntry } from './inspect';
+export type { InspectOptions, InspectResult, ASTMetadata } from './inspect';
 
 // Export error system
 export { FHIRPathError, Errors, ErrorCodes } from './errors';

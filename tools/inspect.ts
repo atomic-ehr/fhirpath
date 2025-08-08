@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 
-import { inspect } from '../src/index';
+import { inspect } from '../src/inspect';
 import { readFileSync } from 'fs';
 
 // Parse command line arguments
@@ -19,11 +19,12 @@ Arguments:
   
 Options:
   --vars, -v    JSON object with variables (e.g., '{"x": 10}')
-  --max-traces  Maximum number of traces to collect (default: unlimited)
+  --max-depth   Maximum AST depth to analyze (default: 100)
   --verbose     Show full trace values (default: truncated)
   --ast         Show only the AST
   --traces      Show only traces
   --timing      Show only timing information
+  --diagnostics Show diagnostics (warnings and hints)
   --help, -h    Show this help message
 
 Examples:
@@ -53,11 +54,13 @@ Examples:
 const expression = args[0];
 let inputData: any = undefined;
 let variables: Record<string, any> = {};
-let maxTraces: number | undefined;
+let maxDepth = 100;
 let verbose = false;
 let showOnlyAst = false;
 let showOnlyTraces = false;
 let showOnlyTiming = false;
+let showDiagnostics = false;
+let includeTraces = false;
 
 // Process remaining arguments
 for (let i = 1; i < args.length; i++) {
@@ -73,12 +76,12 @@ for (let i = 1; i < args.length; i++) {
         process.exit(1);
       }
     }
-  } else if (arg === '--max-traces') {
+  } else if (arg === '--max-depth') {
     i++;
     if (i < args.length) {
-      maxTraces = parseInt(args[i]!);
-      if (isNaN(maxTraces)) {
-        console.error('Invalid max-traces value');
+      maxDepth = parseInt(args[i]!);
+      if (isNaN(maxDepth)) {
+        console.error('Invalid max-depth value');
         process.exit(1);
       }
     }
@@ -88,8 +91,11 @@ for (let i = 1; i < args.length; i++) {
     showOnlyAst = true;
   } else if (arg === '--traces') {
     showOnlyTraces = true;
+    includeTraces = true;
   } else if (arg === '--timing') {
     showOnlyTiming = true;
+  } else if (arg === '--diagnostics') {
+    showDiagnostics = true;
   } else if (!inputData && i === 1) {
     // This is the input data argument
     if (arg && arg.startsWith('@')) {
@@ -121,6 +127,20 @@ function formatValue(value: any, maxLength = 80): string {
     return str.substring(0, maxLength - 3) + '...';
   }
   return str;
+}
+
+// Helper function to format AST metadata
+function formatMetadata(metadata: any): string {
+  const lines: string[] = [];
+  lines.push(`  Complexity: ${metadata.complexity}`);
+  lines.push(`  Depth: ${metadata.depth}`);
+  if (metadata.operationCount.size > 0) {
+    lines.push('  Operations:');
+    for (const [op, count] of metadata.operationCount) {
+      lines.push(`    ${op}: ${count}`);
+    }
+  }
+  return lines.join('\n');
 }
 
 // Helper function to format AST with colors
@@ -164,81 +184,125 @@ function formatAst(node: any, indent = 0): string {
 }
 
 try {
+  // Check if expression contains trace() to automatically enable trace collection
+  if (expression!.includes('trace(')) {
+    includeTraces = true;
+  }
+  
   // Run inspect
   const result = inspect(expression!, {
     input: inputData,
     variables,
-    maxTraces
+    maxDepth,
+    includeTraces
   });
   
   // Display results based on options
   if (showOnlyAst) {
     console.log('AST:');
-    console.log(formatAst(result.ast));
+    console.log(formatAst(result.ast.node));
+    console.log('\nAST Metadata:');
+    console.log(formatMetadata(result.ast.metadata));
   } else if (showOnlyTraces) {
-    if (result.traces.length === 0) {
-      console.log('No traces captured');
+    if (!result.traces || result.traces.length === 0) {
+      console.log('No traces captured (use trace() function in expression)');
     } else {
       console.log(`Traces (${result.traces.length}):`);
       result.traces.forEach((trace, i) => {
-        console.log(`\n[${i + 1}] ${trace.name} at ${trace.timestamp.toFixed(3)}ms (depth: ${trace.depth})`);
-        console.log(`    Values: ${formatValue(trace.values)}`);
-        if (trace.projection) {
-          console.log(`    Projection: ${formatValue(trace.projection)}`);
-        }
+        console.log(`\n[${i + 1}] ${trace.label} at ${trace.timestamp.toFixed(3)}ms`);
+        console.log(`    Values: ${formatValue(trace.value)}`);
       });
     }
   } else if (showOnlyTiming) {
-    console.log(`Execution time: ${result.executionTime.toFixed(3)}ms`);
+    console.log('Performance Metrics:');
+    console.log(`  Parse time: ${result.performance.parseTime.toFixed(3)}ms`);
+    console.log(`  Analyze time: ${result.performance.analyzeTime.toFixed(3)}ms`);
+    console.log(`  Eval time: ${result.performance.evalTime.toFixed(3)}ms`);
+    console.log(`  Total time: ${result.performance.totalTime.toFixed(3)}ms`);
+    
+    if (result.performance.operationTimings.size > 0) {
+      console.log('\nOperation Timings:');
+      const sorted = Array.from(result.performance.operationTimings.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10);
+      for (const [op, time] of sorted) {
+        console.log(`  ${op}: ${time.toFixed(3)}ms`);
+      }
+    }
+  } else if (showDiagnostics) {
+    console.log('Diagnostics:\n');
+    
+    if (result.diagnostics.warnings.length > 0) {
+      console.log('Warnings:');
+      result.diagnostics.warnings.forEach(w => {
+        console.log(`  - ${w.message}`);
+      });
+    }
+    
+    if (result.diagnostics.hints.length > 0) {
+      console.log('\nHints:');
+      result.diagnostics.hints.forEach(h => {
+        console.log(`  - ${h.message}`);
+        if (h.suggestion) {
+          console.log(`    Suggestion: ${h.suggestion}`);
+        }
+      });
+    }
+    
+    if (result.diagnostics.warnings.length === 0 && result.diagnostics.hints.length === 0) {
+      console.log('No warnings or hints.');
+    }
   } else {
     // Show everything
     console.log('=== FHIRPath Expression Inspection ===\n');
     
-    console.log(`Expression: ${result.expression}`);
+    console.log(`Expression: ${expression}`);
     console.log(`Result: ${formatValue(result.result)}`);
-    console.log(`Execution time: ${result.executionTime.toFixed(3)}ms`);
+    console.log(`\nPerformance:`);
+    console.log(`  Total time: ${result.performance.totalTime.toFixed(3)}ms`);
+    console.log(`  Parse: ${result.performance.parseTime.toFixed(3)}ms`);
+    console.log(`  Analyze: ${result.performance.analyzeTime.toFixed(3)}ms`);
+    console.log(`  Eval: ${result.performance.evalTime.toFixed(3)}ms`);
     
-    if (result.errors && result.errors.length > 0) {
-      console.log('\nErrors:');
-      result.errors.forEach((error, i) => {
-        console.log(`  [${i + 1}] ${error.type}: ${error.message}`);
-        if (error.location) {
-          console.log(`      at line ${error.location.line}, column ${error.location.column}`);
+    // Show AST metadata
+    console.log('\nAST Metadata:');
+    console.log(formatMetadata(result.ast.metadata));
+    
+    // Show diagnostics
+    if (result.diagnostics.warnings.length > 0) {
+      console.log('\nWarnings:');
+      result.diagnostics.warnings.forEach((w, i) => {
+        console.log(`  [${i + 1}] ${w.message}`);
+      });
+    }
+    
+    if (result.diagnostics.hints.length > 0) {
+      console.log('\nHints:');
+      result.diagnostics.hints.forEach((h, i) => {
+        console.log(`  [${i + 1}] ${h.message}`);
+        if (h.suggestion) {
+          console.log(`      Suggestion: ${h.suggestion}`);
         }
       });
     }
     
-    if (result.warnings && result.warnings.length > 0) {
-      console.log('\nWarnings:');
-      result.warnings.forEach((warning, i) => {
-        console.log(`  [${i + 1}] ${warning.code}: ${warning.message}`);
-      });
-    }
-    
-    if (result.traces.length > 0) {
+    // Show traces if any
+    if (result.traces && result.traces.length > 0) {
       console.log(`\nTraces (${result.traces.length}):`);
       result.traces.forEach((trace, i) => {
-        console.log(`  [${i + 1}] ${trace.name} at ${trace.timestamp.toFixed(3)}ms (depth: ${trace.depth})`);
-        if (verbose || trace.values.length <= 3) {
-          console.log(`      Values: ${formatValue(trace.values)}`);
-          if (trace.projection) {
-            console.log(`      Projection: ${formatValue(trace.projection)}`);
-          }
+        console.log(`  [${i + 1}] ${trace.label} at ${trace.timestamp.toFixed(3)}ms`);
+        if (verbose || trace.value.length <= 3) {
+          console.log(`      Values: ${formatValue(trace.value)}`);
         } else {
-          console.log(`      Values: ${trace.values.length} items`);
+          console.log(`      Values: ${trace.value.length} items`);
         }
       });
     }
     
     if (verbose) {
       console.log('\nAST:');
-      console.log(formatAst(result.ast));
+      console.log(formatAst(result.ast.node));
     }
-  }
-  
-  // Exit with appropriate code
-  if (result.errors && result.errors.length > 0) {
-    process.exit(1);
   }
   
 } catch (error) {
