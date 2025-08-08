@@ -1,68 +1,23 @@
-import { describe, it, expect } from 'bun:test';
+import { describe, it, expect, beforeAll } from 'bun:test';
 import { provideCompletions, CompletionKind } from '../src/completion-provider';
 import type { CompletionItem, CompletionOptions } from '../src/completion-provider';
 import type { TypeInfo, ModelProvider } from '../src/types';
-
-// Mock ModelProvider for testing
-class MockModelProvider implements Partial<ModelProvider> {
-  getElementType(parentType: any, elementName: string): any {
-    if (parentType.type === 'Patient') {
-      if (elementName === 'name') return { type: 'HumanName', singleton: false };
-      if (elementName === 'birthDate') return { type: 'date', singleton: true };
-      if (elementName === 'gender') return { type: 'code', singleton: true };
-      if (elementName === 'active') return { type: 'boolean', singleton: true };
-    }
-    if (parentType.type === 'HumanName') {
-      if (elementName === 'use') return { type: 'code', singleton: true };
-      if (elementName === 'family') return { type: 'string', singleton: true };
-      if (elementName === 'given') return { type: 'string', singleton: false };
-      if (elementName === 'text') return { type: 'string', singleton: true };
-    }
-    return undefined;
-  }
-  
-  getType(typeName: string): any {
-    if (typeName === 'Patient') return { type: 'Patient', singleton: true };
-    if (typeName === 'HumanName') return { type: 'HumanName', singleton: true };
-    return undefined;
-  }
-  
-  getProperties(typeName: string) {
-    switch (typeName) {
-      case 'Patient':
-        return [
-          { name: 'name', type: 'HumanName[]', documentation: 'Patient names' },
-          { name: 'birthDate', type: 'date', documentation: 'Date of birth' },
-          { name: 'gender', type: 'code', documentation: 'Gender' },
-          { name: 'address', type: 'Address[]', documentation: 'Addresses' },
-          { name: 'active', type: 'boolean', documentation: 'Active flag' }
-        ];
-      case 'HumanName':
-        return [
-          { name: 'use', type: 'code', documentation: 'Name use' },
-          { name: 'family', type: 'string', documentation: 'Family name' },
-          { name: 'given', type: 'string[]', documentation: 'Given names' },
-          { name: 'text', type: 'string', documentation: 'Full name text' }
-        ];
-      default:
-        return [];
-    }
-  }
-  
-  getResourceTypes() {
-    return ['Patient', 'Observation', 'Condition', 'Procedure', 'Encounter'];
-  }
-}
+import { getInitializedModelProvider } from './model-provider-singleton';
 
 describe('Completion Provider', () => {
-  const mockProvider = new MockModelProvider();
+  let modelProvider: ModelProvider;
+  
+  beforeAll(async () => {
+    // Use the singleton FHIRModelProvider
+    modelProvider = await getInitializedModelProvider();
+  });
   
   describe('identifier completions (after dot)', () => {
     it('should provide property completions for known type', () => {
       const expression = 'Patient.';
       const cursorPosition = 8;
       const options: CompletionOptions = {
-        modelProvider: mockProvider as any,
+        modelProvider: modelProvider,
         inputType: { type: 'Patient' as any, singleton: true }
       };
       
@@ -186,7 +141,7 @@ describe('Completion Provider', () => {
       const expression = 'Bundle.entry.resource.ofType(';
       const cursorPosition = 30;
       const options: CompletionOptions = {
-        modelProvider: mockProvider as any
+        modelProvider: modelProvider
       };
       
       const completions = provideCompletions(expression, cursorPosition, options);
@@ -245,7 +200,7 @@ describe('Completion Provider', () => {
       const expression = 'Patient.name.where(';
       const cursorPosition = 19;
       const options: CompletionOptions = {
-        modelProvider: mockProvider as any,
+        modelProvider: modelProvider,
         inputType: { type: 'Patient' as any, singleton: true }
       };
       
@@ -290,7 +245,7 @@ describe('Completion Provider', () => {
       const expression = 'Patient.na';
       const cursorPosition = 10;
       const options: CompletionOptions = {
-        modelProvider: mockProvider as any,
+        modelProvider: modelProvider,
         inputType: { type: 'Patient' as any, singleton: true }
       };
       
@@ -309,7 +264,7 @@ describe('Completion Provider', () => {
       const expression = 'Patient.';
       const cursorPosition = 8;
       const options: CompletionOptions = {
-        modelProvider: mockProvider as any,
+        modelProvider: modelProvider,
         inputType: { type: 'Patient' as any, singleton: true }
       };
       
@@ -328,7 +283,7 @@ describe('Completion Provider', () => {
       const expression = 'Patient.';
       const cursorPosition = 8;
       const options: CompletionOptions = {
-        modelProvider: mockProvider as any,
+        modelProvider: modelProvider,
         inputType: { type: 'Patient' as any, singleton: true },
         maxCompletions: 5
       };
@@ -374,7 +329,7 @@ describe('Completion Provider', () => {
       const expression = 'Patient.name.where(use = "official").';
       const cursorPosition = 38;
       const options: CompletionOptions = {
-        modelProvider: mockProvider as any,
+        modelProvider: modelProvider,
         inputType: { type: 'Patient' as any, singleton: true }
       };
       

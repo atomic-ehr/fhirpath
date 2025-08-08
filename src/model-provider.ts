@@ -506,4 +506,53 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
     await this.loadSchemaAsync(typeName);
     return this.getType(typeName);
   }
+
+  // Get detailed information about elements of a type
+  getElements(typeName: string): Array<{ name: string; type: string; documentation?: string }> {
+    if (!this.initialized) {
+      console.warn('FHIRModelProvider not initialized. Cannot get elements.');
+      return [];
+    }
+
+    const schema = this.loadSchemaCached(typeName);
+    if (!schema || !schema.elements) {
+      return [];
+    }
+
+    const elements: Array<{ name: string; type: string; documentation?: string }> = [];
+    
+    // Get all elements from this schema and its hierarchy
+    const schemaHierarchy = this.getSchemaHierarchyCached(schema);
+    const addedElements = new Set<string>();
+    
+    for (const currentSchema of schemaHierarchy) {
+      if (currentSchema.elements) {
+        for (const [elementName, element] of Object.entries(currentSchema.elements)) {
+          // Skip choice-specific elements and already added elements
+          if (element && !element.choiceOf && !addedElements.has(elementName)) {
+            const elementType = Array.isArray(element.type) ? element.type[0] : element.type;
+            elements.push({
+              name: elementName,
+              type: elementType + (element.array ? '[]' : ''),
+              documentation: element.short
+            });
+            addedElements.add(elementName);
+          }
+        }
+      }
+    }
+    
+    return elements;
+  }
+  
+  getResourceTypes(): string[] {
+    // Return all FHIR resource types from the commonTypes list
+    // These are the resources that extend DomainResource or Resource
+    return this.commonTypes.filter(type => {
+      // All uppercase-starting types that are not data types
+      return /^[A-Z]/.test(type) && 
+             !['Resource', 'DomainResource', 'Element', 'BackboneElement'].includes(type) &&
+             !this.typeMapping[type]; // Exclude mapped types (primitives and special quantities)
+    });
+  }
 }

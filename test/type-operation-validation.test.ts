@@ -23,6 +23,8 @@ describe('Type Operation Validation', () => {
         ofType: () => ({ type: 'String' as const, singleton: false }),
         getElementNames: () => [],
         getChildrenType: () => undefined,
+        getElements: () => [],
+        getResourceTypes: () => [],
       };
       const result = analyze('data.ofType(String)', { modelProvider: mockModelProvider });
       expect(result.diagnostics.filter(d => d.code === ErrorCodes.MODEL_PROVIDER_REQUIRED)).toHaveLength(0);

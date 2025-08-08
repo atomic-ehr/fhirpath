@@ -2,19 +2,6 @@ import { parse } from './parser';
 import { Analyzer } from './analyzer';
 import type { TypeInfo, ModelProvider } from './types';
 
-/**
- * Extended ModelProvider interface with optional methods for richer completions
- */
-export interface ExtendedModelProvider extends ModelProvider {
-  /** Get properties of a type for completion suggestions */
-  getProperties?(typeName: string): Array<{
-    name: string;
-    type: string;
-    documentation?: string;
-  }>;
-  /** Get list of all resource types */
-  getResourceTypes?(): string[];
-}
 import { CursorContext, isCursorNode } from './cursor-nodes';
 import type { AnyCursorNode } from './cursor-nodes';
 import { registry } from './registry';
@@ -54,8 +41,8 @@ export interface CompletionItem {
  * Options for completion provider
  */
 export interface CompletionOptions {
-  /** Model provider for FHIR types (with optional extended methods for richer completions) */
-  modelProvider?: ModelProvider | ExtendedModelProvider;
+  /** Model provider for FHIR types */
+  modelProvider?: ModelProvider;
   /** Variables in scope */
   variables?: Record<string, any>;
   /** Input type for the expression */
@@ -114,14 +101,14 @@ export function provideCompletions(
               // any properties that would match if we treated it as a prefix
               const partialText = extractPartialText(expression, cursorPosition);
               if (partialText && modelProvider) {
-                // Try to get properties from the type before the identifier
+                // Try to get elements from the type before the identifier
                 const baseType = ast.left.left?.typeInfo;
                 if (baseType) {
-                  const extProvider = modelProvider as ExtendedModelProvider;
-                  const properties = extProvider.getProperties?.(baseType.type);
-                  if (properties) {
-                    // Check if any properties start with the partial text
-                    const hasMatches = properties.some(p => 
+                  const typeName = baseType.name || baseType.type;
+                  const elements = modelProvider.getElements(typeName);
+                  if (elements.length > 0) {
+                    // Check if any elements start with the partial text
+                    const hasMatches = elements.some(p => 
                       p.name.toLowerCase().startsWith(partialText.toLowerCase()) &&
                       p.name.toLowerCase() !== partialText.toLowerCase()
                     );
@@ -366,17 +353,18 @@ function getIdentifierCompletions(
 ): CompletionItem[] {
   const completions: CompletionItem[] = [];
   
-  // Add properties from type if available
+  // Add elements from type if available
   if (typeBeforeCursor && modelProvider) {
-    const extProvider = modelProvider as ExtendedModelProvider;
-    const properties = extProvider.getProperties?.(typeBeforeCursor.type);
-    if (properties) {
-      for (const prop of properties) {
+    // Use the name property which contains the actual FHIR type name
+    const typeName = typeBeforeCursor.name || typeBeforeCursor.type;
+    const elements = modelProvider.getElements(typeName);
+    if (elements.length > 0) {
+      for (const element of elements) {
         completions.push({
-          label: prop.name,
+          label: element.name,
           kind: CompletionKind.Property,
-          detail: prop.type,
-          documentation: prop.documentation
+          detail: element.type,
+          documentation: element.documentation
         });
       }
     }
@@ -508,8 +496,7 @@ function getTypeCompletions(
   // For ofType, add resource types
   const typeOperator = (cursorNode as any).typeOperator;
   if (typeOperator === 'ofType' && modelProvider) {
-    const extProvider = modelProvider as ExtendedModelProvider;
-    const resourceTypes = extProvider.getResourceTypes?.() || [];
+    const resourceTypes = modelProvider.getResourceTypes();
     for (const type of resourceTypes) {
       completions.push({
         label: type,
@@ -558,20 +545,20 @@ function getArgumentCompletions(
     }
   }
   
-  // Add properties if in lambda context
+  // Add elements if in lambda context
   const functionName = argNode.functionName;
   if (functionName && ['where', 'select', 'all', 'exists'].includes(functionName)) {
-    // In lambda function, provide properties of item type
+    // In lambda function, provide elements of item type
     if (typeBeforeCursor && modelProvider) {
       const itemType = { ...typeBeforeCursor, singleton: true };
-      const extProvider = modelProvider as ExtendedModelProvider;
-      const properties = extProvider.getProperties?.(itemType.type);
-      if (properties) {
-        for (const prop of properties) {
+      const typeName = itemType.name || itemType.type;
+      const elements = modelProvider.getElements(typeName);
+      if (elements.length > 0) {
+        for (const element of elements) {
           completions.push({
-            label: prop.name,
+            label: element.name,
             kind: CompletionKind.Property,
-            detail: prop.type
+            detail: element.type
           });
         }
       }

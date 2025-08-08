@@ -178,8 +178,7 @@ export { FHIRPathError, Errors, ErrorCodes } from './errors';
 export { provideCompletions, CompletionKind } from './completion-provider';
 export type { 
   CompletionItem, 
-  CompletionOptions,
-  ExtendedModelProvider 
+  CompletionOptions
 } from './completion-provider';
 
 // Export cursor node types for LSP integration

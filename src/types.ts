@@ -49,6 +49,16 @@ export interface ModelProvider<TypeContext = unknown> {
 
   // Returns a union type of all possible child element types
   getChildrenType(parentType: TypeInfo<TypeContext>): TypeInfo<TypeContext> | undefined;
+
+  // Get detailed information about elements of a type for completion suggestions
+  getElements(typeName: string): Array<{
+    name: string;
+    type: string;
+    documentation?: string;
+  }>;
+
+  // Get list of all resource types
+  getResourceTypes(): string[];
 }
 
 export interface OperatorSignature {
