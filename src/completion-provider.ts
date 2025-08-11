@@ -238,34 +238,16 @@ function getGeneralCompletions(): CompletionItem[] {
  * Check if a function is applicable to a given type
  */
 function isFunctionApplicable(funcDef: any, typeInfo: TypeInfo): boolean {
-  // For now, be permissive - most functions can work with any type
-  // In the future, we could check funcDef.signature.input against typeInfo
-  return true;
+  if (!typeInfo || !typeInfo.type) return true;
+  return registry.isFunctionApplicableToType(funcDef.name, typeInfo.type);
 }
 
 /**
  * Check if an operator is applicable to a given type
  */
 function isOperatorApplicable(opDef: any, typeInfo: TypeInfo): boolean {
-  // If no type info, show all operators
-  if (!typeInfo) return true;
-  
-  // If operator has signatures, check if any match the type
-  if (opDef.signatures && opDef.signatures.length > 0) {
-    for (const sig of opDef.signatures) {
-      // Check if left type matches
-      if (sig.left) {
-        if (sig.left.type === typeInfo.type || sig.left.type === 'Any') {
-          return true;
-        }
-      }
-    }
-    // If no signatures match, only show if it's a general operator
-    return opDef.signatures.some((sig: any) => sig.left?.type === 'Any');
-  }
-  
-  // No signatures means it's a general operator
-  return true;
+  if (!typeInfo || !typeInfo.type) return true;
+  return registry.isOperatorApplicableToType(opDef.symbol, typeInfo.type);
 }
 
 /**
@@ -393,16 +375,20 @@ function getIdentifierCompletions(
     }
   }
   
-  // Add type-specific functions
+  // Add type-specific functions from registry
   if (typeBeforeCursor && typeBeforeCursor.type) {
-    const typeSpecificFunctions = getTypeSpecificFunctions(typeBeforeCursor.type);
-    for (const func of typeSpecificFunctions) {
-      completions.push({
-        label: func.name,
-        kind: CompletionKind.Function,
-        detail: func.detail,
-        insertText: func.name + (func.hasArgs ? '()' : '')
-      });
+    const typeFunctions = registry.getFunctionsForType(typeBeforeCursor.type);
+    for (const func of typeFunctions) {
+      // Check if function is already added from general functions
+      if (!completions.some(c => c.label === func.name)) {
+        const hasParams = func.signature?.parameters && func.signature.parameters.length > 0;
+        completions.push({
+          label: func.name,
+          kind: CompletionKind.Function,
+          detail: func.description || `FHIRPath ${func.name} function`,
+          insertText: func.name + (hasParams ? '()' : '()')
+        });
+      }
     }
   }
   
@@ -628,65 +614,6 @@ function getIndexCompletions(
   return completions;
 }
 
-/**
- * Get type-specific functions
- */
-function getTypeSpecificFunctions(typeName: string): Array<{name: string, detail: string, hasArgs?: boolean}> {
-  const functions: Array<{name: string, detail: string, hasArgs?: boolean}> = [];
-  
-  switch (typeName) {
-    case 'String':
-      functions.push(
-        { name: 'length', detail: 'String length', hasArgs: false },
-        { name: 'startsWith', detail: 'Check string start', hasArgs: true },
-        { name: 'endsWith', detail: 'Check string end', hasArgs: true },
-        { name: 'contains', detail: 'Check substring', hasArgs: true },
-        { name: 'substring', detail: 'Extract substring', hasArgs: true },
-        { name: 'upper', detail: 'Convert to uppercase', hasArgs: false },
-        { name: 'lower', detail: 'Convert to lowercase', hasArgs: false },
-        { name: 'replace', detail: 'Replace substring', hasArgs: true },
-        { name: 'matches', detail: 'Regex match', hasArgs: true },
-        { name: 'indexOf', detail: 'Find substring position', hasArgs: true },
-        { name: 'split', detail: 'Split string', hasArgs: true },
-        { name: 'trim', detail: 'Trim whitespace', hasArgs: false }
-      );
-      break;
-      
-    case 'Date':
-    case 'DateTime':
-    case 'Time':
-      functions.push(
-        { name: 'toDateTime', detail: 'Convert to DateTime', hasArgs: false },
-        { name: 'toTime', detail: 'Convert to Time', hasArgs: false },
-        { name: 'toString', detail: 'Convert to String', hasArgs: false }
-      );
-      break;
-      
-    case 'Integer':
-    case 'Decimal':
-      functions.push(
-        { name: 'abs', detail: 'Absolute value', hasArgs: false },
-        { name: 'ceiling', detail: 'Round up', hasArgs: false },
-        { name: 'floor', detail: 'Round down', hasArgs: false },
-        { name: 'round', detail: 'Round to nearest', hasArgs: true },
-        { name: 'sqrt', detail: 'Square root', hasArgs: false },
-        { name: 'ln', detail: 'Natural logarithm', hasArgs: false },
-        { name: 'log', detail: 'Logarithm base 10', hasArgs: false },
-        { name: 'exp', detail: 'Exponential', hasArgs: false },
-        { name: 'power', detail: 'Raise to power', hasArgs: true }
-      );
-      break;
-      
-    case 'Quantity':
-      functions.push(
-        { name: 'value', detail: 'Numeric value', hasArgs: false },
-        { name: 'unit', detail: 'Unit string', hasArgs: false }
-      );
-      break;
-  }
-  
-  return functions;
-}
 
 /**
  * Filter completions by partial text

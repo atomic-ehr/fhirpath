@@ -155,6 +155,131 @@ export class Registry {
     // Try as function
     return this.getFunction(name);
   }
+  
+  // Type-aware methods for completion provider
+  
+  /**
+   * Get functions applicable to a specific type
+   */
+  getFunctionsForType(typeName: TypeName | string): FunctionDefinition[] {
+    const results: FunctionDefinition[] = [];
+    
+    for (const [_, func] of this.functions) {
+      if (this.isFunctionApplicableToType(func.name, typeName)) {
+        results.push(func);
+      }
+    }
+    
+    return results;
+  }
+  
+  /**
+   * Get operators applicable to a specific type
+   */
+  getOperatorsForType(typeName: TypeName | string): OperatorDefinition[] {
+    const results: OperatorDefinition[] = [];
+    const seen = new Set<string>();
+    
+    // Check all operator maps
+    const allOps = [
+      ...Array.from(this.symbolOperators.values()),
+      ...Array.from(this.keywordOperators.values()),
+      ...Array.from(this.unaryOperators.values())
+    ];
+    
+    for (const op of allOps) {
+      if (!seen.has(op.symbol) && this.isOperatorApplicableToType(op.symbol, typeName)) {
+        results.push(op);
+        seen.add(op.symbol);
+      }
+    }
+    
+    return results;
+  }
+  
+  /**
+   * Check if a function is applicable to a type
+   */
+  isFunctionApplicableToType(functionName: string, typeName: TypeName | string): boolean {
+    const func = this.getFunction(functionName);
+    if (!func) return false;
+    
+    // If no input type specified, function works with any type
+    if (!func.signature.input) return true;
+    
+    const inputType = func.signature.input.type;
+    
+    // 'Any' type accepts all inputs
+    if (inputType === 'Any') return true;
+    
+    // Direct type match
+    if (inputType === typeName) return true;
+    
+    // For collection types, also check the item type
+    // e.g., a function expecting 'String' should work on a String collection
+    if (typeof typeName === 'string' && typeName.endsWith('[]')) {
+      const itemType = typeName.slice(0, -2);
+      if (inputType === itemType) return true;
+    }
+    
+    // Check if it's a numeric type and function accepts numeric types
+    const numericTypes = ['Integer', 'Decimal', 'Number'];
+    if (numericTypes.includes(typeName as string) && numericTypes.includes(inputType as string)) {
+      return true;
+    }
+    
+    // Check if it's a temporal type and function accepts temporal types
+    const temporalTypes = ['Date', 'DateTime', 'Time', 'Instant'];
+    if (temporalTypes.includes(typeName as string) && temporalTypes.includes(inputType as string)) {
+      return true;
+    }
+    
+    return false;
+  }
+  
+  /**
+   * Check if an operator is applicable to a type
+   */
+  isOperatorApplicableToType(operatorSymbol: string, typeName: TypeName | string): boolean {
+    const op = this.getOperatorDefinition(operatorSymbol);
+    if (!op) return false;
+    
+    // If no signatures, operator works with any type
+    if (!op.signatures || op.signatures.length === 0) return true;
+    
+    // Check if any signature matches the type
+    for (const sig of op.signatures) {
+      if (!sig.left) continue;
+      
+      const leftType = sig.left.type;
+      
+      // 'Any' type accepts all inputs
+      if (leftType === 'Any') return true;
+      
+      // Direct type match
+      if (leftType === typeName) return true;
+      
+      // For collection types, check item type
+      if (typeof typeName === 'string' && typeName.endsWith('[]')) {
+        const itemType = typeName.slice(0, -2);
+        if (leftType === itemType) return true;
+      }
+      
+      // Check numeric type compatibility
+      const numericTypes = ['Integer', 'Decimal', 'Number'];
+      if (numericTypes.includes(typeName as string) && numericTypes.includes(leftType as string)) {
+        return true;
+      }
+      
+      // Check temporal type compatibility
+      const temporalTypes = ['Date', 'DateTime', 'Time', 'Instant'];
+      if (temporalTypes.includes(typeName as string) && temporalTypes.includes(leftType as string)) {
+        return true;
+      }
+    }
+    
+    return false;
+  }
 }
 
 // Export singleton instance
