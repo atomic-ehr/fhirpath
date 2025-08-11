@@ -239,7 +239,11 @@ function getGeneralCompletions(): CompletionItem[] {
  */
 function isFunctionApplicable(funcDef: any, typeInfo: TypeInfo): boolean {
   if (!typeInfo || !typeInfo.type) return true;
-  return registry.isFunctionApplicableToType(funcDef.name, typeInfo.type);
+  // Pass type with collection info: append [] if not singleton
+  const typeForRegistry = typeInfo.singleton === false 
+    ? `${typeInfo.type}[]` 
+    : typeInfo.type;
+  return registry.isFunctionApplicableToType(funcDef.name, typeForRegistry);
 }
 
 /**
@@ -377,7 +381,11 @@ function getIdentifierCompletions(
   
   // Add type-specific functions from registry
   if (typeBeforeCursor && typeBeforeCursor.type) {
-    const typeFunctions = registry.getFunctionsForType(typeBeforeCursor.type);
+    // Pass type with collection info: append [] if not singleton
+    const typeForRegistry = typeBeforeCursor.singleton === false 
+      ? `${typeBeforeCursor.type}[]` 
+      : typeBeforeCursor.type;
+    const typeFunctions = registry.getFunctionsForType(typeForRegistry);
     for (const func of typeFunctions) {
       // Check if function is already added from general functions
       if (!completions.some(c => c.label === func.name)) {

@@ -208,18 +208,29 @@ export class Registry {
     if (!func.signature.input) return true;
     
     const inputType = func.signature.input.type;
+    const requiresSingleton = func.signature.input.singleton;
     
-    // 'Any' type accepts all inputs
+    // Check if we're dealing with a collection type
+    const isCollection = typeof typeName === 'string' && typeName.endsWith('[]');
+    
+    // If function requires singleton but we have a collection, it's not applicable
+    if (requiresSingleton && isCollection) {
+      return false;
+    }
+    
+    // 'Any' type accepts all inputs (but still respects singleton constraint checked above)
     if (inputType === 'Any') return true;
     
     // Direct type match
     if (inputType === typeName) return true;
     
-    // For collection types, also check the item type
-    // e.g., a function expecting 'String' should work on a String collection
+    // For collection types, check if function can work with collections
     if (typeof typeName === 'string' && typeName.endsWith('[]')) {
       const itemType = typeName.slice(0, -2);
-      if (inputType === itemType) return true;
+      // Only allow if function doesn't require singleton
+      if (inputType === itemType && !requiresSingleton) {
+        return true;
+      }
     }
     
     // Check if it's a numeric type and function accepts numeric types

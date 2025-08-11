@@ -155,8 +155,13 @@ describe('Registry Type-Aware Methods', () => {
     });
     
     it('should handle collection types', () => {
-      expect(registry.isFunctionApplicableToType('length', 'String[]')).toBe(true);
-      expect(registry.isFunctionApplicableToType('abs', 'Integer[]')).toBe(true);
+      // Functions requiring singletons should not work with collections
+      expect(registry.isFunctionApplicableToType('length', 'String[]')).toBe(false);
+      expect(registry.isFunctionApplicableToType('abs', 'Integer[]')).toBe(false);
+      
+      // Functions that don't require singletons should work with collections
+      expect(registry.isFunctionApplicableToType('where', 'String[]')).toBe(true);
+      expect(registry.isFunctionApplicableToType('select', 'Integer[]')).toBe(true);
     });
     
     it('should return false for non-existent function', () => {
