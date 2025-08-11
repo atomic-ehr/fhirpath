@@ -2,7 +2,7 @@ import type { FunctionDefinition } from '../types';
 import type { FunctionEvaluator } from '../types';
 import { box, unbox } from '../boxing';
 
-export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
+export const evaluate: FunctionEvaluator = async (input, context, args, evaluator) => {
   // Use Set to track unique values based on unboxed values
   const seen = new Set<string>();
   const uniqueBoxedItems: any[] = [];

@@ -5,58 +5,58 @@ import { ErrorCodes } from "../src/index";
 
 describe('Type Checking', () => {
   describe('Basic type inference', () => {
-    it('should infer literal types', () => {
-      const result = analyze('"hello"');
+    it('should infer literal types', async () => {
+      const result = await analyze('"hello"');
       expect(result.ast.typeInfo).toEqual({ type: 'String', singleton: true });
       expect(result.diagnostics).toHaveLength(0);
     });
 
-    it('should infer numeric types', () => {
-      const intResult = analyze('42');
+    it('should infer numeric types', async () => {
+      const intResult = await analyze('42');
       expect(intResult.ast.typeInfo).toEqual({ type: 'Integer', singleton: true });
 
-      const decResult = analyze('3.14');
+      const decResult = await analyze('3.14');
       expect(decResult.ast.typeInfo).toEqual({ type: 'Decimal', singleton: true });
     });
 
-    it('should infer boolean types', () => {
-      const result = analyze('true');
+    it('should infer boolean types', async () => {
+      const result = await analyze('true');
       expect(result.ast.typeInfo).toEqual({ type: 'Boolean', singleton: true });
     });
 
-    it('should infer collection types', () => {
-      const result = analyze('(1 | 2 | 3)');
+    it('should infer collection types', async () => {
+      const result = await analyze('(1 | 2 | 3)');
       expect(result.ast.typeInfo?.type).toBe('Integer');
       expect(result.ast.typeInfo?.singleton).toBe(false);
     });
   });
 
   describe('Type compatibility errors', () => {
-    it('should detect type mismatch in binary operators', () => {
-      const result = analyze('"hello" + 42');
+    it('should detect type mismatch in binary operators', async () => {
+      const result = await analyze('"hello" + 42');
       const errors = result.diagnostics.filter(d => d.severity === DiagnosticSeverity.Error);
       expect(errors.length).toBeGreaterThan(0);
       expect(errors[0]?.code).toBe(ErrorCodes.OPERATOR_TYPE_MISMATCH);
       expect(errors[0]?.message).toContain("cannot be applied to types String and Integer");
     });
 
-    it('should detect incompatible function arguments', () => {
-      const result = analyze('"hello".substring("not a number")');
+    it('should detect incompatible function arguments', async () => {
+      const result = await analyze('"hello".substring("not a number")');
       const errors = result.diagnostics.filter(d => d.severity === DiagnosticSeverity.Error);
       expect(errors.length).toBeGreaterThan(0);
       expect(errors[0]?.code).toBe(ErrorCodes.ARGUMENT_TYPE_MISMATCH);
     });
 
-    it('should allow compatible numeric types', () => {
-      const result = analyze('5 + 3.14');
+    it('should allow compatible numeric types', async () => {
+      const result = await analyze('5 + 3.14');
       expect(result.diagnostics).toHaveLength(0);
       expect(result.ast.typeInfo?.type).toBe('Decimal');
     });
   });
 
   describe('Special result types', () => {
-    it('should preserve input type for where()', () => {
-      const result = analyze('"hello".where(true)', {
+    it('should preserve input type for where()', async () => {
+      const result = await analyze('"hello".where(true)', {
         variables: {}
       });
       
@@ -66,8 +66,8 @@ describe('Type Checking', () => {
       expect(whereNode?.typeInfo?.singleton).toBe(false);
     });
 
-    it('should use parameter type for select()', () => {
-      const result = analyze('("a" | "b").select(length())', {
+    it('should use parameter type for select()', async () => {
+      const result = await analyze('("a" | "b").select(length())', {
         variables: {}
       });
       
@@ -77,8 +77,8 @@ describe('Type Checking', () => {
       expect(selectNode?.typeInfo?.singleton).toBe(false);
     });
 
-    it('should preserve left type for union operator', () => {
-      const result = analyze('(1 | 2) | ("a" | "b")', {
+    it('should preserve left type for union operator', async () => {
+      const result = await analyze('(1 | 2) | ("a" | "b")', {
         variables: {}
       });
       
@@ -89,8 +89,8 @@ describe('Type Checking', () => {
   });
 
   describe('Variable type inference', () => {
-    it('should infer types from variable values', () => {
-      const result = analyze('%x + %y', {
+    it('should infer types from variable values', async () => {
+      const result = await analyze('%x + %y', {
         variables: { x: 5, y: 3 }
       });
       
@@ -98,8 +98,8 @@ describe('Type Checking', () => {
       expect(result.ast.typeInfo?.type).toBe('Integer');
     });
 
-    it('should detect type mismatch with variables', () => {
-      const result = analyze('%x + %y', {
+    it('should detect type mismatch with variables', async () => {
+      const result = await analyze('%x + %y', {
         variables: { x: "hello", y: 3 }
       });
       
@@ -108,18 +108,18 @@ describe('Type Checking', () => {
       expect(errors[0]?.code).toBe(ErrorCodes.OPERATOR_TYPE_MISMATCH);
     });
 
-    it('should handle built-in variables', () => {
-      const result = analyze('$index + 1');
+    it('should handle built-in variables', async () => {
+      const result = await analyze('$index + 1');
       expect(result.diagnostics).toHaveLength(0);
       expect(result.ast.typeInfo?.type).toBe('Integer');
     });
   });
 
   describe('Model provider integration', () => {
-    it('should use model provider for navigation', () => {
+    it('should use model provider for navigation', async () => {
       // This would require a mock model provider
       // For now, just test that it doesn't crash
-      const result = analyze('Patient.name.given');
+      const result = await analyze('Patient.name.given');
       expect(result.ast.typeInfo?.type).toBe('Any');
     });
   });

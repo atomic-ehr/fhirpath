@@ -2,7 +2,7 @@ import type { FunctionDefinition, FunctionEvaluator } from '../types';
 import { Errors } from '../errors';
 import { box, unbox } from '../boxing';
 
-export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
+export const evaluate: FunctionEvaluator = async (input, context, args, evaluator) => {
   // startsWith() requires exactly 1 argument
   if (args.length !== 1) {
     throw Errors.wrongArgumentCount('startsWith', 1, args.length);
@@ -36,7 +36,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   }
 
   // Evaluate the prefix expression
-  const prefixResult = evaluator(prefixExpr, input, context);
+  const prefixResult = await evaluator(prefixExpr, input, context);
   
   // If prefix evaluation is empty, return empty
   if (prefixResult.value.length === 0) {

@@ -4,7 +4,7 @@ import type { OperationEvaluator } from '../types';
 import { equalQuantities, compareQuantities, type QuantityValue } from '../quantity-value';
 import { box, unbox } from '../boxing';
 
-export const evaluate: OperationEvaluator = (input, context, left, right) => {
+export const evaluate: OperationEvaluator = async (input, context, left, right) => {
   if (left.length === 0 || right.length === 0) {
     return { value: [], context };
   }

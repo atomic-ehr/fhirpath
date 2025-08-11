@@ -3,7 +3,7 @@ import { Errors } from '../errors';
 import type { FunctionEvaluator } from '../types';
 import { box, unbox } from '../boxing';
 
-export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
+export const evaluate: FunctionEvaluator = async (input, context, args, evaluator) => {
   // Check if we have exactly 2 arguments
   if (args.length !== 2) {
     throw Errors.invalidOperation('replace requires exactly 2 arguments: pattern and substitution');
@@ -36,7 +36,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   if (!patternNode) {
     return { value: [], context };
   }
-  const patternResult = evaluator(patternNode, input, context);
+  const patternResult = await evaluator(patternNode, input, context);
   
   // If pattern is empty collection, return empty
   if (patternResult.value.length === 0) {
@@ -63,7 +63,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   if (!substitutionNode) {
     return { value: [], context };
   }
-  const substitutionResult = evaluator(substitutionNode, input, context);
+  const substitutionResult = await evaluator(substitutionNode, input, context);
   
   // If substitution is empty collection, return empty
   if (substitutionResult.value.length === 0) {

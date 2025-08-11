@@ -3,7 +3,7 @@ import { PRECEDENCE } from '../types';
 import type { OperationEvaluator } from '../types';
 import { box, unbox } from '../boxing';
 
-export const evaluate: OperationEvaluator = (input, context, left, right) => {
+export const evaluate: OperationEvaluator = async (input, context, left, right) => {
   // Three-valued logic for XOR
   if (left.length === 0 || right.length === 0) {
     return { value: [], context };

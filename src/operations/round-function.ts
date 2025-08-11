@@ -2,7 +2,7 @@ import type { FunctionDefinition, FunctionEvaluator } from '../types';
 import { Errors } from '../errors';
 import { box, unbox } from '../boxing';
 
-export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
+export const evaluate: FunctionEvaluator = async (input, context, args, evaluator) => {
   // round() takes 0 or 1 argument (precision)
   if (args.length > 1) {
     throw Errors.wrongArgumentCountRange('round', 0, 1, args.length);
@@ -30,7 +30,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   // Get precision if provided
   let precision = 0;
   if (args.length === 1) {
-    const precisionResult = evaluator(args[0]!, input, context);
+    const precisionResult = await evaluator(args[0]!, input, context);
     if (precisionResult.value.length === 0) {
       return { value: [], context };
     }

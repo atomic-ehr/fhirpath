@@ -3,7 +3,7 @@ import { Errors } from '../errors';
 import { RuntimeContextManager } from '../interpreter';
 import { box, unbox } from '../boxing';
 
-export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
+export const evaluate: FunctionEvaluator = async (input, context, args, evaluator) => {
   // all() requires exactly one argument (the criteria expression)
   if (!args || args.length !== 1) {
     throw Errors.invalidOperation('all requires exactly one argument');
@@ -31,7 +31,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     tempContext = RuntimeContextManager.setVariable(tempContext, '$total', input.length);
     
     // Evaluate the criteria expression with the current item as context
-    const result = evaluator(criteriaExpression, [boxedItem], tempContext);
+    const result = await evaluator(criteriaExpression, [boxedItem], tempContext);
     
     // Check if the result is truthy
     // If the result is empty or contains a falsy value, return false

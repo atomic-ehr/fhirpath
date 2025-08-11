@@ -4,7 +4,7 @@ import type { FunctionEvaluator } from '../types';
 import { box, unbox } from '../boxing';
 import { RuntimeContextManager } from '../interpreter';
 
-export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
+export const evaluate: FunctionEvaluator = async (input, context, args, evaluator) => {
   if (args.length < 2) {
     throw Errors.invalidOperation('iif requires at least 2 arguments');
   }
@@ -33,7 +33,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   let evalContext = RuntimeContextManager.copy(context);
   evalContext = RuntimeContextManager.setVariable(evalContext, '$this', input.map(v => unbox(v)), true);
   
-  const condResult = evaluator(condExpr, input, evalContext);
+  const condResult = await evaluator(condExpr, input, evalContext);
   
   // Empty condition is treated as false
   if (condResult.value.length === 0) {
@@ -42,7 +42,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
       return { value: [], context };
     }
     // Otherwise evaluate the else branch
-    return evaluator(elseExpr, input, context);
+    return await evaluator(elseExpr, input, context);
   }
 
   const boxedCondition = condResult.value[0];
@@ -60,13 +60,13 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   
   // Evaluate only the needed branch
   if (condition === true) {
-    return evaluator(thenExpr, input, evalContext);
+    return await evaluator(thenExpr, input, evalContext);
   } else {
     // If no else expression provided, return empty
     if (!elseExpr) {
       return { value: [], context };
     }
-    return evaluator(elseExpr, input, evalContext);
+    return await evaluator(elseExpr, input, evalContext);
   }
 };
 

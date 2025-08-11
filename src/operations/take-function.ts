@@ -2,7 +2,7 @@ import type { FunctionDefinition, FunctionEvaluator } from '../types';
 import { Errors } from '../errors';
 import { box, unbox } from '../boxing';
 
-export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
+export const evaluate: FunctionEvaluator = async (input, context, args, evaluator) => {
   // Validate arguments
   if (args.length !== 1) {
     throw Errors.wrongArgumentCount('take', 1, args.length);
@@ -17,7 +17,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   if (!args[0]) {
     throw Errors.argumentRequired('take', 'number argument');
   }
-  const numResult = evaluator(args[0], input, context);
+  const numResult = await evaluator(args[0], input, context);
   
   // Validate that num is a singleton integer
   if (numResult.value.length !== 1) {

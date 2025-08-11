@@ -38,7 +38,7 @@ describe("New Simplified Lexer", () => {
   }
 
   describe("Identifiers and Keywords", () => {
-    it("should tokenize all keywords as identifiers", () => {
+    it("should tokenize all keywords as identifiers", async () => {
       const keywords = [
         "and",
         "or",
@@ -66,7 +66,7 @@ describe("New Simplified Lexer", () => {
       }
     });
 
-    it("should allow keywords in property access", () => {
+    it("should allow keywords in property access", async () => {
       const result = tokenTypesAndValues("Patient.where.contains.true");
       expect(result).toEqual([
         "ID:Patient",
@@ -80,7 +80,7 @@ describe("New Simplified Lexer", () => {
       ]);
     });
 
-    it("should parse complex expressions with keyword operators", () => {
+    it("should parse complex expressions with keyword operators", async () => {
       const result = tokenTypesAndValues("a and b or c implies d");
       expect(result).toEqual([
         "ID:a",
@@ -96,7 +96,7 @@ describe("New Simplified Lexer", () => {
   });
 
   describe("Symbol Operators", () => {
-    it("should tokenize arithmetic operators", () => {
+    it("should tokenize arithmetic operators", async () => {
       const result = tokenTypesAndValues("1 + 2 - 3 * 4 / 5");
       expect(result).toEqual([
         "NUMBER",
@@ -112,7 +112,7 @@ describe("New Simplified Lexer", () => {
       ]);
     });
 
-    it("should tokenize comparison operators", () => {
+    it("should tokenize comparison operators", async () => {
       const result = tokenTypesAndValues("a < b > c <= d >= e");
       expect(result).toEqual([
         "ID:a",
@@ -128,7 +128,7 @@ describe("New Simplified Lexer", () => {
       ]);
     });
 
-    it("should tokenize equality operators", () => {
+    it("should tokenize equality operators", async () => {
       const result = tokenTypesAndValues("a = b != c ~ d !~ e");
       expect(result).toEqual([
         "ID:a",
@@ -144,12 +144,12 @@ describe("New Simplified Lexer", () => {
       ]);
     });
 
-    it("should tokenize other operators", () => {
+    it("should tokenize other operators", async () => {
       const result = tokenTypesAndValues("a | b & c");
       expect(result).toEqual(["ID:a", "OP:|", "ID:b", "OP:&", "ID:c", "EOF"]);
     });
 
-    it("should preserve operator values in tokens", () => {
+    it("should preserve operator values in tokens", async () => {
       const tokens = tokenize("+ - * / < > <= >= = != ~ !~ | &");
       const operators = tokens.filter((t) => t.type === TokenType.OPERATOR);
       const values = operators.map((t) => t.value);
@@ -173,7 +173,7 @@ describe("New Simplified Lexer", () => {
   });
 
   describe("Literals", () => {
-    it("should tokenize numbers", () => {
+    it("should tokenize numbers", async () => {
       const tokens = tokenize("42 3.14 0.001");
       expect(getToken(tokens, 0).type).toBe(TokenType.NUMBER);
       expect(getToken(tokens, 0).value).toBe("42");
@@ -183,26 +183,26 @@ describe("New Simplified Lexer", () => {
       expect(getToken(tokens, 2).value).toBe("0.001");
     });
 
-    it("should tokenize strings with single quotes", () => {
+    it("should tokenize strings with single quotes", async () => {
       const tokens = tokenize("'hello' 'world'");
       expect(getToken(tokens, 0).type).toBe(TokenType.STRING);
       expect(getToken(tokens, 0).value).toBe("'hello'");
       expect(getToken(tokens, 1).value).toBe("'world'");
     });
 
-    it("should tokenize strings with double quotes", () => {
+    it("should tokenize strings with double quotes", async () => {
       const tokens = tokenize('"hello" "world"');
       expect(getToken(tokens, 0).type).toBe(TokenType.STRING);
       expect(getToken(tokens, 0).value).toBe('"hello"');
     });
 
-    it("should handle escaped characters in strings", () => {
+    it("should handle escaped characters in strings", async () => {
       const tokens = tokenize("'hello\\'world' 'line1\\nline2'");
       expect(getToken(tokens, 0).type).toBe(TokenType.STRING);
       expect(getToken(tokens, 0).value).toBe("'hello\\'world'");
     });
 
-    it("should tokenize datetime literals", () => {
+    it("should tokenize datetime literals", async () => {
       const datetimes = [
         "@2023",
         "@2023-12",
@@ -219,7 +219,7 @@ describe("New Simplified Lexer", () => {
       }
     });
 
-    it("should tokenize time literals", () => {
+    it("should tokenize time literals", async () => {
       const times = ["@T10:30", "@T10:30:45", "@T10:30:45.123"];
 
       for (const time of times) {
@@ -231,22 +231,22 @@ describe("New Simplified Lexer", () => {
   });
 
   describe("Environment Variables", () => {
-    it("should tokenize simple environment variables", () => {
+    it("should tokenize simple environment variables", async () => {
       const result = tokenTypesAndValues("%ucum %context");
       expect(result).toEqual(["ENV:%ucum", "ENV:%context", "EOF"]);
     });
 
-    it("should tokenize delimited environment variables", () => {
+    it("should tokenize delimited environment variables", async () => {
       const result = tokenTypesAndValues("%`us-zip` %`my-var`");
       expect(result).toEqual(["ENV:%`us-zip`", "ENV:%`my-var`", "EOF"]);
     });
 
-    it("should tokenize string-style environment variables (backwards compatibility)", () => {
+    it("should tokenize string-style environment variables (backwards compatibility)", async () => {
       const result = tokenTypesAndValues("%'us-zip' %'my-var'");
       expect(result).toEqual(["ENV:%'us-zip'", "ENV:%'my-var'", "EOF"]);
     });
 
-    it("should preserve the full value of environment variables", () => {
+    it("should preserve the full value of environment variables", async () => {
       const tokens = tokenize("%ucum %`us-zip` %'test'");
       expect(getToken(tokens, 0).type).toBe(TokenType.ENVIRONMENT_VARIABLE);
       expect(getToken(tokens, 0).value).toBe("%ucum");
@@ -256,13 +256,13 @@ describe("New Simplified Lexer", () => {
       expect(getToken(tokens, 2).value).toBe("%'test'");
     });
 
-    it("should handle escaped characters in delimited environment variables", () => {
+    it("should handle escaped characters in delimited environment variables", async () => {
       const tokens = tokenize("%`with\\`backtick`");
       expect(getToken(tokens, 0).type).toBe(TokenType.ENVIRONMENT_VARIABLE);
       expect(getToken(tokens, 0).value).toBe("%`with\\`backtick`");
     });
 
-    it("should throw error for invalid environment variable names", () => {
+    it("should throw error for invalid environment variable names", async () => {
       expect(() => tokenize("%")).toThrow("Invalid environment variable name");
       expect(() => tokenize("% ")).toThrow("Invalid environment variable name");
       expect(() => tokenize("%123")).toThrow(
@@ -270,7 +270,7 @@ describe("New Simplified Lexer", () => {
       );
     });
 
-    it("should throw error for unterminated environment variables", () => {
+    it("should throw error for unterminated environment variables", async () => {
       expect(() => tokenize("%`unterminated")).toThrow(
         "Unterminated environment variable",
       );
@@ -281,7 +281,7 @@ describe("New Simplified Lexer", () => {
   });
 
   describe("Special Identifiers", () => {
-    it("should tokenize all $... as SPECIAL_IDENTIFIER", () => {
+    it("should tokenize all $... as SPECIAL_IDENTIFIER", async () => {
       const result = tokenTypesAndValues("$this $index $total $custom $var123");
       expect(result).toEqual([
         "$:this",
@@ -293,7 +293,7 @@ describe("New Simplified Lexer", () => {
       ]);
     });
 
-    it("should preserve the full value of special identifiers", () => {
+    it("should preserve the full value of special identifiers", async () => {
       const tokens = tokenize("$this $custom_var $test123");
       expect(getToken(tokens, 0).type).toBe(TokenType.SPECIAL_IDENTIFIER);
       expect(getToken(tokens, 0).value).toBe("$this");
@@ -303,7 +303,7 @@ describe("New Simplified Lexer", () => {
       expect(getToken(tokens, 2).value).toBe("$test123");
     });
 
-    it("should handle $ without following identifier", () => {
+    it("should handle $ without following identifier", async () => {
       const tokens = tokenize("$ $");
       expect(getToken(tokens, 0).type).toBe(TokenType.SPECIAL_IDENTIFIER);
       expect(getToken(tokens, 0).value).toBe("$");
@@ -311,14 +311,14 @@ describe("New Simplified Lexer", () => {
       expect(getToken(tokens, 1).value).toBe("$");
     });
 
-    it("should tokenize delimited identifiers", () => {
+    it("should tokenize delimited identifiers", async () => {
       const tokens = tokenize("`special identifier` `with spaces`");
       expect(getToken(tokens, 0).type).toBe(TokenType.IDENTIFIER);
       expect(getToken(tokens, 0).value).toBe("`special identifier`");
       expect(getToken(tokens, 1).value).toBe("`with spaces`");
     });
 
-    it("should handle escaped backticks in delimited identifiers", () => {
+    it("should handle escaped backticks in delimited identifiers", async () => {
       const tokens = tokenize("`with\\`backtick`");
       expect(getToken(tokens, 0).type).toBe(TokenType.IDENTIFIER);
       expect(getToken(tokens, 0).value).toBe("`with\\`backtick`");
@@ -326,7 +326,7 @@ describe("New Simplified Lexer", () => {
   });
 
   describe("Structural Tokens", () => {
-    it("should tokenize parentheses", () => {
+    it("should tokenize parentheses", async () => {
       const result = tokenTypesAndValues("(a + b)");
       expect(result).toEqual([
         "LPAREN",
@@ -338,46 +338,46 @@ describe("New Simplified Lexer", () => {
       ]);
     });
 
-    it("should tokenize brackets", () => {
+    it("should tokenize brackets", async () => {
       const result = tokenTypesAndValues("a[0]");
       expect(result).toEqual(["ID:a", "LBRACKET", "NUMBER", "RBRACKET", "EOF"]);
     });
 
-    it("should tokenize braces", () => {
+    it("should tokenize braces", async () => {
       const result = tokenTypesAndValues("{}");
       expect(result).toEqual(["LBRACE", "RBRACE", "EOF"]);
     });
 
-    it("should tokenize dots", () => {
+    it("should tokenize dots", async () => {
       const result = tokenTypesAndValues("a.b.c");
       expect(result).toEqual(["ID:a", "DOT", "ID:b", "DOT", "ID:c", "EOF"]);
     });
 
-    it("should tokenize commas", () => {
+    it("should tokenize commas", async () => {
       const result = tokenTypesAndValues("a, b, c");
       expect(result).toEqual(["ID:a", "COMMA", "ID:b", "COMMA", "ID:c", "EOF"]);
     });
   });
 
   describe("Comments", () => {
-    it("should skip line comments", () => {
+    it("should skip line comments", async () => {
       const result = tokenTypesAndValues("a + b // this is a comment\n+ c");
       expect(result).toEqual(["ID:a", "OP:+", "ID:b", "OP:+", "ID:c", "EOF"]);
     });
 
-    it("should skip block comments", () => {
+    it("should skip block comments", async () => {
       const result = tokenTypesAndValues("a /* comment */ + /* another */ b");
       expect(result).toEqual(["ID:a", "OP:+", "ID:b", "EOF"]);
     });
 
-    it("should handle multi-line block comments", () => {
+    it("should handle multi-line block comments", async () => {
       const result = tokenTypesAndValues("a /* line1\nline2\nline3 */ + b");
       expect(result).toEqual(["ID:a", "OP:+", "ID:b", "EOF"]);
     });
   });
 
   describe("Complex Expressions", () => {
-    it("should tokenize FHIRPath navigation", () => {
+    it("should tokenize FHIRPath navigation", async () => {
       const result = tokenTypesAndValues("Patient.name.given.first()");
       expect(result).toEqual([
         "ID:Patient",
@@ -393,7 +393,7 @@ describe("New Simplified Lexer", () => {
       ]);
     });
 
-    it("should tokenize expressions with mixed operators", () => {
+    it("should tokenize expressions with mixed operators", async () => {
       const result = tokenTypesAndValues('age >= 18 and status = "active"');
       expect(result).toEqual([
         "ID:age",
@@ -407,7 +407,7 @@ describe("New Simplified Lexer", () => {
       ]);
     });
 
-    it("should tokenize function calls with arguments", () => {
+    it("should tokenize function calls with arguments", async () => {
       const result = tokenTypesAndValues('where(use = "official").given');
       expect(result).toEqual([
         "ID:where",
@@ -422,7 +422,7 @@ describe("New Simplified Lexer", () => {
       ]);
     });
 
-    it("should tokenize complex boolean expressions", () => {
+    it("should tokenize complex boolean expressions", async () => {
       const result = tokenTypesAndValues("a or b and c implies d");
       expect(result).toEqual([
         "ID:a",
@@ -438,7 +438,7 @@ describe("New Simplified Lexer", () => {
   });
 
   describe("Position Tracking", () => {
-    it("should track token positions", () => {
+    it("should track token positions", async () => {
       const tokens = tokenize("a + b");
 
       expect(getToken(tokens, 0).start).toBe(0);
@@ -457,7 +457,7 @@ describe("New Simplified Lexer", () => {
       expect(getToken(tokens, 2).column).toBe(5);
     });
 
-    it("should track line numbers", () => {
+    it("should track line numbers", async () => {
       const tokens = tokenize("a\n+\nb");
 
       expect(getToken(tokens, 0).line).toBe(1);
@@ -465,7 +465,7 @@ describe("New Simplified Lexer", () => {
       expect(getToken(tokens, 2).line).toBe(3);
     });
 
-    it("should handle position tracking option", () => {
+    it("should handle position tracking option", async () => {
       const lexer = new Lexer("a + b", { trackPosition: false });
       const tokens = lexer.tokenize();
 
@@ -475,42 +475,42 @@ describe("New Simplified Lexer", () => {
   });
 
   describe("Edge Cases", () => {
-    it("should handle empty input", () => {
+    it("should handle empty input", async () => {
       const result = tokenTypesAndValues("");
       expect(result).toEqual(["EOF"]);
     });
 
-    it("should handle whitespace-only input", () => {
+    it("should handle whitespace-only input", async () => {
       const result = tokenTypesAndValues("   \n\t  ");
       expect(result).toEqual(["EOF"]);
     });
 
-    it("should handle invalid characters", () => {
+    it("should handle invalid characters", async () => {
       expect(() => tokenize("#")).toThrow("Unexpected character '#'");
     });
 
-    it("should handle unterminated strings", () => {
+    it("should handle unterminated strings", async () => {
       expect(() => tokenize("'unterminated")).toThrow("Unterminated string");
     });
 
-    it("should handle unterminated delimited identifiers", () => {
+    it("should handle unterminated delimited identifiers", async () => {
       expect(() => tokenize("`unterminated")).toThrow(
         "Unterminated delimited identifier",
       );
     });
 
-    it("should handle invalid datetime formats", () => {
+    it("should handle invalid datetime formats", async () => {
       expect(() => tokenize("@20")).toThrow("Invalid datetime format");
       expect(() => tokenize("@2023-1")).toThrow("Invalid datetime format");
     });
 
-    it("should handle single exclamation mark", () => {
+    it("should handle single exclamation mark", async () => {
       expect(() => tokenize("a ! b")).toThrow("Unexpected character '!'");
     });
   });
 
   describe("Real-world Examples", () => {
-    it("should tokenize FHIR resource paths", () => {
+    it("should tokenize FHIR resource paths", async () => {
       const result = tokenTypesAndValues(
         'Patient.identifier.where(system = "http://example.org").value',
       );
@@ -531,7 +531,7 @@ describe("New Simplified Lexer", () => {
       ]);
     });
 
-    it("should tokenize complex filter expressions", () => {
+    it("should tokenize complex filter expressions", async () => {
       const result = tokenTypesAndValues(
         'Observation.where(code.coding.exists(system = "LOINC" and code = "1234-5"))',
       );
@@ -559,12 +559,12 @@ describe("New Simplified Lexer", () => {
       ]);
     });
 
-    it("should handle quantity literals (as separate tokens)", () => {
+    it("should handle quantity literals (as separate tokens)", async () => {
       const result = tokenTypesAndValues("5 days");
       expect(result).toEqual(["NUMBER", "ID:days", "EOF"]);
     });
 
-    it("should tokenize expressions with environment variables", () => {
+    it("should tokenize expressions with environment variables", async () => {
       const result = tokenTypesAndValues(
         "value.matches(%`us-zip`) and system = %ucum",
       );
@@ -583,7 +583,7 @@ describe("New Simplified Lexer", () => {
       ]);
     });
 
-    it("manual", () => {
+    it("manual", async () => {
       const result = tokenize("Patient.name.given");
       console.log(result);
     });

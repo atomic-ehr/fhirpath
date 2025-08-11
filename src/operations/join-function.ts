@@ -2,7 +2,7 @@ import type { FunctionDefinition } from '../types';
 import type { FunctionEvaluator } from '../types';
 import { box, unbox } from '../boxing';
 
-export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
+export const evaluate: FunctionEvaluator = async (input, context, args, evaluator) => {
   // If input is empty, return empty
   if (input.length === 0) {
     return { value: [], context };
@@ -11,7 +11,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   // Get separator from args (if provided)
   let separator = '';
   if (args.length > 0 && args[0]) {
-    const sepResult = evaluator(args[0], input, context);
+    const sepResult = await evaluator(args[0], input, context);
     if (sepResult.value.length > 0) {
       const boxedSep = sepResult.value[0];
       if (boxedSep) {
@@ -24,7 +24,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   }
 
   // Convert all input items to strings and join
-  const stringValues = input.map(boxedItem => {
+  const stringValues = await Promise.all(input.map(async boxedItem => {
     if (boxedItem === null || boxedItem === undefined) {
       return '';
     }
@@ -33,7 +33,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
       return '';
     }
     return String(item);
-  });
+  }));
 
   const result = stringValues.join(separator);
 

@@ -162,7 +162,7 @@ if (values.limit) {
 // Get completions
 let completions: CompletionItem[] = [];
 try {
-  completions = provideCompletions(expression, cursorPosition, options);
+  completions = await provideCompletions(expression, cursorPosition, options);
 } catch (error) {
   console.error('Error getting completions:', error instanceof Error ? error.message : String(error));
   process.exit(1);

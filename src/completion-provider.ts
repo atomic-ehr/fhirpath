@@ -54,11 +54,11 @@ export interface CompletionOptions {
 /**
  * Provides context-aware completions for FHIRPath expressions
  */
-export function provideCompletions(
+export async function provideCompletions(
   expression: string,
   cursorPosition: number,
   options: CompletionOptions = {}
-): CompletionItem[] {
+): Promise<CompletionItem[]> {
   const { modelProvider, variables, inputType, maxCompletions = 100 } = options;
   
   try {
@@ -70,7 +70,7 @@ export function provideCompletions(
     
     // Analyze with cursor mode
     const analyzer = new Analyzer(modelProvider);
-    const analysis = analyzer.analyze(
+    const analysis = await analyzer.analyze(
       parseResult.ast,
       variables,
       inputType,
@@ -105,21 +105,24 @@ export function provideCompletions(
                 const baseType = ast.left.left?.typeInfo;
                 if (baseType) {
                   const typeName = baseType.name || baseType.type;
-                  const elements = modelProvider.getElements(typeName);
-                  if (elements.length > 0) {
-                    // Check if any elements start with the partial text
-                    const hasMatches = elements.some(p => 
-                      p.name.toLowerCase().startsWith(partialText.toLowerCase()) &&
-                      p.name.toLowerCase() !== partialText.toLowerCase()
-                    );
-                    
-                    if (hasMatches) {
-                      // There are potential completions - treat as identifier context
-                      cursorNode = {
-                        ...cursorNode,
-                        context: CursorContext.Identifier
-                      } as any;
-                      typeBeforeCursor = baseType;
+                  // Skip if type is 'Any' as it's not a real FHIR type
+                  if (typeName && typeName !== 'Any') {
+                    const elements = await modelProvider.getElements(typeName);
+                    if (elements.length > 0) {
+                      // Check if any elements start with the partial text
+                      const hasMatches = elements.some(p => 
+                        p.name.toLowerCase().startsWith(partialText.toLowerCase()) &&
+                        p.name.toLowerCase() !== partialText.toLowerCase()
+                      );
+                      
+                      if (hasMatches) {
+                        // There are potential completions - treat as identifier context
+                        cursorNode = {
+                          ...cursorNode,
+                          context: CursorContext.Identifier
+                        } as any;
+                        typeBeforeCursor = baseType;
+                      }
                     }
                   }
                 }
@@ -163,7 +166,7 @@ export function provideCompletions(
     
     switch (cursorNode.context) {
       case CursorContext.Identifier:
-        completions = getIdentifierCompletions(typeBeforeCursor, modelProvider);
+        completions = await getIdentifierCompletions(typeBeforeCursor, modelProvider);
         break;
       
       case CursorContext.Operator:
@@ -171,11 +174,11 @@ export function provideCompletions(
         break;
       
       case CursorContext.Type:
-        completions = getTypeCompletions(cursorNode, modelProvider);
+        completions = await getTypeCompletions(cursorNode, modelProvider);
         break;
       
       case CursorContext.Argument:
-        completions = getArgumentCompletions(cursorNode, typeBeforeCursor, modelProvider, variables);
+        completions = await getArgumentCompletions(cursorNode, typeBeforeCursor, modelProvider, variables);
         break;
       
       case CursorContext.Index:
@@ -207,29 +210,20 @@ export function provideCompletions(
 function getGeneralCompletions(): CompletionItem[] {
   const completions: CompletionItem[] = [];
   
-  // Add dot operator for navigation
-  completions.push({
-    label: '.',
-    kind: CompletionKind.Operator,
-    detail: 'Navigation operator'
-  });
-  
-  // Add common operators
-  const operators = ['+', '-', '=', '!=', 'and', 'or'];
-  for (const op of operators) {
-    completions.push({
-      label: op,
-      kind: CompletionKind.Operator,
-      detail: 'Operator'
-    });
+  // Get operators from registry
+  const operatorNames = registry.listOperators();
+  for (const opName of operatorNames) {
+    const opDef = registry.getOperatorDefinition(opName);
+    if (opDef) {
+      completions.push({
+        label: opDef.symbol,
+        kind: CompletionKind.Operator,
+        detail: opDef.description || `${opDef.name} operator`
+      });
+    }
   }
   
-  // Add common constants
-  completions.push(
-    { label: 'true', kind: CompletionKind.Constant, detail: 'Boolean true' },
-    { label: 'false', kind: CompletionKind.Constant, detail: 'Boolean false' },
-    { label: 'null', kind: CompletionKind.Constant, detail: 'Null value' }
-  );
+  // No hardcoded constants - these should come from context
   
   return completions;
 }
@@ -333,25 +327,28 @@ function extractPartialText(expression: string, cursorPosition: number): string 
 /**
  * Get completions for identifier context (after dot)
  */
-function getIdentifierCompletions(
+async function getIdentifierCompletions(
   typeBeforeCursor?: TypeInfo,
   modelProvider?: ModelProvider
-): CompletionItem[] {
+): Promise<CompletionItem[]> {
   const completions: CompletionItem[] = [];
   
   // Add elements from type if available
   if (typeBeforeCursor && modelProvider) {
     // Use the name property which contains the actual FHIR type name
+    // Skip if type is 'Any' as it's not a real FHIR type
     const typeName = typeBeforeCursor.name || typeBeforeCursor.type;
-    const elements = modelProvider.getElements(typeName);
-    if (elements.length > 0) {
-      for (const element of elements) {
-        completions.push({
-          label: element.name,
-          kind: CompletionKind.Property,
-          detail: element.type,
-          documentation: element.documentation
-        });
+    if (typeName && typeName !== 'Any') {
+      const elements = await modelProvider.getElements(typeName);
+      if (elements.length > 0) {
+        for (const element of elements) {
+          completions.push({
+            label: element.name,
+            kind: CompletionKind.Property,
+            detail: element.type,
+            documentation: element.documentation
+          });
+        }
       }
     }
   }
@@ -437,60 +434,38 @@ function getOperatorCompletions(typeBeforeCursor?: TypeInfo): CompletionItem[] {
 /**
  * Get completions for type context (after is/as/ofType)
  */
-function getTypeCompletions(
+async function getTypeCompletions(
   cursorNode: AnyCursorNode,
   modelProvider?: ModelProvider
-): CompletionItem[] {
+): Promise<CompletionItem[]> {
   const completions: CompletionItem[] = [];
   
-  // FHIRPath primitive types
-  const primitiveTypes = [
-    'Boolean',
-    'String',
-    'Integer',
-    'Decimal',
-    'Date',
-    'DateTime',
-    'Time',
-    'Quantity'
-  ];
-  
-  for (const type of primitiveTypes) {
-    completions.push({
-      label: type,
-      kind: CompletionKind.Type,
-      detail: 'FHIRPath primitive type'
-    });
-  }
-  
-  // FHIR complex types
-  const complexTypes = [
-    'Coding',
-    'CodeableConcept',
-    'Period',
-    'Range',
-    'Ratio',
-    'SampledData',
-    'Identifier',
-    'HumanName',
-    'Address',
-    'ContactPoint',
-    'Attachment',
-    'Reference'
-  ];
-  
-  for (const type of complexTypes) {
-    completions.push({
-      label: type,
-      kind: CompletionKind.Type,
-      detail: 'FHIR complex type'
-    });
+  // Primitive types - only if modelProvider is available
+  if (modelProvider) {
+    const primitiveTypes = await modelProvider.getPrimitiveTypes();
+    for (const type of primitiveTypes) {
+      completions.push({
+        label: type,
+        kind: CompletionKind.Type,
+        detail: 'FHIRPath primitive type'
+      });
+    }
+    
+    // Complex types
+    const complexTypes = await modelProvider.getComplexTypes();
+    for (const type of complexTypes) {
+      completions.push({
+        label: type,
+        kind: CompletionKind.Type,
+        detail: 'FHIR complex type'
+      });
+    }
   }
   
   // For ofType, add resource types
   const typeOperator = (cursorNode as any).typeOperator;
   if (typeOperator === 'ofType' && modelProvider) {
-    const resourceTypes = modelProvider.getResourceTypes();
+    const resourceTypes = await modelProvider.getResourceTypes();
     for (const type of resourceTypes) {
       completions.push({
         label: type,
@@ -506,75 +481,66 @@ function getTypeCompletions(
 /**
  * Get completions for argument context (in function arguments)
  */
-function getArgumentCompletions(
+async function getArgumentCompletions(
   cursorNode: AnyCursorNode,
   typeBeforeCursor?: TypeInfo,
   modelProvider?: ModelProvider,
   variables?: Record<string, any>
-): CompletionItem[] {
+): Promise<CompletionItem[]> {
   const completions: CompletionItem[] = [];
   const argNode = cursorNode as any;
   
-  // Add variables
-  completions.push({
-    label: '$this',
-    kind: CompletionKind.Variable,
-    detail: 'Current item in iteration'
-  });
-  
-  completions.push({
-    label: '$index',
-    kind: CompletionKind.Variable,
-    detail: 'Current index in iteration'
-  });
-  
-  // Add user variables
+  // Add user variables if available
   if (variables) {
     for (const varName of Object.keys(variables)) {
-      completions.push({
-        label: varName.startsWith('%') ? varName : '%' + varName,
-        kind: CompletionKind.Variable,
-        detail: 'User-defined variable'
-      });
+      if (varName === '$this') {
+        completions.push({
+          label: '$this',
+          kind: CompletionKind.Variable,
+          detail: 'Current item in iteration'
+        });
+      } else if (varName === '$index') {
+        completions.push({
+          label: '$index',
+          kind: CompletionKind.Variable,
+          detail: 'Current index in iteration'
+        });
+      } else {
+        completions.push({
+          label: varName.startsWith('%') ? varName : '%' + varName,
+          kind: CompletionKind.Variable,
+          detail: 'User-defined variable'
+        });
+      }
     }
   }
   
   // Add elements if in lambda context
   const functionName = argNode.functionName;
-  if (functionName && ['where', 'select', 'all', 'exists'].includes(functionName)) {
+  // Check if the function accepts lambda expressions (could be determined from function signature in registry)
+  const lambdaFunctions = ['where', 'select', 'all', 'exists', 'any', 'repeat'];
+  if (functionName && lambdaFunctions.includes(functionName)) {
     // In lambda function, provide elements of item type
     if (typeBeforeCursor && modelProvider) {
       const itemType = { ...typeBeforeCursor, singleton: true };
       const typeName = itemType.name || itemType.type;
-      const elements = modelProvider.getElements(typeName);
-      if (elements.length > 0) {
-        for (const element of elements) {
-          completions.push({
-            label: element.name,
-            kind: CompletionKind.Property,
-            detail: element.type
-          });
+      // Skip if type is 'Any' as it's not a real FHIR type
+      if (typeName && typeName !== 'Any') {
+        const elements = await modelProvider.getElements(typeName);
+        if (elements.length > 0) {
+          for (const element of elements) {
+            completions.push({
+              label: element.name,
+              kind: CompletionKind.Property,
+              detail: element.type
+            });
+          }
         }
       }
     }
   }
   
-  // Add constants
-  completions.push({
-    label: 'true',
-    kind: CompletionKind.Constant,
-    detail: 'Boolean true'
-  });
-  completions.push({
-    label: 'false',
-    kind: CompletionKind.Constant,
-    detail: 'Boolean false'
-  });
-  completions.push({
-    label: 'null',
-    kind: CompletionKind.Constant,
-    detail: 'Null value'
-  });
+  // No hardcoded constants - these should come from context or be typed by user
   
   return completions;
 }
@@ -588,36 +554,44 @@ function getIndexCompletions(
 ): CompletionItem[] {
   const completions: CompletionItem[] = [];
   
-  // Integer literals
-  for (let i = 0; i < 10; i++) {
-    completions.push({
-      label: i.toString(),
-      kind: CompletionKind.Constant,
-      detail: 'Index'
-    });
+  // Add user variables if available
+  if (variables) {
+    // Add $index if it's in scope (should be provided by context)
+    if ('$index' in variables) {
+      completions.push({
+        label: '$index',
+        kind: CompletionKind.Variable,
+        detail: 'Current index'
+      });
+    }
+    
+    // Add other user variables
+    for (const varName of Object.keys(variables)) {
+      if (!varName.startsWith('$')) {
+        completions.push({
+          label: varName.startsWith('%') ? varName : '%' + varName,
+          kind: CompletionKind.Variable,
+          detail: 'User-defined variable'
+        });
+      }
+    }
   }
   
-  // Index variables
-  completions.push({
-    label: '$index',
-    kind: CompletionKind.Variable,
-    detail: 'Current index'
-  });
-  
-  // Index functions
-  completions.push({
-    label: 'first()',
-    kind: CompletionKind.Function,
-    detail: 'First item index',
-    insertText: 'first()'
-  });
-  
-  completions.push({
-    label: 'last()',
-    kind: CompletionKind.Function,
-    detail: 'Last item index',
-    insertText: 'last()'
-  });
+  // Get index-related functions from registry
+  const functionNames = registry.listFunctions();
+  for (const name of functionNames) {
+    if (name === 'first' || name === 'last') {
+      const funcDef = registry.getFunction(name);
+      if (funcDef) {
+        completions.push({
+          label: name + '()',
+          kind: CompletionKind.Function,
+          detail: funcDef.description || `${name} function`,
+          insertText: name + '()'
+        });
+      }
+    }
+  }
   
   return completions;
 }

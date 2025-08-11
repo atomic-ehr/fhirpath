@@ -1,7 +1,7 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
 import { box, unbox } from '../boxing';
 
-export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
+export const evaluate: FunctionEvaluator = async (input, context, args, evaluator) => {
   // Empty input returns false per spec
   if (input.length === 0) {
     return { value: [box(false, { type: 'Boolean', singleton: true })], context };

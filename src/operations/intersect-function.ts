@@ -2,7 +2,7 @@ import type { FunctionDefinition, FunctionEvaluator } from '../types';
 import { Errors } from '../errors';
 import { box, unbox } from '../boxing';
 
-export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
+export const evaluate: FunctionEvaluator = async (input, context, args, evaluator) => {
   if (args.length !== 1) {
     throw Errors.wrongArgumentCount('intersect', 1, args.length);
   }
@@ -12,7 +12,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   if (!argNode) {
     throw Errors.invalidOperation('intersect requires an argument');
   }
-  const otherResult = evaluator(argNode, input, context);
+  const otherResult = await evaluator(argNode, input, context);
   const other = otherResult.value;
 
   // Find elements that are in both collections, eliminating duplicates

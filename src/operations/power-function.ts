@@ -2,7 +2,7 @@ import type { FunctionDefinition, FunctionEvaluator } from '../types';
 import { Errors } from '../errors';
 import { box, unbox } from '../boxing';
 
-export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
+export const evaluate: FunctionEvaluator = async (input, context, args, evaluator) => {
   // power() takes exactly one argument (exponent)
   if (args.length !== 1) {
     throw Errors.wrongArgumentCount('power', 1, args.length);
@@ -31,7 +31,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   }
 
   // Evaluate exponent
-  const exponentResult = evaluator(args[0]!, input, context);
+  const exponentResult = await evaluator(args[0]!, input, context);
   if (exponentResult.value.length === 0) {
     return { value: [], context };
   }

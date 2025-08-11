@@ -3,7 +3,7 @@ import { Errors } from '../errors';
 import { RuntimeContextManager } from '../interpreter';
 import { box, unbox } from '../boxing';
 
-export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
+export const evaluate: FunctionEvaluator = async (input, context, args, evaluator) => {
   // aggregator expression is required
   if (args.length < 1) {
     throw Errors.invalidOperation('aggregate requires at least one argument (aggregator expression)');
@@ -15,14 +15,15 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   // Evaluate init value if provided, otherwise start with empty
   let total: any[];
   if (initExpr) {
-    const initResult = evaluator(initExpr, input, context);
+    const initResult = await evaluator(initExpr, input, context);
     total = initResult.value;
   } else {
     total = [];
   }
 
   // For each item in the input collection, evaluate the aggregator expression
-  input.forEach((item, index) => {
+  for (let index = 0; index < input.length; index++) {
+    const item = input[index]!;
     // Create a new context with $this, $index, and $total
     // Note: $this needs unboxed value, but we pass boxed item to evaluator
     const unboxedItem = unbox(item);
@@ -34,11 +35,11 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     aggregatorContext = RuntimeContextManager.setVariable(aggregatorContext, '$total', unboxedTotal);
 
     // Evaluate the aggregator expression
-    const result = evaluator(aggregatorExpr, [item], aggregatorContext);
+    const result = await evaluator(aggregatorExpr, [item], aggregatorContext);
     
     // Update $total with the result
     total = result.value;
-  });
+  }
 
   return { value: total, context };
 };

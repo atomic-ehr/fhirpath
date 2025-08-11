@@ -3,7 +3,7 @@ import { Errors } from '../errors';
 import type { FunctionEvaluator } from '../types';
 import { box, unbox } from '../boxing';
 
-export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
+export const evaluate: FunctionEvaluator = async (input, context, args, evaluator) => {
   // contains() requires exactly 1 argument
   if (args.length !== 1) {
     throw Errors.wrongArgumentCount('contains', 1, args.length);
@@ -37,7 +37,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   }
 
   // Evaluate the substring expression
-  const substringResult = evaluator(substringExpr, input, context);
+  const substringResult = await evaluator(substringExpr, input, context);
   
   // If substring evaluation is empty, return empty
   if (substringResult.value.length === 0) {

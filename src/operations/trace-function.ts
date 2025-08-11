@@ -2,7 +2,7 @@ import type { FunctionDefinition, FunctionEvaluator } from '../types';
 import { Errors } from '../errors';
 import { box, unbox } from '../boxing';
 
-export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
+export const evaluate: FunctionEvaluator = async (input, context, args, evaluator) => {
   // trace() requires at least a name argument
   if (args.length === 0) {
     // If no name provided, use a default name
@@ -18,7 +18,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   if (!args[0]) {
     throw Errors.argumentRequired('trace', 'name argument');
   }
-  const nameResult = evaluator(args[0], input, context);
+  const nameResult = await evaluator(args[0], input, context);
   
   // Validate that name is a singleton string
   if (nameResult.value.length !== 1) {
@@ -37,7 +37,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
 
   // If projection argument is provided, evaluate it and log the result
   if (args.length === 2 && args[1]) {
-    const projectionResult = evaluator(args[1], input, context);
+    const projectionResult = await evaluator(args[1], input, context);
     console.log(`[FHIRPath trace] ${name}:`, JSON.stringify(projectionResult.value));
   } else {
     // Otherwise log the input

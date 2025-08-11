@@ -190,8 +190,8 @@ export class Interpreter {
       [NodeType.MembershipTest]: this.evaluateMembershipTest.bind(this),
       [NodeType.TypeCast]: this.evaluateTypeCast.bind(this),
       [NodeType.Quantity]: this.evaluateQuantity.bind(this),
-      [NodeType.EOF]: () => ({ value: [], context: {} as RuntimeContext }),
-      [NodeType.TypeReference]: () => ({ value: [], context: {} as RuntimeContext })
+      [NodeType.EOF]: async () => ({ value: [], context: {} as RuntimeContext }),
+      [NodeType.TypeReference]: async () => ({ value: [], context: {} as RuntimeContext })
     };
 
     // Register operation evaluators
@@ -218,7 +218,7 @@ export class Interpreter {
   }
 
   // Main evaluate method
-  evaluate(node: ASTNode, input: any[] = [], context?: RuntimeContext): EvaluationResult {
+  async evaluate(node: ASTNode, input: any[] = [], context?: RuntimeContext): Promise<EvaluationResult> {
     // Initialize context if not provided
     if (!context) {
       context = this.createInitialContext(input);
@@ -242,7 +242,7 @@ export class Interpreter {
       throw Errors.unknownNodeType(node.type);
     }
 
-    return evaluator(node, boxedInput, contextWithNode);
+    return await evaluator(node, boxedInput, contextWithNode);
   }
 
   private createInitialContext(input: any[]): RuntimeContext {
@@ -257,7 +257,7 @@ export class Interpreter {
   }
 
   // Literal node evaluator
-  private evaluateLiteral(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): EvaluationResult {
+  private async evaluateLiteral(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): Promise<EvaluationResult> {
     const literal = node as LiteralNode;
     
     // Box the literal value with appropriate type info
@@ -281,7 +281,7 @@ export class Interpreter {
   }
 
   // Identifier node evaluator
-  private evaluateIdentifier(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): EvaluationResult {
+  private async evaluateIdentifier(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): Promise<EvaluationResult> {
     const identifier = node as IdentifierNode;
     const name = identifier.name;
 
@@ -304,8 +304,58 @@ export class Interpreter {
       }
       
       if (item && typeof item === 'object') {
-        // Check if this is a choice type navigation
-        if (nodeTypeInfo?.modelContext && typeof nodeTypeInfo.modelContext === 'object' &&
+        // First, check if this might be a FHIR choice type by looking for choice properties
+        // FHIR choice types use the pattern: base name + Type suffix (e.g., valueQuantity, valueCodeableConcept)
+        let foundChoiceValue = false;
+        
+        // Check for FHIR choice type pattern
+        if (context.modelProvider) {
+          // Try common FHIR choice patterns
+          const possibleChoiceProperties = Object.keys(item).filter(key => 
+            key.startsWith(name) && key !== name && key.length > name.length
+          );
+          
+          if (possibleChoiceProperties.length > 0) {
+            // This looks like a choice type - return all matching values
+            for (const choiceProp of possibleChoiceProperties) {
+              const value = item[choiceProp];
+              const primitiveElementName = `_${choiceProp}`;
+              const primitiveElement = (primitiveElementName in item) ? item[primitiveElementName] : undefined;
+              
+              // Try to determine the type from the property name suffix
+              let choiceType = 'Any';
+              const suffix = choiceProp.substring(name.length);
+              if (suffix) {
+                // Remove leading uppercase letter and make it the type
+                choiceType = suffix;
+              }
+              
+              if (Array.isArray(value)) {
+                for (const v of value) {
+                  // For FHIR resources, use their resourceType
+                  if (v && typeof v === 'object' && 'resourceType' in v) {
+                    const typeInfo = await context.modelProvider!.getType(v.resourceType);
+                    results.push(box(v, typeInfo || { type: v.resourceType as any, singleton: true }, primitiveElement));
+                  } else {
+                    results.push(box(v, { type: choiceType as any, singleton: true }, primitiveElement));
+                  }
+                }
+              } else if (value !== null && value !== undefined) {
+                // For FHIR resources, use their resourceType
+                if (value && typeof value === 'object' && 'resourceType' in value) {
+                  const typeInfo = await context.modelProvider!.getType(value.resourceType);
+                  results.push(box(value, typeInfo || { type: value.resourceType as any, singleton: true }, primitiveElement));
+                } else {
+                  results.push(box(value, { type: choiceType as any, singleton: !Array.isArray(value) }, primitiveElement));
+                }
+              }
+              foundChoiceValue = true;
+            }
+          }
+        }
+        
+        // Check if this is a choice type navigation from analyzer
+        if (!foundChoiceValue && nodeTypeInfo?.modelContext && typeof nodeTypeInfo.modelContext === 'object' &&
             'isUnion' in nodeTypeInfo.modelContext && 
             nodeTypeInfo.modelContext.isUnion && 'choices' in nodeTypeInfo.modelContext &&
             Array.isArray(nodeTypeInfo.modelContext.choices)) {
@@ -331,9 +381,12 @@ export class Interpreter {
               } else if (value !== null && value !== undefined) {
                 results.push(box(value, choiceTypeInfo, primitiveElement));
               }
+              foundChoiceValue = true;
             }
           }
-        } else if (name in item) {
+        }
+        
+        if (!foundChoiceValue && name in item) {
           // Regular property navigation
           const value = item[name];
           const primitiveElementName = `_${name}`;
@@ -345,12 +398,13 @@ export class Interpreter {
             const elementTypeInfo = nodeTypeInfo ? { ...nodeTypeInfo, singleton: true } : undefined;
             for (const v of value) {
               // Special handling for FHIR resources - use their resourceType
-              // Do this if the property navigation has type 'Any' (polymorphic reference) or no type info
-              if (v && typeof v === 'object' && 'resourceType' in v && typeof v.resourceType === 'string') {
+              // Do this when the property could be polymorphic (type is 'Any' or 'Resource')
+              if (v && typeof v === 'object' && 'resourceType' in v && typeof v.resourceType === 'string' &&
+                  (!elementTypeInfo || elementTypeInfo.type === 'Any' || (elementTypeInfo as any).type === 'Resource')) {
                 // Get full type info from model provider if available
                 let resourceTypeInfo;
                 if (context.modelProvider) {
-                  resourceTypeInfo = context.modelProvider.getType(v.resourceType);
+                  resourceTypeInfo = await context.modelProvider.getType(v.resourceType);
                   if (resourceTypeInfo) {
                     // Make it singleton since it's a single element in the array
                     resourceTypeInfo = { ...resourceTypeInfo, singleton: true };
@@ -370,12 +424,13 @@ export class Interpreter {
             }
           } else if (value !== null && value !== undefined) {
             // Special handling for FHIR resources - use their resourceType
-            // Do this if the property navigation has type 'Any' (polymorphic reference) or no type info
-            if (value && typeof value === 'object' && 'resourceType' in value && typeof value.resourceType === 'string') {
+            // Do this when the property could be polymorphic (type is 'Any' or 'Resource')
+            if (value && typeof value === 'object' && 'resourceType' in value && typeof value.resourceType === 'string' &&
+                (!nodeTypeInfo || nodeTypeInfo.type === 'Any' || (nodeTypeInfo as any).type === 'Resource')) {
               // Get full type info from model provider if available
               let resourceTypeInfo;
               if (context.modelProvider) {
-                resourceTypeInfo = context.modelProvider.getType(value.resourceType);
+                resourceTypeInfo = await context.modelProvider.getType(value.resourceType);
                 if (resourceTypeInfo) {
                   // Preserve singleton status
                   resourceTypeInfo = { ...resourceTypeInfo, singleton: !Array.isArray(value) };
@@ -405,7 +460,7 @@ export class Interpreter {
   }
 
   // TypeOrIdentifier node evaluator (handles Patient, Observation, etc.)
-  private evaluateTypeOrIdentifier(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): EvaluationResult {
+  private async evaluateTypeOrIdentifier(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): Promise<EvaluationResult> {
     const typeOrId = node as TypeOrIdentifierNode;
     const name = typeOrId.name;
 
@@ -420,33 +475,33 @@ export class Interpreter {
     }
 
     // Otherwise treat as identifier
-    return this.evaluateIdentifier(node, input, context);
+    return await this.evaluateIdentifier(node, input, context);
   }
 
   // Binary operator evaluator
-  private evaluateBinary(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): EvaluationResult {
+  private async evaluateBinary(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): Promise<EvaluationResult> {
     const binary = node as BinaryNode;
     const operator = binary.operator;
 
     // Special handling for dot operator (sequential pipeline)
     if (operator === '.') {
       // Evaluate left with current input/context
-      const leftResult = this.evaluate(binary.left, input, context);
+      const leftResult = await this.evaluate(binary.left, input, context);
       // Use left's output as right's input, and left's context flows to right
-      return this.evaluate(binary.right, leftResult.value, leftResult.context);
+      return await this.evaluate(binary.right, leftResult.value, leftResult.context);
     }
 
     // Special handling for union operator (each side gets fresh context from original)
     if (operator === '|') {
       // Each side of union should have its own variable scope
       // Variables defined on left side should not be visible on right side
-      const leftResult = this.evaluate(binary.left, input, context);
-      const rightResult = this.evaluate(binary.right, input, context); // Use original context, not leftResult.context
+      const leftResult = await this.evaluate(binary.left, input, context);
+      const rightResult = await this.evaluate(binary.right, input, context); // Use original context, not leftResult.context
       
       // Merge the results
       const unionEvaluator = this.operationEvaluators.get('union');
       if (unionEvaluator) {
-        return unionEvaluator(input, context, leftResult.value, rightResult.value);
+        return await unionEvaluator(input, context, leftResult.value, rightResult.value);
       }
       
       // Fallback if union evaluator not found
@@ -460,9 +515,9 @@ export class Interpreter {
     const evaluator = this.operationEvaluators.get(operator);
     if (evaluator) {
       // Most operators evaluate arguments in parallel with same input/context
-      const leftResult = this.evaluate(binary.left, input, context);
-      const rightResult = this.evaluate(binary.right, input, context);
-      return evaluator(input, context, leftResult.value, rightResult.value);
+      const leftResult = await this.evaluate(binary.left, input, context);
+      const rightResult = await this.evaluate(binary.right, input, context);
+      return await evaluator(input, context, leftResult.value, rightResult.value);
     }
 
     // If no evaluator found, throw error
@@ -470,11 +525,11 @@ export class Interpreter {
   }
 
   // Unary operator evaluator
-  private evaluateUnary(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): EvaluationResult {
+  private async evaluateUnary(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): Promise<EvaluationResult> {
     const unary = node as UnaryNode;
     const operator = unary.operator;
     
-    const operandResult = this.evaluate(unary.operand, input, context);
+    const operandResult = await this.evaluate(unary.operand, input, context);
 
     // Check for unary operation evaluators
     let evaluator: OperationEvaluator | undefined;
@@ -485,7 +540,7 @@ export class Interpreter {
     }
 
     if (evaluator) {
-      return evaluator(input, context, operandResult.value);
+      return await evaluator(input, context, operandResult.value);
     }
 
     // If no evaluator found, throw error
@@ -493,7 +548,7 @@ export class Interpreter {
   }
 
   // Variable evaluator
-  private evaluateVariable(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): EvaluationResult {
+  private async evaluateVariable(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): Promise<EvaluationResult> {
     const variable = node as VariableNode;
     const name = variable.name;
 
@@ -512,12 +567,12 @@ export class Interpreter {
   }
 
   // Collection evaluator
-  private evaluateCollection(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): EvaluationResult {
+  private async evaluateCollection(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): Promise<EvaluationResult> {
     const collection = node as CollectionNode;
     const results: FHIRPathValue[] = [];
 
     for (const element of collection.elements) {
-      const result = this.evaluate(element, input, context);
+      const result = await this.evaluate(element, input, context);
       results.push(...result.value);
     }
 
@@ -525,14 +580,14 @@ export class Interpreter {
   }
 
   // Function evaluator
-  private evaluateFunction(node: ASTNode, input: any[], context: RuntimeContext): EvaluationResult {
+  private async evaluateFunction(node: ASTNode, input: any[], context: RuntimeContext): Promise<EvaluationResult> {
     const func = node as FunctionNode;
     const funcName = (func.name as IdentifierNode).name;
 
     // Check if function is registered with an evaluator
     const functionEvaluator = this.functionEvaluators.get(funcName);
     if (functionEvaluator) {
-      return functionEvaluator(input, context, func.arguments, this.evaluate.bind(this));
+      return await functionEvaluator(input, context, func.arguments, this.evaluate.bind(this));
     }
 
     // No function found in registry
@@ -540,10 +595,10 @@ export class Interpreter {
   }
 
   // Index evaluator
-  private evaluateIndex(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): EvaluationResult {
+  private async evaluateIndex(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): Promise<EvaluationResult> {
     const indexNode = node as IndexNode;
-    const exprResult = this.evaluate(indexNode.expression, input, context);
-    const indexResult = this.evaluate(indexNode.index, input, context);
+    const exprResult = await this.evaluate(indexNode.expression, input, context);
+    const indexResult = await this.evaluate(indexNode.index, input, context);
 
     if (indexResult.value.length === 0 || exprResult.value.length === 0) {
       return { value: [], context };
@@ -562,9 +617,9 @@ export class Interpreter {
   }
 
   // Type membership test (is operator)
-  private evaluateMembershipTest(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): EvaluationResult {
+  private async evaluateMembershipTest(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): Promise<EvaluationResult> {
     const test = node as MembershipTestNode;
-    const exprResult = this.evaluate(test.expression, input, context);
+    const exprResult = await this.evaluate(test.expression, input, context);
     
     // If expression evaluates to empty, return empty
     if (exprResult.value.length === 0) {
@@ -592,7 +647,7 @@ export class Interpreter {
     }
     
     // Type checking with subtype support via ModelProvider
-    const results = exprResult.value.map(boxedItem => {
+    const results = await Promise.all(exprResult.value.map(async boxedItem => {
       const item = unbox(boxedItem);
       
       // If we have a ModelProvider and typeInfo, use it for accurate subtype checking
@@ -603,7 +658,7 @@ export class Interpreter {
       
       // For FHIR resources without typeInfo, try to get it from modelProvider
       if (context.modelProvider && item && typeof item === 'object' && 'resourceType' in item && typeof item.resourceType === 'string') {
-        const typeInfo = context.modelProvider.getType(item.resourceType);
+        const typeInfo = await context.modelProvider.getType(item.resourceType);
         if (typeInfo) {
           const matchingType = context.modelProvider.ofType(typeInfo, test.targetType as import('./types').TypeName);
           return box(matchingType !== undefined, { type: 'Boolean', singleton: true });
@@ -633,15 +688,15 @@ export class Interpreter {
         }
       })();
       return box(isMatch, { type: 'Boolean', singleton: true });
-    });
+    }));
 
     return { value: results, context };
   }
 
   // Type cast (as operator)
-  private evaluateTypeCast(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): EvaluationResult {
+  private async evaluateTypeCast(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): Promise<EvaluationResult> {
     const cast = node as TypeCastNode;
-    const exprResult = this.evaluate(cast.expression, input, context);
+    const exprResult = await this.evaluate(cast.expression, input, context);
     
     // If we have type information from analyzer (with ModelProvider), use it
     if (context.currentNode?.typeInfo?.modelContext) {
@@ -661,7 +716,7 @@ export class Interpreter {
     }
     
     // Filter values that match the target type with subtype support
-    const filtered = exprResult.value.filter(boxedItem => {
+    const filtered = await Promise.all(exprResult.value.map(async boxedItem => {
       const item = unbox(boxedItem);
       
       // If we have a ModelProvider and typeInfo, use it for accurate subtype checking
@@ -672,7 +727,7 @@ export class Interpreter {
       
       // For FHIR resources without typeInfo, try to get it from modelProvider
       if (context.modelProvider && item && typeof item === 'object' && 'resourceType' in item && typeof item.resourceType === 'string') {
-        const typeInfo = context.modelProvider.getType(item.resourceType);
+        const typeInfo = await context.modelProvider.getType(item.resourceType);
         if (typeInfo) {
           const matchingType = context.modelProvider.ofType(typeInfo, cast.targetType as import('./types').TypeName);
           return matchingType !== undefined;
@@ -699,12 +754,15 @@ export class Interpreter {
           return typeof item === 'string' && !isNaN(Date.parse(item));
         default: return false;
       }
-    });
+    }));
     
-    return { value: filtered, context };
+    // Filter out the false results (filter returns boolean for each item)
+    const actualFiltered = exprResult.value.filter((_, index) => filtered[index]);
+    
+    return { value: actualFiltered, context };
   }
   
-  private evaluateQuantity(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): EvaluationResult {
+  private async evaluateQuantity(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): Promise<EvaluationResult> {
     const quantity = node as QuantityNode;
     const quantityValue = createQuantity(quantity.value, quantity.unit, quantity.isCalendarUnit);
     return {

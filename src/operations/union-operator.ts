@@ -5,7 +5,7 @@ import { box, unbox } from '../boxing';
 
 // Note: The union operator is special and is typically handled directly in the interpreter
 // because it needs to preserve the original context for both operands
-export const evaluate: OperationEvaluator = (input, context, left, right) => {
+export const evaluate: OperationEvaluator = async (input, context, left, right) => {
   // Union merges collections and eliminates duplicates using equals (=) operator
   const result: any[] = [];
   const seen = new Set<any>();

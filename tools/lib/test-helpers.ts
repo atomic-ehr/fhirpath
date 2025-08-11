@@ -151,7 +151,7 @@ export async function runSingleTest(test: UnifiedTest) {
     const startTime = performance.now();
     
     try {
-      const result = evaluate(test.expression, options);
+      const result = await evaluate(test.expression, options);
       const endTime = performance.now();
       
       if (test.error) {

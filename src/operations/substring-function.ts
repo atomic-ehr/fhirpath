@@ -2,7 +2,7 @@ import type { FunctionDefinition, FunctionEvaluator } from '../types';
 import { Errors } from '../errors';
 import { box, unbox } from '../boxing';
 
-export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
+export const evaluate: FunctionEvaluator = async (input, context, args, evaluator) => {
   // Check single item in input
   if (input.length === 0) {
     return { value: [], context };
@@ -33,7 +33,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     return { value: [], context };
   }
   
-  const startResult = evaluator(startArg, input, context);
+  const startResult = await evaluator(startArg, input, context);
   
   if (startResult.value.length === 0) {
     return { value: [], context };
@@ -69,7 +69,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   if (args.length === 2) {
     const lengthArg = args[1];
     if (lengthArg) {
-      const lengthResult = evaluator(lengthArg, input, context);
+      const lengthResult = await evaluator(lengthArg, input, context);
       
       if (lengthResult.value.length === 0) {
         // Empty length - behave as if length not provided

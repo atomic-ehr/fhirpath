@@ -3,7 +3,7 @@ import { RuntimeContextManager } from '../interpreter';
 import { type FunctionEvaluator } from '../types';
 import { unbox } from '../boxing';
 
-export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
+export const evaluate: FunctionEvaluator = async (input, context, args, evaluator) => {
   // If no condition provided, return input as-is
   if (args.length === 0) {
     return { value: input, context };
@@ -29,7 +29,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     }
 
     // Evaluate condition with temporary context (passing boxed item)
-    const condResult = evaluator(condition, [boxedItem], tempContext);
+    const condResult = await evaluator(condition, [boxedItem], tempContext);
     
     // Include item if condition is true (unbox the boolean result)
     if (condResult.value.length > 0) {

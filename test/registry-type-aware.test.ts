@@ -3,7 +3,7 @@ import { registry } from '../src/registry';
 
 describe('Registry Type-Aware Methods', () => {
   describe('getFunctionsForType', () => {
-    it('should return string-specific functions for String type', () => {
+    it('should return string-specific functions for String type', async () => {
       const functions = registry.getFunctionsForType('String');
       const functionNames = functions.map(f => f.name);
       
@@ -26,7 +26,7 @@ describe('Registry Type-Aware Methods', () => {
       expect(functionNames).toContain('exists');
     });
     
-    it('should return numeric functions for Integer type', () => {
+    it('should return numeric functions for Integer type', async () => {
       const functions = registry.getFunctionsForType('Integer');
       const functionNames = functions.map(f => f.name);
       
@@ -42,7 +42,7 @@ describe('Registry Type-Aware Methods', () => {
       expect(functionNames).toContain('toString');
     });
     
-    it('should return numeric functions for Decimal type', () => {
+    it('should return numeric functions for Decimal type', async () => {
       const functions = registry.getFunctionsForType('Decimal');
       const functionNames = functions.map(f => f.name);
       
@@ -53,7 +53,7 @@ describe('Registry Type-Aware Methods', () => {
       expect(functionNames).toContain('round');
     });
     
-    it('should return temporal functions for Date type', () => {
+    it('should return temporal functions for Date type', async () => {
       const functions = registry.getFunctionsForType('Date');
       const functionNames = functions.map(f => f.name);
       
@@ -64,7 +64,7 @@ describe('Registry Type-Aware Methods', () => {
       expect(functionNames).toContain('trace');
     });
     
-    it('should return general functions for unknown types', () => {
+    it('should return general functions for unknown types', async () => {
       const functions = registry.getFunctionsForType('UnknownType');
       const functionNames = functions.map(f => f.name);
       
@@ -78,7 +78,7 @@ describe('Registry Type-Aware Methods', () => {
   });
   
   describe('getOperatorsForType', () => {
-    it('should return arithmetic operators for Integer type', () => {
+    it('should return arithmetic operators for Integer type', async () => {
       const operators = registry.getOperatorsForType('Integer');
       const operatorSymbols = operators.map(op => op.symbol);
       
@@ -96,7 +96,7 @@ describe('Registry Type-Aware Methods', () => {
       expect(operatorSymbols).toContain('>');
     });
     
-    it('should return string operators for String type', () => {
+    it('should return string operators for String type', async () => {
       const operators = registry.getOperatorsForType('String');
       const operatorSymbols = operators.map(op => op.symbol);
       
@@ -111,7 +111,7 @@ describe('Registry Type-Aware Methods', () => {
       expect(operatorSymbols).toContain('!=');
     });
     
-    it('should return boolean operators for Boolean type', () => {
+    it('should return boolean operators for Boolean type', async () => {
       const operators = registry.getOperatorsForType('Boolean');
       const operatorSymbols = operators.map(op => op.symbol);
       
@@ -128,24 +128,24 @@ describe('Registry Type-Aware Methods', () => {
   });
   
   describe('isFunctionApplicableToType', () => {
-    it('should return true for string functions with String type', () => {
+    it('should return true for string functions with String type', async () => {
       expect(registry.isFunctionApplicableToType('length', 'String')).toBe(true);
       expect(registry.isFunctionApplicableToType('startsWith', 'String')).toBe(true);
       expect(registry.isFunctionApplicableToType('upper', 'String')).toBe(true);
     });
     
-    it('should return false for string functions with non-String type', () => {
+    it('should return false for string functions with non-String type', async () => {
       expect(registry.isFunctionApplicableToType('length', 'Integer')).toBe(false);
       expect(registry.isFunctionApplicableToType('startsWith', 'Boolean')).toBe(false);
     });
     
-    it('should return true for math functions with numeric types', () => {
+    it('should return true for math functions with numeric types', async () => {
       expect(registry.isFunctionApplicableToType('abs', 'Integer')).toBe(true);
       expect(registry.isFunctionApplicableToType('abs', 'Decimal')).toBe(true);
       expect(registry.isFunctionApplicableToType('round', 'Decimal')).toBe(true);
     });
     
-    it('should return true for general functions with any type', () => {
+    it('should return true for general functions with any type', async () => {
       expect(registry.isFunctionApplicableToType('trace', 'String')).toBe(true);
       expect(registry.isFunctionApplicableToType('trace', 'Integer')).toBe(true);
       expect(registry.isFunctionApplicableToType('trace', 'CustomType')).toBe(true);
@@ -154,7 +154,7 @@ describe('Registry Type-Aware Methods', () => {
       expect(registry.isFunctionApplicableToType('where', 'Patient')).toBe(true);
     });
     
-    it('should handle collection types', () => {
+    it('should handle collection types', async () => {
       // Functions requiring singletons should not work with collections
       expect(registry.isFunctionApplicableToType('length', 'String[]')).toBe(false);
       expect(registry.isFunctionApplicableToType('abs', 'Integer[]')).toBe(false);
@@ -164,31 +164,31 @@ describe('Registry Type-Aware Methods', () => {
       expect(registry.isFunctionApplicableToType('select', 'Integer[]')).toBe(true);
     });
     
-    it('should return false for non-existent function', () => {
+    it('should return false for non-existent function', async () => {
       expect(registry.isFunctionApplicableToType('nonExistent', 'String')).toBe(false);
     });
   });
   
   describe('isOperatorApplicableToType', () => {
-    it('should return true for arithmetic operators with numeric types', () => {
+    it('should return true for arithmetic operators with numeric types', async () => {
       expect(registry.isOperatorApplicableToType('+', 'Integer')).toBe(true);
       expect(registry.isOperatorApplicableToType('-', 'Decimal')).toBe(true);
       expect(registry.isOperatorApplicableToType('*', 'Integer')).toBe(true);
       expect(registry.isOperatorApplicableToType('div', 'Decimal')).toBe(true);
     });
     
-    it('should return true for string concatenation with String type', () => {
+    it('should return true for string concatenation with String type', async () => {
       expect(registry.isOperatorApplicableToType('+', 'String')).toBe(true);
       expect(registry.isOperatorApplicableToType('~', 'String')).toBe(true);
     });
     
-    it('should return true for logical operators with Boolean type', () => {
+    it('should return true for logical operators with Boolean type', async () => {
       expect(registry.isOperatorApplicableToType('and', 'Boolean')).toBe(true);
       expect(registry.isOperatorApplicableToType('or', 'Boolean')).toBe(true);
       expect(registry.isOperatorApplicableToType('xor', 'Boolean')).toBe(true);
     });
     
-    it('should return true for comparison operators with various types', () => {
+    it('should return true for comparison operators with various types', async () => {
       expect(registry.isOperatorApplicableToType('=', 'String')).toBe(true);
       expect(registry.isOperatorApplicableToType('=', 'Integer')).toBe(true);
       expect(registry.isOperatorApplicableToType('=', 'Boolean')).toBe(true);
@@ -197,12 +197,12 @@ describe('Registry Type-Aware Methods', () => {
       expect(registry.isOperatorApplicableToType('!=', 'Integer')).toBe(true);
     });
     
-    it('should handle collection types', () => {
+    it('should handle collection types', async () => {
       expect(registry.isOperatorApplicableToType('+', 'String[]')).toBe(true);
       expect(registry.isOperatorApplicableToType('+', 'Integer[]')).toBe(true);
     });
     
-    it('should return false for non-existent operator', () => {
+    it('should return false for non-existent operator', async () => {
       expect(registry.isOperatorApplicableToType('nonExistent', 'String')).toBe(false);
     });
   });

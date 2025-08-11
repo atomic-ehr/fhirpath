@@ -15,19 +15,19 @@ import {
 
 describe('Quantity Value', () => {
   describe('createQuantity', () => {
-    it('should create a quantity with UCUM unit', () => {
+    it('should create a quantity with UCUM unit', async () => {
       const q = createQuantity(5, 'mg', false);
       expect(q.value).toBe(5);
       expect(q.unit).toBe('mg');
     });
 
-    it('should map calendar units to UCUM', () => {
+    it('should map calendar units to UCUM', async () => {
       const q = createQuantity(1, 'year', true);
       expect(q.value).toBe(1);
       expect(q.unit).toBe('a'); // UCUM unit for year
     });
 
-    it('should handle plural calendar units', () => {
+    it('should handle plural calendar units', async () => {
       const q = createQuantity(3, 'years', true);
       expect(q.value).toBe(3);
       expect(q.unit).toBe('a');
@@ -35,7 +35,7 @@ describe('Quantity Value', () => {
   });
 
   describe('getUcumQuantity', () => {
-    it('should create UCUM quantity on first call', () => {
+    it('should create UCUM quantity on first call', async () => {
       const q = createQuantity(5, 'mg', false);
       expect(q._ucumQuantity).toBeUndefined();
       
@@ -46,13 +46,13 @@ describe('Quantity Value', () => {
       expect(q._ucumQuantity).toBeDefined();
     });
 
-    it('should return null for invalid units', () => {
+    it('should return null for invalid units', async () => {
       const q = createQuantity(5, 'invalid-unit', false);
       const ucumQ = getUcumQuantity(q);
       expect(ucumQ).toBeNull();
     });
 
-    it('should cache UCUM quantity', () => {
+    it('should cache UCUM quantity', async () => {
       const q = createQuantity(5, 'mg', false);
       const ucumQ1 = getUcumQuantity(q);
       const ucumQ2 = getUcumQuantity(q);
@@ -61,20 +61,20 @@ describe('Quantity Value', () => {
   });
 
   describe('isValidQuantity', () => {
-    it('should return true for valid units', () => {
+    it('should return true for valid units', async () => {
       expect(isValidQuantity(createQuantity(5, 'mg', false))).toBe(true);
       expect(isValidQuantity(createQuantity(1, 'g', false))).toBe(true);
       expect(isValidQuantity(createQuantity(100, 'km', false))).toBe(true);
     });
 
-    it('should return false for invalid units', () => {
+    it('should return false for invalid units', async () => {
       expect(isValidQuantity(createQuantity(5, 'xyz', false))).toBe(false);
       expect(isValidQuantity(createQuantity(5, '', false))).toBe(false);
     });
   });
 
   describe('addQuantities', () => {
-    it('should add quantities with same unit', () => {
+    it('should add quantities with same unit', async () => {
       const q1 = createQuantity(5, 'mg', false);
       const q2 = createQuantity(3, 'mg', false);
       const result = addQuantities(q1, q2);
@@ -84,7 +84,7 @@ describe('Quantity Value', () => {
       expect(result?.unit).toBe('mg');
     });
 
-    it('should add quantities with compatible units', () => {
+    it('should add quantities with compatible units', async () => {
       const q1 = createQuantity(1, 'g', false);
       const q2 = createQuantity(500, 'mg', false);
       const result = addQuantities(q1, q2);
@@ -94,7 +94,7 @@ describe('Quantity Value', () => {
       expect(result?.unit).toBe('g');
     });
 
-    it('should return null for incompatible units', () => {
+    it('should return null for incompatible units', async () => {
       const q1 = createQuantity(5, 'mg', false);
       const q2 = createQuantity(3, 'm', false);
       const result = addQuantities(q1, q2);
@@ -102,7 +102,7 @@ describe('Quantity Value', () => {
       expect(result).toBeNull();
     });
 
-    it('should return null for invalid units', () => {
+    it('should return null for invalid units', async () => {
       const q1 = createQuantity(5, 'invalid', false);
       const q2 = createQuantity(3, 'mg', false);
       const result = addQuantities(q1, q2);
@@ -112,7 +112,7 @@ describe('Quantity Value', () => {
   });
 
   describe('subtractQuantities', () => {
-    it('should subtract quantities with same unit', () => {
+    it('should subtract quantities with same unit', async () => {
       const q1 = createQuantity(10, 'mg', false);
       const q2 = createQuantity(3, 'mg', false);
       const result = subtractQuantities(q1, q2);
@@ -122,7 +122,7 @@ describe('Quantity Value', () => {
       expect(result?.unit).toBe('mg');
     });
 
-    it('should subtract quantities with compatible units', () => {
+    it('should subtract quantities with compatible units', async () => {
       const q1 = createQuantity(1, 'g', false);
       const q2 = createQuantity(200, 'mg', false);
       const result = subtractQuantities(q1, q2);
@@ -134,7 +134,7 @@ describe('Quantity Value', () => {
   });
 
   describe('multiplyQuantities', () => {
-    it('should multiply quantities', () => {
+    it('should multiply quantities', async () => {
       const q1 = createQuantity(3, 'm', false);
       const q2 = createQuantity(4, 'm', false);
       const result = multiplyQuantities(q1, q2);
@@ -144,7 +144,7 @@ describe('Quantity Value', () => {
       expect(result?.unit).toBe('m.m');
     });
 
-    it('should handle area calculation', () => {
+    it('should handle area calculation', async () => {
       const q1 = createQuantity(5, 'cm', false);
       const q2 = createQuantity(10, 'cm', false);
       const result = multiplyQuantities(q1, q2);
@@ -156,7 +156,7 @@ describe('Quantity Value', () => {
   });
 
   describe('divideQuantities', () => {
-    it('should divide quantities', () => {
+    it('should divide quantities', async () => {
       const q1 = createQuantity(12, 'm2', false);
       const q2 = createQuantity(3, 'm', false);
       const result = divideQuantities(q1, q2);
@@ -166,7 +166,7 @@ describe('Quantity Value', () => {
       expect(result?.unit).toBe('m2/m');
     });
 
-    it('should handle velocity calculation', () => {
+    it('should handle velocity calculation', async () => {
       const q1 = createQuantity(100, 'km', false);
       const q2 = createQuantity(2, 'h', false);
       const result = divideQuantities(q1, q2);
@@ -176,7 +176,7 @@ describe('Quantity Value', () => {
       expect(result?.unit).toBe('km/h');
     });
 
-    it('should handle same units canceling', () => {
+    it('should handle same units canceling', async () => {
       const q1 = createQuantity(10, 'mg', false);
       const q2 = createQuantity(5, 'mg', false);
       const result = divideQuantities(q1, q2);
@@ -188,7 +188,7 @@ describe('Quantity Value', () => {
   });
 
   describe('compareQuantities', () => {
-    it('should compare quantities with same unit', () => {
+    it('should compare quantities with same unit', async () => {
       const q1 = createQuantity(5, 'mg', false);
       const q2 = createQuantity(3, 'mg', false);
       const q3 = createQuantity(5, 'mg', false);
@@ -198,14 +198,14 @@ describe('Quantity Value', () => {
       expect(compareQuantities(q1, q3)).toBe(0); // q1 = q3
     });
 
-    it('should compare quantities with compatible units', () => {
+    it('should compare quantities with compatible units', async () => {
       const q1 = createQuantity(1, 'g', false);
       const q2 = createQuantity(500, 'mg', false);
       
       expect(compareQuantities(q1, q2)).toBe(1); // 1g > 500mg
     });
 
-    it('should return null for incompatible units', () => {
+    it('should return null for incompatible units', async () => {
       const q1 = createQuantity(5, 'mg', false);
       const q2 = createQuantity(3, 'm', false);
       
@@ -214,7 +214,7 @@ describe('Quantity Value', () => {
   });
 
   describe('equalQuantities', () => {
-    it('should check equality with same unit', () => {
+    it('should check equality with same unit', async () => {
       const q1 = createQuantity(5, 'mg', false);
       const q2 = createQuantity(5, 'mg', false);
       const q3 = createQuantity(3, 'mg', false);
@@ -223,14 +223,14 @@ describe('Quantity Value', () => {
       expect(equalQuantities(q1, q3)).toBe(false);
     });
 
-    it('should check equality with unit conversion', () => {
+    it('should check equality with unit conversion', async () => {
       const q1 = createQuantity(1, 'g', false);
       const q2 = createQuantity(1000, 'mg', false);
       
       expect(equalQuantities(q1, q2)).toBe(true);
     });
 
-    it('should return false for incompatible units', () => {
+    it('should return false for incompatible units', async () => {
       const q1 = createQuantity(5, 'mg', false);
       const q2 = createQuantity(5, 'm', false);
       
@@ -239,14 +239,14 @@ describe('Quantity Value', () => {
   });
 
   describe('quantityToString', () => {
-    it('should format quantity as string', () => {
+    it('should format quantity as string', async () => {
       const q = createQuantity(5, 'mg', false);
       expect(quantityToString(q)).toBe("5 'mg'");
     });
   });
 
   describe('CALENDAR_TO_UCUM mapping', () => {
-    it('should have all calendar units mapped', () => {
+    it('should have all calendar units mapped', async () => {
       expect(CALENDAR_TO_UCUM['year']).toBe('a');
       expect(CALENDAR_TO_UCUM['years']).toBe('a');
       expect(CALENDAR_TO_UCUM['month']).toBe('mo');
@@ -267,7 +267,7 @@ describe('Quantity Value', () => {
   });
 
   describe('Calendar duration operations', () => {
-    it('should add calendar durations', () => {
+    it('should add calendar durations', async () => {
       const q1 = createQuantity(1, 'year', true);
       const q2 = createQuantity(6, 'months', true);
       const result = addQuantities(q1, q2);
@@ -278,7 +278,7 @@ describe('Quantity Value', () => {
       expect(result?.unit).toBe('a');
     });
 
-    it('should compare calendar durations', () => {
+    it('should compare calendar durations', async () => {
       const q1 = createQuantity(1, 'year', true);
       const q2 = createQuantity(11, 'months', true);
       
@@ -287,7 +287,7 @@ describe('Quantity Value', () => {
   });
 
   describe('Temperature conversions', () => {
-    it('should compare temperatures', () => {
+    it('should compare temperatures', async () => {
       const q1 = createQuantity(0, 'Cel', false);
       const q2 = createQuantity(32, '[degF]', false);
       

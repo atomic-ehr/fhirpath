@@ -2,7 +2,7 @@ import type { FunctionDefinition, FunctionEvaluator } from '../types';
 import { Errors } from '../errors';
 import { box, unbox } from '../boxing';
 
-export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
+export const evaluate: FunctionEvaluator = async (input, context, args, evaluator) => {
   // combine() requires exactly one argument (the other collection)
   if (!args || args.length !== 1) {
     throw Errors.invalidOperation('combine requires exactly one argument');
@@ -17,7 +17,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   // Evaluate the argument expression
   // The argument should be evaluated in the root context, not the current input
   // Use context.input which contains the root data
-  const otherResult = evaluator(otherArg, context.input || [], context);
+  const otherResult = await evaluator(otherArg, context.input || [], context);
   const otherCollection = otherResult.value;
 
   // Merge the input and other collections into a single collection

@@ -1,12 +1,11 @@
-import type { FunctionDefinition, RuntimeContext, ASTNode, TypeInfo } from '../types';
+import type { FunctionDefinition, RuntimeContext, ASTNode, TypeInfo, NodeEvaluator, FunctionEvaluator } from '../types';
 import { Errors } from '../errors';
-import type { NodeEvaluator } from '../types';
 import type { FHIRPathValue } from '../boxing';
 import { unbox } from '../boxing';
 import { isIdentifierNode, isFunctionNode } from '../types';
 import { NodeType } from '../types';
 
-export const ofTypeFunction: FunctionDefinition = {
+export const ofTypeFunction: FunctionDefinition & { evaluate: FunctionEvaluator } = {
   name: 'ofType',
   category: ['type'],
   description: 'Filters input collection to include only items of the specified type',
@@ -27,7 +26,7 @@ export const ofTypeFunction: FunctionDefinition = {
     ],
     result: 'inputType'
   }],
-  evaluate(input: FHIRPathValue[], context: RuntimeContext, args: ASTNode[], evaluator: NodeEvaluator) {
+  async evaluate(input: FHIRPathValue[], context: RuntimeContext, args: ASTNode[], evaluator: NodeEvaluator) {
     if (args.length !== 1) {
       throw Errors.invalidOperation('ofType requires exactly one argument');
     }
@@ -83,7 +82,7 @@ export const ofTypeFunction: FunctionDefinition = {
     */
 
     // Filter using ModelProvider if available, otherwise fall back to type info and runtime checks
-    const filtered = input.filter(boxedItem => {
+    const filtered = await Promise.all(input.map(async boxedItem => {
       const item = unbox(boxedItem);
       
       // If we have a ModelProvider in context, use it for accurate type checking
@@ -100,7 +99,7 @@ export const ofTypeFunction: FunctionDefinition = {
       
       // For FHIR resources without typeInfo, try to get it from modelProvider
       if (context.modelProvider && item && typeof item === 'object' && 'resourceType' in item && typeof item.resourceType === 'string') {
-        const typeInfo = context.modelProvider.getType(item.resourceType);
+        const typeInfo = await context.modelProvider.getType(item.resourceType);
         if (typeInfo) {
           const matchingType = context.modelProvider.ofType(typeInfo, targetTypeName as import('../types').TypeName);
           return matchingType !== undefined;
@@ -130,8 +129,11 @@ export const ofTypeFunction: FunctionDefinition = {
           }
           return false;
       }
-    });
+    }));
+    
+    // Filter out false results (map returns boolean for each item)
+    const actualFiltered = input.filter((_, index) => filtered[index]);
 
-    return { value: filtered, context };
+    return { value: actualFiltered, context };
   }
 };

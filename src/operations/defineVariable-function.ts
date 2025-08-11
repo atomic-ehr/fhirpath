@@ -4,7 +4,7 @@ import { RuntimeContextManager } from '../interpreter';
 import { type FunctionEvaluator } from '../types';
 import { box, unbox } from '../boxing';
 
-export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
+export const evaluate: FunctionEvaluator = async (input, context, args, evaluator) => {
   if (args.length < 1) {
     throw Errors.invalidOperation('defineVariable requires at least 1 argument');
   }
@@ -28,7 +28,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     if (!valueExpr) {
       throw Errors.invalidOperation('defineVariable requires a value expression');
     }
-    const valueResult = evaluator(valueExpr, input, tempContext);
+    const valueResult = await evaluator(valueExpr, input, tempContext);
     value = valueResult.value;
   }
 

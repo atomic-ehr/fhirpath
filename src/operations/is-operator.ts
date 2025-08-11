@@ -3,7 +3,7 @@ import { PRECEDENCE } from '../types';
 import type { OperationEvaluator } from '../types';
 import { box, unbox } from '../boxing';
 
-export const evaluate: OperationEvaluator = (input, context, left, right) => {
+export const evaluate: OperationEvaluator = async (input, context, left, right) => {
   // Right operand should be a type identifier
   // Empty collection returns empty (not false)
   if (left.length === 0) {
@@ -34,7 +34,10 @@ export const evaluate: OperationEvaluator = (input, context, left, right) => {
   
   // For FHIR resources without typeInfo, try to get it from modelProvider
   if (context.modelProvider && item && typeof item === 'object' && 'resourceType' in item && typeof item.resourceType === 'string') {
-    const typeInfo = context.modelProvider.getType(item.resourceType);
+    // Use cached type if available
+    const typeInfo = 'getTypeFromCache' in context.modelProvider 
+      ? (context.modelProvider as any).getTypeFromCache(item.resourceType)
+      : undefined;
     if (typeInfo) {
       const matchingType = context.modelProvider.ofType(typeInfo, typeName as TypeName);
       return { 

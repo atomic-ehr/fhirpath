@@ -2,7 +2,7 @@ import type { FunctionDefinition, FunctionEvaluator, TypeInfo } from '../types';
 import { Errors } from '../errors';
 import { box, unbox } from '../boxing';
 
-export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
+export const evaluate: FunctionEvaluator = async (input, context, args, evaluator) => {
   if (args.length !== 0) {
     throw Errors.wrongArgumentCount('children', 0, args.length);
   }
@@ -21,8 +21,10 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
       if (modelProvider && boxedItem.typeInfo) {
         parentTypeInfo = boxedItem.typeInfo;
       } else if (modelProvider && 'resourceType' in item && typeof item.resourceType === 'string') {
-        // Try to get type info from resourceType
-        parentTypeInfo = modelProvider.getType(item.resourceType);
+        // Try to get type info from resourceType (use cached version)
+        parentTypeInfo = 'getTypeFromCache' in modelProvider 
+          ? (modelProvider as any).getTypeFromCache(item.resourceType)
+          : undefined;
       }
       
       // Collect all child properties
@@ -47,7 +49,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
         // Get type info for this element from model provider
         let elementTypeInfo: TypeInfo | undefined;
         if (modelProvider && parentTypeInfo) {
-          elementTypeInfo = modelProvider.getElementType(parentTypeInfo, propertyName);
+          elementTypeInfo = await modelProvider.getElementType(parentTypeInfo, propertyName);
         }
         
         // Get primitive element if it exists

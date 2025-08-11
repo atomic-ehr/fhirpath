@@ -4,7 +4,7 @@ import { RuntimeContextManager } from '../interpreter';
 import { type FunctionEvaluator } from '../types';
 import { unbox } from '../boxing';
 
-export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
+export const evaluate: FunctionEvaluator = async (input, context, args, evaluator) => {
   // Select requires exactly one argument
   if (args.length !== 1) {
     throw Errors.wrongArgumentCount('select', 1, args.length);
@@ -29,7 +29,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     tempContext = RuntimeContextManager.setVariable(tempContext, '$total', input.length);
 
     // Evaluate expression with temporary context (passing boxed item)
-    const exprResult = evaluator(expression, [boxedItem], tempContext);
+    const exprResult = await evaluator(expression, [boxedItem], tempContext);
     // Results are already boxed
     results.push(...exprResult.value);
   }

@@ -3,7 +3,7 @@ import { Errors } from '../errors';
 import type { FunctionEvaluator } from '../types';
 import { box, unbox } from '../boxing';
 
-export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
+export const evaluate: FunctionEvaluator = async (input, context, args, evaluator) => {
   if (args.length !== 1) {
     throw Errors.invalidOperation('skip requires exactly one argument');
   }
@@ -14,7 +14,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   }
   
   // Evaluate the argument to get the number
-  const numResult = evaluator(numNode, input, context);
+  const numResult = await evaluator(numNode, input, context);
   
   if (numResult.value.length === 0) {
     throw Errors.invalidOperation('skip argument cannot be empty');

@@ -4,7 +4,7 @@ import { RuntimeContextManager } from '../interpreter';
 import { type FunctionEvaluator } from '../types';
 import { box, unbox } from '../boxing';
 
-export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
+export const evaluate: FunctionEvaluator = async (input, context, args, evaluator) => {
   // No arguments - just check if input is not empty
   if (args.length === 0) {
     return { value: [box(input.length > 0, { type: 'Boolean', singleton: true })], context };
@@ -26,7 +26,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     tempContext = RuntimeContextManager.setVariable(tempContext, '$total', input.length);
 
     // Evaluate condition with temporary context
-    const condResult = evaluator(condition, [boxedItem], tempContext);
+    const condResult = await evaluator(condition, [boxedItem], tempContext);
     
     // Return true if any item matches
     if (condResult.value.length > 0) {

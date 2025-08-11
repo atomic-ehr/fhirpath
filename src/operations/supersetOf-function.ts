@@ -2,7 +2,7 @@ import type { FunctionDefinition, FunctionEvaluator } from '../types';
 import { Errors } from '../errors';
 import { box, unbox } from '../boxing';
 
-export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
+export const evaluate: FunctionEvaluator = async (input, context, args, evaluator) => {
   if (args.length !== 1) {
     throw Errors.wrongArgumentCount('supersetOf', 1, args.length);
   }
@@ -15,7 +15,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   // Evaluate the argument with the root context ($this), not the current input
   // This allows expressions like Patient.name.given to work correctly
   const rootInput = context.variables['$this'] || context.input;
-  const otherResult = evaluator(argNode, rootInput, context);
+  const otherResult = await evaluator(argNode, rootInput, context);
   const other = otherResult.value;
 
   // If the other collection is empty, the result is true

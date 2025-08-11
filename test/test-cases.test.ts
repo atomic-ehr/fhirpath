@@ -4,7 +4,7 @@ import { join, basename } from 'path';
 import { loadTestSuite } from '../tools/lib/test-helpers';
 import { evaluate, FHIRPathError, FHIRModelProvider } from '../src/index';
 import type { EvaluateOptions } from '../src/index';
-import { getModelProviderSync } from './model-provider-singleton';
+import { getInitializedModelProvider } from './model-provider-singleton';
 
 const TEST_CASES_DIR = join(__dirname, '../test-cases');
 
@@ -44,9 +44,12 @@ function normalizeQuantityValue(value: any): any {
   return value;
 }
 
+// Global model provider instance
+let modelProviderPromise: Promise<FHIRModelProvider> | undefined;
+
 // Helper to create a test function for a single test case
 function createTestFunction(test: any) {
-  return () => {
+  return async () => {
     // Skip parser-only tests
     if (test.parserOnly) {
       return;
@@ -80,7 +83,13 @@ function createTestFunction(test: any) {
     const skipModelProvider = (test as any).skipModelProvider === true;
     
     if ((usesTypeOperations || hasFHIRResource) && !isTestingModelProviderAbsence && !skipModelProvider) {
-      options.modelProvider = getModelProviderSync();
+      // Ensure model provider is initialized
+      if (!modelProviderPromise) {
+        modelProviderPromise = getInitializedModelProvider();
+      }
+      const provider = await modelProviderPromise;
+      
+      options.modelProvider = provider;
     }
 
     if (test.error) {
@@ -88,7 +97,7 @@ function createTestFunction(test: any) {
       if (test.error.code) {
         // New format: check error code
         try {
-          evaluate(test.expression, options);
+          await evaluate(test.expression, options);
           throw new Error('Expected an error but none was thrown');
         } catch (error: any) {
           if (error instanceof FHIRPathError && error.code) {
@@ -103,13 +112,13 @@ function createTestFunction(test: any) {
         }
       } else if (test.error.message) {
         // Legacy format: check error message with regex
-        expect(() => {
-          evaluate(test.expression, options);
+        await expect(async () => {
+          await evaluate(test.expression, options);
         }).toThrow(new RegExp(test.error.message));
       }
     } else {
       // Expecting a result
-      const result = evaluate(test.expression, options);
+      const result = await evaluate(test.expression, options);
       
       // Normalize quantity values to remove internal properties
       const normalizedResult = normalizeQuantityValue(result);

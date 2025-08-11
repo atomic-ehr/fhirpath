@@ -56,12 +56,12 @@ export class Analyzer {
     this.modelProvider = modelProvider;
   }
 
-  analyze(
+  async analyze(
     ast: ASTNode, 
     userVariables?: Record<string, any>, 
     inputType?: TypeInfo,
     options?: AnalyzerOptions
-  ): AnalysisResultWithCursor {
+  ): Promise<AnalysisResultWithCursor> {
     this.diagnostics = [];
     this.userVariableTypes.clear();
     this.cursorMode = options?.cursorMode ?? false;
@@ -80,7 +80,7 @@ export class Analyzer {
     }
     
     // Annotate AST with type information
-    this.annotateAST(ast, inputType);
+    await this.annotateAST(ast, inputType);
     
     // Perform validation with type checking (if not stopped at cursor)
     if (!this.stoppedAtCursor) {
@@ -572,7 +572,7 @@ export class Analyzer {
 
 
   // Type inference methods
-  private inferType(node: ASTNode, inputType?: TypeInfo): TypeInfo {
+  private async inferType(node: ASTNode, inputType?: TypeInfo): Promise<TypeInfo> {
     // Handle error nodes
     if (node.type === 'Error') {
       return this.inferErrorNodeType(node as ErrorNode, inputType);
@@ -583,31 +583,31 @@ export class Analyzer {
         return this.inferLiteralType(node as LiteralNode);
         
       case NodeType.Binary:
-        return this.inferBinaryType(node as BinaryNode, inputType);
+        return await this.inferBinaryType(node as BinaryNode, inputType);
         
       case NodeType.Unary:
         return this.inferUnaryType(node as UnaryNode);
         
       case NodeType.Function:
-        return this.inferFunctionType(node as FunctionNode, inputType);
+        return await this.inferFunctionType(node as FunctionNode, inputType);
         
       case NodeType.Identifier:
-        return this.inferIdentifierType(node as IdentifierNode, inputType);
+        return await this.inferIdentifierType(node as IdentifierNode, inputType);
         
       case NodeType.Variable:
         return this.inferVariableType(node as VariableNode);
         
       case NodeType.Collection:
-        return this.inferCollectionType(node as CollectionNode);
+        return await this.inferCollectionType(node as CollectionNode);
         
       case NodeType.TypeCast:
-        return this.inferTypeCastType(node as TypeCastNode);
+        return await this.inferTypeCastType(node as TypeCastNode);
         
       case NodeType.MembershipTest:
         return { type: 'Boolean', singleton: true };
         
       case NodeType.TypeOrIdentifier:
-        return this.inferTypeOrIdentifierType(node as TypeOrIdentifierNode, inputType);
+        return await this.inferTypeOrIdentifierType(node as TypeOrIdentifierNode, inputType);
         
       default:
         return { type: 'Any', singleton: false };
@@ -645,7 +645,7 @@ export class Analyzer {
     }
   }
   
-  private inferBinaryType(node: BinaryNode, inputType?: TypeInfo): TypeInfo {
+  private async inferBinaryType(node: BinaryNode, inputType?: TypeInfo): Promise<TypeInfo> {
     const operator = registry.getOperatorDefinition(node.operator);
     if (!operator) {
       return { type: 'Any', singleton: false };
@@ -653,12 +653,12 @@ export class Analyzer {
     
     // For navigation (dot operator), we need special handling
     if (node.operator === '.') {
-      return this.inferNavigationType(node, inputType);
+      return await this.inferNavigationType(node, inputType);
     }
     
     // Infer types of operands
-    const leftType = this.inferType(node.left, inputType);
-    const rightType = this.inferType(node.right, inputType);
+    const leftType = await this.inferType(node.left, inputType);
+    const rightType = await this.inferType(node.right, inputType);
     
     // Find matching signature
     for (const sig of operator.signatures) {
@@ -673,12 +673,12 @@ export class Analyzer {
     return this.resolveResultType(defaultResult, inputType, leftType, rightType);
   }
   
-  private inferNavigationType(node: BinaryNode, inputType?: TypeInfo): TypeInfo {
-    const leftType = this.inferType(node.left, inputType);
+  private async inferNavigationType(node: BinaryNode, inputType?: TypeInfo): Promise<TypeInfo> {
+    const leftType = await this.inferType(node.left, inputType);
     
     // If the right side is a function, return the function's type
     if (node.right.type === NodeType.Function) {
-      return this.inferType(node.right, leftType);
+      return await this.inferType(node.right, leftType);
     }
     
     // If we have a model provider and the right side is an identifier
@@ -686,7 +686,7 @@ export class Analyzer {
       const propertyName = (node.right as IdentifierNode).name;
       
       // Use getElementType to navigate the property
-      const resultType = this.modelProvider.getElementType(leftType, propertyName);
+      const resultType = await this.modelProvider.getElementType(leftType, propertyName);
       if (resultType) {
         return resultType;
       }
@@ -720,7 +720,7 @@ export class Analyzer {
     return { type: 'Any', singleton: false };
   }
   
-  private inferFunctionType(node: FunctionNode, inputType?: TypeInfo): TypeInfo {
+  private async inferFunctionType(node: FunctionNode, inputType?: TypeInfo): Promise<TypeInfo> {
     if (node.name.type !== NodeType.Identifier) {
       return { type: 'Any', singleton: false };
     }
@@ -736,9 +736,9 @@ export class Analyzer {
     if (funcName === 'iif') {
       // iif returns the common type of the true and false branches
       if (node.arguments.length >= 2) {
-        const trueBranchType = this.inferType(node.arguments[1]!, inputType);
+        const trueBranchType = await this.inferType(node.arguments[1]!, inputType);
         if (node.arguments.length >= 3) {
-          const falseBranchType = this.inferType(node.arguments[2]!, inputType);
+          const falseBranchType = await this.inferType(node.arguments[2]!, inputType);
           // If both branches have the same type, use that
           if (trueBranchType.type === falseBranchType.type && 
               trueBranchType.singleton === falseBranchType.singleton) {
@@ -774,7 +774,7 @@ export class Analyzer {
     if (funcName === 'aggregate') {
       // If init parameter is provided, use its type to infer result type
       if (node.arguments.length >= 2) {
-        const initType = this.inferType(node.arguments[1]!, inputType);
+        const initType = await this.inferType(node.arguments[1]!, inputType);
         // The result type is the same as init type
         return initType;
       }
@@ -792,7 +792,7 @@ export class Analyzer {
     // Special handling for children function
     if (funcName === 'children') {
       if (inputType && this.modelProvider && 'getChildrenType' in this.modelProvider) {
-        const childrenType = this.modelProvider.getChildrenType(inputType);
+        const childrenType = await this.modelProvider.getChildrenType(inputType);
         if (childrenType) {
           return childrenType;
         }
@@ -825,7 +825,7 @@ export class Analyzer {
       return inputType ? { ...inputType, singleton: true } : { type: 'Any', singleton: true };
     } else if (matchingSignature.result === 'parameterType' && node.arguments.length > 0) {
       // Functions like select() return the type of the first parameter expression as collection
-      const paramType = this.inferType(node.arguments[0]!, inputType);
+      const paramType = await this.inferType(node.arguments[0]!, inputType);
       return { ...paramType, singleton: false };
     } else if (typeof matchingSignature.result === 'object') {
       return matchingSignature.result;
@@ -834,10 +834,10 @@ export class Analyzer {
     return { type: 'Any', singleton: false };
   }
   
-  private inferIdentifierType(node: IdentifierNode, inputType?: TypeInfo): TypeInfo {
+  private async inferIdentifierType(node: IdentifierNode, inputType?: TypeInfo): Promise<TypeInfo> {
     // First, try to navigate from input type (most common case)
     if (inputType && this.modelProvider) {
-      const elementType = this.modelProvider.getElementType(inputType, node.name);
+      const elementType = await this.modelProvider.getElementType(inputType, node.name);
       if (elementType) {
         return elementType;
       }
@@ -845,8 +845,11 @@ export class Analyzer {
     
     // Only check if it's a type name if it starts with uppercase (FHIR convention)
     // or if there's no input type context
-    if (this.modelProvider && (!inputType || /^[A-Z]/.test(node.name))) {
-      const typeInfo = this.modelProvider.getType(node.name);
+    // Skip common FHIRPath keywords and function names that aren't types
+    const fhirPathKeywords = ['Boolean', 'String', 'Integer', 'Decimal', 'Date', 'DateTime', 'Time', 'Quantity', 'ofType'];
+    if (this.modelProvider && (!inputType || /^[A-Z]/.test(node.name)) && !fhirPathKeywords.includes(node.name)) {
+      // Try to get type from model provider
+      const typeInfo = await this.modelProvider.getType(node.name);
       if (typeInfo) {
         return typeInfo;
       }
@@ -855,20 +858,23 @@ export class Analyzer {
     return { type: 'Any', singleton: false };
   }
   
-  private inferTypeOrIdentifierType(node: TypeOrIdentifierNode, inputType?: TypeInfo): TypeInfo {
+  private async inferTypeOrIdentifierType(node: TypeOrIdentifierNode, inputType?: TypeInfo): Promise<TypeInfo> {
     // TypeOrIdentifier can be either a type name or a property navigation
     
     // First, try navigation from input type (most common case)
     if (inputType && this.modelProvider) {
-      const elementType = this.modelProvider.getElementType(inputType, node.name);
+      const elementType = await this.modelProvider.getElementType(inputType, node.name);
       if (elementType) {
         return elementType;
       }
     }
     
     // Then check if it's a type name (only for uppercase names or no input context)
-    if (this.modelProvider && (!inputType || /^[A-Z]/.test(node.name))) {
-      const typeInfo = this.modelProvider.getType(node.name);
+    // Skip common FHIRPath keywords and function names that aren't types
+    const fhirPathKeywords = ['Boolean', 'String', 'Integer', 'Decimal', 'Date', 'DateTime', 'Time', 'Quantity', 'ofType'];
+    if (this.modelProvider && (!inputType || /^[A-Z]/.test(node.name)) && !fhirPathKeywords.includes(node.name)) {
+      // Try to get type from model provider
+      const typeInfo = await this.modelProvider.getType(node.name);
       if (typeInfo) {
         return typeInfo;
       }
@@ -916,13 +922,13 @@ export class Analyzer {
     return { type: 'Any', singleton: true };
   }
   
-  private inferCollectionType(node: CollectionNode): TypeInfo {
+  private async inferCollectionType(node: CollectionNode): Promise<TypeInfo> {
     if (node.elements.length === 0) {
       return { type: 'Any', singleton: false };
     }
     
     // Infer types of all elements
-    const elementTypes = node.elements.map(el => this.inferType(el));
+    const elementTypes = await Promise.all(node.elements.map(el => this.inferType(el)));
     
     // If all elements have the same type, use that
     const firstType = elementTypes[0];
@@ -942,12 +948,12 @@ export class Analyzer {
     return { type: 'Any', singleton: false };
   }
   
-  private inferTypeCastType(node: TypeCastNode): TypeInfo {
+  private async inferTypeCastType(node: TypeCastNode): Promise<TypeInfo> {
     const targetType = node.targetType;
     
-    // If we have a model provider, try to get the type info
+    // If we have a model provider, try to get the type
     if (this.modelProvider) {
-      const typeInfo = this.modelProvider.getType(targetType);
+      const typeInfo = await this.modelProvider.getType(targetType);
       if (typeInfo) {
         return typeInfo;
       }
@@ -1149,7 +1155,7 @@ export class Analyzer {
   /**
    * Annotate AST with type information
    */
-  private annotateAST(node: ASTNode, inputType?: TypeInfo): void {
+  private async annotateAST(node: ASTNode, inputType?: TypeInfo): Promise<void> {
     // Check for cursor node in cursor mode
     if (this.cursorMode && isCursorNode(node)) {
       this.stoppedAtCursor = true;
@@ -1185,13 +1191,13 @@ export class Analyzer {
     }
     
     // Infer and attach type info
-    node.typeInfo = this.inferType(node, inputType);
+    node.typeInfo = await this.inferType(node, inputType);
 
     // Recursively annotate children
     switch (node.type) {
       case NodeType.Binary:
         const binaryNode = node as BinaryNode;
-        this.annotateAST(binaryNode.left, inputType);
+        await this.annotateAST(binaryNode.left, inputType);
         
         // If we stopped at cursor, don't continue
         if (this.stoppedAtCursor) {
@@ -1228,7 +1234,7 @@ export class Analyzer {
             });
             
             // Annotate right side with new variables in scope
-            this.annotateAST(binaryNode.right, binaryNode.left.typeInfo);
+            await this.annotateAST(binaryNode.right, binaryNode.left.typeInfo);
             
             // Restore previous types
             definedVarsWithTypes.forEach((_, varName) => {
@@ -1241,21 +1247,21 @@ export class Analyzer {
             });
           } else {
             // No defineVariable in chain, proceed normally
-            this.annotateAST(binaryNode.right, binaryNode.left.typeInfo);
+            await this.annotateAST(binaryNode.right, binaryNode.left.typeInfo);
           }
         } else {
-          this.annotateAST(binaryNode.right, inputType);
+          await this.annotateAST(binaryNode.right, inputType);
         }
         break;
         
       case NodeType.Unary:
         const unaryNode = node as UnaryNode;
-        this.annotateAST(unaryNode.operand, inputType);
+        await this.annotateAST(unaryNode.operand, inputType);
         break;
         
       case NodeType.Function:
         const funcNode = node as FunctionNode;
-        this.annotateAST(funcNode.name, inputType);
+        await this.annotateAST(funcNode.name, inputType);
         
         // Special handling for aggregate function arguments
         if (funcNode.name.type === NodeType.Identifier && 
@@ -1273,7 +1279,7 @@ export class Analyzer {
             
             if (funcNode.arguments.length >= 2) {
               // Has init parameter - evaluate it first
-              this.annotateAST(funcNode.arguments[1]!, inputType);
+              await this.annotateAST(funcNode.arguments[1]!, inputType);
               const initType = funcNode.arguments[1]!.typeInfo;
               
               // Set $total to init type
@@ -1284,24 +1290,24 @@ export class Analyzer {
               }
               
               // Process aggregator with both variables set
-              this.annotateAST(funcNode.arguments[0]!, inputType);
+              await this.annotateAST(funcNode.arguments[0]!, inputType);
               
               // Process remaining arguments
               for (const arg of funcNode.arguments.slice(2)) {
-                this.annotateAST(arg, inputType);
+                await this.annotateAST(arg, inputType);
                 if (this.stoppedAtCursor) break;
               }
             } else {
               // No init - first pass to infer aggregator type
               this.systemVariableTypes.set('$total', { type: 'Any', singleton: false });
-              this.annotateAST(funcNode.arguments[0]!, inputType);
+              await this.annotateAST(funcNode.arguments[0]!, inputType);
               
               // Second pass with inferred type
               const aggregatorType = funcNode.arguments[0]!.typeInfo;
               if (aggregatorType) {
                 this.systemVariableTypes.set('$total', aggregatorType);
                 // Re-annotate with proper $total type
-                this.annotateAST(funcNode.arguments[0]!, inputType);
+                await this.annotateAST(funcNode.arguments[0]!, inputType);
               }
             }
             
@@ -1336,7 +1342,7 @@ export class Analyzer {
             
             // Process arguments with system variables in scope
             for (const arg of funcNode.arguments) {
-              this.annotateAST(arg, inputType);
+              await this.annotateAST(arg, inputType);
               if (this.stoppedAtCursor) break;
             }
             
@@ -1354,7 +1360,7 @@ export class Analyzer {
           } else {
             // Regular function argument annotation
             for (const arg of funcNode.arguments) {
-              this.annotateAST(arg, inputType);
+              await this.annotateAST(arg, inputType);
               if (this.stoppedAtCursor) break;
             }
           }
@@ -1364,26 +1370,26 @@ export class Analyzer {
       case NodeType.Collection:
         const collNode = node as CollectionNode;
         for (const el of collNode.elements) {
-          this.annotateAST(el, inputType);
+          await this.annotateAST(el, inputType);
           if (this.stoppedAtCursor) break;
         }
         break;
         
       case NodeType.TypeCast:
         const castNode = node as TypeCastNode;
-        this.annotateAST(castNode.expression, inputType);
+        await this.annotateAST(castNode.expression, inputType);
         break;
         
       case NodeType.MembershipTest:
         const memberNode = node as MembershipTestNode;
-        this.annotateAST(memberNode.expression, inputType);
+        await this.annotateAST(memberNode.expression, inputType);
         break;
         
       case NodeType.Index:
         const indexNode = node as IndexNode;
-        this.annotateAST(indexNode.expression, inputType);
+        await this.annotateAST(indexNode.expression, inputType);
         if (!this.stoppedAtCursor) {
-          this.annotateAST(indexNode.index, inputType);
+          await this.annotateAST(indexNode.index, inputType);
         }
         break;
         

@@ -6,7 +6,7 @@ import { box, unbox } from '../boxing';
 
 // Note: The dot operator is special and is typically handled directly in the interpreter
 // because it needs to evaluate its operands in sequence, not in parallel
-export const evaluate: OperationEvaluator = (input, context, left, right) => {
+export const evaluate: OperationEvaluator = async (input, context, left, right) => {
   // This should not be called directly - dot operator needs special handling
   // in the interpreter to properly sequence evaluation
   throw Errors.invalidOperation('Dot operator requires special handling in the interpreter');

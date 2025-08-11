@@ -2,7 +2,7 @@ import type { FunctionDefinition, FunctionEvaluator, LiteralNode } from '../type
 import { Errors } from '../errors';
 import { box, unbox } from '../boxing';
 
-export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
+export const evaluate: FunctionEvaluator = async (input, context, args, evaluator) => {
   // Check single item in input
   if (input.length === 0) {
     return { value: [], context };
@@ -33,7 +33,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     throw Errors.argumentRequired('indexOf', 'substring argument');
   }
   
-  const substringResult = evaluator(substringArg, input, context);
+  const substringResult = await evaluator(substringArg, input, context);
   
   if (substringResult.value.length === 0) {
     return { value: [], context };

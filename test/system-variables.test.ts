@@ -6,14 +6,14 @@ import type { TypeInfo } from '../src/types';
 
 describe('System Variable Type Delegation', () => {
   describe('$this in filter functions', () => {
-    it('should get correct type for $this in where', () => {
+    it('should get correct type for $this in where', async () => {
       const analyzer = new Analyzer();
       const parseResult = parse('(1 | 2 | 3).where($this > 2)');
       if (parseResult.errors?.length) {
         throw new Error('Parse failed');
       }
       
-      const result = analyzer.analyze(parseResult.ast);
+      const result = await analyzer.analyze(parseResult.ast);
       
       // Find the $this variable node
       const whereFunc = (parseResult.ast as any).right;
@@ -37,8 +37,8 @@ describe('System Variable Type Delegation', () => {
         throw new Error('Parse failed');
       }
       
-      const patientType = modelProvider.getType('Patient');
-      const result = analyzer.analyze(parseResult.ast, {}, patientType);
+      const patientType = modelProvider.getTypeFromCache('Patient');
+      const result = await analyzer.analyze(parseResult.ast, {}, patientType);
       
       // Find the $this variable node
       const whereFunc = (parseResult.ast as any).right;
@@ -63,14 +63,14 @@ describe('System Variable Type Delegation', () => {
       expect(hasHumanName).toBe(true);
     });
 
-    it('should provide $index in where expressions', () => {
+    it('should provide $index in where expressions', async () => {
       const analyzer = new Analyzer();
       const parseResult = parse('(1 | 2 | 3).where($index < 2)');
       if (parseResult.errors?.length) {
         throw new Error('Parse failed');
       }
       
-      const result = analyzer.analyze(parseResult.ast);
+      const result = await analyzer.analyze(parseResult.ast);
       
       // Find the $index variable node
       const whereFunc = (parseResult.ast as any).right;
@@ -86,14 +86,14 @@ describe('System Variable Type Delegation', () => {
   });
 
   describe('$total in aggregate', () => {
-    it('should get init type for $total when init provided', () => {
+    it('should get init type for $total when init provided', async () => {
       const analyzer = new Analyzer();
       const parseResult = parse('(1 | 2 | 3).aggregate($this + $total, 0)');
       if (parseResult.errors?.length) {
         throw new Error('Parse failed');
       }
       
-      const result = analyzer.analyze(parseResult.ast);
+      const result = await analyzer.analyze(parseResult.ast);
       
       // Find the $total variable node
       const aggregateFunc = (parseResult.ast as any).right;
@@ -107,14 +107,14 @@ describe('System Variable Type Delegation', () => {
       expect(totalVar.typeInfo?.singleton).toBe(true);
     });
 
-    it('should infer $total type from aggregator when no init', () => {
+    it('should infer $total type from aggregator when no init', async () => {
       const analyzer = new Analyzer();
       const parseResult = parse('(1 | 2 | 3).aggregate($this + $total)');
       if (parseResult.errors?.length) {
         throw new Error('Parse failed');
       }
       
-      const result = analyzer.analyze(parseResult.ast);
+      const result = await analyzer.analyze(parseResult.ast);
       
       // Find the $total variable node
       const aggregateFunc = (parseResult.ast as any).right;
@@ -130,28 +130,28 @@ describe('System Variable Type Delegation', () => {
   });
 
   describe('Nested contexts', () => {
-    it('should handle nested where expressions', () => {
+    it('should handle nested where expressions', async () => {
       const analyzer = new Analyzer();
       const parseResult = parse('((1 | 2) | (3 | 4)).where($this.where($this > 2).exists())');
       if (parseResult.errors?.length) {
         throw new Error('Parse failed');
       }
       
-      const result = analyzer.analyze(parseResult.ast);
+      const result = await analyzer.analyze(parseResult.ast);
       
       // The outer where and inner where should each have their own $this context
       // This test verifies that contexts are properly saved and restored
       expect(result.diagnostics).toHaveLength(0);
     });
 
-    it('should restore previous context after function', () => {
+    it('should restore previous context after function', async () => {
       const analyzer = new Analyzer();
       const parseResult = parse('(1 | 2 | 3).select($this + (4 | 5).where($this > 4).first())');
       if (parseResult.errors?.length) {
         throw new Error('Parse failed');
       }
       
-      const result = analyzer.analyze(parseResult.ast);
+      const result = await analyzer.analyze(parseResult.ast);
       
       // After the inner where(), $this should refer back to the select's context
       expect(result.diagnostics).toHaveLength(0);
@@ -159,7 +159,7 @@ describe('System Variable Type Delegation', () => {
   });
 
   describe('User variables remain separate', () => {
-    it('should keep user variables separate from system variables', () => {
+    it('should keep user variables separate from system variables', async () => {
       const analyzer = new Analyzer();
       const userVars = { myVar: 42 };
       const parseResult = parse('(1 | 2 | 3).where($this > %myVar)');
@@ -167,7 +167,7 @@ describe('System Variable Type Delegation', () => {
         throw new Error('Parse failed');
       }
       
-      const result = analyzer.analyze(parseResult.ast, userVars);
+      const result = await analyzer.analyze(parseResult.ast, userVars);
       
       // Should have no errors - both $this and %myVar should be recognized
       expect(result.diagnostics).toHaveLength(0);

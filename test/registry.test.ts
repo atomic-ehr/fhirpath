@@ -5,7 +5,7 @@ import type { FunctionDefinition } from '../src/registry';
 describe('FHIRPath Registry', () => {
   describe('Operator Detection', () => {
     describe('isSymbolOperator', () => {
-      it('should recognize symbol operators', () => {
+      it('should recognize symbol operators', async () => {
         // Arithmetic
         expect(registry.isSymbolOperator('+')).toBe(true);
         expect(registry.isSymbolOperator('-')).toBe(true);
@@ -30,14 +30,14 @@ describe('FHIRPath Registry', () => {
         expect(registry.isSymbolOperator('.')).toBe(true);
       });
 
-      it('should not recognize keyword operators as symbol operators', () => {
+      it('should not recognize keyword operators as symbol operators', async () => {
         expect(registry.isSymbolOperator('and')).toBe(false);
         expect(registry.isSymbolOperator('or')).toBe(false);
         expect(registry.isSymbolOperator('div')).toBe(false);
         expect(registry.isSymbolOperator('mod')).toBe(false);
       });
 
-      it('should not recognize non-operators', () => {
+      it('should not recognize non-operators', async () => {
         expect(registry.isSymbolOperator('foo')).toBe(false);
         expect(registry.isSymbolOperator('#')).toBe(false);
         expect(registry.isSymbolOperator('@')).toBe(false);
@@ -45,7 +45,7 @@ describe('FHIRPath Registry', () => {
     });
 
     describe('isKeywordOperator', () => {
-      it('should recognize keyword operators', () => {
+      it('should recognize keyword operators', async () => {
         // Logical
         expect(registry.isKeywordOperator('and')).toBe(true);
         expect(registry.isKeywordOperator('or')).toBe(true);
@@ -65,20 +65,20 @@ describe('FHIRPath Registry', () => {
         expect(registry.isKeywordOperator('as')).toBe(true);
       });
 
-      it('should be case-insensitive', () => {
+      it('should be case-insensitive', async () => {
         expect(registry.isKeywordOperator('AND')).toBe(true);
         expect(registry.isKeywordOperator('Or')).toBe(true);
         expect(registry.isKeywordOperator('DIV')).toBe(true);
         expect(registry.isKeywordOperator('Contains')).toBe(true);
       });
 
-      it('should not recognize symbol operators as keyword operators', () => {
+      it('should not recognize symbol operators as keyword operators', async () => {
         expect(registry.isKeywordOperator('+')).toBe(false);
         expect(registry.isKeywordOperator('-')).toBe(false);
         expect(registry.isKeywordOperator('=')).toBe(false);
       });
 
-      it('should not recognize regular identifiers', () => {
+      it('should not recognize regular identifiers', async () => {
         expect(registry.isKeywordOperator('where')).toBe(false);
         expect(registry.isKeywordOperator('select')).toBe(false);
         expect(registry.isKeywordOperator('name')).toBe(false);
@@ -86,13 +86,13 @@ describe('FHIRPath Registry', () => {
     });
 
     describe('isUnaryOperator', () => {
-      it('should recognize unary operators', () => {
+      it('should recognize unary operators', async () => {
         expect(registry.isUnaryOperator('+')).toBe(true);
         expect(registry.isUnaryOperator('-')).toBe(true);
         // 'not' is implemented as a function, not an operator
       });
 
-      it('should not recognize binary-only operators', () => {
+      it('should not recognize binary-only operators', async () => {
         expect(registry.isUnaryOperator('*')).toBe(false);
         expect(registry.isUnaryOperator('/')).toBe(false);
         expect(registry.isUnaryOperator('and')).toBe(false);
@@ -101,7 +101,7 @@ describe('FHIRPath Registry', () => {
     });
 
     describe('isBinaryOperator', () => {
-      it('should recognize all symbol operators as binary', () => {
+      it('should recognize all symbol operators as binary', async () => {
         expect(registry.isBinaryOperator('+')).toBe(true);
         expect(registry.isBinaryOperator('-')).toBe(true);
         expect(registry.isBinaryOperator('*')).toBe(true);
@@ -111,7 +111,7 @@ describe('FHIRPath Registry', () => {
         expect(registry.isBinaryOperator('.')).toBe(true);
       });
 
-      it('should recognize all keyword operators as binary', () => {
+      it('should recognize all keyword operators as binary', async () => {
         expect(registry.isBinaryOperator('and')).toBe(true);
         expect(registry.isBinaryOperator('or')).toBe(true);
         expect(registry.isBinaryOperator('div')).toBe(true);
@@ -120,7 +120,7 @@ describe('FHIRPath Registry', () => {
         expect(registry.isBinaryOperator('is')).toBe(true);
       });
 
-      it('should not recognize unary-only operators', () => {
+      it('should not recognize unary-only operators', async () => {
         // Actually, + and - are both unary and binary, so they should return true
         expect(registry.isBinaryOperator('not')).toBe(false);
       });
@@ -129,7 +129,7 @@ describe('FHIRPath Registry', () => {
 
   describe('Operator Properties', () => {
     describe('getPrecedence', () => {
-      it('should return correct precedence for operators', () => {
+      it('should return correct precedence for operators', async () => {
         // Highest precedence
         expect(registry.getPrecedence('.')).toBe(PRECEDENCE.DOT);
         
@@ -176,12 +176,12 @@ describe('FHIRPath Registry', () => {
         expect(registry.getPrecedence('implies')).toBe(PRECEDENCE.IMPLIES);
       });
 
-      it('should return 0 for unknown operators', () => {
+      it('should return 0 for unknown operators', async () => {
         expect(registry.getPrecedence('unknown')).toBe(0);
         expect(registry.getPrecedence('@@')).toBe(0);
       });
 
-      it('should handle unary operators correctly', () => {
+      it('should handle unary operators correctly', async () => {
         // Unary operators should have their unary precedence
         const unaryPlus = registry.getOperatorDefinition('+');
         const unaryMinus = registry.getOperatorDefinition('-');
@@ -194,7 +194,7 @@ describe('FHIRPath Registry', () => {
     });
 
     describe('getAssociativity', () => {
-      it('should return left associativity for most operators', () => {
+      it('should return left associativity for most operators', async () => {
         // All left-associative
         expect(registry.getAssociativity('+')).toBe('left');
         expect(registry.getAssociativity('-')).toBe('left');
@@ -206,24 +206,24 @@ describe('FHIRPath Registry', () => {
         expect(registry.getAssociativity('.')).toBe('left');
       });
 
-      it('should return right associativity for implies', () => {
+      it('should return right associativity for implies', async () => {
         expect(registry.getAssociativity('implies')).toBe('right');
       });
 
-      it('should return right associativity for unary operators', () => {
+      it('should return right associativity for unary operators', async () => {
         // 'not' is a function, not an operator
         // Test with actual unary operators
         expect(registry.getAssociativity('+')).toBe('left'); // Unary + uses same definition as binary +
         expect(registry.getAssociativity('-')).toBe('left'); // Unary - uses same definition as binary -
       });
 
-      it('should return left for unknown operators', () => {
+      it('should return left for unknown operators', async () => {
         expect(registry.getAssociativity('unknown')).toBe('left');
       });
     });
 
     describe('getOperatorDefinition', () => {
-      it('should return complete operator definitions', () => {
+      it('should return complete operator definitions', async () => {
         const plusOp = registry.getOperatorDefinition('+');
         expect(plusOp).toBeDefined();
         expect(plusOp!.symbol).toBe('+');
@@ -239,20 +239,20 @@ describe('FHIRPath Registry', () => {
         expect(andOp!.description).toBe('Returns true if both operands evaluate to true, false if either operand evaluates to false, and the empty collection ({ }) otherwise');
       });
 
-      it('should handle case-insensitive keyword operators', () => {
+      it('should handle case-insensitive keyword operators', async () => {
         const andOp = registry.getOperatorDefinition('AND');
         expect(andOp).toBeDefined();
         expect(andOp!.symbol).toBe('and');
       });
 
-      it('should return undefined for unknown operators', () => {
+      it('should return undefined for unknown operators', async () => {
         expect(registry.getOperatorDefinition('unknown')).toBeUndefined();
       });
     });
   });
 
   describe('Keyword Operators List', () => {
-    it('should return all keyword operators', () => {
+    it('should return all keyword operators', async () => {
       const keywords = registry.getKeywordOperators();
       
       expect(keywords).toContain('and');
@@ -273,7 +273,7 @@ describe('FHIRPath Registry', () => {
   });
 
   describe('Function Registry', () => {
-    it('should register and retrieve functions', () => {
+    it('should register and retrieve functions', async () => {
       const testRegistry = new Registry();
       
       const whereFunction: FunctionDefinition = {
@@ -304,7 +304,7 @@ describe('FHIRPath Registry', () => {
       expect(retrieved!.description).toBe('Filters a collection');
     });
 
-    it('should handle case-sensitive function lookup', () => {
+    it('should handle case-sensitive function lookup', async () => {
       const testRegistry = new Registry();
       
       const testFunc: FunctionDefinition = {
@@ -336,7 +336,7 @@ describe('FHIRPath Registry', () => {
       expect(testRegistry.getFunction('TESTFUNCTION')).toBeUndefined();
     });
 
-    it('should return false/undefined for non-existent functions', () => {
+    it('should return false/undefined for non-existent functions', async () => {
       const testRegistry = new Registry();
       
       expect(testRegistry.isFunction('nonexistent')).toBe(false);
@@ -345,7 +345,7 @@ describe('FHIRPath Registry', () => {
   });
 
   describe('Precedence Order', () => {
-    it('should have correct precedence ordering', () => {
+    it('should have correct precedence ordering', async () => {
       // Verify precedence values are in correct order
       expect(PRECEDENCE.DOT).toBeGreaterThan(PRECEDENCE.POSTFIX);
       expect(PRECEDENCE.POSTFIX).toBeGreaterThan(PRECEDENCE.AS_IS);

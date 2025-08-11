@@ -3,7 +3,7 @@ import { PRECEDENCE } from '../types';
 import type { OperationEvaluator } from '../types';
 import { box, unbox } from '../boxing';
 
-export const evaluate: OperationEvaluator = (input, context, operand) => {
+export const evaluate: OperationEvaluator = async (input, context, operand) => {
   // Unary plus returns the operand as-is
   return { value: operand, context };
 };

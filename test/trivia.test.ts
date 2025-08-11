@@ -11,7 +11,7 @@ describe('Lexer Trivia Support', () => {
     return token;
   }
   describe('without preserveTrivia', () => {
-    it('should skip whitespace and comments', () => {
+    it('should skip whitespace and comments', async () => {
       const lexer = new Lexer('5 + 3 // comment', { preserveTrivia: false });
       const tokens = lexer.tokenize();
       
@@ -27,7 +27,7 @@ describe('Lexer Trivia Support', () => {
   });
 
   describe('with preserveTrivia', () => {
-    it('should preserve whitespace tokens', () => {
+    it('should preserve whitespace tokens', async () => {
       const lexer = new Lexer('5 + 3', { preserveTrivia: true });
       const tokens = lexer.tokenize();
       
@@ -47,7 +47,7 @@ describe('Lexer Trivia Support', () => {
       expect(getToken(tokens, 5).type).toBe(TokenType.EOF);
     });
 
-    it('should preserve line comments', () => {
+    it('should preserve line comments', async () => {
       const lexer = new Lexer('5 + 3 // comment\n', { preserveTrivia: true });
       const tokens = lexer.tokenize();
       
@@ -58,7 +58,7 @@ describe('Lexer Trivia Support', () => {
       expect(commentToken!.channel).toBe(Channel.HIDDEN);
     });
 
-    it('should preserve block comments', () => {
+    it('should preserve block comments', async () => {
       const lexer = new Lexer('5 /* multiply by */ * 3', { preserveTrivia: true });
       const tokens = lexer.tokenize();
       
@@ -68,7 +68,7 @@ describe('Lexer Trivia Support', () => {
       expect(commentToken!.channel).toBe(Channel.HIDDEN);
     });
 
-    it('should preserve multiple whitespace characters', () => {
+    it('should preserve multiple whitespace characters', async () => {
       const lexer = new Lexer('Patient  .  name', { preserveTrivia: true });
       const tokens = lexer.tokenize();
       
@@ -78,7 +78,7 @@ describe('Lexer Trivia Support', () => {
       expect(getToken(whitespaceTokens, 1).value).toBe('  '); // 2 spaces
     });
 
-    it('should preserve newlines in whitespace', () => {
+    it('should preserve newlines in whitespace', async () => {
       const lexer = new Lexer('5 +\n  3', { preserveTrivia: true });
       const tokens = lexer.tokenize();
       
@@ -88,7 +88,7 @@ describe('Lexer Trivia Support', () => {
       expect(getToken(whitespaceTokens, 1).value).toBe('\n  ');
     });
 
-    it('should handle mixed trivia correctly', () => {
+    it('should handle mixed trivia correctly', async () => {
       const input = `Patient
         // Get the name
         .name /* property access */
@@ -117,7 +117,7 @@ describe('Lexer Trivia Support', () => {
   });
   
   describe('Parser with trivia', () => {
-    it('should parse correctly with trivia tokens', () => {
+    it('should parse correctly with trivia tokens', async () => {
       // The parser should skip trivia tokens automatically
       const { Parser } = require('../src/parser');
       const parser = new Parser('5 + 3 // comment', { preserveTrivia: true });

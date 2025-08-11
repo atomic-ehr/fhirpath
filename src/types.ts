@@ -36,10 +36,10 @@ export interface TypeInfo<TypeContext = unknown> {
 
 // Model Provider Interface (from ADR-004)
 export interface ModelProvider<TypeContext = unknown> {
-  getType(typeName: string): TypeInfo<TypeContext> | undefined;
+  getType(typeName: string): Promise<TypeInfo<TypeContext> | undefined>;
   
   // get element type from complex type
-  getElementType(parentType: TypeInfo<TypeContext>, propertyName: string): TypeInfo<TypeContext> | undefined;
+  getElementType(parentType: TypeInfo<TypeContext>, propertyName: string): Promise<TypeInfo<TypeContext> | undefined>;
 
   // get type from union type
   ofType(type: TypeInfo<TypeContext>, typeName: TypeName): TypeInfo<TypeContext> | undefined;
@@ -48,17 +48,23 @@ export interface ModelProvider<TypeContext = unknown> {
   getElementNames(parentType: TypeInfo<TypeContext>): string[];
 
   // Returns a union type of all possible child element types
-  getChildrenType(parentType: TypeInfo<TypeContext>): TypeInfo<TypeContext> | undefined;
+  getChildrenType(parentType: TypeInfo<TypeContext>): Promise<TypeInfo<TypeContext> | undefined>;
 
   // Get detailed information about elements of a type for completion suggestions
-  getElements(typeName: string): Array<{
+  getElements(typeName: string): Promise<Array<{
     name: string;
     type: string;
     documentation?: string;
-  }>;
+  }>>;
 
-  // Get list of all resource types
-  getResourceTypes(): string[];
+  // Get list of all resource types (now async for clean design)
+  getResourceTypes(): Promise<string[]>;
+  
+  // Get list of all complex types
+  getComplexTypes(): Promise<string[]>;
+  
+  // Get list of all primitive types
+  getPrimitiveTypes(): Promise<string[]>;
 }
 
 export interface OperatorSignature {
@@ -357,16 +363,16 @@ export interface ParseResult {
   };
 }
 
-export type NodeEvaluator = (node: ASTNode, input: import('./boxing').FHIRPathValue[], context: RuntimeContext) => EvaluationResult;
+export type NodeEvaluator = (node: ASTNode, input: import('./boxing').FHIRPathValue[], context: RuntimeContext) => Promise<EvaluationResult>;
 
-export type OperationEvaluator = (input: import('./boxing').FHIRPathValue[], context: RuntimeContext, ...args: any[]) => EvaluationResult;
+export type OperationEvaluator = (input: import('./boxing').FHIRPathValue[], context: RuntimeContext, ...args: any[]) => Promise<EvaluationResult>;
 
 export type FunctionEvaluator = (
   input: import('./boxing').FHIRPathValue[],
   context: RuntimeContext,
   args: ASTNode[],
-  evaluator: (node: ASTNode, input: import('./boxing').FHIRPathValue[], context: RuntimeContext) => EvaluationResult
-) => EvaluationResult;
+  evaluator: (node: ASTNode, input: import('./boxing').FHIRPathValue[], context: RuntimeContext) => Promise<EvaluationResult>
+) => Promise<EvaluationResult>;
 
 // Type guards for optional properties
 export function hasParentNavigation(node: ASTNode): node is ASTNode & { parent: ASTNode; children: ASTNode[] } {

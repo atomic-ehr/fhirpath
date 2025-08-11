@@ -43,6 +43,11 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
   private hierarchyCache: Map<string, FHIRSchema[]> = new Map();
   private initialized = false;
   
+  // Caches for discovered types
+  private complexTypesCache?: string[];
+  private primitiveTypesCache?: string[];
+  private resourceTypesCache?: string[];
+  
   // FHIR Primitives to FHIRPath types mapping
   private readonly typeMapping: Record<string, TypeName> = {
     'boolean': 'Boolean',
@@ -76,50 +81,29 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
     'Count': 'Quantity'
   };
   
-  // Common FHIR types to preload - load all resource types and common data types
-  private readonly commonTypes = [
-    // Base resources
-    'Resource', 'DomainResource',
-    // All FHIR R4 resources (alphabetical)
-    'Account', 'ActivityDefinition', 'AdverseEvent', 'AllergyIntolerance', 'Appointment',
-    'AppointmentResponse', 'AuditEvent', 'Basic', 'Binary', 'BiologicallyDerivedProduct',
-    'BodyStructure', 'Bundle', 'CapabilityStatement', 'CarePlan', 'CareTeam',
-    'CatalogEntry', 'ChargeItem', 'ChargeItemDefinition', 'Claim', 'ClaimResponse',
-    'ClinicalImpression', 'CodeSystem', 'Communication', 'CommunicationRequest', 'CompartmentDefinition',
-    'Composition', 'ConceptMap', 'Condition', 'Consent', 'Contract',
-    'Coverage', 'CoverageEligibilityRequest', 'CoverageEligibilityResponse', 'DetectedIssue', 'Device',
-    'DeviceDefinition', 'DeviceMetric', 'DeviceRequest', 'DeviceUseStatement', 'DiagnosticReport',
-    'DocumentManifest', 'DocumentReference', 'EffectEvidenceSynthesis', 'Encounter', 'Endpoint',
-    'EnrollmentRequest', 'EnrollmentResponse', 'EpisodeOfCare', 'EventDefinition', 'Evidence',
-    'EvidenceVariable', 'ExampleScenario', 'ExplanationOfBenefit', 'FamilyMemberHistory', 'Flag',
-    'Goal', 'GraphDefinition', 'Group', 'GuidanceResponse', 'HealthcareService',
-    'ImagingStudy', 'Immunization', 'ImmunizationEvaluation', 'ImmunizationRecommendation', 'ImplementationGuide',
-    'InsurancePlan', 'Invoice', 'Library', 'Linkage', 'List',
-    'Location', 'Measure', 'MeasureReport', 'Media', 'Medication',
-    'MedicationAdministration', 'MedicationDispense', 'MedicationKnowledge', 'MedicationRequest', 'MedicationStatement',
-    'MedicinalProduct', 'MedicinalProductAuthorization', 'MedicinalProductContraindication', 'MedicinalProductIndication', 'MedicinalProductIngredient',
-    'MedicinalProductInteraction', 'MedicinalProductManufactured', 'MedicinalProductPackaged', 'MedicinalProductPharmaceutical', 'MedicinalProductUndesirableEffect',
-    'MessageDefinition', 'MessageHeader', 'MolecularSequence', 'NamingSystem', 'NutritionOrder',
-    'Observation', 'ObservationDefinition', 'OperationDefinition', 'OperationOutcome', 'Organization',
-    'OrganizationAffiliation', 'Parameters', 'Patient', 'PaymentNotice', 'PaymentReconciliation',
-    'Person', 'PlanDefinition', 'Practitioner', 'PractitionerRole', 'Procedure',
-    'Provenance', 'Questionnaire', 'QuestionnaireResponse', 'RelatedPerson', 'RequestGroup',
-    'ResearchDefinition', 'ResearchElementDefinition', 'ResearchStudy', 'ResearchSubject', 'RiskAssessment',
-    'RiskEvidenceSynthesis', 'Schedule', 'SearchParameter', 'ServiceRequest', 'Slot',
-    'Specimen', 'SpecimenDefinition', 'StructureDefinition', 'StructureMap', 'Subscription',
-    'Substance', 'SubstanceNucleicAcid', 'SubstancePolymer', 'SubstanceProtein', 'SubstanceReferenceInformation',
-    'SubstanceSourceMaterial', 'SubstanceSpecification', 'SupplyDelivery', 'SupplyRequest', 'Task',
-    'TerminologyCapabilities', 'TestReport', 'TestScript', 'ValueSet', 'VerificationResult',
-    'VisionPrescription',
-    // Common data types
-    'HumanName', 'CodeableConcept', 'Coding', 'Extension', 'Reference', 
-    'Identifier', 'Period', 'ContactPoint', 'Address', 'Attachment', 
-    'Meta', 'Narrative', 'Quantity', 'SimpleQuantity', 'Age', 'Distance',
-    'Duration', 'Count', 'Money', 'Range', 'Ratio', 'SampledData',
-    'Timing', 'Annotation', 'Signature', 'ContactDetail', 'Contributor',
-    'DataRequirement', 'ParameterDefinition', 'RelatedArtifact', 'TriggerDefinition',
-    'UsageContext', 'Dosage', 'ElementDefinition'
-  ];
+  // Map FHIR primitive names to FHIRPath type names
+  private readonly primitiveTypeMapping: Record<string, string> = {
+    'boolean': 'Boolean',
+    'string': 'String',
+    'integer': 'Integer',
+    'decimal': 'Decimal',
+    'date': 'Date',
+    'dateTime': 'DateTime',
+    'time': 'Time',
+    'instant': 'Instant',
+    'base64Binary': 'Base64Binary',
+    'uri': 'Uri',
+    'url': 'Url',
+    'canonical': 'Canonical',
+    'code': 'Code',
+    'oid': 'Oid',
+    'id': 'Id',
+    'markdown': 'Markdown',
+    'unsignedInt': 'UnsignedInt',
+    'positiveInt': 'PositiveInt',
+    'uuid': 'Uuid',
+    'xhtml': 'Xhtml'
+  };
   
   constructor(private config: FHIRModelProviderConfig = {
     packages: [{ name: 'hl7.fhir.r4.core', version: '4.0.1' }]
@@ -142,17 +126,12 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
     try {
       await this.canonicalManager.init();
       
-      // Preload common types with error handling
-      const results = await Promise.allSettled(
-        this.commonTypes.map(type => this.loadSchemaAsync(type))
-      );
-      
-      // Log any failed loads
-      results.forEach((result, index) => {
-        if (result.status === 'rejected') {
-          console.warn(`Failed to preload ${this.commonTypes[index]}:`, result.reason);
-        }
-      });
+      // Just discover type names for completions - schemas load lazily on demand
+      await Promise.all([
+        this.getResourceTypes(),
+        this.getComplexTypes(),
+        this.getPrimitiveTypes()
+      ]);
       
       this.initialized = true;
     } catch (error) {
@@ -168,7 +147,8 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
     return `http://hl7.org/fhir/StructureDefinition/${typeName}`;
   }
   
-  private async loadSchemaAsync(typeName: string): Promise<FHIRSchema | undefined> {
+  // Public method to get schema with automatic caching
+  async getSchema(typeName: string): Promise<FHIRSchema | undefined> {
     // Check cache first
     if (this.schemaCache.has(typeName)) {
       return this.schemaCache.get(typeName);
@@ -197,10 +177,6 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
     }
   }
   
-  private loadSchemaCached(typeName: string): FHIRSchema | undefined {
-    return this.schemaCache.get(typeName);
-  }
-  
   private async getSchemaHierarchyAsync(schema: FHIRSchema): Promise<FHIRSchema[]> {
     const cacheKey = schema.name || schema.url;
     
@@ -221,7 +197,7 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
         baseTypeName = parts[parts.length - 1] || baseTypeName;
       }
       
-      const baseSchema = await this.loadSchemaAsync(baseTypeName);
+      const baseSchema = await this.getSchema(baseTypeName);
       if (!baseSchema) break;
       
       hierarchy.push(baseSchema);
@@ -232,14 +208,34 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
     return hierarchy;
   }
   
+  private extractTypeName(url: string): string {
+    // Extract type name from FHIR structure definition URL
+    // e.g., "http://hl7.org/fhir/StructureDefinition/Element" -> "Element"
+    const parts = url.split('/');
+    return parts[parts.length - 1] || url;
+  }
+  
   private getSchemaHierarchyCached(schema: FHIRSchema): FHIRSchema[] {
     const cacheKey = schema.name || schema.url;
     const cached = this.hierarchyCache.get(cacheKey);
     if (cached) return cached;
     
-    // If not cached, at least return the current schema
-    // This might happen if the schema wasn't pre-loaded during initialization
-    return [schema];
+    // If not cached, build the hierarchy synchronously from cached schemas
+    const hierarchy: FHIRSchema[] = [schema];
+    let current = schema;
+    
+    while (current.base) {
+      const baseTypeName = this.extractTypeName(current.base);
+      const baseSchema = this.schemaCache.get(baseTypeName);
+      if (!baseSchema) break;
+      
+      hierarchy.push(baseSchema);
+      current = baseSchema;
+    }
+    
+    // Cache for future use
+    this.hierarchyCache.set(cacheKey, hierarchy);
+    return hierarchy;
   }
   
   private mapToFHIRPathType(fhirType: string): TypeName {
@@ -279,8 +275,8 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
     };
   }
   
-  // Synchronous implementation (requires pre-loaded schemas)
-  getType(typeName: string): TypeInfo<FHIRModelContext> | undefined {
+  // Async implementation with lazy loading
+  async getType(typeName: string): Promise<TypeInfo<FHIRModelContext> | undefined> {
     // Check if it's a primitive type - these don't require initialization
     if (this.typeMapping[typeName]) {
       return {
@@ -301,14 +297,14 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
       return undefined;
     }
     
-    // Load schema from cache
-    const schema = this.loadSchemaCached(typeName);
+    // Try to load schema lazily
+    const schema = await this.getSchema(typeName);
     if (!schema) {
       // Schema not found - this is expected for non-type identifiers
       return undefined;
     }
     
-    const schemaHierarchy = this.getSchemaHierarchyCached(schema);
+    const schemaHierarchy = await this.getSchemaHierarchyAsync(schema);
     
     return {
       type: 'Any',  // Complex types are 'Any' in FHIRPath
@@ -324,7 +320,7 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
     };
   }
   
-  getElementType( parentType: TypeInfo<FHIRModelContext>, propertyName: string): TypeInfo<FHIRModelContext> | undefined {
+  async getElementType( parentType: TypeInfo<FHIRModelContext>, propertyName: string): Promise<TypeInfo<FHIRModelContext> | undefined> {
     const context = parentType.modelContext;
     if (!context) return undefined;
     
@@ -368,9 +364,10 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
         } as FHIRSchema;
         elementSchemaHierarchy = [inlineSchema];
       } else if (!this.typeMapping[elementType]) {
-        const elementSchema = this.loadSchemaCached(elementType);
+        // For complex types, we need to load the schema and its hierarchy
+        const elementSchema = await this.getSchema(elementType);
         if (elementSchema) {
-          elementSchemaHierarchy = this.getSchemaHierarchyCached(elementSchema);
+          elementSchemaHierarchy = await this.getSchemaHierarchyAsync(elementSchema);
         }
       }
       
@@ -463,7 +460,7 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
     return Array.from(names);
   }
 
-  getChildrenType(parentType: TypeInfo<FHIRModelContext>): TypeInfo<FHIRModelContext> | undefined {
+  async getChildrenType(parentType: TypeInfo<FHIRModelContext>): Promise<TypeInfo<FHIRModelContext> | undefined> {
     const elementNames = this.getElementNames(parentType);
     if (elementNames.length === 0) return undefined;
     
@@ -471,7 +468,7 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
     const childTypes = new Map<string, TypeInfo<FHIRModelContext>>();
     
     for (const elementName of elementNames) {
-      const elementType = this.getElementType(parentType, elementName);
+      const elementType = await this.getElementType(parentType, elementName);
       if (elementType) {
         // Use a combination of namespace and name as key to deduplicate
         const key = `${elementType.namespace || ''}.${elementType.name || elementType.type}`;
@@ -503,18 +500,19 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
   
   // Async helper methods for loading additional schemas
   async loadType(typeName: string): Promise<TypeInfo<FHIRModelContext> | undefined> {
-    await this.loadSchemaAsync(typeName);
+    await this.getSchema(typeName);
     return this.getType(typeName);
   }
 
   // Get detailed information about elements of a type
-  getElements(typeName: string): Array<{ name: string; type: string; documentation?: string }> {
+  async getElements(typeName: string): Promise<Array<{ name: string; type: string; documentation?: string }>> {
     if (!this.initialized) {
       console.warn('FHIRModelProvider not initialized. Cannot get elements.');
       return [];
     }
 
-    const schema = this.loadSchemaCached(typeName);
+    // Load schema lazily using the public getSchema method
+    const schema = await this.getSchema(typeName);
     if (!schema || !schema.elements) {
       return [];
     }
@@ -522,7 +520,7 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
     const elements: Array<{ name: string; type: string; documentation?: string }> = [];
     
     // Get all elements from this schema and its hierarchy
-    const schemaHierarchy = this.getSchemaHierarchyCached(schema);
+    const schemaHierarchy = await this.getSchemaHierarchyAsync(schema);
     const addedElements = new Set<string>();
     
     for (const currentSchema of schemaHierarchy) {
@@ -545,14 +543,108 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
     return elements;
   }
   
-  getResourceTypes(): string[] {
-    // Return all FHIR resource types from the commonTypes list
-    // These are the resources that extend DomainResource or Resource
-    return this.commonTypes.filter(type => {
-      // All uppercase-starting types that are not data types
-      return /^[A-Z]/.test(type) && 
-             !['Resource', 'DomainResource', 'Element', 'BackboneElement'].includes(type) &&
-             !this.typeMapping[type]; // Exclude mapped types (primitives and special quantities)
+  async getResourceTypes(): Promise<string[]> {
+    if (this.resourceTypesCache) {
+      return this.resourceTypesCache;
+    }
+    
+    const resources = await this.canonicalManager.search({ 
+      kind: 'resource' 
     });
+    
+    this.resourceTypesCache = resources
+      .filter(r => r.resourceType === 'StructureDefinition')
+      .map(r => (r as unknown as StructureDefinition).name)
+      .filter((name): name is string => !!name)
+      .sort();
+      
+    return this.resourceTypesCache;
+  }
+  
+  async getComplexTypes(): Promise<string[]> {
+    if (this.complexTypesCache) {
+      return this.complexTypesCache;
+    }
+    
+    const resources = await this.canonicalManager.search({ 
+      kind: 'complex-type' 
+    });
+    
+    this.complexTypesCache = resources
+      .filter(r => r.resourceType === 'StructureDefinition')
+      .map(r => r as unknown as StructureDefinition)
+      .filter(sd => {
+        // Only include base complex types, not extensions or constraints
+        return sd.type !== 'Extension' &&
+               sd.derivation !== 'constraint' &&
+               !sd.name?.includes('.') && // Skip nested types
+               (!sd.abstract || sd.name === 'BackboneElement'); // Keep BackboneElement
+      })
+      .map(sd => sd.name)
+      .filter((name): name is string => !!name)
+      .sort();
+      
+    return this.complexTypesCache;
+  }
+  
+  async getPrimitiveTypes(): Promise<string[]> {
+    if (this.primitiveTypesCache) {
+      return this.primitiveTypesCache;
+    }
+    
+    const resources = await this.canonicalManager.search({ 
+      kind: 'primitive-type' 
+    });
+    
+    // Get FHIR primitive names and map to FHIRPath names
+    const fhirPrimitives = resources
+      .filter(r => r.resourceType === 'StructureDefinition')
+      .map(r => (r as unknown as StructureDefinition).name)
+      .filter((name): name is string => !!name);
+    
+    this.primitiveTypesCache = fhirPrimitives
+      .map(name => this.primitiveTypeMapping[name] || name)
+      .sort();
+      
+    return this.primitiveTypesCache;
+  }
+
+  // Synchronous method to get type from cache (for analyzer)
+  getTypeFromCache(typeName: string): TypeInfo<FHIRModelContext> | undefined {
+    // Check if it's a primitive type - these don't require initialization
+    if (this.typeMapping[typeName]) {
+      return {
+        type: this.typeMapping[typeName],
+        namespace: 'FHIR',
+        name: typeName,
+        singleton: true,
+        modelContext: {
+          path: typeName,
+          schemaHierarchy: []
+        }
+      };
+    }
+    
+    // For complex types, check if schema is in cache
+    const schema = this.schemaCache.get(typeName);
+    if (!schema) {
+      return undefined;
+    }
+    
+    // Get cached hierarchy or at least the current schema
+    const schemaHierarchy = this.hierarchyCache.get(schema.name || schema.url) || [schema];
+    
+    return {
+      type: 'Any',  // Complex types are 'Any' in FHIRPath
+      namespace: 'FHIR',
+      name: typeName,
+      singleton: true,
+      modelContext: {
+        path: typeName,
+        schemaHierarchy,
+        canonicalUrl: schema.url,
+        version: schema.version
+      }
+    };
   }
 }

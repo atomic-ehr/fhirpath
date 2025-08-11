@@ -4,7 +4,7 @@ import type { OperationEvaluator } from '../types';
 import type { QuantityValue } from '../quantity-value';
 import { box, unbox } from '../boxing';
 
-export const evaluate: OperationEvaluator = (input, context, operand) => {
+export const evaluate: OperationEvaluator = async (input, context, operand) => {
   // Unary minus negates each boxed value
   const results: any[] = [];
   

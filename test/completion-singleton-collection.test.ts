@@ -12,11 +12,11 @@ describe('Completion Provider - Singleton vs Collection', () => {
   });
   
   describe('String type completions', () => {
-    it('should provide singleton string functions for a single string literal', () => {
+    it('should provide singleton string functions for a single string literal', async () => {
       const expression = '"hello".';
       const cursorPosition = 8;
       
-      const completions = provideCompletions(expression, cursorPosition);
+      const completions = await provideCompletions(expression, cursorPosition);
       const functionNames = completions
         .filter(c => c.kind === CompletionKind.Function)
         .map(c => c.label);
@@ -37,7 +37,7 @@ describe('Completion Provider - Singleton vs Collection', () => {
       expect(functionNames).toContain('first');
     });
     
-    it('should NOT provide singleton string functions for string collection', () => {
+    it('should NOT provide singleton string functions for string collection', async () => {
       const expression = 'Patient.name.given.';
       const cursorPosition = 19;
       const options: CompletionOptions = {
@@ -45,7 +45,7 @@ describe('Completion Provider - Singleton vs Collection', () => {
         inputType: { type: 'Patient' as any, singleton: true }
       };
       
-      const completions = provideCompletions(expression, cursorPosition, options);
+      const completions = await provideCompletions(expression, cursorPosition, options);
       const functionNames = completions
         .filter(c => c.kind === CompletionKind.Function)
         .map(c => c.label);
@@ -69,7 +69,7 @@ describe('Completion Provider - Singleton vs Collection', () => {
       expect(functionNames).toContain('distinct');
     });
     
-    it('should provide singleton functions after first()', () => {
+    it('should provide singleton functions after first()', async () => {
       const expression = 'Patient.name.given.first().';
       const cursorPosition = 27;
       const options: CompletionOptions = {
@@ -77,7 +77,7 @@ describe('Completion Provider - Singleton vs Collection', () => {
         inputType: { type: 'Patient' as any, singleton: true }
       };
       
-      const completions = provideCompletions(expression, cursorPosition, options);
+      const completions = await provideCompletions(expression, cursorPosition, options);
       const functionNames = completions
         .filter(c => c.kind === CompletionKind.Function)
         .map(c => c.label);
@@ -92,11 +92,11 @@ describe('Completion Provider - Singleton vs Collection', () => {
   });
   
   describe('Numeric type completions', () => {
-    it('should provide singleton math functions for single number', () => {
+    it('should provide singleton math functions for single number', async () => {
       const expression = '5.';
       const cursorPosition = 2;
       
-      const completions = provideCompletions(expression, cursorPosition);
+      const completions = await provideCompletions(expression, cursorPosition);
       const functionNames = completions
         .filter(c => c.kind === CompletionKind.Function)
         .map(c => c.label);
@@ -109,12 +109,12 @@ describe('Completion Provider - Singleton vs Collection', () => {
       expect(functionNames).toContain('sqrt');
     });
     
-    it('should NOT provide singleton math functions for number collection', () => {
+    it('should NOT provide singleton math functions for number collection', async () => {
       // Simulating a collection of numbers (e.g., from a select that returns numbers)
       const expression = '(1 | 2 | 3).';
       const cursorPosition = 12;
       
-      const completions = provideCompletions(expression, cursorPosition);
+      const completions = await provideCompletions(expression, cursorPosition);
       const functionNames = completions
         .filter(c => c.kind === CompletionKind.Function)
         .map(c => c.label);
@@ -131,7 +131,7 @@ describe('Completion Provider - Singleton vs Collection', () => {
   });
   
   describe('Function count differences', () => {
-    it('should have fewer functions for collections than singletons', () => {
+    it('should have fewer functions for collections than singletons', async () => {
       // Collection case
       const collectionExpression = 'Patient.name.given.';
       const collectionPosition = 19;
@@ -140,7 +140,7 @@ describe('Completion Provider - Singleton vs Collection', () => {
         inputType: { type: 'Patient' as any, singleton: true }
       };
       
-      const collectionCompletions = provideCompletions(
+      const collectionCompletions = await provideCompletions(
         collectionExpression, 
         collectionPosition, 
         collectionOptions
@@ -156,7 +156,7 @@ describe('Completion Provider - Singleton vs Collection', () => {
         inputType: { type: 'Patient' as any, singleton: true }
       };
       
-      const singletonCompletions = provideCompletions(
+      const singletonCompletions = await provideCompletions(
         singletonExpression, 
         singletonPosition, 
         singletonOptions
@@ -174,12 +174,12 @@ describe('Completion Provider - Singleton vs Collection', () => {
   });
   
   describe('Boolean type completions', () => {
-    it('should handle boolean singleton vs collection', () => {
+    it('should handle boolean singleton vs collection', async () => {
       // Single boolean
       const singleExpression = 'true.';
       const singlePosition = 5;
       
-      const singleCompletions = provideCompletions(singleExpression, singlePosition);
+      const singleCompletions = await provideCompletions(singleExpression, singlePosition);
       const singleFunctionNames = singleCompletions
         .filter(c => c.kind === CompletionKind.Function)
         .map(c => c.label);
@@ -192,11 +192,11 @@ describe('Completion Provider - Singleton vs Collection', () => {
   });
   
   describe('Edge cases', () => {
-    it('should handle empty collection type correctly', () => {
+    it('should handle empty collection type correctly', async () => {
       const expression = '{}.'; // Empty collection
       const cursorPosition = 3;
       
-      const completions = provideCompletions(expression, cursorPosition);
+      const completions = await provideCompletions(expression, cursorPosition);
       const functionNames = completions
         .filter(c => c.kind === CompletionKind.Function)
         .map(c => c.label);
@@ -208,7 +208,7 @@ describe('Completion Provider - Singleton vs Collection', () => {
       expect(functionNames).toContain('first');
     });
     
-    it('should handle select() that returns collection', () => {
+    it('should handle select() that returns collection', async () => {
       const expression = 'Patient.name.select(given).';
       const cursorPosition = 27;
       const options: CompletionOptions = {
@@ -216,7 +216,7 @@ describe('Completion Provider - Singleton vs Collection', () => {
         inputType: { type: 'Patient' as any, singleton: true }
       };
       
-      const completions = provideCompletions(expression, cursorPosition, options);
+      const completions = await provideCompletions(expression, cursorPosition, options);
       const functionNames = completions
         .filter(c => c.kind === CompletionKind.Function)
         .map(c => c.label);
@@ -231,7 +231,7 @@ describe('Completion Provider - Singleton vs Collection', () => {
       expect(functionNames).toContain('distinct');
     });
     
-    it('should handle single() that returns singleton', () => {
+    it('should handle single() that returns singleton', async () => {
       const expression = 'Patient.identifier.single().';
       const cursorPosition = 28;
       const options: CompletionOptions = {
@@ -239,7 +239,7 @@ describe('Completion Provider - Singleton vs Collection', () => {
         inputType: { type: 'Patient' as any, singleton: true }
       };
       
-      const completions = provideCompletions(expression, cursorPosition, options);
+      const completions = await provideCompletions(expression, cursorPosition, options);
       
       // single() returns a singleton, so more functions should be available
       expect(completions.length).toBeGreaterThan(0);

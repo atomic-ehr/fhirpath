@@ -65,7 +65,7 @@ describe('Parser Fixture Tests', () => {
       });
       
       // Summary test
-      it(`should provide parsing summary for ${fixture.name}`, () => {
+      it(`should provide parsing summary for ${fixture.name}`, async () => {
         // console.log(`\n    Summary for ${fixture.name}:`);
         // console.log(`      Total expressions: ${totalExpressions}`);
         // console.log(`      Parsed successfully: ${parsedSuccessfully} (${((parsedSuccessfully / totalExpressions) * 100).toFixed(1)}%)`);

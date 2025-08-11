@@ -12,10 +12,10 @@ export interface EvaluateOptions {
   inputType?: import('./types').TypeInfo;
 }
 
-export function evaluate(
+export async function evaluate(
   expression: string,
   options: EvaluateOptions = {}
-): any[] {
+): Promise<any[]> {
   const parser = new Parser(expression);
   const parseResult = parser.parse();
   
@@ -28,7 +28,7 @@ export function evaluate(
   
   // ALWAYS analyze the AST
   const analyzer = new Analyzer(options.modelProvider);
-  const analysisResult = analyzer.analyze(
+  const analysisResult = await analyzer.analyze(
     parseResult.ast, 
     options.variables,
     options.inputType
@@ -55,15 +55,16 @@ export function evaluate(
   // Box input with typeInfo if we have a modelProvider and the input is a FHIR resource
   let boxedInput = input;
   if (options.modelProvider) {
-    boxedInput = input.map(item => {
+    boxedInput = await Promise.all(input.map(async item => {
       if (item && typeof item === 'object' && 'resourceType' in item && typeof item.resourceType === 'string') {
-        const typeInfo = options.modelProvider!.getType(item.resourceType);
+        // Get type info asynchronously
+        const typeInfo = await options.modelProvider!.getType(item.resourceType);
         if (typeInfo) {
           return box(item, typeInfo);
         }
       }
       return item;
-    });
+    }));
   }
   
   // Create context with variables if provided
@@ -84,13 +85,13 @@ export function evaluate(
     }
   }
   
-  const result = interpreter.evaluate(analysisResult.ast, input, context);
+  const result = await interpreter.evaluate(analysisResult.ast, input, context);
   
   // Unbox the results before returning
   return result.value.map(unbox);
 }
 
-export function analyze(
+export async function analyze(
   expression: string,
   options: { 
     variables?: Record<string, unknown>;
@@ -98,7 +99,7 @@ export function analyze(
     inputType?: import('./types').TypeInfo;
     errorRecovery?: boolean;
   } = {}
-): AnalysisResult {
+): Promise<AnalysisResult> {
   // Use LSP mode with error recovery if requested
   const parserOptions = options.errorRecovery 
     ? { mode: 'lsp' as const, errorRecovery: true }
@@ -118,7 +119,7 @@ export function analyze(
   
   // Create analyzer with optional model provider
   const analyzer = new Analyzer(options.modelProvider);
-  const analysisResult = analyzer.analyze(ast, options.variables, options.inputType);
+  const analysisResult = await analyzer.analyze(ast, options.variables, options.inputType);
   
   // If error recovery is enabled, merge parse errors into diagnostics
   if (options.errorRecovery && parseResult.errors.length > 0) {

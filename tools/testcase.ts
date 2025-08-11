@@ -618,19 +618,19 @@ if (args[0] === "--watch") {
     });
 
     // Run tests file by file
-    Array.from(byFile.entries()).forEach(([file, tests]) => {
+    for (const [file, tests] of Array.from(byFile.entries())) {
       console.log(`\n📄 ${file}:`);
 
-      tests.forEach(test => {
+      for (const test of tests) {
         // Run the test with output
         console.log(`\n🧪 ${test.test}`);
         try {
-          runTestFromFile(test.fullPath, test.test);
+          await runTestFromFile(test.fullPath, test.test);
         } catch (error: any) {
           console.error(`❌ Error: ${error.message}`);
         }
-      });
-    });
+      }
+    }
 
     console.log("\n⏳ Watching for changes...");
   }

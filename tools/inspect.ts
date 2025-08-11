@@ -183,19 +183,20 @@ function formatAst(node: any, indent = 0): string {
   return result.trimEnd();
 }
 
-try {
-  // Check if expression contains trace() to automatically enable trace collection
-  if (expression!.includes('trace(')) {
-    includeTraces = true;
-  }
-  
-  // Run inspect
-  const result = inspect(expression!, {
-    input: inputData,
-    variables,
-    maxDepth,
-    includeTraces
-  });
+async function main() {
+  try {
+    // Check if expression contains trace() to automatically enable trace collection
+    if (expression!.includes('trace(')) {
+      includeTraces = true;
+    }
+    
+    // Run inspect
+    const result = await inspect(expression!, {
+      input: inputData,
+      variables,
+      maxDepth,
+      includeTraces
+    });
   
   // Display results based on options
   if (showOnlyAst) {
@@ -305,7 +306,13 @@ try {
     }
   }
   
-} catch (error) {
-  console.error('Inspection failed:', error);
-  process.exit(1);
+  } catch (error) {
+    console.error('Inspection failed:', error);
+    process.exit(1);
+  }
 }
+
+main().catch(error => {
+  console.error('Unexpected error:', error);
+  process.exit(1);
+});

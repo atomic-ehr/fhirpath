@@ -243,10 +243,10 @@ function generateHints(ast: ASTNode): Array<{message: string; suggestion?: strin
   return hints;
 }
 
-export function inspect(
+export async function inspect(
   expression: string, 
   options: InspectOptions = {}
-): InspectResult {
+): Promise<InspectResult> {
   const tracker = new PerformanceTracker();
   const traces: InspectResult['traces'] = [];
   
@@ -261,7 +261,7 @@ export function inspect(
   // Analyze
   tracker.start('analyze');
   const analyzer = new Analyzer();
-  const analysisResult = analyzer.analyze(ast, options.variables);
+  const analysisResult = await analyzer.analyze(ast, options.variables);
   const warnings = analysisResult.diagnostics.filter(d => d.severity === DiagnosticSeverity.Warning);
   const hints = generateHints(ast);
   tracker.end('analyze');
@@ -294,9 +294,9 @@ export function inspect(
   // Track operation timings
   const operationTimings = new Map<string, number>();
   const originalEvaluate = interpreter.evaluate.bind(interpreter);
-  interpreter.evaluate = function(node: ASTNode, inputData: any[], ctx: RuntimeContext) {
+  interpreter.evaluate = async function(node: ASTNode, inputData: any[], ctx: RuntimeContext) {
     const opStart = performance.now();
-    const result = originalEvaluate(node, inputData, ctx);
+    const result = await originalEvaluate(node, inputData, ctx);
     const opTime = performance.now() - opStart;
     
     const opKey = node.type === NodeType.Function ? 
@@ -310,7 +310,7 @@ export function inspect(
     return result;
   };
   
-  const result = interpreter.evaluate(ast, input, context);
+  const result = await interpreter.evaluate(ast, input, context);
   tracker.end('eval');
   
   tracker.end('total');

@@ -2,7 +2,7 @@ import type { FunctionDefinition, FunctionEvaluator } from '../types';
 import { Errors } from '../errors';
 import { box, unbox } from '../boxing';
 
-export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
+export const evaluate: FunctionEvaluator = async (input, context, args, evaluator) => {
   // Validate arguments
   if (args.length !== 1) {
     throw Errors.wrongArgumentCount('endsWith', 1, args.length);
@@ -34,7 +34,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
   if (!args[0]) {
     throw Errors.argumentRequired('endsWith', 'suffix argument');
   }
-  const suffixResult = evaluator(args[0], input, context);
+  const suffixResult = await evaluator(args[0], input, context);
   
   // Validate that suffix is a singleton string
   if (suffixResult.value.length !== 1) {

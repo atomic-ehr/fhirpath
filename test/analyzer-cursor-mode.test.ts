@@ -8,33 +8,33 @@ describe('Analyzer Cursor Mode', () => {
   const analyzer = new Analyzer();
 
   describe('stops at cursor', () => {
-    it('should stop analysis at cursor after dot', () => {
+    it('should stop analysis at cursor after dot', async () => {
       const expression = 'Patient.name.';
       const ast = parse(expression, { cursorPosition: 13 }).ast!;
       
-      const result = analyzer.analyze(ast, undefined, undefined, { cursorMode: true });
+      const result = await analyzer.analyze(ast, undefined, undefined, { cursorMode: true });
       
       expect(result.stoppedAtCursor).toBe(true);
       expect(result.cursorContext).toBeDefined();
       expect(result.cursorContext?.cursorNode?.context).toBe(CursorContext.Identifier);
     });
 
-    it('should stop at cursor in function arguments', () => {
+    it('should stop at cursor in function arguments', async () => {
       const expression = 'Patient.where(';
       const ast = parse(expression, { cursorPosition: 14 }).ast!;
       
-      const result = analyzer.analyze(ast, undefined, undefined, { cursorMode: true });
+      const result = await analyzer.analyze(ast, undefined, undefined, { cursorMode: true });
       
       expect(result.stoppedAtCursor).toBe(true);
       expect(result.cursorContext).toBeDefined();
       expect(result.cursorContext?.cursorNode?.context).toBe(CursorContext.Argument);
     });
 
-    it('should stop at cursor after type operator', () => {
+    it('should stop at cursor after type operator', async () => {
       const expression = 'value is ';
       const ast = parse(expression, { cursorPosition: 9 }).ast!;
       
-      const result = analyzer.analyze(ast, undefined, undefined, { cursorMode: true });
+      const result = await analyzer.analyze(ast, undefined, undefined, { cursorMode: true });
       
       expect(result.stoppedAtCursor).toBe(true);
       expect(result.cursorContext).toBeDefined();
@@ -43,11 +43,11 @@ describe('Analyzer Cursor Mode', () => {
   });
 
   describe('preserves type information before cursor', () => {
-    it('should annotate types up to cursor position', () => {
+    it('should annotate types up to cursor position', async () => {
       const expression = '5 + ';
       const ast = parse(expression, { cursorPosition: 4 }).ast!;
       
-      const result = analyzer.analyze(ast, undefined, undefined, { cursorMode: true });
+      const result = await analyzer.analyze(ast, undefined, undefined, { cursorMode: true });
       
       // Check that the left side has type information
       const binaryNode = ast as any;
@@ -56,21 +56,21 @@ describe('Analyzer Cursor Mode', () => {
       expect(binaryNode.left.typeInfo.type).toBe('Integer');
     });
 
-    it('should provide type context at cursor position', () => {
+    it('should provide type context at cursor position', async () => {
       const expression = '"hello".';
       const ast = parse(expression, { cursorPosition: 8 }).ast!;
       
-      const result = analyzer.analyze(ast, undefined, undefined, { cursorMode: true });
+      const result = await analyzer.analyze(ast, undefined, undefined, { cursorMode: true });
       
       expect(result.cursorContext?.typeBeforeCursor).toBeDefined();
       expect(result.cursorContext?.typeBeforeCursor?.type).toBe('String');
     });
 
-    it('should infer expected type for cursor context', () => {
+    it('should infer expected type for cursor context', async () => {
       const expression = 'Patient[';
       const ast = parse(expression, { cursorPosition: 8 }).ast!;
       
-      const result = analyzer.analyze(ast, undefined, undefined, { cursorMode: true });
+      const result = await analyzer.analyze(ast, undefined, undefined, { cursorMode: true });
       
       expect(result.cursorContext?.expectedType).toBeDefined();
       expect(result.cursorContext?.expectedType?.type).toBe('Integer');
@@ -79,11 +79,11 @@ describe('Analyzer Cursor Mode', () => {
   });
 
   describe('no analysis after cursor', () => {
-    it('should not analyze nodes after cursor', () => {
+    it('should not analyze nodes after cursor', async () => {
       const expression = 'Patient.name.given';
       const ast = parse('Patient.', { cursorPosition: 8 }).ast!;
       
-      const result = analyzer.analyze(ast, undefined, undefined, { cursorMode: true });
+      const result = await analyzer.analyze(ast, undefined, undefined, { cursorMode: true });
       
       // Should stop at cursor, not analyze 'given'
       expect(result.stoppedAtCursor).toBe(true);
@@ -92,11 +92,11 @@ describe('Analyzer Cursor Mode', () => {
       expect(result.diagnostics.length).toBe(0);
     });
 
-    it('should not validate incomplete expressions after cursor', () => {
+    it('should not validate incomplete expressions after cursor', async () => {
       const expression = 'Patient.where(';
       const ast = parse(expression, { cursorPosition: 14 }).ast!;
       
-      const result = analyzer.analyze(ast, undefined, undefined, { cursorMode: true });
+      const result = await analyzer.analyze(ast, undefined, undefined, { cursorMode: true });
       
       // Should not complain about missing closing paren or arguments
       expect(result.diagnostics.length).toBe(0);
@@ -105,22 +105,22 @@ describe('Analyzer Cursor Mode', () => {
   });
 
   describe('cursor mode disabled', () => {
-    it('should analyze normally when cursor mode is disabled', () => {
+    it('should analyze normally when cursor mode is disabled', async () => {
       const expression = 'Patient.';
       const ast = parse(expression, { cursorPosition: 8 }).ast!;
       
       // Analyze without cursor mode
-      const result = analyzer.analyze(ast, undefined, undefined, { cursorMode: false });
+      const result = await analyzer.analyze(ast, undefined, undefined, { cursorMode: false });
       
       expect(result.stoppedAtCursor).toBeUndefined();
       expect(result.cursorContext).toBeUndefined();
     });
 
-    it('should analyze normally when no options provided', () => {
+    it('should analyze normally when no options provided', async () => {
       const expression = 'Patient.name';
       const ast = parse(expression).ast!;
       
-      const result = analyzer.analyze(ast);
+      const result = await analyzer.analyze(ast);
       
       expect(result.stoppedAtCursor).toBeUndefined();
       expect(result.cursorContext).toBeUndefined();
@@ -128,7 +128,7 @@ describe('Analyzer Cursor Mode', () => {
   });
 
   describe('complex expressions with cursor', () => {
-    it('should handle cursor in nested member access', () => {
+    it('should handle cursor in nested member access', async () => {
       const expression = 'Patient.name.where(use = "official").';
       const ast = parse(expression, { cursorPosition: 38 }).ast!;
       
@@ -137,7 +137,7 @@ describe('Analyzer Cursor Mode', () => {
         singleton: true 
       };
       
-      const result = analyzer.analyze(ast, undefined, inputType, { cursorMode: true });
+      const result = await analyzer.analyze(ast, undefined, inputType, { cursorMode: true });
       
       expect(result.stoppedAtCursor).toBe(true);
       expect(result.cursorContext?.cursorNode?.context).toBe(CursorContext.Identifier);
@@ -146,11 +146,11 @@ describe('Analyzer Cursor Mode', () => {
       expect(result.cursorContext?.typeBeforeCursor).toBeDefined();
     });
 
-    it('should handle cursor in collection', () => {
+    it('should handle cursor in collection', async () => {
       const expression = '{1, 2, ';
       const ast = parse(expression, { cursorPosition: 7 }).ast!;
       
-      const result = analyzer.analyze(ast, undefined, undefined, { cursorMode: true });
+      const result = await analyzer.analyze(ast, undefined, undefined, { cursorMode: true });
       
       expect(result.stoppedAtCursor).toBe(true);
       // Should have analyzed the first two elements
@@ -161,11 +161,11 @@ describe('Analyzer Cursor Mode', () => {
       }
     });
 
-    it('should handle cursor between expressions', () => {
+    it('should handle cursor between expressions', async () => {
       const expression = '5 + ';
       const ast = parse(expression, { cursorPosition: 4 }).ast!;
       
-      const result = analyzer.analyze(ast, undefined, undefined, { cursorMode: true });
+      const result = await analyzer.analyze(ast, undefined, undefined, { cursorMode: true });
       
       expect(result.stoppedAtCursor).toBe(true);
       expect(result.cursorContext?.cursorNode?.context).toBe(CursorContext.Operator);

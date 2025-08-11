@@ -25,18 +25,20 @@ const patient = {
   birthDate: '1990-01-01'
 };
 
-// Simple evaluation
-const givenNames = fhirpath.evaluate('name.given', patient);
+// Simple evaluation (async)
+const givenNames = await fhirpath.evaluate('name.given', patient);
 console.log(givenNames); // ['John', 'James', 'Johnny']
 
 // With filtering
-const officialName = fhirpath.evaluate('name.where(use = \'official\').given', patient);
+const officialName = await fhirpath.evaluate('name.where(use = \'official\').given', patient);
 
 // Arithmetic
-const age = fhirpath.evaluate('today().year() - birthDate.toDateTime().year()', patient);
+const age = await fhirpath.evaluate('today().year() - birthDate.toDateTime().year()', patient);
 ```
 
 ## API Reference
+
+**Important Note**: As of version 2.0.0, all evaluation and analysis functions are async to support lazy loading of FHIR schemas and improved performance. Make sure to use `await` when calling `evaluate()`, `compile()`, `analyze()`, and `inspect()`.
 
 ### Core Functions
 
@@ -70,43 +72,43 @@ console.log(result.ranges);     // Map of AST nodes to source locations
 - `errorRecovery?: boolean` - Enable error recovery to continue parsing after errors (useful for IDEs)
 - `maxErrors?: number` - Maximum number of errors to collect before stopping
 
-#### `evaluate(expression: string | FHIRPathExpression, input?: any, context?: EvaluationContext): any[]`
+#### `evaluate(expression: string | FHIRPathExpression, input?: any, context?: EvaluationContext): Promise<any[]>`
 
-Evaluates a FHIRPath expression against input data.
+Evaluates a FHIRPath expression against input data. **Note: This function is now async.**
 
 ```typescript
 // Evaluate with string expression
-const names = fhirpath.evaluate('name.family', patient);
+const names = await fhirpath.evaluate('name.family', patient);
 
 // Evaluate with parsed expression
 const expr = fhirpath.parse('name.family');
-const names = fhirpath.evaluate(expr, patient);
+const names = await fhirpath.evaluate(expr, patient);
 
 // With context variables
-const result = fhirpath.evaluate('%myVar + 5', null, {
+const result = await fhirpath.evaluate('%myVar + 5', null, {
   variables: { myVar: 10 }
 }); // [15]
 ```
 
-#### `compile(expression: string | FHIRPathExpression, options?: CompileOptions): CompiledExpression`
+#### `compile(expression: string | FHIRPathExpression, options?: CompileOptions): Promise<CompiledExpression>`
 
-Compiles an expression into an optimized JavaScript function for better performance.
+Compiles an expression into an optimized JavaScript function for better performance. **Note: Both compilation and execution are now async.**
 
 ```typescript
-const compiled = fhirpath.compile('name.given');
+const compiled = await fhirpath.compile('name.given');
 
-// Use compiled function multiple times
-const names1 = compiled(patient1);
-const names2 = compiled(patient2);
+// Use compiled function multiple times (async)
+const names1 = await compiled(patient1);
+const names2 = await compiled(patient2);
 ```
 
-#### `analyze(expression: string, options?: AnalyzeOptions): AnalysisResult`
+#### `analyze(expression: string, options?: AnalyzeOptions): Promise<AnalysisResult>`
 
-Performs static type analysis on a FHIRPath expression, with optional type checking using a FHIR model provider and error recovery for broken expressions.
+Performs static type analysis on a FHIRPath expression, with optional type checking using a FHIR model provider and error recovery for broken expressions. **Note: This function is now async.**
 
 ```typescript
 // Basic analysis
-const analysis = fhirpath.analyze('name.given');
+const analysis = await fhirpath.analyze('name.given');
 console.log(analysis.diagnostics); // Array of any issues found
 console.log(analysis.ast); // The analyzed AST with type information
 
@@ -118,13 +120,13 @@ const modelProvider = new FHIRModelProvider({
 });
 await modelProvider.initialize();
 
-const analysis = fhirpath.analyze('Patient.birthDate.substring(0, 4)', {
+const analysis = await fhirpath.analyze('Patient.birthDate.substring(0, 4)', {
   modelProvider
 });
 // Will report type error: substring() expects String but birthDate is date
 
 // With error recovery for IDE/tooling scenarios
-const analysis = fhirpath.analyze('Patient.name.', {
+const analysis = await fhirpath.analyze('Patient.name.', {
   errorRecovery: true,  // Won't throw on syntax errors
   modelProvider
 });
@@ -132,7 +134,7 @@ console.log(analysis.diagnostics); // Contains parse error: "Expected identifier
 console.log(analysis.ast); // Partial AST with error nodes
 
 // With input type context
-const analysis = fhirpath.analyze('name.given', {
+const analysis = await fhirpath.analyze('name.given', {
   modelProvider,
   inputType: { 
     type: 'HumanName',
@@ -148,13 +150,13 @@ const analysis = fhirpath.analyze('name.given', {
 - `variables?: Record<string, unknown>` - Variables available in the expression context
 - `inputType?: TypeInfo` - Type information for the input context
 
-#### `inspect(expression: string | FHIRPathExpression, input?: any, context?: EvaluationContext, options?: InspectOptions): InspectResult`
+#### `inspect(expression: string | FHIRPathExpression, input?: any, context?: EvaluationContext, options?: InspectOptions): Promise<InspectResult>`
 
-Evaluates an expression while capturing rich debugging information including traces, execution time, and AST.
+Evaluates an expression while capturing rich debugging information including traces, execution time, and AST. **Note: This function is now async.**
 
 ```typescript
 // Basic usage - capture trace output
-const result = fhirpath.inspect(
+const result = await fhirpath.inspect(
   'name.trace("names").given.trace("given names")',
   patient
 );
@@ -171,7 +173,7 @@ result.traces.forEach(trace => {
 });
 
 // With options
-const detailedResult = fhirpath.inspect(
+const detailedResult = await fhirpath.inspect(
   'Patient.name.where(use = "official")',
   bundle,
   undefined,
@@ -182,7 +184,7 @@ const detailedResult = fhirpath.inspect(
 );
 
 // Error handling
-const errorResult = fhirpath.inspect('invalid.expression()');
+const errorResult = await fhirpath.inspect('invalid.expression()');
 if (errorResult.errors) {
   console.log('Errors:', errorResult.errors);
 }
@@ -261,20 +263,20 @@ const modelProvider = new FHIRModelProvider({
 // Initialize before use (loads FHIR type definitions)
 await modelProvider.initialize();
 
-// Use with analyze for type checking
-const result = analyze('Patient.active.substring(0, 1)', { modelProvider });
+// Use with analyze for type checking (async)
+const result = await analyze('Patient.active.substring(0, 1)', { modelProvider });
 // Diagnostics: "Type mismatch: function 'substring' expects input type String but got Boolean"
 
 // Type-aware property navigation
-const result2 = analyze('Patient.birthDate.year()', { modelProvider });
+const result2 = await analyze('Patient.birthDate.year()', { modelProvider });
 // Works correctly - birthDate is recognized as a date type
 
 // Detect invalid property access
-const result3 = analyze('Patient.invalidProperty', { modelProvider });
+const result3 = await analyze('Patient.invalidProperty', { modelProvider });
 // Diagnostics: "Unknown property 'invalidProperty' on type FHIR.Patient"
 
 // Works with complex paths
-const result4 = analyze(
+const result4 = await analyze(
   'Bundle.entry.resource.where(resourceType = "Patient").name.given',
   { modelProvider }
 );
@@ -297,7 +299,7 @@ import { FHIRPath } from '@atomic-ehr/fhirpath';
 
 const fp = FHIRPath.builder()
   // Add custom functions
-  .withCustomFunction('double', (context, input) => {
+  .withCustomFunction('double', async (context, input) => {
     return input.map(x => x * 2);
   })
   
@@ -306,16 +308,18 @@ const fp = FHIRPath.builder()
   
   // Add model provider for type information
   .withModelProvider({
-    resolveType: (typeName) => { /* ... */ },
-    getTypeHierarchy: (typeName) => { /* ... */ },
-    getProperties: (typeName) => { /* ... */ }
+    getType: async (typeName) => { /* ... */ },
+    getElementType: async (parentType, propertyName) => { /* ... */ },
+    ofType: (type, typeName) => { /* ... */ },
+    getElementNames: (parentType) => { /* ... */ },
+    getChildrenType: async (parentType) => { /* ... */ }
   })
   
   .build();
 
-// Use the configured instance
-const result = fp.evaluate('value.double()', { value: [5] }); // [10]
-const status = fp.evaluate('%defaultStatus'); // ['active']
+// Use the configured instance (async)
+const result = await fp.evaluate('value.double()', { value: [5] }); // [10]
+const status = await fp.evaluate('%defaultStatus'); // ['active']
 ```
 
 ### Custom Functions
@@ -324,7 +328,7 @@ Custom functions extend FHIRPath with domain-specific operations:
 
 ```typescript
 const fp = FHIRPath.builder()
-  .withCustomFunction('age', (context, input) => {
+  .withCustomFunction('age', async (context, input) => {
     // Calculate age from birthDate
     return input.map(birthDate => {
       const today = new Date();
@@ -337,7 +341,7 @@ const fp = FHIRPath.builder()
       return age;
     });
   })
-  .withCustomFunction('fullName', (context, input) => {
+  .withCustomFunction('fullName', async (context, input) => {
     return input.map(name => {
       if (name && typeof name === 'object') {
         const given = Array.isArray(name.given) ? name.given.join(' ') : '';
@@ -349,9 +353,9 @@ const fp = FHIRPath.builder()
   })
   .build();
 
-// Use custom functions
-const age = fp.evaluate('birthDate.age()', patient);
-const fullNames = fp.evaluate('name.fullName()', patient);
+// Use custom functions (async)
+const age = await fp.evaluate('birthDate.age()', patient);
+const fullNames = await fp.evaluate('name.fullName()', patient);
 ```
 
 ### Error Handling
@@ -411,13 +415,13 @@ The analyzer supports error recovery mode for IDE and tooling scenarios, allowin
 ```typescript
 // Normal mode - throws on syntax errors
 try {
-  const result = fhirpath.analyze('Patient.name.');
+  const result = await fhirpath.analyze('Patient.name.');
 } catch (error) {
   console.error('Syntax error:', error.message);
 }
 
 // Error recovery mode - continues analysis despite errors
-const result = fhirpath.analyze('Patient.name.', {
+const result = await fhirpath.analyze('Patient.name.', {
   errorRecovery: true
 });
 
@@ -433,14 +437,14 @@ console.log(result.diagnostics);
 console.log(result.ast); // Partial AST with error nodes
 
 // Complex broken expression - multiple errors reported
-const result2 = fhirpath.analyze('Patient.name.where(use = ).given.', {
+const result2 = await fhirpath.analyze('Patient.name.where(use = ).given.', {
   errorRecovery: true,
   modelProvider
 });
 console.log(result2.diagnostics.length); // 2 errors
 
 // Type information is preserved for valid parts
-const result3 = fhirpath.analyze('5 + 3 * ', {
+const result3 = await fhirpath.analyze('5 + 3 * ', {
   errorRecovery: true
 });
 // Even though expression is incomplete, literals 5 and 3 have type info
@@ -467,19 +471,19 @@ const bundle = {
 };
 
 // Get all patients
-const patients = fhirpath.evaluate(
+const patients = await fhirpath.evaluate(
   'entry.resource.where(resourceType = \'Patient\')',
   bundle
 );
 
 // Get active patients
-const activePatients = fhirpath.evaluate(
+const activePatients = await fhirpath.evaluate(
   'entry.resource.where(resourceType = \'Patient\' and active = true)',
   bundle
 );
 
 // Count resources by type
-const patientCount = fhirpath.evaluate(
+const patientCount = await fhirpath.evaluate(
   'entry.resource.where(resourceType = \'Patient\').count()',
   bundle
 ); // [2]
@@ -495,7 +499,7 @@ const observations = [
 ];
 
 // Find high blood pressure readings
-const highBP = fhirpath.evaluate(
+const highBP = await fhirpath.evaluate(
   'where(code.coding.exists(system = \'loinc\' and code = \'1234\') and value > 130)',
   observations
 );
@@ -509,7 +513,7 @@ const patient = {
 };
 
 // Check if patient is adult (>= 18 years)
-const isAdult = fhirpath.evaluate(
+const isAdult = await fhirpath.evaluate(
   'today() - birthDate.toDateTime() >= 18 years',
   patient
 );
@@ -528,7 +532,7 @@ const bundle = {
 };
 
 // Debug a complex expression with traces
-const result = fhirpath.inspect(
+const result = await fhirpath.inspect(
   `entry.resource
     .trace('all resources')
     .where(resourceType = 'Patient')
@@ -571,14 +575,14 @@ result.traces.forEach(trace => {
    ```typescript
    const expr = fhirpath.parse('name.given');
    for (const patient of patients) {
-     const names = fhirpath.evaluate(expr, patient);
+     const names = await fhirpath.evaluate(expr, patient);
    }
    ```
 
 3. **Use Compiled Functions**: For expressions evaluated frequently, use compilation:
    ```typescript
-   const getName = fhirpath.compile('name.given');
-   const results = patients.map(p => getName(p));
+   const getName = await fhirpath.compile('name.given');
+   const results = await Promise.all(patients.map(p => getName(p)));
    ```
 
 4. **Disable Unnecessary Parser Features**: Only enable parser features you need:

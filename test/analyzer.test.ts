@@ -6,13 +6,13 @@ import { ErrorCodes } from "../src/index";
 
 describe("Analyzer", () => {
   describe("basic expressions", () => {
-    it("should not report errors for valid literals", () => {
-      const result = analyze("5");
+    it("should not report errors for valid literals", async () => {
+      const result = await analyze("5");
       expect(result.diagnostics).toEqual([]);
     });
 
-    it("should not report errors for valid operators", () => {
-      const result = analyze("5 + 3");
+    it("should not report errors for valid operators", async () => {
+      const result = await analyze("5 + 3");
       expect(result.diagnostics).toEqual([]);
     });
 
@@ -20,13 +20,13 @@ describe("Analyzer", () => {
   });
 
   describe("variables", () => {
-    it("should not report errors for built-in variables", () => {
-      const result = analyze("$this");
+    it("should not report errors for built-in variables", async () => {
+      const result = await analyze("$this");
       expect(result.diagnostics).toEqual([]);
     });
 
-    it("should report unknown variable", () => {
-      const result = analyze("$unknown");
+    it("should report unknown variable", async () => {
+      const result = await analyze("$unknown");
       expect(result.diagnostics).toHaveLength(1);
       expect(result.diagnostics[0]).toMatchObject({
         severity: DiagnosticSeverity.Error,
@@ -37,13 +37,13 @@ describe("Analyzer", () => {
       expect(result.diagnostics[0]?.range).toBeDefined();
     });
 
-    it("should not report errors for user-defined variables", () => {
-      const result = analyze("%myVar + 5", { variables: { myVar: 10 } });
+    it("should not report errors for user-defined variables", async () => {
+      const result = await analyze("%myVar + 5", { variables: { myVar: 10 } });
       expect(result.diagnostics).toEqual([]);
     });
 
-    it("should report unknown user variable", () => {
-      const result = analyze("%unknown + 5");
+    it("should report unknown user variable", async () => {
+      const result = await analyze("%unknown + 5");
       expect(result.diagnostics).toHaveLength(1);
       expect(result.diagnostics[0]).toMatchObject({
         severity: DiagnosticSeverity.Error,
@@ -55,13 +55,13 @@ describe("Analyzer", () => {
   });
 
   describe("functions", () => {
-    it("should not report errors for valid functions", () => {
-      const result = analyze('name.where(use = "official")');
+    it("should not report errors for valid functions", async () => {
+      const result = await analyze('name.where(use = "official")');
       expect(result.diagnostics).toEqual([]);
     });
 
-    it("should report unknown function", () => {
-      const result = analyze("name.unknownFunc()");
+    it("should report unknown function", async () => {
+      const result = await analyze("name.unknownFunc()");
       expect(result.diagnostics).toHaveLength(1);
       expect(result.diagnostics[0]).toMatchObject({
         severity: DiagnosticSeverity.Error,
@@ -71,8 +71,8 @@ describe("Analyzer", () => {
       });
     });
 
-    it("should report too few arguments", () => {
-      const result = analyze("substring()"); // substring requires at least 1 argument
+    it("should report too few arguments", async () => {
+      const result = await analyze("substring()"); // substring requires at least 1 argument
       expect(result.diagnostics).toHaveLength(1);
       expect(result.diagnostics[0]).toMatchObject({
         severity: DiagnosticSeverity.Error,
@@ -80,8 +80,8 @@ describe("Analyzer", () => {
       });
     });
 
-    it("should report too many arguments", () => {
-      const result = analyze("count(1, 2, 3)"); // count accepts at most 0 arguments
+    it("should report too many arguments", async () => {
+      const result = await analyze("count(1, 2, 3)"); // count accepts at most 0 arguments
       expect(result.diagnostics).toHaveLength(1);
       expect(result.diagnostics[0]).toMatchObject({
         severity: DiagnosticSeverity.Error,
@@ -91,13 +91,13 @@ describe("Analyzer", () => {
   });
 
   describe("complex expressions", () => {
-    it("should analyze nested expressions", () => {
-      const result = analyze('name.where(use = "official").given');
+    it("should analyze nested expressions", async () => {
+      const result = await analyze('name.where(use = "official").given');
       expect(result.diagnostics).toEqual([]);
     });
 
-    it("should report multiple errors", () => {
-      const result = analyze("$unknown + unknownFunc()");
+    it("should report multiple errors", async () => {
+      const result = await analyze("$unknown + unknownFunc()");
       expect(result.diagnostics).toHaveLength(2);
       expect(result.diagnostics.map((d) => d.code)).toEqual([
         ErrorCodes.UNKNOWN_VARIABLE,
@@ -107,8 +107,8 @@ describe("Analyzer", () => {
   });
 
   describe("LSP compatibility", () => {
-    it("should produce LSP-compatible diagnostics", () => {
-      const result = analyze("$unknown");
+    it("should produce LSP-compatible diagnostics", async () => {
+      const result = await analyze("$unknown");
       expect(result.diagnostics).toHaveLength(1);
 
       const diagnostic = result.diagnostics[0];
@@ -125,8 +125,8 @@ describe("Analyzer", () => {
       expect(diagnostic?.source).toBe("fhirpath");
     });
 
-    it("should use default range when position is not available", () => {
-      const result = analyze("$unknown");
+    it("should use default range when position is not available", async () => {
+      const result = await analyze("$unknown");
       const diagnostic = result.diagnostics[0];
 
       // Check that range is properly set (with LSP-compatible character field)
@@ -151,7 +151,7 @@ describe("Analyzer", () => {
       try {
         await modelProvider.initialize();
         // Check if we can actually get a type to verify initialization worked
-        const patientType = modelProvider.getType('Patient');
+        const patientType = modelProvider.getTypeFromCache('Patient');
         modelProviderInitialized = patientType !== undefined && patientType.modelContext !== undefined;
         if (!modelProviderInitialized) {
           // console.warn('Model provider initialized but cannot load types - tests will be skipped');
@@ -162,13 +162,13 @@ describe("Analyzer", () => {
       }
     });
 
-    it("should infer types through FHIR model navigation", () => {
+    it("should infer types through FHIR model navigation", async () => {
       if (!modelProviderInitialized) {
         // console.log('Skipping test - model provider not properly initialized');
         return;
       }
 
-      const result = analyze("Patient.gender", {
+      const result = await analyze("Patient.gender", {
         modelProvider,
       });
 
@@ -184,14 +184,14 @@ describe("Analyzer", () => {
       });
     });
 
-    it("should detect type error when calling substring on non-string type", () => {
+    it("should detect type error when calling substring on non-string type", async () => {
       if (!modelProviderInitialized) {
         // console.log('Skipping test - model provider not properly initialized');
         return;
       }
 
       // Using active which is boolean, not string
-      const result = analyze("Patient.active.substring(0, 1)", {
+      const result = await analyze("Patient.active.substring(0, 1)", {
         modelProvider,
       });
 
@@ -203,26 +203,26 @@ describe("Analyzer", () => {
       });
     });
 
-    it("should allow string operations on string types", () => {
+    it("should allow string operations on string types", async () => {
       if (!modelProviderInitialized) {
         // console.log('Skipping test - model provider not properly initialized');
         return;
       }
 
-      const result = analyze("Patient.name.family.substring(0, 1)", {
+      const result = await analyze("Patient.name.family.substring(0, 1)", {
         modelProvider,
       });
 
       expect(result.diagnostics).toEqual([]);
     });
 
-    it("should detect type errors in arithmetic operations", () => {
+    it("should detect type errors in arithmetic operations", async () => {
       if (!modelProviderInitialized) {
         // console.log('Skipping test - model provider not properly initialized');
         return;
       }
 
-      const result = analyze("Patient.name.family + Patient.active", {
+      const result = await analyze("Patient.name.family + Patient.active", {
         modelProvider,
       });
 
@@ -236,13 +236,13 @@ describe("Analyzer", () => {
       });
     });
 
-    it("should handle collection types properly", () => {
+    it("should handle collection types properly", async () => {
       if (!modelProviderInitialized) {
         // console.log('Skipping test - model provider not properly initialized');
         return;
       }
 
-      const result = analyze("Patient.name.given.count()", {
+      const result = await analyze("Patient.name.given.count()", {
         modelProvider,
       });
 
@@ -256,13 +256,13 @@ describe("Analyzer", () => {
       });
     });
 
-    it("should detect errors when accessing non-existent properties", () => {
+    it("should detect errors when accessing non-existent properties", async () => {
       if (!modelProviderInitialized) {
         // console.log('Skipping test - model provider not properly initialized');
         return;
       }
 
-      const result = analyze("Patient.nonExistentField", {
+      const result = await analyze("Patient.nonExistentField", {
         modelProvider,
       });
 
@@ -276,13 +276,13 @@ describe("Analyzer", () => {
       expect(ast?.typeInfo?.type).toBe("Any");
     });
 
-    it("should properly type check where clause conditions", () => {
+    it("should properly type check where clause conditions", async () => {
       if (!modelProviderInitialized) {
         // console.log('Skipping test - model provider not properly initialized');
         return;
       }
 
-      const result = analyze("Patient.name.where(use + 1)", {
+      const result = await analyze("Patient.name.where(use + 1)", {
         modelProvider,
       });
 
@@ -293,13 +293,13 @@ describe("Analyzer", () => {
       });
     });
 
-    it("should handle union operations with type preservation", () => {
+    it("should handle union operations with type preservation", async () => {
       if (!modelProviderInitialized) {
         // console.log('Skipping test - model provider not properly initialized');
         return;
       }
 
-      const result = analyze("Patient.name.given | Patient.name.family", {
+      const result = await analyze("Patient.name.given | Patient.name.family", {
         modelProvider,
       });
 
@@ -315,13 +315,13 @@ describe("Analyzer", () => {
       });
     });
 
-    it("should type check function arguments with FHIR types", () => {
+    it("should type check function arguments with FHIR types", async () => {
       if (!modelProviderInitialized) {
         // console.log('Skipping test - model provider not properly initialized');
         return;
       }
 
-      const result = analyze(
+      const result = await analyze(
         "Patient.birthDate.toString().substring(Patient.active)",
         {
           modelProvider,
@@ -336,13 +336,13 @@ describe("Analyzer", () => {
       });
     });
 
-    it("should handle complex nested expressions with proper type inference", () => {
+    it("should handle complex nested expressions with proper type inference", async () => {
       if (!modelProviderInitialized) {
         // console.log('Skipping test - model provider not properly initialized');
         return;
       }
 
-      const result = analyze(
+      const result = await analyze(
         'Patient.contact.where(relationship.coding.code = "family").name.given.first()',
         {
           modelProvider,
@@ -356,13 +356,13 @@ describe("Analyzer", () => {
       expect(ast?.typeInfo?.singleton).toBe(true);
     });
 
-    it("should detect type mismatches in comparisons", () => {
+    it("should detect type mismatches in comparisons", async () => {
       if (!modelProviderInitialized) {
         // console.log('Skipping test - model provider not properly initialized');
         return;
       }
 
-      const result = analyze("Patient.birthDate > Patient.name.family", {
+      const result = await analyze("Patient.birthDate > Patient.name.family", {
         modelProvider,
       });
 
@@ -373,13 +373,13 @@ describe("Analyzer", () => {
       });
     });
 
-    it("should handle polymorphic types correctly", () => {
+    it("should handle polymorphic types correctly", async () => {
       if (!modelProviderInitialized) {
         // console.log('Skipping test - model provider not properly initialized');
         return;
       }
 
-      const result = analyze("Observation.value.value", {
+      const result = await analyze("Observation.value.value", {
         modelProvider,
       });
 
@@ -387,13 +387,13 @@ describe("Analyzer", () => {
       expect(result.diagnostics).toEqual([]);
     });
 
-    it("should handle type casting operations", () => {
+    it("should handle type casting operations", async () => {
       if (!modelProviderInitialized) {
         // console.log('Skipping test - model provider not properly initialized');
         return;
       }
 
-      const result = analyze(
+      const result = await analyze(
         "(Patient.multipleBirthInteger as String).substring(0, 1)",
         {
           modelProvider,
@@ -404,13 +404,13 @@ describe("Analyzer", () => {
       expect(result.diagnostics).toEqual([]);
     });
 
-    it("should detect errors in select expressions", () => {
+    it("should detect errors in select expressions", async () => {
       if (!modelProviderInitialized) {
         // console.log('Skipping test - model provider not properly initialized');
         return;
       }
 
-      const result = analyze("Patient.name.select(given + use)", {
+      const result = await analyze("Patient.name.select(given + use)", {
         modelProvider,
       });
 
@@ -422,13 +422,13 @@ describe("Analyzer", () => {
       });
     });
 
-    it("should handle extension navigation", () => {
+    it("should handle extension navigation", async () => {
       if (!modelProviderInitialized) {
         // console.log('Skipping test - model provider not properly initialized');
         return;
       }
 
-      const result = analyze(
+      const result = await analyze(
         'Patient.extension.where(url = "http://example.org/ext").value',
         { modelProvider },
       );
@@ -436,13 +436,13 @@ describe("Analyzer", () => {
       expect(result.diagnostics).toEqual([]);
     });
 
-    it("should handle invalid property access", () => {
+    it("should handle invalid property access", async () => {
       if (!modelProviderInitialized) {
         // console.log('Skipping test - model provider not properly initialized');
         return;
       }
 
-      const result = analyze("Patient.name.ups", {
+      const result = await analyze("Patient.name.ups", {
         modelProvider,
       });
       expect(result.diagnostics[0]).toBeDefined();
@@ -451,26 +451,26 @@ describe("Analyzer", () => {
       );
     });
 
-    it("should handle invalid input type", () => {
+    it("should handle invalid input type", async () => {
       if (!modelProviderInitialized) {
         // console.log('Skipping test - model provider not properly initialized');
         return;
       }
 
-      const result = analyze("Patient.birthDate.substring(0,1)", {
+      const result = await analyze("Patient.birthDate.substring(0,1)", {
         modelProvider,
       });
       expect(result.diagnostics[0]).toBeDefined();
       expect(result.diagnostics[0]?.message).toContain("Cannot apply substring() to");
     });
 
-    it("should handle operators type mismatch", () => {
+    it("should handle operators type mismatch", async () => {
       if (!modelProviderInitialized) {
         // console.log('Skipping test - model provider not properly initialized');
         return;
       }
 
-      const result = analyze("Patient.gender + 1", {
+      const result = await analyze("Patient.gender + 1", {
         modelProvider,
       });
       expect(result.diagnostics[0]).toBeDefined();
@@ -478,27 +478,27 @@ describe("Analyzer", () => {
       expect(result.diagnostics[0]?.message).toContain("Operator '+' cannot be applied to types");
     });
 
-    it("should handle syntactic errors", () => {
+    it("should handle syntactic errors", async () => {
       if (!modelProviderInitialized) {
         // console.log('Skipping test - model provider not properly initialized');
         return;
       }
 
       // The default analyze function throws on parse errors for backward compatibility
-      expect(() => {
-        analyze("Patient.name.", {
+      await expect(async () => {
+        await analyze("Patient.name.", {
           modelProvider,
         });
       }).toThrow("Expected identifier after '.', got: EOF");
     });
 
-    it("should work with error recovery mode", () => {
+    it("should work with error recovery mode", async () => {
       if (!modelProviderInitialized) {
         // console.log('Skipping test - model provider not properly initialized');
         return;
       }
 
-      const result = analyze("Patient.name.", {
+      const result = await analyze("Patient.name.", {
         modelProvider,
         errorRecovery: true,
       });
@@ -515,8 +515,8 @@ describe("Analyzer", () => {
   });
 
   describe("Error Tolerance with LSP Mode", () => {
-    it("should handle broken expressions with error nodes", () => {
-      const result = analyze("Patient.name.where(use =", {
+    it("should handle broken expressions with error nodes", async () => {
+      const result = await analyze("Patient.name.where(use =", {
         errorRecovery: true,
       });
 
@@ -531,8 +531,8 @@ describe("Analyzer", () => {
       expect(errorDiagnostic?.severity).toBe(DiagnosticSeverity.Error);
     });
 
-    it("should handle incomplete member access", () => {
-      const result = analyze("Patient.", {
+    it("should handle incomplete member access", async () => {
+      const result = await analyze("Patient.", {
         errorRecovery: true,
       });
 
@@ -543,8 +543,8 @@ describe("Analyzer", () => {
       expect(errorDiagnostic).toBeDefined();
     });
 
-    it("should still provide type info for valid parts of broken expressions", () => {
-      const result = analyze("5 + ", {
+    it("should still provide type info for valid parts of broken expressions", async () => {
+      const result = await analyze("5 + ", {
         errorRecovery: true,
       });
 
@@ -558,8 +558,8 @@ describe("Analyzer", () => {
       }
     });
 
-    it("should handle complex broken expressions with multiple errors", () => {
-      const result = analyze("Patient.name.where(use = ).given.", {
+    it("should handle complex broken expressions with multiple errors", async () => {
+      const result = await analyze("Patient.name.where(use = ).given.", {
         errorRecovery: true,
       });
 
@@ -575,8 +575,8 @@ describe("Analyzer", () => {
       expect(errorDiagnostics.length).toBeGreaterThan(0);
     });
 
-    it("should assign Any type to error nodes", () => {
-      const result = analyze("Patient.name.where(active = ", {
+    it("should assign Any type to error nodes", async () => {
+      const result = await analyze("Patient.name.where(active = ", {
         errorRecovery: true,
       });
 

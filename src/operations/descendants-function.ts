@@ -14,7 +14,7 @@ import { childrenFunction } from './children-function';
  * Type analysis returns Any due to combinatorial explosion of possible types.
  * In practice, users filter with ofType() or where() to get specific types.
  */
-export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
+export const evaluate: FunctionEvaluator = async (input, context, args, evaluator) => {
   if (args.length !== 0) {
     throw Errors.wrongArgumentCount('descendants', 0, args.length);
   }
@@ -27,7 +27,7 @@ export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => 
     const current = queue.shift()!;
     
     // Get children through existing children() function
-    const childrenResult = childrenFunction.evaluate(
+    const childrenResult = await childrenFunction.evaluate(
       [current], 
       context, 
       [], 

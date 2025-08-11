@@ -3,7 +3,7 @@ import { PRECEDENCE } from '../types';
 import type { OperationEvaluator } from '../types';
 import { box, unbox } from '../boxing';
 
-export const evaluate: OperationEvaluator = (input, context, left, right) => {
+export const evaluate: OperationEvaluator = async (input, context, left, right) => {
   // 'as' operator performs type casting/filtering
   // Returns items that match the type, empty if no match
   if (left.length === 0) {

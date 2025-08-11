@@ -7,7 +7,7 @@ import { DiagnosticSeverity, type TypeInfo } from '../src/types';
 
 describe('children() function', () => {
   describe('registration', () => {
-    it('should be registered in the registry', () => {
+    it('should be registered in the registry', async () => {
       const childrenFunc = registry.getFunction('children');
       expect(childrenFunc).toBeDefined();
       expect(childrenFunc?.name).toBe('children');
@@ -16,14 +16,14 @@ describe('children() function', () => {
   });
 
   describe('analyzer type inference', () => {
-    it('should return Any collection when no model provider', () => {
+    it('should return Any collection when no model provider', async () => {
       const analyzer = new Analyzer();
       const parseResult = parse('Patient.children()');
       if (parseResult.errors?.length) {
         throw new Error('Parse failed');
       }
       
-      const result = analyzer.analyze(parseResult.ast);
+      const result = await analyzer.analyze(parseResult.ast);
       
       // Find the children function node
       const functionNode = (parseResult.ast as any).right;
@@ -42,8 +42,8 @@ describe('children() function', () => {
         throw new Error('Parse failed');
       }
       
-      const patientType = modelProvider.getType('Patient');
-      const result = analyzer.analyze(parseResult.ast, {}, patientType);
+      const patientType = modelProvider.getTypeFromCache('Patient');
+      const result = await analyzer.analyze(parseResult.ast, {}, patientType);
       
       // Find the children function node
       const functionNode = (parseResult.ast as any).right;
@@ -64,7 +64,7 @@ describe('children() function', () => {
       await modelProvider.initialize();
       
       const stringType: TypeInfo = { type: 'String', singleton: true };
-      const childrenType = modelProvider.getChildrenType(stringType as any);
+      const childrenType = await modelProvider.getChildrenType(stringType as any);
       expect(childrenType).toBeUndefined();
     });
 
@@ -72,10 +72,11 @@ describe('children() function', () => {
       const modelProvider = new FHIRModelProvider();
       await modelProvider.initialize();
       
-      const patientType = modelProvider.getType('Patient');
+      // Load Patient schema first
+      const patientType = await modelProvider.getType('Patient');
       expect(patientType).toBeDefined();
       
-      const childrenType = modelProvider.getChildrenType(patientType!);
+      const childrenType = await modelProvider.getChildrenType(patientType!);
       expect(childrenType).toBeDefined();
       expect(childrenType?.singleton).toBe(false);
       expect(childrenType?.modelContext).toBeDefined();
@@ -90,10 +91,11 @@ describe('children() function', () => {
       const modelProvider = new FHIRModelProvider();
       await modelProvider.initialize();
       
-      const observationType = modelProvider.getType('Observation');
+      // Load Observation schema first
+      const observationType = await modelProvider.getType('Observation');
       expect(observationType).toBeDefined();
       
-      const childrenType = modelProvider.getChildrenType(observationType!);
+      const childrenType = await modelProvider.getChildrenType(observationType!);
       expect(childrenType).toBeDefined();
       
       const modelContext = childrenType?.modelContext as any;
@@ -118,8 +120,8 @@ describe('children() function', () => {
         throw new Error('Parse failed');
       }
       
-      const patientType = modelProvider.getType('Patient');
-      const result = analyzer.analyze(parseResult.ast, {}, patientType);
+      const patientType = modelProvider.getTypeFromCache('Patient');
+      const result = await analyzer.analyze(parseResult.ast, {}, patientType);
       
       const warnings = result.diagnostics.filter(d => d.severity === DiagnosticSeverity.Warning);
       expect(warnings.length).toBeGreaterThan(0);
@@ -140,8 +142,8 @@ describe('children() function', () => {
         throw new Error('Parse failed');
       }
       
-      const patientType = modelProvider.getType('Patient');
-      const result = analyzer.analyze(parseResult.ast, {}, patientType);
+      const patientType = modelProvider.getTypeFromCache('Patient');
+      const result = await analyzer.analyze(parseResult.ast, {}, patientType);
       
       const warnings = result.diagnostics.filter(d => 
         d.severity === DiagnosticSeverity.Warning && d.code === 'invalid-type-filter'
@@ -160,8 +162,8 @@ describe('children() function', () => {
         throw new Error('Parse failed');
       }
       
-      const patientType = modelProvider.getType('Patient');
-      const result = analyzer.analyze(parseResult.ast, {}, patientType);
+      const patientType = modelProvider.getTypeFromCache('Patient');
+      const result = await analyzer.analyze(parseResult.ast, {}, patientType);
       
       const warnings = result.diagnostics.filter(d => d.severity === DiagnosticSeverity.Warning);
       const typeTestWarning = warnings.find(w => w.code === 'invalid-type-test');
@@ -180,8 +182,8 @@ describe('children() function', () => {
         throw new Error('Parse failed');
       }
       
-      const patientType = modelProvider.getType('Patient');
-      const result = analyzer.analyze(parseResult.ast, {}, patientType);
+      const patientType = modelProvider.getTypeFromCache('Patient');
+      const result = await analyzer.analyze(parseResult.ast, {}, patientType);
       
       const warnings = result.diagnostics.filter(d => d.severity === DiagnosticSeverity.Warning);
       const typeCastWarning = warnings.find(w => w.code === 'invalid-type-cast');

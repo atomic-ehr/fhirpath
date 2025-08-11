@@ -5,7 +5,7 @@ import { NodeType } from '../src/types';
 
 describe('Cursor Nodes', () => {
   describe('cursor after dot', () => {
-    it('should create CursorIdentifierNode after dot', () => {
+    it('should create CursorIdentifierNode after dot', async () => {
       const expression = 'Patient.';
       const cursorPosition = 8; // After the dot
       const result = parse(expression, { cursorPosition });
@@ -17,7 +17,7 @@ describe('Cursor Nodes', () => {
       expect(binary.right.context).toBe(CursorContext.Identifier);
     });
 
-    it('should create CursorIdentifierNode in member chain', () => {
+    it('should create CursorIdentifierNode in member chain', async () => {
       const expression = 'Patient.name.';
       const cursorPosition = 13; // After second dot
       const result = parse(expression, { cursorPosition });
@@ -31,7 +31,7 @@ describe('Cursor Nodes', () => {
   });
 
   describe('cursor after type operators', () => {
-    it('should create CursorTypeNode after is', () => {
+    it('should create CursorTypeNode after is', async () => {
       const expression = 'value is ';
       const cursorPosition = 9; // After 'is '
       const result = parse(expression, { cursorPosition });
@@ -42,7 +42,7 @@ describe('Cursor Nodes', () => {
       expect((result.ast as any).typeOperator).toBe('is');
     });
 
-    it('should create CursorTypeNode after as', () => {
+    it('should create CursorTypeNode after as', async () => {
       const expression = 'value as ';
       const cursorPosition = 9; // After 'as '
       const result = parse(expression, { cursorPosition });
@@ -55,7 +55,7 @@ describe('Cursor Nodes', () => {
   });
 
   describe('cursor in function arguments', () => {
-    it('should create CursorArgumentNode in function call', () => {
+    it('should create CursorArgumentNode in function call', async () => {
       const expression = 'where(';
       const cursorPosition = 6; // After opening paren
       const result = parse(expression, { cursorPosition });
@@ -69,7 +69,7 @@ describe('Cursor Nodes', () => {
       expect(func.arguments[0].argumentIndex).toBe(0);
     });
 
-    it('should create CursorArgumentNode after comma', () => {
+    it('should create CursorArgumentNode after comma', async () => {
       const expression = 'substring(0, ';
       const cursorPosition = 13; // After comma and space
       const result = parse(expression, { cursorPosition });
@@ -83,7 +83,7 @@ describe('Cursor Nodes', () => {
       expect(func.arguments[1].argumentIndex).toBe(1);
     });
 
-    it('should handle cursor in ofType function', () => {
+    it('should handle cursor in ofType function', async () => {
       const expression = 'collection.ofType(';
       const cursorPosition = 18; // After opening paren
       const result = parse(expression, { cursorPosition });
@@ -99,7 +99,7 @@ describe('Cursor Nodes', () => {
   });
 
   describe('cursor in indexer', () => {
-    it('should create CursorIndexNode in brackets', () => {
+    it('should create CursorIndexNode in brackets', async () => {
       const expression = 'Patient[';
       const cursorPosition = 8; // After opening bracket
       const result = parse(expression, { cursorPosition });
@@ -109,7 +109,7 @@ describe('Cursor Nodes', () => {
       expect((result.ast as any).context).toBe(CursorContext.Index);
     });
 
-    it('should create CursorIndexNode in nested indexer', () => {
+    it('should create CursorIndexNode in nested indexer', async () => {
       const expression = 'Patient.name[';
       const cursorPosition = 13; // After opening bracket
       const result = parse(expression, { cursorPosition });
@@ -121,7 +121,7 @@ describe('Cursor Nodes', () => {
   });
 
   describe('cursor between expressions', () => {
-    it('should create CursorOperatorNode after literal', () => {
+    it('should create CursorOperatorNode after literal', async () => {
       const expression = '5 ';
       const cursorPosition = 2; // After number and space
       const result = parse(expression, { cursorPosition });
@@ -137,7 +137,7 @@ describe('Cursor Nodes', () => {
       expect(binaryAst.left.value).toBe(5);
     });
 
-    it('should create CursorOperatorNode after identifier', () => {
+    it('should create CursorOperatorNode after identifier', async () => {
       const expression = 'Patient.name ';
       const cursorPosition = 13; // After identifier and space
       const result = parse(expression, { cursorPosition });
@@ -153,7 +153,7 @@ describe('Cursor Nodes', () => {
       expect(binaryAst.left.operator).toBe('.');
     });
 
-    it('should create CursorOperatorNode at expression start', () => {
+    it('should create CursorOperatorNode at expression start', async () => {
       const expression = '';
       const cursorPosition = 0; // At start
       const result = parse(expression, { cursorPosition });
@@ -165,7 +165,7 @@ describe('Cursor Nodes', () => {
   });
 
   describe('mid-token cursor', () => {
-    it('should ignore cursor in middle of identifier', () => {
+    it('should ignore cursor in middle of identifier', async () => {
       const expression = 'Patient.name';
       const cursorPosition = 10; // In middle of 'name' (na|me)
       const result = parse(expression, { cursorPosition });
@@ -178,7 +178,7 @@ describe('Cursor Nodes', () => {
       expect(isCursorNode(binary.right)).toBe(false);
     });
 
-    it('should ignore cursor in middle of number', () => {
+    it('should ignore cursor in middle of number', async () => {
       const expression = '123';
       const cursorPosition = 1; // In middle of number (1|23)
       const result = parse(expression, { cursorPosition });
@@ -189,7 +189,7 @@ describe('Cursor Nodes', () => {
       expect((result.ast as any).value).toBe(123);
     });
 
-    it('should ignore cursor in middle of string', () => {
+    it('should ignore cursor in middle of string', async () => {
       const expression = "'hello'";
       const cursorPosition = 4; // In middle of string ('hel|lo')
       const result = parse(expression, { cursorPosition });

@@ -2,7 +2,7 @@ import type { FunctionDefinition } from '../types';
 import type { FunctionEvaluator } from '../types';
 import { box, unbox } from '../boxing';
 
-export const evaluate: FunctionEvaluator = (input, context, args, evaluator) => {
+export const evaluate: FunctionEvaluator = async (input, context, args, evaluator) => {
   // Three-valued logic implementation
   if (input.length === 0) {
     // Empty collection returns empty
