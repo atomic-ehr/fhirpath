@@ -83,21 +83,24 @@ export interface OperatorDefinition {
 export interface RegisteredOperator extends OperatorDefinition {
 }
 
+export interface FunctionSignature {
+  name: string;
+  input: TypeInfo;
+  parameters: Array<{
+    name: string;
+    optional?: boolean;
+    type: TypeInfo;
+    expression?: boolean;
+  }>;
+  result: TypeInfo | 'inputType' | 'inputTypeSingleton' | 'parameterType';
+}
+
 export interface FunctionDefinition {
   name: string;
   category: string[];
   description: string;
   examples: string[];
-  signature: {
-    input: TypeInfo;
-    parameters: Array<{
-      name: string;
-      optional?: boolean;
-      type: TypeInfo;
-      expression?: boolean;
-    }>;
-    result: TypeInfo | 'inputType' | 'inputTypeSingleton' | 'parameterType';
-  };
+  signatures: FunctionSignature[];
   evaluate: FunctionEvaluator;
 }
 

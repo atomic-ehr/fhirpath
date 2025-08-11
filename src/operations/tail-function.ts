@@ -28,10 +28,12 @@ export const tailFunction: FunctionDefinition & { evaluate: FunctionEvaluator } 
     '[1,2,3,4,5].tail()',
     'Patient.name.tail()'
   ],
-  signature: {
+  signatures: [{
+
+    name: 'tail',
     input: { type: 'Any', singleton: false },
     parameters: [],
     result: { type: 'Any', singleton: false }
-  },
+  }],
   evaluate
 };

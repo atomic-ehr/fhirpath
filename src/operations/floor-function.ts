@@ -39,10 +39,12 @@ export const floorFunction: FunctionDefinition & { evaluate: FunctionEvaluator }
     '2.1.floor()',
     '(-2.1).floor()'
   ],
-  signature: {
+  signatures: [{
+
+    name: 'floor',
     input: { type: 'Decimal', singleton: true },
     parameters: [],
     result: { type: 'Integer', singleton: true }
-  },
+  }],
   evaluate
 };

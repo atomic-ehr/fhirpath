@@ -121,13 +121,15 @@ export const substringFunction: FunctionDefinition & { evaluate: FunctionEvaluat
     "'abcdefg'.substring(1, 2)",
     "'abcdefg'.substring(6, 2)"
   ],
-  signature: {
+  signatures: [{
+
+    name: 'substring',
     input: { type: 'String', singleton: true },
     parameters: [
       { name: 'start', type: { type: 'Integer', singleton: true } },
       { name: 'length', type: { type: 'Integer', singleton: true }, optional: true }
     ],
     result: { type: 'String', singleton: true }
-  },
+  }],
   evaluate
 };

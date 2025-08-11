@@ -41,8 +41,8 @@ export class Registry {
         if ('symbol' in operation) {
           // It's an operator
           this.registerOperator(operation);
-        } else if ('signature' in operation && !('symbol' in operation)) {
-          // It's a function (has signature but no symbol)
+        } else if ('signatures' in operation && !('symbol' in operation)) {
+          // It's a function (has signatures but no symbol)
           this.registerFunction(operation as FunctionDefinition);
         }
       }
@@ -204,45 +204,51 @@ export class Registry {
     const func = this.getFunction(functionName);
     if (!func) return false;
     
-    // If no input type specified, function works with any type
-    if (!func.signature.input) return true;
-    
-    const inputType = func.signature.input.type;
-    const requiresSingleton = func.signature.input.singleton;
+    // If no signatures, function works with any type
+    if (!func.signatures || func.signatures.length === 0) return true;
     
     // Check if we're dealing with a collection type
     const isCollection = typeof typeName === 'string' && typeName.endsWith('[]');
     
-    // If function requires singleton but we have a collection, it's not applicable
-    if (requiresSingleton && isCollection) {
-      return false;
-    }
-    
-    // 'Any' type accepts all inputs (but still respects singleton constraint checked above)
-    if (inputType === 'Any') return true;
-    
-    // Direct type match
-    if (inputType === typeName) return true;
-    
-    // For collection types, check if function can work with collections
-    if (typeof typeName === 'string' && typeName.endsWith('[]')) {
-      const itemType = typeName.slice(0, -2);
-      // Only allow if function doesn't require singleton
-      if (inputType === itemType && !requiresSingleton) {
+    // Check if ANY signature matches the type
+    for (const signature of func.signatures) {
+      // If no input type specified, this signature works with any type
+      if (!signature.input) return true;
+      
+      const inputType = signature.input.type;
+      const requiresSingleton = signature.input.singleton;
+      
+      // If function requires singleton but we have a collection, skip this signature
+      if (requiresSingleton && isCollection) {
+        continue;
+      }
+      
+      // 'Any' type accepts all inputs (but still respects singleton constraint checked above)
+      if (inputType === 'Any') return true;
+      
+      // Direct type match
+      if (inputType === typeName) return true;
+      
+      // For collection types, check if function can work with collections
+      if (typeof typeName === 'string' && typeName.endsWith('[]')) {
+        const itemType = typeName.slice(0, -2);
+        // Only allow if function doesn't require singleton
+        if (inputType === itemType && !requiresSingleton) {
+          return true;
+        }
+      }
+      
+      // Check if it's a numeric type and function accepts numeric types
+      const numericTypes = ['Integer', 'Decimal', 'Number'];
+      if (numericTypes.includes(typeName as string) && numericTypes.includes(inputType as string)) {
         return true;
       }
-    }
-    
-    // Check if it's a numeric type and function accepts numeric types
-    const numericTypes = ['Integer', 'Decimal', 'Number'];
-    if (numericTypes.includes(typeName as string) && numericTypes.includes(inputType as string)) {
-      return true;
-    }
-    
-    // Check if it's a temporal type and function accepts temporal types
-    const temporalTypes = ['Date', 'DateTime', 'Time', 'Instant'];
-    if (temporalTypes.includes(typeName as string) && temporalTypes.includes(inputType as string)) {
-      return true;
+      
+      // Check if it's a temporal type and function accepts temporal types
+      const temporalTypes = ['Date', 'DateTime', 'Time', 'Instant'];
+      if (temporalTypes.includes(typeName as string) && temporalTypes.includes(inputType as string)) {
+        return true;
+      }
     }
     
     return false;

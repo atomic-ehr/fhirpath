@@ -30,10 +30,12 @@ export const singleFunction: FunctionDefinition & { evaluate: FunctionEvaluator 
     "Patient.name.single()",
     "Patient.identifier.single()"
   ],
-  signature: {
+  signatures: [{
+
+    name: 'single',
     input: { type: 'Any', singleton: false },
     parameters: [],
     result: { type: 'Any', singleton: true }
-  },
+  }],
   evaluate
 };

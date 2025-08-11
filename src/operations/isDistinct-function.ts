@@ -42,10 +42,12 @@ export const isDistinctFunction: FunctionDefinition & { evaluate: FunctionEvalua
     "(1 | 2 | 2 | 3).isDistinct()",
     "Patient.name.given.isDistinct()"
   ],
-  signature: {
+  signatures: [{
+
+    name: 'isDistinct',
     input: { type: 'Any', singleton: false },
     parameters: [],
     result: { type: 'Boolean', singleton: true }
-  },
+  }],
   evaluate
 };

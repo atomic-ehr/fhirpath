@@ -198,8 +198,8 @@ describe("Analyzer", () => {
       expect(result.diagnostics).toHaveLength(1);
       expect(result.diagnostics[0]).toMatchObject({
         severity: DiagnosticSeverity.Error,
-        code: ErrorCodes.TYPE_NOT_ASSIGNABLE,
-        message: expect.stringContaining("is not assignable to type String"),
+        code: ErrorCodes.INVALID_OPERAND_TYPE,
+        message: expect.stringContaining("Cannot apply substring() to"),
       });
     });
 
@@ -461,7 +461,7 @@ describe("Analyzer", () => {
         modelProvider,
       });
       expect(result.diagnostics[0]).toBeDefined();
-      expect(result.diagnostics[0]?.message).toContain("is not assignable to type String");
+      expect(result.diagnostics[0]?.message).toContain("Cannot apply substring() to");
     });
 
     it("should handle operators type mismatch", () => {

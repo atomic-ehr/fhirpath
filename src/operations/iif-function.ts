@@ -75,7 +75,9 @@ export const iifFunction: FunctionDefinition & { evaluate: FunctionEvaluator } =
   category: ['control'],
   description: 'If-then-else expression (immediate if)',
   examples: ['iif(gender = "male", "Mr.", "Ms.")'],
-  signature: {
+  signatures: [{
+
+    name: 'iif',
     input: { type: 'Any', singleton: false },
     parameters: [
       { name: 'condition', expression: true, type: { type: 'Boolean', singleton: true } },
@@ -83,6 +85,6 @@ export const iifFunction: FunctionDefinition & { evaluate: FunctionEvaluator } =
       { name: 'falseResult', expression: true, type: { type: 'Any', singleton: false }, optional: true },
     ],
     result: { type: 'Any', singleton: false },
-  },
+  }],
   evaluate
 };

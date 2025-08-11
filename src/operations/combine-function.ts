@@ -34,12 +34,14 @@ export const combineFunction: FunctionDefinition & { evaluate: FunctionEvaluator
   examples: [
     "{1, 2, 3}.combine({3, 4, 5}) // returns {1, 2, 3, 3, 4, 5}"
   ],
-  signature: {
+  signatures: [{
+
+    name: 'combine',
     input: { type: 'Any', singleton: false },
     parameters: [
       { name: 'other', type: { type: 'Any', singleton: false } }
     ],
     result: { type: 'Any', singleton: false }
-  },
+  }],
   evaluate
 };

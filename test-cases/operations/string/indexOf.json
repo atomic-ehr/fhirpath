@@ -157,7 +157,7 @@
       "error": {
         "type": "EvaluationError",
         "phase": "analyze",
-        "code": "FP3001"
+        "code": "FP3006"
       },
       "tags": [
         "string",

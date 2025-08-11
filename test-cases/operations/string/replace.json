@@ -93,9 +93,9 @@
       "expected": [],
       "error": {
         "type": "EvaluationError",
-        "message": "Type.*not.*assignable.*String",
+        "message": "Cannot apply replace\\\\(\\\\) to \\\\w+",
         "phase": "analyze",
-        "code": "FP3001"
+        "code": "FP3006"
       },
       "tags": [
         "function",

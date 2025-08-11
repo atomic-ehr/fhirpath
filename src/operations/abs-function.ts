@@ -56,10 +56,25 @@ export const absFunction: FunctionDefinition & { evaluate: FunctionEvaluator } =
     '(-5.5).abs()',
     "(-5.5 'mg').abs()"
   ],
-  signature: {
-    input: { type: 'Any', singleton: true },
-    parameters: [],
-    result: { type: 'Any', singleton: true }
-  },
+  signatures: [
+    {
+      name: 'abs-integer',
+      input: { type: 'Integer', singleton: true },
+      parameters: [],
+      result: { type: 'Integer', singleton: true }
+    },
+    {
+      name: 'abs-decimal',
+      input: { type: 'Decimal', singleton: true },
+      parameters: [],
+      result: { type: 'Decimal', singleton: true }
+    },
+    {
+      name: 'abs-quantity',
+      input: { type: 'Quantity', singleton: true },
+      parameters: [],
+      result: { type: 'Quantity', singleton: true }
+    }
+  ],
   evaluate
 };

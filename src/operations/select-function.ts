@@ -46,12 +46,14 @@ export const selectFunction: FunctionDefinition & { evaluate: FunctionEvaluator 
     'Bundle.entry.select((resource as Patient).telecom.where(system = \'phone\'))',
     'Patient.name.where(use = \'usual\').select(given.first() + \' \' + family)'
   ],
-  signature: {
+  signatures: [{
+
+    name: 'select',
     input: { type: 'Any', singleton: false },
     parameters: [
       { name: 'projection', type: { type: 'Any', singleton: false }, expression: true },
     ],
     result: 'parameterType' as any,
-  },
+  }],
   evaluate
 };

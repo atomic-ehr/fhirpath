@@ -29,10 +29,12 @@ export const allFalseFunction: FunctionDefinition & { evaluate: FunctionEvaluato
   examples: [
     "Observation.select(component.value > 90 'mm[Hg]').allFalse()"
   ],
-  signature: {
+  signatures: [{
+
+    name: 'allFalse',
     input: { type: 'Boolean', singleton: false },
     parameters: [],
     result: { type: 'Boolean', singleton: true }
-  },
+  }],
   evaluate
 };

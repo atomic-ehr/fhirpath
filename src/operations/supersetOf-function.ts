@@ -57,12 +57,14 @@ export const supersetOfFunction: FunctionDefinition & { evaluate: FunctionEvalua
   examples: [
     'MedicationRequest.contained.meta.tag.supersetOf(MedicationRequest.meta.tag)'
   ],
-  signature: {
+  signatures: [{
+
+    name: 'supersetOf',
     input: { type: 'Any', singleton: false },
     parameters: [
       { name: 'other', type: { type: 'Any', singleton: false } }
     ],
     result: { type: 'Boolean', singleton: true }
-  },
+  }],
   evaluate
 };

@@ -48,12 +48,14 @@ export const whereFunction: FunctionDefinition & { evaluate: FunctionEvaluator }
   category: ['logical'],
   description: 'Logical where operator',
   examples: ['a where b'],
-  signature: {
+  signatures: [{
+
+    name: 'where',
     input: { type: 'Any', singleton: false },
     parameters: [
       { name: 'condition', type: { type: 'Boolean', singleton: false }, expression: true },
     ],
     result: 'inputType' as any,
-  },
+  }],
   evaluate
 };

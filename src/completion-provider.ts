@@ -366,8 +366,8 @@ function getIdentifierCompletions(
       
       if (isApplicable) {
         // Determine if function takes parameters
-        const hasParams = funcDef.signature?.parameters && funcDef.signature.parameters.length > 0;
-      const funcDescription = funcDef.description || `FHIRPath ${name} function`;
+        const hasParams = funcDef.signatures?.[0]?.parameters && funcDef.signatures[0].parameters.length > 0;
+        const funcDescription = funcDef.description || `FHIRPath ${name} function`;
         
         completions.push({
           label: name,
@@ -389,7 +389,7 @@ function getIdentifierCompletions(
     for (const func of typeFunctions) {
       // Check if function is already added from general functions
       if (!completions.some(c => c.label === func.name)) {
-        const hasParams = func.signature?.parameters && func.signature.parameters.length > 0;
+        const hasParams = func.signatures?.[0]?.parameters && func.signatures[0].parameters.length > 0;
         completions.push({
           label: func.name,
           kind: CompletionKind.Function,

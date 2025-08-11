@@ -100,9 +100,6 @@ export const Errors = {
   },
   
   // Type errors (3000-3999)
-  typeNotAssignable(sourceType: string, targetType: string, location?: Range): FHIRPathError {
-    return new FHIRPathError(ErrorCodes.TYPE_NOT_ASSIGNABLE, `Type ${sourceType} is not assignable to type ${targetType}`, location);
-  },
   
   operatorTypeMismatch(operator: string, leftType: string, rightType: string, location?: Range): FHIRPathError {
     return new FHIRPathError(ErrorCodes.OPERATOR_TYPE_MISMATCH, `Operator '${operator}' cannot be applied to types ${leftType} and ${rightType}`, location);
@@ -218,7 +215,7 @@ export enum ErrorCodes {
   ARGUMENT_REQUIRED = 'FP2005',
   
   // Type errors (3000-3999)
-  TYPE_NOT_ASSIGNABLE = 'FP3001',
+  // FP3001 - removed (unified with FP3006)
   OPERATOR_TYPE_MISMATCH = 'FP3002',
   ARGUMENT_TYPE_MISMATCH = 'FP3003',
   CONVERSION_FAILED = 'FP3004',

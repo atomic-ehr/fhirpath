@@ -190,18 +190,40 @@ export class Analyzer {
       if (funcNode.name.type === NodeType.Identifier) {
         const funcName = (funcNode.name as IdentifierNode).name;
         const func = registry.getFunction(funcName);
-        if (func && func.signature.input && node.left.typeInfo) {
-          if (!this.isTypeCompatible(node.left.typeInfo, func.signature.input)) {
+        if (func && func.signatures && func.signatures.length > 0 && node.left.typeInfo) {
+          // Check if any signature matches the input type
+          let matchFound = false;
+          let expectedTypes: string[] = [];
+          
+          for (const signature of func.signatures) {
+            if (signature.input) {
+              if (this.isTypeCompatible(node.left.typeInfo, signature.input)) {
+                matchFound = true;
+                break;
+              }
+              expectedTypes.push(this.typeToString(signature.input));
+            } else {
+              // If any signature has no input constraint, it matches
+              matchFound = true;
+              break;
+            }
+          }
+          
+          if (!matchFound) {
             const inputTypeStr = this.typeToString(node.left.typeInfo);
-            const expectedTypeStr = this.typeToString(func.signature.input);
+            const firstSignature = func.signatures[0];
+            
+            if (!firstSignature) return;
             
             // Check if this is specifically a singleton/collection mismatch
             const inputIsCollection = !node.left.typeInfo.singleton;
-            const expectedIsSingleton = func.signature.input.singleton;
+            const expectedIsSingleton = firstSignature.input?.singleton;
             
             // Check if the base types are compatible (same type or subtype)
-            const typesCompatible = node.left.typeInfo.type === func.signature.input.type ||
-                                   this.isSubtypeOf(node.left.typeInfo.type, func.signature.input.type);
+            const typesCompatible = firstSignature.input && (
+              node.left.typeInfo.type === firstSignature.input.type ||
+              this.isSubtypeOf(node.left.typeInfo.type, firstSignature.input.type)
+            );
             
             if (inputIsCollection && expectedIsSingleton && typesCompatible) {
               // Compatible base types but collection vs singleton mismatch
@@ -209,9 +231,9 @@ export class Analyzer {
                 toDiagnostic(Errors.singletonTypeRequired(funcName, inputTypeStr, funcNode.range))
               );
             } else {
-              // General type mismatch
+              // Function received invalid operand type - report as runtime error
               this.diagnostics.push(
-                toDiagnostic(Errors.typeNotAssignable(inputTypeStr, expectedTypeStr, funcNode.range))
+                toDiagnostic(Errors.invalidOperandType(funcName + '()', inputTypeStr, funcNode.range))
               );
             }
           }
@@ -316,7 +338,7 @@ export class Analyzer {
         );
       } else {
         // Check argument count based on signature
-        const params = func.signature.parameters;
+        const params = func.signatures?.[0]?.parameters || [];
         const requiredParams = params.filter(p => !p.optional).length;
         const maxParams = params.length;
         
@@ -786,18 +808,27 @@ export class Analyzer {
     }
     
     // Special handling for functions with dynamic result types
-    if (func.signature.result === 'inputType') {
+    // Use first matching signature's result type
+    const matchingSignature = func.signatures?.find(sig => 
+      !sig.input || !inputType || this.isTypeCompatible(inputType, sig.input)
+    ) || func.signatures?.[0];
+    
+    if (!matchingSignature) {
+      return { type: 'Any', singleton: false };
+    }
+    
+    if (matchingSignature.result === 'inputType') {
       // Functions like where() return the same type as input but always as collection
       return inputType ? { ...inputType, singleton: false } : { type: 'Any', singleton: false };
-    } else if (func.signature.result === 'inputTypeSingleton') {
+    } else if (matchingSignature.result === 'inputTypeSingleton') {
       // Functions like first(), last() return the same type as input but as singleton
       return inputType ? { ...inputType, singleton: true } : { type: 'Any', singleton: true };
-    } else if (func.signature.result === 'parameterType' && node.arguments.length > 0) {
+    } else if (matchingSignature.result === 'parameterType' && node.arguments.length > 0) {
       // Functions like select() return the type of the first parameter expression as collection
       const paramType = this.inferType(node.arguments[0]!, inputType);
       return { ...paramType, singleton: false };
-    } else if (typeof func.signature.result === 'object') {
-      return func.signature.result;
+    } else if (typeof matchingSignature.result === 'object') {
+      return matchingSignature.result;
     }
     
     return { type: 'Any', singleton: false };
@@ -1054,7 +1085,7 @@ export class Analyzer {
   }
   
   private checkFunctionArgumentTypes(node: FunctionNode, func: import('./types').FunctionDefinition): void {
-    const params = func.signature.parameters;
+    const params = func.signatures?.[0]?.parameters || [];
     
     for (let i = 0; i < Math.min(node.arguments.length, params.length); i++) {
       const arg = node.arguments[i]!;

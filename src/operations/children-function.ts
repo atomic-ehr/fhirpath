@@ -85,10 +85,12 @@ export const childrenFunction: FunctionDefinition & { evaluate: FunctionEvaluato
     'Patient.children()',
     'Observation.children().ofType(CodeableConcept)'
   ],
-  signature: {
+  signatures: [{
+
+    name: 'children',
     input: { type: 'Any', singleton: false },
     parameters: [],
     result: { type: 'Any', singleton: false }
-  },
+  }],
   evaluate
 };

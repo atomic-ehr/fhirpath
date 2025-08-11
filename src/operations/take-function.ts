@@ -55,12 +55,14 @@ export const takeFunction: FunctionDefinition & { evaluate: FunctionEvaluator } 
     "Patient.name.take(3)",
     "Observation.component.take(1)"
   ],
-  signature: {
+  signatures: [{
+
+    name: 'take',
     input: { type: 'Any', singleton: false },
     parameters: [
       { name: 'num', type: { type: 'Integer', singleton: true } }
     ],
     result: { type: 'Any', singleton: false }
-  },
+  }],
   evaluate
 };

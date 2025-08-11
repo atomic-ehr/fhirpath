@@ -56,13 +56,15 @@ export const traceFunction: FunctionDefinition & { evaluate: FunctionEvaluator }
     "contained.where(criteria).trace('unmatched', id).empty()",
     "name.given.trace('test').count()"
   ],
-  signature: {
+  signatures: [{
+
+    name: 'trace',
     input: { type: 'Any', singleton: false },
     parameters: [
       { name: 'name', type: { type: 'String', singleton: true } },
       { name: 'projection', type: { type: 'Any', singleton: false }, optional: true }
     ],
     result: { type: 'Any', singleton: false }
-  },
+  }],
   evaluate
 };

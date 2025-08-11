@@ -77,12 +77,14 @@ export const roundFunction: FunctionDefinition & { evaluate: FunctionEvaluator }
     '1.round()',
     '3.14159.round(3)'
   ],
-  signature: {
+  signatures: [{
+
+    name: 'round',
     input: { type: 'Decimal', singleton: true },
     parameters: [
       { name: 'precision', type: { type: 'Integer', singleton: true }, optional: true }
     ],
     result: { type: 'Decimal', singleton: true }
-  },
+  }],
   evaluate
 };

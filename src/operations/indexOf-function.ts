@@ -73,12 +73,14 @@ export const indexOfFunction: FunctionDefinition & { evaluate: FunctionEvaluator
     "'abcdefg'.indexOf('x')",
     "'abcdefg'.indexOf('abcdefg')"
   ],
-  signature: {
+  signatures: [{
+
+    name: 'indexOf',
     input: { type: 'String', singleton: true },
     parameters: [
       { name: 'substring', type: { type: 'String', singleton: true } }
     ],
     result: { type: 'Integer', singleton: true }
-  },
+  }],
   evaluate
 };

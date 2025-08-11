@@ -57,12 +57,14 @@ export const subsetOfFunction: FunctionDefinition & { evaluate: FunctionEvaluato
   examples: [
     'MedicationRequest.contained.meta.tag.subsetOf(MedicationRequest.meta.tag)'
   ],
-  signature: {
+  signatures: [{
+
+    name: 'subsetOf',
     input: { type: 'Any', singleton: false },
     parameters: [
       { name: 'other', type: { type: 'Any', singleton: false } }
     ],
     result: { type: 'Boolean', singleton: true }
-  },
+  }],
   evaluate
 };

@@ -52,13 +52,15 @@ export const defineVariableFunction: FunctionDefinition & { evaluate: FunctionEv
     'Patient.defineVariable("patientName", name.first())',
     'Patient.name.defineVariable("names")'
   ],
-  signature: {
+  signatures: [{
+
+    name: 'defineVariable',
     input: { type: 'Any', singleton: false },
     parameters: [
       { name: 'name', type: { type: 'String', singleton: true } },
       { name: 'value', type: { type: 'Any', singleton: false }, optional: true },
     ],
     result: { type: 'Any', singleton: false },
-  },
+  }],
   evaluate
 };

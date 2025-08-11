@@ -51,12 +51,14 @@ export const excludeFunction: FunctionDefinition & { evaluate: FunctionEvaluator
     '{1, 2, 3, 4}.exclude({3, 4})',
     'Patient.identifier.exclude(Patient.contact.identifier)'
   ],
-  signature: {
+  signatures: [{
+
+    name: 'exclude',
     input: { type: 'Any', singleton: false },
     parameters: [
       { name: 'other', type: { type: 'Any', singleton: false } }
     ],
     result: { type: 'Any', singleton: false }
-  },
+  }],
   evaluate
 };

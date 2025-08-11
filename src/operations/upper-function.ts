@@ -44,10 +44,12 @@ export const upperFunction: FunctionDefinition & { evaluate: FunctionEvaluator }
     "'abcdefg'.upper() // returns 'ABCDEFG'",
     "'AbCdefg'.upper() // returns 'ABCDEFG'"
   ],
-  signature: {
+  signatures: [{
+
+    name: 'upper',
     input: { type: 'String', singleton: true },
     parameters: [],
     result: { type: 'String', singleton: true }
-  },
+  }],
   evaluate
 };

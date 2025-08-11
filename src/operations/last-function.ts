@@ -16,10 +16,12 @@ export const lastFunction: FunctionDefinition & { evaluate: FunctionEvaluator } 
   category: ['collection'],
   description: 'Returns the last item in the collection',
   examples: ['Patient.name.last()'],
-  signature: {
+  signatures: [{
+
+    name: 'last',
     input: { type: 'Any', singleton: false },
     parameters: [],
     result: { type: 'Any', singleton: true },
-  },
+  }],
   evaluate
 };

@@ -14,10 +14,12 @@ export const countFunction: FunctionDefinition & { evaluate: FunctionEvaluator }
   category: ['collection'],
   description: 'Returns the number of items in the collection',
   examples: ['Patient.name.count()'],
-  signature: {
+  signatures: [{
+
+    name: 'count',
     input: { type: 'Any', singleton: false },
     parameters: [],
     result: { type: 'Integer', singleton: true },
-  },
+  }],
   evaluate
 };

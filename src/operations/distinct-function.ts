@@ -28,10 +28,12 @@ export const distinctFunction: FunctionDefinition & { evaluate: FunctionEvaluato
   category: ['collection'],
   description: 'Returns a collection containing only unique items',
   examples: ['Patient.name.given.distinct()'],
-  signature: {
+  signatures: [{
+
+    name: 'distinct',
     input: { type: 'Any', singleton: false },
     parameters: [],
     result: { type: 'Any', singleton: false },
-  },
+  }],
   evaluate
 };

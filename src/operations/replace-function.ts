@@ -108,13 +108,15 @@ export const replaceFunction: FunctionDefinition & { evaluate: FunctionEvaluator
     "'abcdefg'.replace('cde', '')",
     "'abc'.replace('', 'x')"
   ],
-  signature: {
+  signatures: [{
+
+    name: 'replace',
     input: { type: 'String', singleton: true },
     parameters: [
       { name: 'pattern', type: { type: 'String', singleton: true } },
       { name: 'substitution', type: { type: 'String', singleton: true } }
     ],
     result: { type: 'String', singleton: true },
-  },
+  }],
   evaluate
 };

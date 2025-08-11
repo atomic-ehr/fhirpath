@@ -51,7 +51,9 @@ export const joinFunction: FunctionDefinition & { evaluate: FunctionEvaluator } 
     "('A' | 'B' | 'C').join() // 'ABC'",
     "('A' | 'B' | 'C').join(',') // 'A,B,C'"
   ],
-  signature: {
+  signatures: [{
+
+    name: 'join',
     input: { type: 'String', singleton: false },
     parameters: [
       { 
@@ -61,6 +63,6 @@ export const joinFunction: FunctionDefinition & { evaluate: FunctionEvaluator } 
       },
     ],
     result: { type: 'String', singleton: true },
-  },
+  }],
   evaluate
 };

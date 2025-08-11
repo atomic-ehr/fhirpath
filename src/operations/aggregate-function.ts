@@ -52,13 +52,15 @@ export const aggregateFunction: FunctionDefinition & { evaluate: FunctionEvaluat
     'value.aggregate(iif($total.empty(), $this, iif($this < $total, $this, $total)))',
     'value.aggregate($total + $this, 0) / value.count()'
   ],
-  signature: {
+  signatures: [{
+
+    name: 'aggregate',
     input: { type: 'Any', singleton: false },
     parameters: [
       { name: 'aggregator', expression: true, type: { type: 'Any', singleton: false } },
       { name: 'init', expression: true, type: { type: 'Any', singleton: false }, optional: true }
     ],
     result: { type: 'Any', singleton: false }
-  },
+  }],
   evaluate
 };

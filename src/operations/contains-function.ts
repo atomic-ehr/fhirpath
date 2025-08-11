@@ -79,12 +79,14 @@ export const containsFunction: FunctionDefinition & { evaluate: FunctionEvaluato
     "'abc'.contains('bc')", 
     "'abc'.contains('d')"
   ],
-  signature: {
+  signatures: [{
+
+    name: 'contains',
     input: { type: 'String', singleton: true },
     parameters: [
       { name: 'substring', type: { type: 'String', singleton: true } }
     ],
     result: { type: 'Boolean', singleton: true }
-  },
+  }],
   evaluate
 };

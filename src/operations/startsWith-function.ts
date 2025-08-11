@@ -77,12 +77,14 @@ export const startsWithFunction: FunctionDefinition & { evaluate: FunctionEvalua
     "'abcdefg'.startsWith('abc')",
     "'abcdefg'.startsWith('xyz')"
   ],
-  signature: {
+  signatures: [{
+
+    name: 'startsWith',
     input: { type: 'String', singleton: true },
     parameters: [
       { name: 'prefix', type: { type: 'String', singleton: true } }
     ],
     result: { type: 'Boolean', singleton: true }
-  },
+  }],
   evaluate
 };

@@ -46,10 +46,12 @@ export const trimFunction: FunctionDefinition & { evaluate: FunctionEvaluator } 
     "'\\thello\\n'.trim()",
     "'no-trim'.trim()"
   ],
-  signature: {
+  signatures: [{
+
+    name: 'trim',
     input: { type: 'String', singleton: true },
     parameters: [],
     result: { type: 'String', singleton: true }
-  },
+  }],
   evaluate
 };

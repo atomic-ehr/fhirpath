@@ -53,12 +53,14 @@ export const unionFunction: FunctionDefinition & { evaluate: FunctionEvaluator }
     'name.select(use.union(given))',
     'Patient.identifier.union(Patient.contact.identifier)'
   ],
-  signature: {
+  signatures: [{
+
+    name: 'union',
     input: { type: 'Any', singleton: false },
     parameters: [
       { name: 'other', type: { type: 'Any', singleton: false } }
     ],
     result: { type: 'Any', singleton: false }
-  },
+  }],
   evaluate
 };

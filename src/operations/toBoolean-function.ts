@@ -90,10 +90,12 @@ export const toBooleanFunction: FunctionDefinition & { evaluate: FunctionEvaluat
     "1.0.toBoolean()",
     "0.0.toBoolean()"
   ],
-  signature: {
+  signatures: [{
+
+    name: 'toBoolean',
     input: { type: 'Any', singleton: true },
     parameters: [],
     result: { type: 'Boolean', singleton: true }
-  },
+  }],
   evaluate
 };

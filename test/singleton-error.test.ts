@@ -22,7 +22,7 @@ describe('Singleton error messages', () => {
     expect(result.diagnostics).toHaveLength(1);
     const error = result.diagnostics[0];
     
-    expect(error?.code).toBe(ErrorCodes.TYPE_NOT_ASSIGNABLE);
-    expect(error?.message).toContain('Type Integer is not assignable to type String');
+    expect(error?.code).toBe(ErrorCodes.INVALID_OPERAND_TYPE);
+    expect(error?.message).toContain('Cannot apply substring() to Integer');
   });
 });

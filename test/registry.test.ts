@@ -281,14 +281,15 @@ describe('FHIRPath Registry', () => {
         category: ['filtering'],
         description: 'Filters a collection',
         examples: ['Patient.name.where(use = "official")'],
-        signature: {
+        signatures: [{
+          name: 'where',
           input: { type: 'Any', singleton: false },
           parameters: [{
             name: 'condition',
             type: { type: 'Boolean', singleton: true }
           }],
           result: { type: 'Any', singleton: false }
-        },
+        }],
         evaluate: () => { throw new Error('Not implemented'); }
       };
       
@@ -311,11 +312,12 @@ describe('FHIRPath Registry', () => {
         category: ['test'],
         description: 'Test function',
         examples: [],
-        signature: {
+        signatures: [{
+          name: 'TestFunction',
           input: { type: 'Any', singleton: true },
           parameters: [],
           result: { type: 'Any', singleton: true }
-        },
+        }],
         evaluate: () => { throw new Error('Not implemented'); }
       };
       

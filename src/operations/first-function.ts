@@ -16,10 +16,12 @@ export const firstFunction: FunctionDefinition & { evaluate: FunctionEvaluator }
   category: ['collection'],
   description: 'Returns the first item in the collection',
   examples: ['Patient.name.first()'],
-  signature: {
+  signatures: [{
+
+    name: 'first',
     input: { type: 'Any', singleton: false },
     parameters: [],
     result: 'inputTypeSingleton' as any,
-  },
+  }],
   evaluate
 };

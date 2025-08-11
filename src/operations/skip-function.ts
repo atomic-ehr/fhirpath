@@ -51,12 +51,14 @@ export const skipFunction: FunctionDefinition & { evaluate: FunctionEvaluator } 
     '[1,2,3,4,5].skip(2)',
     'Patient.name.skip(1)'
   ],
-  signature: {
+  signatures: [{
+
+    name: 'skip',
     input: { type: 'Any', singleton: false },
     parameters: [
       { name: 'num', type: { type: 'Integer', singleton: true } }
     ],
     result: { type: 'Any', singleton: false },
-  },
+  }],
   evaluate
 };

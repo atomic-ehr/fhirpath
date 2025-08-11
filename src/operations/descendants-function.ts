@@ -53,10 +53,12 @@ export const descendantsFunction = {
     'Patient.descendants().ofType(CodeableConcept)',
     'Questionnaire.descendants().linkId'
   ],
-  signature: {
+  signatures: [{
+
+    name: 'descendants',
     input: { type: 'Any', singleton: false },
     parameters: [],
     result: { type: 'Any', singleton: false }
-  },
+  }],
   evaluate
 };

@@ -14,7 +14,9 @@ export const ofTypeFunction: FunctionDefinition = {
     'Observation.value.ofType(Quantity)',
     'Patient.deceased.ofType(Boolean)'
   ],
-  signature: {
+  signatures: [{
+
+    name: 'ofType',
     input: { type: 'Any', singleton: false },
     parameters: [
       { 
@@ -24,7 +26,7 @@ export const ofTypeFunction: FunctionDefinition = {
       }
     ],
     result: 'inputType'
-  },
+  }],
   evaluate(input: FHIRPathValue[], context: RuntimeContext, args: ASTNode[], evaluator: NodeEvaluator) {
     if (args.length !== 1) {
       throw Errors.invalidOperation('ofType requires exactly one argument');

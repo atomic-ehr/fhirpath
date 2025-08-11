@@ -170,7 +170,7 @@
       "expected": [],
       "error": {
         "type": "Error",
-        "code": "FP3001",
+        "code": "FP3006",
         "phase": "analyze"
       },
       "tags": [

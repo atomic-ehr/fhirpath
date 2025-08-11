@@ -70,12 +70,14 @@ export const splitFunction: FunctionDefinition & { evaluate: FunctionEvaluator }
     "('ABC').split(',') // returns { 'ABC' }",
     "'A,,C'.split(',') // returns { 'A', '', 'C' }"
   ],
-  signature: {
+  signatures: [{
+
+    name: 'split',
     input: { type: 'String', singleton: true },
     parameters: [
       { name: 'separator', type: { type: 'String', singleton: true } }
     ],
     result: { type: 'String', singleton: false }
-  },
+  }],
   evaluate
 };

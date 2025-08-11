@@ -45,12 +45,14 @@ export const existsFunction: FunctionDefinition & { evaluate: FunctionEvaluator 
   category: ['collection', 'logical'],
   description: 'Returns true if the collection has any items, or if any item satisfies the condition',
   examples: ['Patient.name.exists()', 'Patient.name.exists(use = "official")'],
-  signature: {
+  signatures: [{
+
+    name: 'exists',
     input: { type: 'Any', singleton: false },
     parameters: [
       { name: 'condition', optional: true, type: { type: 'Boolean', singleton: false } },
     ],
     result: { type: 'Boolean', singleton: true },
-  },
+  }],
   evaluate
 };

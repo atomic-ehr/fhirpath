@@ -58,12 +58,14 @@ export const intersectFunction: FunctionDefinition & { evaluate: FunctionEvaluat
     '{1, 2, 3, 4}.intersect({3, 4, 5, 6})',
     'Patient.identifier.intersect(Patient.contact.identifier)'
   ],
-  signature: {
+  signatures: [{
+
+    name: 'intersect',
     input: { type: 'Any', singleton: false },
     parameters: [
       { name: 'other', type: { type: 'Any', singleton: false } }
     ],
     result: { type: 'Any', singleton: false }
-  },
+  }],
   evaluate
 };

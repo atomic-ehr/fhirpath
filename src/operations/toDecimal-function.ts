@@ -71,10 +71,12 @@ export const toDecimalFunction: FunctionDefinition & { evaluate: FunctionEvaluat
     "true.toDecimal() // returns 1.0",
     "false.toDecimal() // returns 0.0"
   ],
-  signature: {
+  signatures: [{
+
+    name: 'toDecimal',
     input: { type: 'Any', singleton: true },
     parameters: [],
     result: { type: 'Decimal', singleton: true }
-  },
+  }],
   evaluate
 };

@@ -29,10 +29,12 @@ export const anyFalseFunction: FunctionDefinition & { evaluate: FunctionEvaluato
   examples: [
     "Observation.select(component.value > 90 'mm[Hg]').anyFalse()"
   ],
-  signature: {
+  signatures: [{
+
+    name: 'anyFalse',
     input: { type: 'Boolean', singleton: false },
     parameters: [],
     result: { type: 'Boolean', singleton: true }
-  },
+  }],
   evaluate
 };

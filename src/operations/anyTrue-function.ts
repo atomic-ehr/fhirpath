@@ -29,10 +29,12 @@ export const anyTrueFunction: FunctionDefinition & { evaluate: FunctionEvaluator
   examples: [
     "Observation.component.select(value.value > 90).anyTrue()"
   ],
-  signature: {
+  signatures: [{
+
+    name: 'anyTrue',
     input: { type: 'Boolean', singleton: false },
     parameters: [],
     result: { type: 'Boolean', singleton: true }
-  },
+  }],
   evaluate
 };

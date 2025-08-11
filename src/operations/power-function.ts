@@ -75,12 +75,14 @@ export const powerFunction: FunctionDefinition & { evaluate: FunctionEvaluator }
     '2.5.power(2)',
     '(-1).power(0.5)'
   ],
-  signature: {
+  signatures: [{
+
+    name: 'power',
     input: { type: 'Decimal', singleton: true },
     parameters: [
       { name: 'exponent', type: { type: 'Decimal', singleton: true }, optional: false }
     ],
     result: { type: 'Decimal', singleton: true }
-  },
+  }],
   evaluate
 };

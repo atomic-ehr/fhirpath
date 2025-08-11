@@ -37,10 +37,12 @@ export const notFunction: FunctionDefinition & { evaluate: FunctionEvaluator } =
     '(5 = 5).not()',
     'Patient.active.not()'
   ],
-  signature: {
+  signatures: [{
+
+    name: 'not',
     input: { type: 'Any', singleton: false },
     parameters: [],
     result: { type: 'Boolean', singleton: true },
-  },
+  }],
   evaluate
 };

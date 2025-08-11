@@ -14,10 +14,12 @@ export const emptyFunction: FunctionDefinition & { evaluate: FunctionEvaluator }
   category: ['collection', 'logical'],
   description: 'Returns true if the collection is empty',
   examples: ['Patient.name.empty()'],
-  signature: {
+  signatures: [{
+
+    name: 'empty',
     input: { type: 'Any', singleton: false },
     parameters: [],
     result: { type: 'Boolean', singleton: true },
-  },
+  }],
   evaluate
 };

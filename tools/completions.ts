@@ -108,7 +108,12 @@ Examples:
 
 // Get expression and cursor position
 let expression = positionals[2];
-let cursorPosition = parseInt(positionals[3]);
+if (!expression) {
+  console.error('Error: Expression is required');
+  process.exit(1);
+}
+
+let cursorPosition = parseInt(positionals[3] || '0');
 
 // Handle pipe character for cursor position
 if (expression.includes('|')) {
@@ -140,7 +145,7 @@ if (values.vars) {
   try {
     options.variables = JSON.parse(values.vars);
   } catch (e) {
-    console.error('Error: Invalid JSON for variables:', e.message);
+    console.error('Error: Invalid JSON for variables:', e instanceof Error ? e.message : String(e));
     process.exit(1);
   }
 }
@@ -159,7 +164,7 @@ let completions: CompletionItem[] = [];
 try {
   completions = provideCompletions(expression, cursorPosition, options);
 } catch (error) {
-  console.error('Error getting completions:', error.message);
+  console.error('Error getting completions:', error instanceof Error ? error.message : String(error));
   process.exit(1);
 }
 

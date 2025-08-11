@@ -41,10 +41,12 @@ export const ceilingFunction: FunctionDefinition & { evaluate: FunctionEvaluator
     '1.1.ceiling()',
     '(-1.1).ceiling()'
   ],
-  signature: {
+  signatures: [{
+
+    name: 'ceiling',
     input: { type: 'Decimal', singleton: true },
     parameters: [],
     result: { type: 'Integer', singleton: true }
-  },
+  }],
   evaluate
 };

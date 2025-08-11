@@ -44,10 +44,12 @@ export const lowerFunction: FunctionDefinition & { evaluate: FunctionEvaluator }
     "'ABCDEFG'.lower() // returns 'abcdefg'",
     "'aBcDEFG'.lower() // returns 'abcdefg'"
   ],
-  signature: {
+  signatures: [{
+
+    name: 'lower',
     input: { type: 'String', singleton: true },
     parameters: [],
     result: { type: 'String', singleton: true }
-  },
+  }],
   evaluate
 };

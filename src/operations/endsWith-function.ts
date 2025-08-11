@@ -72,12 +72,14 @@ export const endsWithFunction: FunctionDefinition & { evaluate: FunctionEvaluato
     "'abcdefg'.endsWith('efg')",
     "'abcdefg'.endsWith('abc')"
   ],
-  signature: {
+  signatures: [{
+
+    name: 'endsWith',
     input: { type: 'String', singleton: true },
     parameters: [
       { name: 'suffix', type: { type: 'String', singleton: true } }
     ],
     result: { type: 'Boolean', singleton: true }
-  },
+  }],
   evaluate
 };

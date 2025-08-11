@@ -56,12 +56,14 @@ export const allFunction: FunctionDefinition & { evaluate: FunctionEvaluator } =
   examples: [
     "generalPractitioner.all($this.resolve() is Practitioner)"
   ],
-  signature: {
+  signatures: [{
+
+    name: 'all',
     input: { type: 'Any', singleton: false },
     parameters: [
       { name: 'criteria', type: { type: 'Any', singleton: false } }
     ],
     result: { type: 'Boolean', singleton: true }
-  },
+  }],
   evaluate
 };

@@ -209,7 +209,7 @@ export class Interpreter {
             continue;
           }
           this.operationEvaluators.set(operation.symbol, operation.evaluate);
-        } else if ('signature' in operation && !('symbol' in operation)) {
+        } else if ('signatures' in operation && !('symbol' in operation)) {
           // It's a function
           this.functionEvaluators.set(operation.name, operation.evaluate);
         }

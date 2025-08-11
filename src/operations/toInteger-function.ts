@@ -65,10 +65,13 @@ export const toIntegerFunction: FunctionDefinition & { evaluate: FunctionEvaluat
     "false.toInteger()",
     "'hello'.toInteger()"
   ],
-  signature: {
-    input: { type: 'Any', singleton: true },
-    parameters: [],
-    result: { type: 'Integer', singleton: true }
-  },
+  signatures: [
+    {
+      name: 'toInteger',
+      input: { type: 'Any', singleton: true },
+      parameters: [],
+      result: { type: 'Integer', singleton: true }
+    }
+  ],
   evaluate
 };

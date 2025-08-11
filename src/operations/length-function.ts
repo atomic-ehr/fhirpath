@@ -40,10 +40,12 @@ export const lengthFunction: FunctionDefinition & { evaluate: FunctionEvaluator 
     "''.length()",
     "name.given.first().length()"
   ],
-  signature: {
+  signatures: [{
+
+    name: 'length',
     input: { type: 'String', singleton: true },
     parameters: [],
     result: { type: 'Integer', singleton: true }
-  },
+  }],
   evaluate
 };

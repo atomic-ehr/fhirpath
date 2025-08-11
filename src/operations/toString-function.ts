@@ -78,10 +78,13 @@ export const toStringFunction: FunctionDefinition & { evaluate: FunctionEvaluato
     "'hello'.toString()",
     "3.14.toString()"
   ],
-  signature: {
-    input: { type: 'Any', singleton: true },
-    parameters: [],
-    result: { type: 'String', singleton: true }
-  },
+  signatures: [
+    {
+      name: 'toString',
+      input: { type: 'Any', singleton: true },
+      parameters: [],
+      result: { type: 'String', singleton: true }
+    }
+  ],
   evaluate
 };

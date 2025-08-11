@@ -40,10 +40,12 @@ export const truncateFunction: FunctionDefinition & { evaluate: FunctionEvaluato
     '1.00000001.truncate()',
     '(-1.56).truncate()'
   ],
-  signature: {
+  signatures: [{
+
+    name: 'truncate',
     input: { type: 'Decimal', singleton: true },
     parameters: [],
     result: { type: 'Integer', singleton: true }
-  },
+  }],
   evaluate
 };
