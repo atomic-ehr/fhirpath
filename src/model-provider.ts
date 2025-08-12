@@ -1,5 +1,5 @@
 import type { ModelProvider, TypeInfo, TypeName } from './types';
-import { CanonicalManager as createCanonicalManager, type Config, type CanonicalManager as ICanonicalManager, type Resource } from '@atomic-ehr/fhir-canonical-manager';
+import { CanonicalManager as createCanonicalManager, type Config, type CanonicalManager, type Resource } from '@atomic-ehr/fhir-canonical-manager';
 import { translate, type FHIRSchema, type StructureDefinition } from '@atomic-ehr/fhirschema';
 
 export interface FHIRModelContext {
@@ -38,7 +38,7 @@ export interface FHIRModelProviderConfig {
  * For best performance, pre-load common types during initialization.
  */
 export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
-  private canonicalManager: ICanonicalManager;
+  private canonicalManager: ReturnType<typeof createCanonicalManager>;
   private schemaCache: Map<string, FHIRSchema> = new Map();
   private hierarchyCache: Map<string, FHIRSchema[]> = new Map();
   private initialized = false;
@@ -558,7 +558,7 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
       .filter((name): name is string => !!name)
       .sort();
       
-    return this.resourceTypesCache;
+    return this.resourceTypesCache || [];
   }
   
   async getComplexTypes(): Promise<string[]> {
@@ -584,7 +584,7 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
       .filter((name): name is string => !!name)
       .sort();
       
-    return this.complexTypesCache;
+    return this.complexTypesCache || [];
   }
   
   async getPrimitiveTypes(): Promise<string[]> {
@@ -606,7 +606,7 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
       .map(name => this.primitiveTypeMapping[name] || name)
       .sort();
       
-    return this.primitiveTypesCache;
+    return this.primitiveTypesCache || [];
   }
 
   // Synchronous method to get type from cache (for analyzer)

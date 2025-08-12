@@ -57,8 +57,8 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "@atomic-ehr/fhir-canonical-manager": "0.0.6",
-    "@atomic-ehr/fhirschema": "^0.0.2",
+    "@atomic-ehr/fhir-canonical-manager": "latest",
+    "@atomic-ehr/fhirschema": "latest",
     "@atomic-ehr/ucum": "^0.2.5"
   }
 }
