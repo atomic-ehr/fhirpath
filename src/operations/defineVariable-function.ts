@@ -62,5 +62,9 @@ export const defineVariableFunction: FunctionDefinition & { evaluate: FunctionEv
     ],
     result: { type: 'Any', singleton: false },
   }],
-  evaluate
+  evaluate,
+  async inferResultType(analyzer, node, inputType) {
+    // defineVariable returns its input type unchanged
+    return inputType || { type: 'Any', singleton: false };
+  }
 };

@@ -738,73 +738,9 @@ export class Analyzer {
       return { type: 'Any', singleton: false };
     }
     
-    // Special handling for iif function
-    if (funcName === 'iif') {
-      // iif returns the common type of the true and false branches
-      if (node.arguments.length >= 2) {
-        const trueBranchType = await this.inferType(node.arguments[1]!, inputType);
-        if (node.arguments.length >= 3) {
-          const falseBranchType = await this.inferType(node.arguments[2]!, inputType);
-          // If both branches have the same type, use that
-          if (trueBranchType.type === falseBranchType.type && 
-              trueBranchType.singleton === falseBranchType.singleton) {
-            return trueBranchType;
-          }
-          // If types are the same but singleton differs, return as collection
-          if (trueBranchType.type === falseBranchType.type) {
-            // One is singleton, one is collection - result must be collection
-            return { type: trueBranchType.type, singleton: false };
-          }
-          // Otherwise, check if one is a subtype of the other
-          if (this.isTypeCompatible(trueBranchType, falseBranchType)) {
-            return falseBranchType;
-          }
-          if (this.isTypeCompatible(falseBranchType, trueBranchType)) {
-            return trueBranchType;
-          }
-        } else {
-          // Only true branch, result can be that type or empty
-          return { ...trueBranchType, singleton: false };
-        }
-      }
-      return { type: 'Any', singleton: false };
-    }
-    
-    // Special handling for defineVariable function
-    if (funcName === 'defineVariable') {
-      // defineVariable returns its input type unchanged
-      return inputType || { type: 'Any', singleton: false };
-    }
-    
-    // Special handling for aggregate function
-    if (funcName === 'aggregate') {
-      // If init parameter is provided, use its type to infer result type
-      if (node.arguments.length >= 2) {
-        const initType = await this.inferType(node.arguments[1]!, inputType);
-        // The result type is the same as init type
-        return initType;
-      }
-      // Without init, we can't fully infer the type without running annotation
-      // This is a limitation - the actual type will be set during annotateAST
-      if (node.arguments.length >= 1) {
-        // We could try to infer, but it would require setting up system variables
-        // For now, return Any and let annotateAST handle proper typing
-        return { type: 'Any', singleton: false };
-      }
-      // No arguments at all
-      return { type: 'Any', singleton: false };
-    }
-    
-    // Special handling for children function
-    if (funcName === 'children') {
-      if (inputType && this.modelProvider && 'getChildrenType' in this.modelProvider) {
-        const childrenType = await this.modelProvider.getChildrenType(inputType);
-        if (childrenType) {
-          return childrenType;
-        }
-      }
-      // Fallback to Any collection
-      return { type: 'Any', singleton: false };
+    // Use custom inference if provided
+    if (func.inferResultType) {
+      return await func.inferResultType(this, node, inputType);
     }
     
     // Special handling for descendants function

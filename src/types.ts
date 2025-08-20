@@ -108,6 +108,11 @@ export interface FunctionDefinition {
   examples: string[];
   signatures: FunctionSignature[];
   evaluate: FunctionEvaluator;
+  inferResultType?: (
+    analyzer: any,
+    node: any,
+    inputType?: TypeInfo
+  ) => Promise<TypeInfo>;
 }
 
 // Node types enum - string-based for better debugging

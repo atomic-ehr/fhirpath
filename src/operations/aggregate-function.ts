@@ -63,5 +63,22 @@ export const aggregateFunction: FunctionDefinition & { evaluate: FunctionEvaluat
     ],
     result: { type: 'Any', singleton: false }
   }],
-  evaluate
+  evaluate,
+  async inferResultType(analyzer, node, inputType) {
+    // If init parameter is provided, use its type to infer result type
+    if (node.arguments.length >= 2) {
+      const initType = await (analyzer as any).inferType(node.arguments[1]!, inputType);
+      // The result type is the same as init type
+      return initType;
+    }
+    // Without init, we can't fully infer the type without running annotation
+    // This is a limitation - the actual type will be set during annotateAST
+    if (node.arguments.length >= 1) {
+      // We could try to infer, but it would require setting up system variables
+      // For now, return Any and let annotateAST handle proper typing
+      return { type: 'Any', singleton: false };
+    }
+    // No arguments at all
+    return { type: 'Any', singleton: false };
+  }
 };

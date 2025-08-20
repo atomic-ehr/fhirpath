@@ -86,5 +86,35 @@ export const iifFunction: FunctionDefinition & { evaluate: FunctionEvaluator } =
     ],
     result: { type: 'Any', singleton: false },
   }],
-  evaluate
+  evaluate,
+  async inferResultType(analyzer, node, inputType) {
+    // iif returns the common type of the true and false branches
+    if (node.arguments.length >= 2) {
+      const trueBranchType = await (analyzer as any).inferType(node.arguments[1]!, inputType);
+      if (node.arguments.length >= 3) {
+        const falseBranchType = await (analyzer as any).inferType(node.arguments[2]!, inputType);
+        // If both branches have the same type, use that
+        if (trueBranchType.type === falseBranchType.type && 
+            trueBranchType.singleton === falseBranchType.singleton) {
+          return trueBranchType;
+        }
+        // If types are the same but singleton differs, return as collection
+        if (trueBranchType.type === falseBranchType.type) {
+          // One is singleton, one is collection - result must be collection
+          return { type: trueBranchType.type, singleton: false };
+        }
+        // Otherwise, check if one is a subtype of the other
+        if ((analyzer as any).isTypeCompatible(trueBranchType, falseBranchType)) {
+          return falseBranchType;
+        }
+        if ((analyzer as any).isTypeCompatible(falseBranchType, trueBranchType)) {
+          return trueBranchType;
+        }
+      } else {
+        // Only true branch, result can be that type or empty
+        return { ...trueBranchType, singleton: false };
+      }
+    }
+    return { type: 'Any', singleton: false };
+  }
 };

@@ -92,5 +92,16 @@ export const childrenFunction: FunctionDefinition & { evaluate: FunctionEvaluato
     parameters: [],
     result: { type: 'Any', singleton: false }
   }],
-  evaluate
+  evaluate,
+  async inferResultType(analyzer, node, inputType) {
+    const modelProvider = (analyzer as any).modelProvider;
+    if (inputType && modelProvider && 'getChildrenType' in modelProvider) {
+      const childrenType = await modelProvider.getChildrenType(inputType);
+      if (childrenType) {
+        return childrenType;
+      }
+    }
+    // Fallback to Any collection
+    return { type: 'Any', singleton: false };
+  }
 };
