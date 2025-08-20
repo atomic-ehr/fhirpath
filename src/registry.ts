@@ -161,7 +161,7 @@ export class Registry {
   /**
    * Get functions applicable to a specific type
    */
-  getFunctionsForType(typeName: TypeName | string): FunctionDefinition[] {
+  getFunctionsForType = (typeName: TypeName | string): FunctionDefinition[] => {
     const results: FunctionDefinition[] = [];
     
     for (const [_, func] of this.functions) {
@@ -200,53 +200,64 @@ export class Registry {
   /**
    * Check if a function is applicable to a type
    */
-  isFunctionApplicableToType(functionName: string, typeName: TypeName | string): boolean {
+  private getTypeInfoFromString(type: string): TypeInfo {
+    const isCollection = type.endsWith('[]');
+    const typeName = isCollection ? type.slice(0, -2) : type;
+    return {
+      type: typeName as TypeName,
+      singleton: !isCollection,
+    };
+  }
+
+  public isTypeCompatible(inputType: TypeInfo, requiredType: TypeInfo): boolean {
+    // Check singleton compatibility
+    if (requiredType.singleton && !inputType.singleton) {
+      return false;
+    }
+
+    const numericTypes: TypeName[] = ['Integer', 'Decimal'];
+    const temporalTypes: TypeName[] = ['Date', 'DateTime', 'Time'];
+
+    // 'Any' type is always compatible
+    if (requiredType.type === 'Any') {
+      return true;
+    }
+
+    // Direct type match
+    if (inputType.type === requiredType.type) {
+      return true;
+    }
+
+    // Numeric types are compatible with each other
+    if (numericTypes.includes(inputType.type) && numericTypes.includes(requiredType.type)) {
+      return true;
+    }
+
+    // Temporal types are compatible with each other
+    if (temporalTypes.includes(inputType.type) && temporalTypes.includes(requiredType.type)) {
+      return true;
+    }
+
+    // TODO: Add model-aware subtype checking here
+    // For now, we only handle the above cases.
+    // A full implementation would require a ModelProvider to check subtype relationships.
+
+    return false;
+  }
+
+  isFunctionApplicableToType(functionName: string, type: string): boolean {
     const func = this.getFunction(functionName);
     if (!func) return false;
-    
-    // If no signatures, function works with any type
-    if (!func.signatures || func.signatures.length === 0) return true;
-    
-    // Check if we're dealing with a collection type
-    const isCollection = typeof typeName === 'string' && typeName.endsWith('[]');
-    
-    // Check if ANY signature matches the type
+
+    // New logic: check all signatures
     for (const signature of func.signatures) {
-      // If no input type specified, this signature works with any type
-      if (!signature.input) return true;
-      
-      const inputType = signature.input.type;
-      const requiresSingleton = signature.input.singleton;
-      
-      // If function requires singleton but we have a collection, skip this signature
-      if (requiresSingleton && isCollection) {
-        continue;
-      }
-      
-      // 'Any' type accepts all inputs (but still respects singleton constraint checked above)
-      if (inputType === 'Any') return true;
-      
-      // Direct type match
-      if (inputType === typeName) return true;
-      
-      // For collection types, check if function can work with collections
-      if (typeof typeName === 'string' && typeName.endsWith('[]')) {
-        const itemType = typeName.slice(0, -2);
-        // Only allow if function doesn't require singleton
-        if (inputType === itemType && !requiresSingleton) {
-          return true;
-        }
-      }
-      
-      // Check if it's a numeric type and function accepts numeric types
-      const numericTypes = ['Integer', 'Decimal', 'Number'];
-      if (numericTypes.includes(typeName as string) && numericTypes.includes(inputType as string)) {
+      if (!signature.input) {
+        // No input constraint, so it's applicable
         return true;
       }
       
-      // Check if it's a temporal type and function accepts temporal types
-      const temporalTypes = ['Date', 'DateTime', 'Time', 'Instant'];
-      if (temporalTypes.includes(typeName as string) && temporalTypes.includes(inputType as string)) {
+      const inputType = this.getTypeInfoFromString(type);
+      if (this.isTypeCompatible(inputType, signature.input)) {
         return true;
       }
     }

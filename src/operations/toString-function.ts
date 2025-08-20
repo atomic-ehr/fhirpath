@@ -80,8 +80,50 @@ export const toStringFunction: FunctionDefinition & { evaluate: FunctionEvaluato
   ],
   signatures: [
     {
-      name: 'toString',
-      input: { type: 'Any', singleton: true },
+      name: 'toString-string',
+      input: { type: 'String', singleton: true },
+      parameters: [],
+      result: { type: 'String', singleton: true }
+    },
+    {
+      name: 'toString-integer',
+      input: { type: 'Integer', singleton: true },
+      parameters: [],
+      result: { type: 'String', singleton: true }
+    },
+    {
+      name: 'toString-decimal',
+      input: { type: 'Decimal', singleton: true },
+      parameters: [],
+      result: { type: 'String', singleton: true }
+    },
+    {
+      name: 'toString-boolean',
+      input: { type: 'Boolean', singleton: true },
+      parameters: [],
+      result: { type: 'String', singleton: true }
+    },
+    {
+      name: 'toString-date',
+      input: { type: 'Date', singleton: true },
+      parameters: [],
+      result: { type: 'String', singleton: true }
+    },
+    {
+      name: 'toString-datetime',
+      input: { type: 'DateTime', singleton: true },
+      parameters: [],
+      result: { type: 'String', singleton: true }
+    },
+    {
+      name: 'toString-time',
+      input: { type: 'Time', singleton: true },
+      parameters: [],
+      result: { type: 'String', singleton: true }
+    },
+    {
+      name: 'toString-quantity',
+      input: { type: 'Quantity', singleton: true },
       parameters: [],
       result: { type: 'String', singleton: true }
     }

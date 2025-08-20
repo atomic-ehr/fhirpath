@@ -67,8 +67,20 @@ export const toIntegerFunction: FunctionDefinition & { evaluate: FunctionEvaluat
   ],
   signatures: [
     {
-      name: 'toInteger',
-      input: { type: 'Any', singleton: true },
+      name: 'toInteger-integer',
+      input: { type: 'Integer', singleton: true },
+      parameters: [],
+      result: { type: 'Integer', singleton: true }
+    },
+    {
+      name: 'toInteger-string',
+      input: { type: 'String', singleton: true },
+      parameters: [],
+      result: { type: 'Integer', singleton: true }
+    },
+    {
+      name: 'toInteger-boolean',
+      input: { type: 'Boolean', singleton: true },
       parameters: [],
       result: { type: 'Integer', singleton: true }
     }
