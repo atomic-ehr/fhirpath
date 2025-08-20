@@ -151,7 +151,7 @@ describe("Analyzer", () => {
       try {
         await modelProvider.initialize();
         // Check if we can actually get a type to verify initialization worked
-        const patientType = modelProvider.getTypeFromCache('Patient');
+        const patientType = await modelProvider.getType('Patient');
         modelProviderInitialized = patientType !== undefined && patientType.modelContext !== undefined;
         if (!modelProviderInitialized) {
           // console.warn('Model provider initialized but cannot load types - tests will be skipped');

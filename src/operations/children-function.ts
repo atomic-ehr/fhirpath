@@ -22,9 +22,7 @@ export const evaluate: FunctionEvaluator = async (input, context, args, evaluato
         parentTypeInfo = boxedItem.typeInfo;
       } else if (modelProvider && 'resourceType' in item && typeof item.resourceType === 'string') {
         // Try to get type info from resourceType (use cached version)
-        parentTypeInfo = 'getTypeFromCache' in modelProvider 
-          ? (modelProvider as any).getTypeFromCache(item.resourceType)
-          : undefined;
+        parentTypeInfo = await modelProvider.getType(item.resourceType);
       }
       
       // Collect all child properties

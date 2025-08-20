@@ -3,7 +3,7 @@ import { readdirSync, statSync } from 'fs';
 import { join, basename } from 'path';
 import { loadTestSuite, runAndValidateTest } from '../tools/lib/test-helpers';
 
-const TEST_CASES_DIR = join(__dirname, '../test-cases');
+const TEST_CASES_DIR = join(process.cwd(), 'test-cases');
 
 // Function to recursively find all JSON test files
 function findTestFiles(dir: string): string[] {

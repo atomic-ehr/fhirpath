@@ -23,6 +23,7 @@ import { registry } from './registry';
 import { Errors, toDiagnostic } from './errors';
 import { isCursorNode, CursorContext } from './cursor-nodes';
 import type { AnyCursorNode } from './cursor-nodes';
+import { ScopeManager } from './scope-manager';
 
 
 export interface AnalyzerOptions {
@@ -43,7 +44,7 @@ export class Analyzer {
   private variables: Set<string> = new Set(['$this', '$index', '$total', 'context', 'resource', 'rootResource']);
   private modelProvider?: ModelProvider;
   private userVariableTypes: Map<string, TypeInfo> = new Map();
-  private systemVariableTypes: Map<string, TypeInfo> = new Map();
+  private systemVariableTypes: ScopeManager<TypeInfo>;
   private cursorMode: boolean = false;
   private stoppedAtCursor: boolean = false;
   private cursorContext?: {
@@ -54,6 +55,11 @@ export class Analyzer {
 
   constructor(modelProvider?: ModelProvider) {
     this.modelProvider = modelProvider;
+    this.systemVariableTypes = new ScopeManager<TypeInfo>();
+    // Initialize global system variables
+    this.systemVariableTypes.set('$this', { type: 'Any', singleton: false });
+    this.systemVariableTypes.set('$index', { type: 'Integer', singleton: true });
+    this.systemVariableTypes.set('$total', { type: 'Any', singleton: false });
   }
 
   async analyze(
@@ -890,17 +896,7 @@ export class Analyzer {
       if (systemType) {
         return systemType;
       }
-      // Fallback defaults for system variables
-      switch (node.name) {
-        case '$this':
-          return { type: 'Any', singleton: false };
-        case '$index':
-          return { type: 'Integer', singleton: true };
-        case '$total':
-          return { type: 'Any', singleton: false };
-        default:
-          return { type: 'Any', singleton: false };
-      }
+      return { type: 'Any', singleton: false };
     }
     
     // Special FHIRPath environment variables
@@ -1270,58 +1266,37 @@ export class Analyzer {
           if (funcNode.arguments.length >= 1) {
             const itemType = inputType ? { ...inputType, singleton: true } : { type: 'Any' as TypeName, singleton: true };
             
-            // Save current system variable context
-            const savedThis = this.systemVariableTypes.get('$this');
-            const savedTotal = this.systemVariableTypes.get('$total');
-            
-            // Set $this for iteration
+            this.systemVariableTypes.enterScope();
             this.systemVariableTypes.set('$this', itemType);
             
             if (funcNode.arguments.length >= 2) {
-              // Has init parameter - evaluate it first
               await this.annotateAST(funcNode.arguments[1]!, inputType);
               const initType = funcNode.arguments[1]!.typeInfo;
               
-              // Set $total to init type
               if (initType) {
                 this.systemVariableTypes.set('$total', initType);
               } else {
                 this.systemVariableTypes.set('$total', { type: 'Any', singleton: false });
               }
               
-              // Process aggregator with both variables set
               await this.annotateAST(funcNode.arguments[0]!, inputType);
               
-              // Process remaining arguments
               for (const arg of funcNode.arguments.slice(2)) {
                 await this.annotateAST(arg, inputType);
                 if (this.stoppedAtCursor) break;
               }
             } else {
-              // No init - first pass to infer aggregator type
               this.systemVariableTypes.set('$total', { type: 'Any', singleton: false });
               await this.annotateAST(funcNode.arguments[0]!, inputType);
               
-              // Second pass with inferred type
               const aggregatorType = funcNode.arguments[0]!.typeInfo;
               if (aggregatorType) {
                 this.systemVariableTypes.set('$total', aggregatorType);
-                // Re-annotate with proper $total type
                 await this.annotateAST(funcNode.arguments[0]!, inputType);
               }
             }
             
-            // Restore previous context
-            if (savedThis) {
-              this.systemVariableTypes.set('$this', savedThis);
-            } else {
-              this.systemVariableTypes.delete('$this');
-            }
-            if (savedTotal) {
-              this.systemVariableTypes.set('$total', savedTotal);
-            } else {
-              this.systemVariableTypes.delete('$total');
-            }
+            this.systemVariableTypes.leaveScope();
           }
         } else {
           // Special handling for functions that pass their input as context to arguments
@@ -1329,34 +1304,18 @@ export class Analyzer {
             (funcNode.name as IdentifierNode).name : null;
           
           if (funcName && ['where', 'select', 'all', 'exists'].includes(funcName)) {
-            // These functions establish $this as each element of the input collection
             const elementType = inputType ? { ...inputType, singleton: true } : { type: 'Any' as TypeName, singleton: true };
             
-            // Save current system variable context
-            const savedThis = this.systemVariableTypes.get('$this');
-            const savedIndex = this.systemVariableTypes.get('$index');
-            
-            // Set system variables for expression evaluation
+            this.systemVariableTypes.enterScope();
             this.systemVariableTypes.set('$this', elementType);
             this.systemVariableTypes.set('$index', { type: 'Integer', singleton: true });
             
-            // Process arguments with system variables in scope
             for (const arg of funcNode.arguments) {
               await this.annotateAST(arg, inputType);
               if (this.stoppedAtCursor) break;
             }
             
-            // Restore previous context
-            if (savedThis) {
-              this.systemVariableTypes.set('$this', savedThis);
-            } else {
-              this.systemVariableTypes.delete('$this');
-            }
-            if (savedIndex) {
-              this.systemVariableTypes.set('$index', savedIndex);
-            } else {
-              this.systemVariableTypes.delete('$index');
-            }
+            this.systemVariableTypes.leaveScope();
           } else {
             // Regular function argument annotation
             for (const arg of funcNode.arguments) {

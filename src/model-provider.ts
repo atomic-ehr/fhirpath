@@ -609,42 +609,4 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
     return this.primitiveTypesCache || [];
   }
 
-  // Synchronous method to get type from cache (for analyzer)
-  getTypeFromCache(typeName: string): TypeInfo<FHIRModelContext> | undefined {
-    // Check if it's a primitive type - these don't require initialization
-    if (this.typeMapping[typeName]) {
-      return {
-        type: this.typeMapping[typeName],
-        namespace: 'FHIR',
-        name: typeName,
-        singleton: true,
-        modelContext: {
-          path: typeName,
-          schemaHierarchy: []
-        }
-      };
-    }
-    
-    // For complex types, check if schema is in cache
-    const schema = this.schemaCache.get(typeName);
-    if (!schema) {
-      return undefined;
-    }
-    
-    // Get cached hierarchy or at least the current schema
-    const schemaHierarchy = this.hierarchyCache.get(schema.name || schema.url) || [schema];
-    
-    return {
-      type: 'Any',  // Complex types are 'Any' in FHIRPath
-      namespace: 'FHIR',
-      name: typeName,
-      singleton: true,
-      modelContext: {
-        path: typeName,
-        schemaHierarchy,
-        canonicalUrl: schema.url,
-        version: schema.version
-      }
-    };
-  }
 }

@@ -42,7 +42,7 @@ describe('children() function', () => {
         throw new Error('Parse failed');
       }
       
-      const patientType = modelProvider.getTypeFromCache('Patient');
+      const patientType = await modelProvider.getType('Patient');
       const result = await analyzer.analyze(parseResult.ast, {}, patientType);
       
       // Find the children function node
@@ -120,7 +120,7 @@ describe('children() function', () => {
         throw new Error('Parse failed');
       }
       
-      const patientType = modelProvider.getTypeFromCache('Patient');
+      const patientType = await modelProvider.getType('Patient');
       const result = await analyzer.analyze(parseResult.ast, {}, patientType);
       
       const warnings = result.diagnostics.filter(d => d.severity === DiagnosticSeverity.Warning);
@@ -142,7 +142,7 @@ describe('children() function', () => {
         throw new Error('Parse failed');
       }
       
-      const patientType = modelProvider.getTypeFromCache('Patient');
+      const patientType = await modelProvider.getType('Patient');
       const result = await analyzer.analyze(parseResult.ast, {}, patientType);
       
       const warnings = result.diagnostics.filter(d => 
@@ -162,7 +162,7 @@ describe('children() function', () => {
         throw new Error('Parse failed');
       }
       
-      const patientType = modelProvider.getTypeFromCache('Patient');
+      const patientType = await modelProvider.getType('Patient');
       const result = await analyzer.analyze(parseResult.ast, {}, patientType);
       
       const warnings = result.diagnostics.filter(d => d.severity === DiagnosticSeverity.Warning);
@@ -182,7 +182,7 @@ describe('children() function', () => {
         throw new Error('Parse failed');
       }
       
-      const patientType = modelProvider.getTypeFromCache('Patient');
+      const patientType = await modelProvider.getType('Patient');
       const result = await analyzer.analyze(parseResult.ast, {}, patientType);
       
       const warnings = result.diagnostics.filter(d => d.severity === DiagnosticSeverity.Warning);

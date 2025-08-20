@@ -35,9 +35,7 @@ export const evaluate: OperationEvaluator = async (input, context, left, right) 
   // For FHIR resources without typeInfo, try to get it from modelProvider
   if (context.modelProvider && item && typeof item === 'object' && 'resourceType' in item && typeof item.resourceType === 'string') {
     // Use cached type if available
-    const typeInfo = 'getTypeFromCache' in context.modelProvider 
-      ? (context.modelProvider as any).getTypeFromCache(item.resourceType)
-      : undefined;
+    const typeInfo = await context.modelProvider.getType(item.resourceType);
     if (typeInfo) {
       const matchingType = context.modelProvider.ofType(typeInfo, typeName as TypeName);
       return { 

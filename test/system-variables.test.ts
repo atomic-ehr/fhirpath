@@ -37,7 +37,7 @@ describe('System Variable Type Delegation', () => {
         throw new Error('Parse failed');
       }
       
-      const patientType = modelProvider.getTypeFromCache('Patient');
+      const patientType = await modelProvider.getType('Patient');
       const result = await analyzer.analyze(parseResult.ast, {}, patientType);
       
       // Find the $this variable node

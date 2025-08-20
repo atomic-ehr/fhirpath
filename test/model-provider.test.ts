@@ -18,7 +18,7 @@ describe('FHIR ModelProvider', () => {
       await provider.initialize();
       
       // Load schemas that will be used in synchronous tests
-      // These need to be loaded for getTypeFromCache to work
+      // These need to be loaded for getType to work
       await Promise.all([
         provider.getSchema('Patient'),
         provider.getSchema('Observation'),
@@ -79,22 +79,22 @@ describe('FHIR ModelProvider', () => {
   
   describe('getElementType', () => {
     it('should navigate to simple properties', async () => {
-      const patientType = provider.getTypeFromCache('Patient')!;
+      const patientType = await provider.getType('Patient');
       
       // Patient.id (from Resource)
-      const idType = await provider.getElementType(patientType, 'id');
+      const idType = await provider.getElementType(patientType!, 'id');
       expect(idType).toBeDefined();
       expect(idType?.type).toBe('String');
       expect(idType?.singleton).toBe(true);
       
       // Patient.active
-      const activeType = await provider.getElementType(patientType, 'active');
+      const activeType = await provider.getElementType(patientType!, 'active');
       expect(activeType).toBeDefined();
       expect(activeType?.type).toBe('Boolean');
       expect(activeType?.singleton).toBe(true);
       
       // Patient.name
-      const nameType = await provider.getElementType(patientType, 'name');
+      const nameType = await provider.getElementType(patientType!, 'name');
       expect(nameType).toBeDefined();
       expect(nameType?.type).toBe('HumanName' as any); // Complex type name is preserved
       expect(nameType?.name).toBe('HumanName');
@@ -102,8 +102,8 @@ describe('FHIR ModelProvider', () => {
     });
     
     it('should navigate nested properties', async () => {
-      const patientType = provider.getTypeFromCache('Patient')!;
-      const nameType = await provider.getElementType(patientType, 'name')!;
+      const patientType = await provider.getType('Patient');
+      const nameType = await provider.getElementType(patientType!, 'name');
       
       // HumanName.given
       const givenType = await provider.getElementType(nameType!, 'given');
@@ -119,8 +119,8 @@ describe('FHIR ModelProvider', () => {
     });
     
     it('should handle choice types', async () => {
-      const observationType = provider.getTypeFromCache('Observation')!;
-      const valueType = await provider.getElementType(observationType, 'value');
+      const observationType = await provider.getType('Observation');
+      const valueType = await provider.getElementType(observationType!, 'value');
       
       expect(valueType).toBeDefined();
       expect(valueType?.type).toBe('Any'); // Union types are 'Any'
@@ -139,22 +139,22 @@ describe('FHIR ModelProvider', () => {
     });
     
     it('should return undefined for unknown properties', async () => {
-      const patientType = provider.getTypeFromCache('Patient')!;
-      const unknownType = await provider.getElementType(patientType, 'unknownProperty');
+      const patientType = await provider.getType('Patient');
+      const unknownType = await provider.getElementType(patientType!, 'unknownProperty');
       
       expect(unknownType).toBeUndefined();
     });
     
     it('should handle properties from base types', async () => {
-      const patientType = provider.getTypeFromCache('Patient')!;
+      const patientType = await provider.getType('Patient');
       
       // From Resource
-      const metaType = await provider.getElementType(patientType, 'meta');
+      const metaType = await provider.getElementType(patientType!, 'meta');
       expect(metaType).toBeDefined();
       expect(metaType?.name).toBe('Meta');
       
       // From DomainResource
-      const textType = await provider.getElementType(patientType, 'text');
+      const textType = await provider.getElementType(patientType!, 'text');
       expect(textType).toBeDefined();
       expect(textType?.name).toBe('Narrative');
     });
@@ -162,8 +162,8 @@ describe('FHIR ModelProvider', () => {
   
   describe('ofType', () => {
     it('should filter union types to specific choice', async () => {
-      const observationType = provider.getTypeFromCache('Observation')!;
-      const valueType = await provider.getElementType(observationType, 'value')!;
+      const observationType = await provider.getType('Observation');
+      const valueType = await provider.getElementType(observationType!, 'value');
       
       // Filter to String
       const stringValue = provider.ofType(valueType!, 'String');
@@ -187,8 +187,8 @@ describe('FHIR ModelProvider', () => {
     });
     
     it('should return type if it matches for non-union types', async () => {
-      const patientType = provider.getTypeFromCache('Patient')!;
-      const idType = await provider.getElementType(patientType, 'id')!;
+      const patientType = await provider.getType('Patient');
+      const idType = await provider.getElementType(patientType!, 'id');
       
       const stringType = provider.ofType(idType!, 'String');
       expect(stringType).toBeDefined();
@@ -201,8 +201,8 @@ describe('FHIR ModelProvider', () => {
   
   describe('getElementNames', () => {
     it('should return all element names including inherited ones', async () => {
-      const patientType = provider.getTypeFromCache('Patient')!;
-      const elementNames = provider.getElementNames(patientType);
+      const patientType = await provider.getType('Patient');
+      const elementNames = provider.getElementNames(patientType!);
       
       expect(elementNames).toBeDefined();
       expect(elementNames.length).toBeGreaterThan(0);
@@ -225,8 +225,8 @@ describe('FHIR ModelProvider', () => {
     });
     
     it('should return element names for simple complex types', async () => {
-      const humanNameType = provider.getTypeFromCache('HumanName')!;
-      const elementNames = provider.getElementNames(humanNameType);
+      const humanNameType = await provider.getType('HumanName');
+      const elementNames = provider.getElementNames(humanNameType!);
       
       expect(elementNames).toContain('use');
       expect(elementNames).toContain('text');
@@ -238,8 +238,8 @@ describe('FHIR ModelProvider', () => {
     });
     
     it('should return empty array for primitive types', async () => {
-      const stringType = provider.getTypeFromCache('string')!;
-      const elementNames = provider.getElementNames(stringType);
+      const stringType = await provider.getType('string');
+      const elementNames = provider.getElementNames(stringType!);
       
       expect(elementNames).toEqual([]);
     });
@@ -255,16 +255,16 @@ describe('FHIR ModelProvider', () => {
       expect(carePlanType?.type).toBe('Any');
       
       // Now it should be available from cache
-      const carePlanType2 = provider.getTypeFromCache('CarePlan');
+      const carePlanType2 = await provider.getType('CarePlan');
       expect(carePlanType2).toBeDefined();
       expect(carePlanType2?.name).toBe('CarePlan');
     });
   });
 
-  describe('modelProvider', async () => {
+  describe('modelProvider', () => {
     it('should be able to get type info for FHIR primitive types', async () => {
-      const observationType = provider.getTypeFromCache('Observation')!;
-      const value = await provider.getElementType(observationType, 'value');
+      const observationType = await provider.getType('Observation');
+      const value = await provider.getElementType(observationType!, 'value');
       expect(value).toBeDefined();
       const valueType = provider.ofType(value!, 'Quantity');
       expect(valueType?.type).toBe('Quantity');
@@ -326,7 +326,7 @@ describe('FHIR ModelProvider', () => {
         }
         
         // Check array status
-        if (['given', 'prefix', 'suffix'].includes(prop)) {
+        if ((['given', 'prefix', 'suffix'] as string[]).includes(prop)) {
           expect(propType?.singleton).toBe(false); // arrays
         } else {
           expect(propType?.singleton).toBe(true); // single values
@@ -339,7 +339,7 @@ describe('FHIR ModelProvider', () => {
       await provider.getType('HumanName');
       
       // Now get it from cache
-      const humanNameType = provider.getTypeFromCache('HumanName');
+      const humanNameType = await provider.getType('HumanName');
       expect(humanNameType).toBeDefined();
       
       // Navigation should still work
@@ -565,24 +565,6 @@ describe('FHIR ModelProvider', () => {
       expect(childrenType?.modelContext?.isUnion).toBe(true);
       expect(childrenType?.modelContext?.choices).toBeDefined();
       expect(childrenType?.modelContext?.choices?.length).toBeGreaterThan(0);
-    });
-  });
-
-  describe('getTypeFromCache', () => {
-    it('should return cached types after loading', () => {
-      // These were preloaded in beforeAll
-      const patientType = provider.getTypeFromCache('Patient');
-      expect(patientType).toBeDefined();
-      expect(patientType?.name).toBe('Patient');
-      
-      const observationType = provider.getTypeFromCache('Observation');
-      expect(observationType).toBeDefined();
-      expect(observationType?.name).toBe('Observation');
-    });
-
-    it('should return undefined for non-cached types', () => {
-      const uncachedType = provider.getTypeFromCache('UncachedResourceType');
-      expect(uncachedType).toBeUndefined();
     });
   });
 });
