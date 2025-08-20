@@ -1,3 +1,5 @@
+import type { BaseASTNode } from './types';
+
 export enum CursorContext {
   Operator = 'operator',
   Identifier = 'identifier',
@@ -6,14 +8,10 @@ export enum CursorContext {
   Type = 'type',
 }
 
-export interface CursorNode {
+export interface CursorNode extends BaseASTNode {
   type: 'CursorNode';
   context: CursorContext;
   position: number;
-  range: {
-    start: { line: number; character: number; offset: number };
-    end: { line: number; character: number; offset: number };
-  };
 }
 
 export interface CursorOperatorNode extends CursorNode {
@@ -22,6 +20,7 @@ export interface CursorOperatorNode extends CursorNode {
 
 export interface CursorIdentifierNode extends CursorNode {
   context: CursorContext.Identifier;
+  partialText?: string;
 }
 
 export interface CursorArgumentNode extends CursorNode {
@@ -60,12 +59,13 @@ export function createCursorOperatorNode(position: number): CursorOperatorNode {
   };
 }
 
-export function createCursorIdentifierNode(position: number): CursorIdentifierNode {
+export function createCursorIdentifierNode(position: number, partialText?: string): CursorIdentifierNode {
   const point = { line: 0, character: position, offset: position };
   return {
     type: 'CursorNode',
     context: CursorContext.Identifier,
     position,
+    partialText,
     range: { start: point, end: point },
   };
 }

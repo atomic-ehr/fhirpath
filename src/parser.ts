@@ -83,7 +83,7 @@ export class Parser {
   private errors?: ParseError[];
   private nodeIdCounter?: number;
   private nodeIndex?: Map<string, ASTNode>;
-  private nodesByType?: Map<NodeType | 'Error', ASTNode[]>;
+  private nodesByType?: Map<NodeType | 'Error' | 'CursorNode', ASTNode[]>;
   private identifierIndex?: Map<string, ASTNode[]>;
   private currentParent?: ASTNode | null;
   private input: string;
@@ -533,6 +533,12 @@ export class Parser {
     
     // Allow identifiers and keywords that can be used as member names
     if (token.type === TokenType.IDENTIFIER) {
+      // Check for cursor at the end of an identifier
+      if (this.options.cursorPosition !== undefined && this.options.cursorPosition === token.end) {
+        this.advance();
+        return createCursorIdentifierNode(this.options.cursorPosition, token.value) as any;
+      }
+
       this.advance();
       const name = this.parseIdentifierValue(token.value);
       const node = this.createIdentifierNode(name, token);

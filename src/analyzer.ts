@@ -36,6 +36,10 @@ export interface AnalysisResultWithCursor extends AnalysisResult {
     typeBeforeCursor?: TypeInfo;
     expectedType?: TypeInfo;
     cursorNode?: AnyCursorNode;
+    functionCall?: {
+      definition: import('./types').FunctionDefinition;
+      argumentIndex: number;
+    };
   };
 }
 
@@ -51,6 +55,10 @@ export class Analyzer {
     typeBeforeCursor?: TypeInfo;
     expectedType?: TypeInfo;
     cursorNode?: AnyCursorNode;
+    functionCall?: {
+      definition: import('./types').FunctionDefinition;
+      argumentIndex: number;
+    };
   };
 
   constructor(modelProvider?: ModelProvider) {
@@ -1091,10 +1099,25 @@ export class Analyzer {
     // Check for cursor node in cursor mode
     if (this.cursorMode && isCursorNode(node)) {
       this.stoppedAtCursor = true;
+      
+      const cursorNode = node as AnyCursorNode;
+      let functionCallContext;
+
+      if (cursorNode.context === CursorContext.Argument) {
+        const funcInfo = this.findFunctionForCursor(cursorNode);
+        if (funcInfo) {
+          functionCallContext = {
+            definition: funcInfo.funcDef,
+            argumentIndex: funcInfo.argIndex,
+          };
+        }
+      }
+
       this.cursorContext = {
-        cursorNode: node as AnyCursorNode,
+        cursorNode: cursorNode,
         typeBeforeCursor: inputType,
-        expectedType: this.inferExpectedTypeForCursor(node as AnyCursorNode, inputType)
+        expectedType: this.inferExpectedTypeForCursor(cursorNode, inputType),
+        functionCall: functionCallContext,
       };
       // Still attach a type to the cursor node for consistency
       (node as any).typeInfo = inputType || { type: 'Any', singleton: false };
@@ -1292,5 +1315,24 @@ export class Analyzer {
         // TypeOrIdentifier doesn't have children to annotate
         break;
     }
+  }
+
+  private findFunctionForCursor(cursorNode: AnyCursorNode): { funcDef: import('./types').FunctionDefinition, argIndex: number } | undefined {
+    let currentNode = (cursorNode as any).parent as ASTNode | undefined;
+    while (currentNode) {
+      if (currentNode.type === NodeType.Function) {
+        const funcNode = currentNode as FunctionNode;
+        if (funcNode.name.type === NodeType.Identifier) {
+          const funcName = (funcNode.name as IdentifierNode).name;
+          const funcDef = registry.getFunction(funcName);
+          if (funcDef) {
+            const argIndex = funcNode.arguments.findIndex(arg => arg === cursorNode);
+            return { funcDef, argIndex: argIndex !== -1 ? argIndex : 0 };
+          }
+        }
+      }
+      currentNode = currentNode.parent;
+    }
+    return undefined;
   }
 }

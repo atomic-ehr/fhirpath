@@ -7,6 +7,51 @@ import type { AnyCursorNode } from './cursor-nodes';
 import { registry } from './registry';
 
 /**
+ * Type guard for ErrorNode
+ */
+function isErrorNode(node: any): node is import('./types').ErrorNode {
+  return node.type === 'Error';
+}
+
+/**
+ * Find the cursor node in the AST
+ */
+function findCursorNode(node: import('./types').ASTNode): AnyCursorNode | undefined {
+  if (isCursorNode(node)) {
+    return node as AnyCursorNode;
+  }
+
+  switch (node.type) {
+    case 'Binary':
+      return findCursorNode(node.left) || findCursorNode(node.right);
+    case 'Unary':
+      return findCursorNode(node.operand);
+    case 'Function':
+      // It's more likely for the cursor to be in the arguments, so check them first.
+      for (const arg of node.arguments) {
+        const found = findCursorNode(arg);
+        if (found) return found;
+      }
+      return findCursorNode(node.name);
+    case 'Index':
+      return findCursorNode(node.expression) || findCursorNode(node.index);
+    case 'Collection':
+      for (const element of node.elements) {
+        const found = findCursorNode(element);
+        if (found) return found;
+      }
+      break;
+    case 'TypeCast':
+      return findCursorNode((node as any).expression);
+    case 'MembershipTest':
+      return findCursorNode((node as any).expression);
+  }
+
+  return undefined;
+}
+
+
+/**
  * Kind of completion item
  */
 export enum CompletionKind {
@@ -63,8 +108,17 @@ export async function provideCompletions(
   
   try {
     // Parse with cursor
-    const parseResult = parse(expression, { cursorPosition });
+    const parseResult = parse(expression, {
+      mode: 'lsp',
+      cursorPosition,
+    });
     if (!parseResult.ast) {
+      return [];
+    }
+
+    // Find the cursor node
+    const cursorNode = findCursorNode(parseResult.ast);
+    if (!cursorNode || isErrorNode(cursorNode)) {
       return [];
     }
     
@@ -78,88 +132,10 @@ export async function provideCompletions(
     );
     
     // Extract cursor context
-    let cursorNode = analysis.cursorContext?.cursorNode;
-    let typeBeforeCursor = analysis.cursorContext?.typeBeforeCursor;
-    
-    // Check if cursor is in a binary expression as the right operand
-    // This handles cases where analyzer found the cursor but we need to adjust context
-    if (parseResult.ast) {
-      const ast = parseResult.ast as any;
-      if (ast.type === 'Binary' && ast.right && isCursorNode(ast.right)) {
-        cursorNode = ast.right;
-        // Get type from left side
-        typeBeforeCursor = ast.left?.typeInfo;
-        
-        // Special case for navigation: cursor right after identifier
-        if (ast.left?.type === 'Binary' && ast.left.operator === '.') {
-          if (ast.left.right?.type === 'Identifier') {
-            const identifierEnd = ast.left.right.range?.end?.offset;
-            
-            // If cursor is right after identifier with no space
-            if (identifierEnd === cursorPosition) {
-              // Check if this could be a partial identifier by seeing if there are
-              // any properties that would match if we treated it as a prefix
-              const partialText = extractPartialText(expression, cursorPosition);
-              if (partialText && modelProvider) {
-                // Try to get elements from the type before the identifier
-                const baseType = ast.left.left?.typeInfo;
-                if (baseType) {
-                  const typeName = baseType.name || baseType.type;
-                  // Skip if type is 'Any' as it's not a real FHIR type
-                  if (typeName && typeName !== 'Any') {
-                    const elements = await modelProvider.getElements(typeName);
-                    if (elements.length > 0) {
-                      // Check if any elements start with the partial text
-                      const hasMatches = elements.some(p => 
-                        p.name.toLowerCase().startsWith(partialText.toLowerCase()) &&
-                        p.name.toLowerCase() !== partialText.toLowerCase()
-                      );
-                      
-                      if (hasMatches) {
-                        // There are potential completions - treat as identifier context
-                        cursorNode = {
-                          ...cursorNode,
-                          context: CursorContext.Identifier
-                        } as any;
-                        typeBeforeCursor = baseType;
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-    
-    // Check if cursor is in a function argument and fix the function name
-    if (cursorNode && cursorNode.context === CursorContext.Argument) {
-      const functionName = findFunctionName(parseResult.ast as any, cursorNode);
-      if (functionName) {
-        (cursorNode as any).functionName = functionName;
-        
-        // Special case: ofType, as, is should treat their arguments as type context
-        if (functionName === 'ofType' || functionName === 'as' || functionName === 'is') {
-          // Convert to type cursor node
-          cursorNode = {
-            ...cursorNode,
-            context: CursorContext.Type,
-            typeOperator: functionName
-          } as any;
-        }
-      }
-    }
-    
-    if (!cursorNode) {
-      // Fallback: provide general completions if no cursor node found
-      return getGeneralCompletions();
-    }
-    
-    const expectedType = analysis.cursorContext?.expectedType;
+    const { typeBeforeCursor, functionCall } = analysis.cursorContext || {};
     
     // Get partial text for filtering
-    const partialText = extractPartialText(expression, cursorPosition);
+    const partialText = (cursorNode as any).partialText || '';
     
     // Generate completions based on cursor context
     let completions: CompletionItem[] = [];
@@ -178,7 +154,7 @@ export async function provideCompletions(
         break;
       
       case CursorContext.Argument:
-        completions = await getArgumentCompletions(cursorNode, typeBeforeCursor, modelProvider, variables);
+        completions = await getArgumentCompletions(cursorNode, typeBeforeCursor, modelProvider, variables, functionCall);
         break;
       
       case CursorContext.Index:
@@ -259,69 +235,6 @@ function getSortTextForOperator(opDef: any): string {
     return `0${index.toString().padStart(2, '0')}_${opDef.symbol}`;
   }
   return `1_${opDef.symbol}`;
-}
-
-/**
- * Find function name for a cursor node in an argument position
- */
-function findFunctionName(ast: any, cursorNode: any): string | null {
-  // Check if AST is a function with cursor in arguments
-  if (ast.type === 'Function' && ast.arguments?.includes(cursorNode)) {
-    return ast.name?.name || null;
-  }
-  
-  // Check if AST is binary with function on right
-  if (ast.type === 'Binary' && ast.right?.type === 'Function') {
-    if (ast.right.arguments?.includes(cursorNode)) {
-      return ast.right.name?.name || null;
-    }
-  }
-  
-  // Recursively check children
-  if (ast.left) {
-    const leftResult = findFunctionName(ast.left, cursorNode);
-    if (leftResult) return leftResult;
-  }
-  
-  if (ast.right) {
-    const rightResult = findFunctionName(ast.right, cursorNode);
-    if (rightResult) return rightResult;
-  }
-  
-  if (ast.arguments) {
-    for (const arg of ast.arguments) {
-      if (arg !== cursorNode) {
-        const argResult = findFunctionName(arg, cursorNode);
-        if (argResult) return argResult;
-      }
-    }
-  }
-  
-  return null;
-}
-
-/**
- * Extract partial text before cursor for filtering
- */
-function extractPartialText(expression: string, cursorPosition: number): string {
-  // Handle case where cursor is right after a dot
-  if (cursorPosition > 0 && expression[cursorPosition - 1] === '.') {
-    return '';
-  }
-  
-  let start = cursorPosition;
-  
-  // Move back to find start of identifier
-  while (start > 0) {
-    const char = expression[start - 1];
-    if (char && /[a-zA-Z0-9_$%]/.test(char)) {
-      start--;
-    } else {
-      break;
-    }
-  }
-  
-  return expression.substring(start, cursorPosition);
 }
 
 /**
@@ -485,7 +398,11 @@ async function getArgumentCompletions(
   cursorNode: AnyCursorNode,
   typeBeforeCursor?: TypeInfo,
   modelProvider?: ModelProvider,
-  variables?: Record<string, any>
+  variables?: Record<string, any>,
+  functionCall?: {
+    definition: import('./types').FunctionDefinition;
+    argumentIndex: number;
+  }
 ): Promise<CompletionItem[]> {
   const completions: CompletionItem[] = [];
   const argNode = cursorNode as any;
@@ -516,7 +433,7 @@ async function getArgumentCompletions(
   }
   
   // Add elements if in lambda context
-  const functionName = argNode.functionName;
+  const functionName = functionCall?.definition.name;
   // Check if the function accepts lambda expressions (could be determined from function signature in registry)
   const lambdaFunctions = ['where', 'select', 'all', 'exists', 'any', 'repeat'];
   if (functionName && lambdaFunctions.includes(functionName)) {

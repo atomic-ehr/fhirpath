@@ -1,4 +1,5 @@
 import type { Token, TokenType } from './lexer';
+import type { AnyCursorNode } from './cursor-nodes';
 
 // Precedence levels (higher number = higher precedence)
 export enum PRECEDENCE {
@@ -175,7 +176,7 @@ export interface ParserOptions {
 // Base structure for all AST nodes
 export interface BaseASTNode {
   // Core properties - always present
-  type: NodeType | 'Error';
+  type: NodeType | 'Error' | 'CursorNode';
   
   // LSP-compatible range - always present for LSP features
   range: Range;
@@ -304,7 +305,8 @@ export type ASTNode =
   | CollectionNode
   | TypeReferenceNode
   | QuantityNode
-  | ErrorNode;
+  | ErrorNode
+  | AnyCursorNode;
 
 export interface RuntimeContext {
   input: any[];
@@ -358,7 +360,7 @@ export interface ParseResult {
   errors: ParseError[];
   indexes?: {
     nodeById: Map<string, ASTNode>;
-    nodesByType: Map<NodeType | 'Error', ASTNode[]>;
+    nodesByType: Map<NodeType | 'Error' | 'CursorNode', ASTNode[]>;
     identifiers: Map<string, ASTNode[]>;
   };
   cursorContext?: {
