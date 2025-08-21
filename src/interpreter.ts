@@ -119,9 +119,12 @@ export class RuntimeContextManager {
     }
     
     // Check if variable already exists (unless redefinition is allowed)
-    if (!allowRedefinition && context.variables && Object.prototype.hasOwnProperty.call(context.variables, varKey)) {
-      // Silently return original context for variable redefinition
-      return context;
+    // Use 'in' operator to check prototype chain (inherited variables)
+    // Exclude iteration variables ($this, $index, $total) which can be redefined in nested scopes
+    const iterationVariables = ['$this', '$index', '$total'];
+    if (!allowRedefinition && context.variables && varKey in context.variables && !iterationVariables.includes(varKey)) {
+      // Per FHIRPath spec §1.5.10.3: throw error on variable redefinition
+      throw Errors.variableAlreadyDefined(name);
     }
     
     // Create new context and set variable

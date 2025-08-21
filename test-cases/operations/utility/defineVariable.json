@@ -93,8 +93,7 @@
         "defineVariable",
         "select",
         "$this"
-      ],
-      "pending": "defineVariable with $this not working correctly"
+      ]
     },
     {
       "name": "defineVariable - nested property access",
@@ -114,8 +113,7 @@
         "defineVariable",
         "select",
         "context-propagation"
-      ],
-      "pending": "defineVariable with nested property access not working"
+      ]
     },
     {
       "name": "defineVariable - nested property access",
@@ -135,8 +133,7 @@
         "defineVariable",
         "select",
         "context-propagation"
-      ],
-      "pending": "defineVariable with $this.value not working correctly"
+      ]
     },
     {
       "name": "defineVariable - should propagte the input",
@@ -485,7 +482,7 @@
         "type": "EvaluationError",
         "message": "Variable.*v1.*already.*defined",
         "phase": "evaluate",
-        "code": "FP6005"
+        "code": "FP6009"
       },
       "tags": [
         "defineVariable",
@@ -493,8 +490,7 @@
         "select",
         "error"
       ],
-      "description": "Redefining a variable in the same scope throws error",
-      "pending": "Variable redefinition checking not implemented"
+      "description": "Redefining a variable in the same scope throws error"
     },
     {
       "name": "[FHIRPath Lab] defineVariable12",

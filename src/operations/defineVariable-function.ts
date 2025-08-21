@@ -23,7 +23,7 @@ export const evaluate: FunctionEvaluator = async (input, context, args, evaluato
     value = input;
   } else {
     // Two arguments: defineVariable(name, value) - evaluate value expression
-    const tempContext = RuntimeContextManager.setVariable(context, '$this', input);
+    const tempContext = RuntimeContextManager.setVariable(context, '$this', input, true);
     const valueExpr = args[1];
     if (!valueExpr) {
       throw Errors.invalidOperation('defineVariable requires a value expression');
@@ -33,12 +33,8 @@ export const evaluate: FunctionEvaluator = async (input, context, args, evaluato
   }
 
   // Set the variable using RuntimeContextManager (handles prefixes and checks)
+  // This will throw an error if the variable is already defined (per spec)
   const newContext = RuntimeContextManager.setVariable(context, varName, value);
-  
-  // If newContext is same as context, variable already existed - return empty
-  if (newContext === context) {
-    return { value: [], context };
-  }
 
   // Pass through input unchanged
   return { value: input, context: newContext };

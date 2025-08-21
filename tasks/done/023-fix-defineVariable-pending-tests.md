@@ -1,5 +1,12 @@
 # Task 023: Fix defineVariable Pending Tests
 
+## STATUS: COMPLETED
+
+### Completion Date: 2025-08-21
+
+### Summary
+Successfully implemented FHIRPath spec-compliant variable redefinition error handling and resolved incorrectly pending tests. Reduced pending tests from 11 to 7.
+
 ## Problem Statement
 
 There are 11 pending tests for the `defineVariable` function that need to be addressed. These tests reveal several issues with the current implementation:
@@ -65,8 +72,9 @@ According to FHIRPath specification §1.5.10.3:
 ### Phase 1: Fix Variable Redefinition (SPEC §1.5.10.3 - REQUIRED)
 - **Action**: Modify `RuntimeContextManager.setVariable()` at line 122-124
 - **Change**: Throw error instead of silently returning
-- **Error**: `Errors.variableAlreadyDefined(name)` with code FP6005
+- **Error**: `Errors.variableAlreadyDefined(name)` with code `FP6009`
 - **Message**: "Variable '{name}' already defined in current scope"
+- **Note**: The error code `FP6005` was already in use. A new error `variableAlreadyDefined` and code `FP6009` must be added to `/src/errors.ts`.
 
 ### Phase 2: Environment Variable Handling (SPEC §1.9)
 - **Spec Position**: No explicit prohibition on overriding %context/%ucum
@@ -126,3 +134,52 @@ Tests that actually work and should be unmarked:
   - If we protect them, document as implementation-specific extension
   - Alternative: Adjust tests to match spec behavior
 - **Key Spec Quote**: "If the name already exists in the current expression scope, the evaluation will end and signal an error" - This is mandatory
+
+## COMPLETION NOTES
+
+### What Was Done
+
+1. **Added new error to errors.ts**:
+   - Added `variableAlreadyDefined` error with code `FP6009`
+   - Proper error message: "Variable '{name}' already defined in current scope"
+
+2. **Fixed RuntimeContextManager.setVariable**:
+   - Changed from silently ignoring redefinition to throwing error (spec-compliant)
+   - Used `in` operator to check prototype chain for inherited variables
+   - Excluded iteration variables ($this, $index, $total) which can be redefined in nested scopes
+   - Fixed issue where $this needed `allowRedefinition=true` in defineVariable value evaluation
+
+3. **Unmarked 3 incorrectly pending tests**:
+   - "defineVariable - property access with $this"
+   - "defineVariable - nested property access" (both variants)
+   - These tests were actually working correctly
+
+4. **Test Results**:
+   - Variable redefinition now properly throws error
+   - All 3 unmarked tests pass
+   - Full test suite passes (3082 tests)
+   - No TypeScript errors
+   - Reduced pending tests from 11 to 7
+
+### Remaining Pending Tests (7)
+
+The following tests remain pending for valid reasons:
+
+1. **Variable scoping across union** (2 tests) - Analyzer needs improvement to track dynamic variables
+2. **Complex multi-tree variables** (2 tests) - Edge cases requiring further investigation  
+3. **System variable protection** (1 test) - Spec doesn't require protection, test expectation may be wrong
+4. **Dynamic variable names** (1 test) - Not supported by spec
+5. **Cross-scope variable access** (1 test) - Analyzer limitation
+
+### Key Implementation Details
+
+- Variable redefinition check uses prototype chain (`in` operator) to detect inherited variables
+- Iteration variables ($this, $index, $total) are exempt from redefinition check as they have special scoping rules
+- System variables (%context, %ucum) remain unprotected per spec (no explicit prohibition)
+
+### Spec Compliance
+
+The implementation now strictly follows FHIRPath specification §1.5.10.3:
+- ✅ Throws error on variable redefinition in same scope
+- ✅ Variables properly scoped to expression context
+- ✅ Function returns input unchanged

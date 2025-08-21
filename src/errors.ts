@@ -70,6 +70,10 @@ export const Errors = {
     return new FHIRPathError(ErrorCodes.VARIABLE_NOT_DEFINED, `Variable '${name}' is not defined in the current scope`, location);
   },
   
+  variableAlreadyDefined(name: string, location?: Range): FHIRPathError {
+    return new FHIRPathError(ErrorCodes.VARIABLE_ALREADY_DEFINED, `Variable '${name}' already defined in current scope`, location);
+  },
+  
   // Arity errors (2000-2999)
   wrongArgumentCount(funcName: string, expected: number, actual: number, location?: Range): FHIRPathError {
     return new FHIRPathError(ErrorCodes.WRONG_ARGUMENT_COUNT, `${funcName} expects ${expected} arguments, got ${actual}`, location);
@@ -246,5 +250,6 @@ export enum ErrorCodes {
   // Static analysis warnings (7000-7999)
   UNREACHABLE_CODE = 'FP7001',
   INVALID_STRING_OPERATION = 'FP6007',
-  INVALID_NUMERIC_OPERATION = 'FP6008'
+  INVALID_NUMERIC_OPERATION = 'FP6008',
+  VARIABLE_ALREADY_DEFINED = 'FP6009'
 }
