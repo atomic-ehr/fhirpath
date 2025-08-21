@@ -54,6 +54,65 @@ async function main() {
     return;
   }
 
+  // --- --pending command ---
+  if (args[0] === "--pending") {
+    console.log("\n🔍 Checking all tests for pending status...\n");
+    const testCasesDir = join(__dirname, "../test-cases");
+    const pendingByFile = new Map<string, Array<{ test: UnifiedTest, reason: string }>>();
+
+    const testFiles = readdirSync(testCasesDir, { recursive: true }) as string[];
+
+    for (const file of testFiles) {
+      if (!file.endsWith(".json") || file.endsWith("metadata.json")) continue;
+      
+      const fullPath = join(testCasesDir, file);
+      if (statSync(fullPath).isDirectory()) continue;
+
+      try {
+        const suite = loadTestSuite(fullPath);
+        const pendingInFile: Array<{ test: UnifiedTest, reason: string }> = [];
+        
+        for (const test of suite.tests) {
+          if (test.pending) {
+            pendingInFile.push({ 
+              test, 
+              reason: typeof test.pending === 'string' ? test.pending : 'No reason provided'
+            });
+          }
+        }
+        
+        if (pendingInFile.length > 0) {
+          pendingByFile.set(file, pendingInFile);
+        }
+      } catch (e) { /* ignore parse errors */ }
+    }
+
+    if (pendingByFile.size === 0) {
+      console.log("✅ No pending tests found!");
+    } else {
+      const totalPending = Array.from(pendingByFile.values()).reduce((sum, tests) => sum + tests.length, 0);
+      console.log(`📋 Found ${totalPending} pending tests in ${pendingByFile.size} files:\n`);
+      
+      // Sort files for consistent output
+      const sortedFiles = Array.from(pendingByFile.keys()).sort();
+      
+      sortedFiles.forEach(file => {
+        const tests = pendingByFile.get(file)!;
+        console.log(`\n📁 ${file} (${tests.length} pending)`);
+        console.log("─".repeat(60));
+        
+        tests.forEach(({ test, reason }, index) => {
+          console.log(`  ${index + 1}. ${test.name}`);
+          console.log(`     Expression: ${test.expression}`);
+          console.log(`     Reason: ${reason}`);
+          console.log(`     Run: bun tools/testcase.ts ${file} "${test.name}"`);
+          console.log("");
+        });
+      });
+    }
+    process.exit(0);
+  }
+
   // --- --failing command ---
   if (args[0] === "--failing") {
     console.log("\n🔍 Checking all tests for failures...\n");
