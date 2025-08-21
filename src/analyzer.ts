@@ -16,15 +16,15 @@ import type {
   VariableNode,
   TypeName,
   TypeOrIdentifierNode,
-  ErrorNode
+  ErrorNode,
+  InternalAnalysisResult
 } from './types';
-import { NodeType, DiagnosticSeverity } from './types';
+import { NodeType, DiagnosticSeverity, AnalysisContext } from './types';
 import { registry } from './registry';
 import { Errors, toDiagnostic, ErrorCodes } from './errors';
 import { isCursorNode, CursorContext } from './cursor-nodes';
 import type { AnyCursorNode } from './cursor-nodes';
 import { ScopeManager } from './scope-manager';
-
 
 export interface AnalyzerOptions {
   cursorMode?: boolean;
@@ -70,39 +70,480 @@ export class Analyzer {
     this.systemVariableTypes.set('$total', { type: 'Any', singleton: false });
   }
 
+  /**
+   * Main entry point for context-flow analysis.
+   * Analyzes a node with the given context.
+   */
+  private analyzeNode(node: ASTNode, context: AnalysisContext): InternalAnalysisResult {
+    // Handle cursor nodes for completion
+    if (isCursorNode(node)) {
+      return this.analyzeCursorNode(node as AnyCursorNode, context);
+    }
+
+    let result: InternalAnalysisResult;
+    
+    switch (node.type) {
+      case NodeType.Binary:
+        result = this.analyzeBinary(node as BinaryNode, context);
+        break;
+      case NodeType.Unary:
+        result = this.analyzeUnary(node as UnaryNode, context);
+        break;
+      case NodeType.Function:
+        result = this.analyzeFunction(node as FunctionNode, context);
+        break;
+      case NodeType.Variable:
+        result = this.analyzeVariable(node as VariableNode, context);
+        break;
+      case NodeType.Identifier:
+      case NodeType.TypeOrIdentifier:
+        result = this.analyzeIdentifier(node as IdentifierNode | TypeOrIdentifierNode, context);
+        break;
+      case NodeType.Literal:
+        result = this.analyzeLiteral(node as LiteralNode, context);
+        break;
+      case NodeType.Index:
+        result = this.analyzeIndex(node as IndexNode, context);
+        break;
+      case NodeType.Collection:
+        result = this.analyzeCollection(node as CollectionNode, context);
+        break;
+      case NodeType.MembershipTest:
+        result = this.analyzeMembershipTest(node as MembershipTestNode, context);
+        break;
+      case NodeType.TypeCast:
+        result = this.analyzeTypeCast(node as TypeCastNode, context);
+        break;
+      case 'Error':
+        result = this.analyzeError(node as ErrorNode, context);
+        break;
+      default:
+        result = {
+          type: { type: 'Any', singleton: false },
+          diagnostics: [this.createError(node, `Unknown node type: ${node.type}`)]
+        };
+    }
+    
+    // Annotate the node with type information
+    node.typeInfo = result.type;
+    
+    return result;
+  }
+
+  /**
+   * Analyzes binary operators with special handling for union and dot.
+   */
+  private analyzeBinary(node: BinaryNode, context: AnalysisContext): InternalAnalysisResult {
+    const diagnostics: Diagnostic[] = [];
+
+    // Special handling for union operator - fork context for each branch
+    if (node.operator === '|') {
+      const leftResult = this.analyzeNode(node.left, context.fork());
+      if (this.stoppedAtCursor) {
+        return { type: { type: 'Any', singleton: false }, diagnostics: leftResult.diagnostics };
+      }
+      
+      const rightResult = this.analyzeNode(node.right, context.fork());
+      
+      diagnostics.push(...leftResult.diagnostics, ...rightResult.diagnostics);
+      
+      // Combine types from both branches
+      const type = this.combineUnionTypes(leftResult.type, rightResult.type);
+      
+      return {
+        type,
+        diagnostics,
+        context // Return original context unchanged - no variable leakage
+      };
+    }
+
+    // Special handling for dot operator - flow context through
+    if (node.operator === '.') {
+      const leftResult = this.analyzeNode(node.left, context);
+      if (this.stoppedAtCursor) {
+        return { type: { type: 'Any', singleton: false }, diagnostics: leftResult.diagnostics };
+      }
+      
+      // Right side gets left's output as input, with any context changes
+      const rightContext = (leftResult.context || context).withInputType(leftResult.type);
+      const rightResult = this.analyzeNode(node.right, rightContext);
+      
+      diagnostics.push(...leftResult.diagnostics, ...rightResult.diagnostics);
+      
+      return {
+        type: rightResult.type,
+        diagnostics,
+        context: rightResult.context // Propagate context changes (for defineVariable)
+      };
+    }
+
+    // Handle other binary operators
+    const leftResult = this.analyzeNode(node.left, context);
+    if (this.stoppedAtCursor) {
+      return { type: { type: 'Any', singleton: false }, diagnostics: leftResult.diagnostics };
+    }
+    
+    // For operator cursor nodes, the left side's type is what matters for completions
+    const rightContext = context.withInputType(leftResult.type);
+    const rightResult = this.analyzeNode(node.right, rightContext);
+    
+    diagnostics.push(...leftResult.diagnostics, ...rightResult.diagnostics);
+
+    // For now, handle other operators generically
+    // TODO: Add proper type checking for each operator
+
+    // For now, return Any type - will be refined later
+    return {
+      type: { type: 'Any', singleton: false },
+      diagnostics
+    };
+  }
+
+  /**
+   * Analyzes function calls, delegating to function's analyze method if available.
+   */
+  private analyzeFunction(node: FunctionNode, context: AnalysisContext): InternalAnalysisResult {
+    const diagnostics: Diagnostic[] = [];
+    
+    // Get function name
+    const functionName = node.name.type === NodeType.Identifier 
+      ? (node.name as IdentifierNode).name 
+      : null;
+    
+    if (!functionName) {
+      diagnostics.push(this.createError(node.name, 'Invalid function name'));
+      return { type: { type: 'Any', singleton: false }, diagnostics };
+    }
+
+    // Get function definition
+    const funcDef = registry.getFunction(functionName);
+    if (!funcDef) {
+      diagnostics.push(this.createError(node, `Unknown function: ${functionName}`));
+      return { type: { type: 'Any', singleton: false }, diagnostics };
+    }
+
+    // If function has custom analyze method, use it
+    if (funcDef.analyze) {
+      return funcDef.analyze(context, node.arguments);
+    }
+
+    // Default function analysis
+    // Analyze all arguments
+    for (const arg of node.arguments) {
+      const argResult = this.analyzeNode(arg, context);
+      diagnostics.push(...argResult.diagnostics);
+      
+      if (this.stoppedAtCursor) {
+        return { type: { type: 'Any', singleton: false }, diagnostics };
+      }
+    }
+
+    // Determine result type from function signature
+    let resultType = context.inputType;
+    
+    if (funcDef.signatures && funcDef.signatures.length > 0) {
+      // Use first signature for now (TODO: match based on argument types)
+      const signature = funcDef.signatures[0];
+      
+      if (signature.result === 'inputType') {
+        resultType = context.inputType;
+      } else if (signature.result === 'inputTypeSingleton') {
+        // Make the input type a singleton
+        resultType = { ...context.inputType, singleton: true };
+      } else if (typeof signature.result === 'object') {
+        resultType = signature.result;
+      }
+    }
+
+    return {
+      type: resultType,
+      diagnostics
+    };
+  }
+
+  /**
+   * Analyzes variable references, checking against context.
+   */
+  private analyzeVariable(node: VariableNode, context: AnalysisContext): InternalAnalysisResult {
+    const varName = node.name;
+    const diagnostics: Diagnostic[] = [];
+
+    // Check if it's a user variable (starts with %)
+    if (varName.startsWith('%')) {
+      const name = varName.substring(1); // Remove % prefix
+      const varType = context.userVariables.get(name);
+      
+      if (!varType) {
+        diagnostics.push(this.createError(node, Errors.unknownUserVariable(varName).message, ErrorCodes.UNKNOWN_USER_VARIABLE));
+        return { type: { type: 'Any', singleton: false }, diagnostics };
+      }
+      
+      return { type: varType, diagnostics };
+    }
+
+    // Check system variables
+    const sysVarType = context.systemVariables.get(varName);
+    if (sysVarType) {
+      return { type: sysVarType, diagnostics };
+    }
+
+    // Unknown variable
+    diagnostics.push(this.createError(node, `Unknown variable: ${varName}`));
+    return { type: { type: 'Any', singleton: false }, diagnostics };
+  }
+
+  /**
+   * Analyzes identifier nodes (property access).
+   */
+  private analyzeIdentifier(node: IdentifierNode | TypeOrIdentifierNode, context: AnalysisContext): InternalAnalysisResult {
+    const name = 'name' in node ? node.name : '';
+    
+    // Common FHIR properties that are typically collections
+    const collectionProperties = ['name', 'given', 'identifier', 'telecom', 'address', 'contact'];
+    
+    // Common FHIR properties that are typically singletons
+    const singletonProperties = ['family', 'use', 'text', 'system', 'value', 'code', 'display', 'active', 'gender'];
+    
+    let resultType: TypeInfo;
+    
+    if (singletonProperties.includes(name)) {
+      // Known singleton properties
+      resultType = { type: 'Any', singleton: true };
+    } else if (collectionProperties.includes(name)) {
+      // Known collection properties
+      resultType = { type: 'Any', singleton: false };
+    } else {
+      // Default to collection for unknown properties (safer default)
+      resultType = { type: 'Any', singleton: false };
+    }
+    
+    // Special case for string-returning properties
+    if (['given', 'family', 'display', 'text', 'value'].includes(name)) {
+      resultType.type = 'String';
+    }
+    
+    return {
+      type: resultType,
+      diagnostics: []
+    };
+  }
+
+  /**
+   * Analyzes literal values.
+   */
+  private analyzeLiteral(node: LiteralNode, context: AnalysisContext): InternalAnalysisResult {
+    let type: TypeInfo;
+    
+    switch (node.valueType) {
+      case 'string':
+        type = { type: 'String', singleton: true };
+        break;
+      case 'number':
+        // Check if integer or decimal
+        type = Number.isInteger(node.value) 
+          ? { type: 'Integer', singleton: true }
+          : { type: 'Decimal', singleton: true };
+        break;
+      case 'boolean':
+        type = { type: 'Boolean', singleton: true };
+        break;
+      case 'date':
+        type = { type: 'Date', singleton: true };
+        break;
+      case 'time':
+        type = { type: 'Time', singleton: true };
+        break;
+      case 'datetime':
+        type = { type: 'DateTime', singleton: true };
+        break;
+      default:
+        type = { type: 'Any', singleton: true };
+    }
+    
+    return { type, diagnostics: [] };
+  }
+
+  /**
+   * Analyzes unary operators.
+   */
+  private analyzeUnary(node: UnaryNode, context: AnalysisContext): InternalAnalysisResult {
+    const operandResult = this.analyzeNode(node.operand, context);
+    // For now, preserve operand type
+    return operandResult;
+  }
+
+  /**
+   * Analyzes index operations.
+   */
+  private analyzeIndex(node: IndexNode, context: AnalysisContext): InternalAnalysisResult {
+    const exprResult = this.analyzeNode(node.expression, context);
+    const indexResult = this.analyzeNode(node.index, context);
+    
+    return {
+      type: exprResult.type, // Indexing preserves collection element type
+      diagnostics: [...exprResult.diagnostics, ...indexResult.diagnostics]
+    };
+  }
+
+  /**
+   * Analyzes collection literals.
+   */
+  private analyzeCollection(node: CollectionNode, context: AnalysisContext): InternalAnalysisResult {
+    const diagnostics: Diagnostic[] = [];
+    
+    for (const element of node.elements) {
+      const elemResult = this.analyzeNode(element, context);
+      diagnostics.push(...elemResult.diagnostics);
+      
+      if (this.stoppedAtCursor) {
+        return { type: { type: 'Any', singleton: false }, diagnostics };
+      }
+    }
+    
+    return {
+      type: { type: 'Any', singleton: false },
+      diagnostics
+    };
+  }
+
+  /**
+   * Analyzes membership test (is operator).
+   */
+  private analyzeMembershipTest(node: MembershipTestNode, context: AnalysisContext): InternalAnalysisResult {
+    const exprResult = this.analyzeNode(node.expression, context);
+    
+    return {
+      type: { type: 'Boolean', singleton: true },
+      diagnostics: exprResult.diagnostics
+    };
+  }
+
+  /**
+   * Analyzes type cast (as operator).
+   */
+  private analyzeTypeCast(node: TypeCastNode, context: AnalysisContext): InternalAnalysisResult {
+    const exprResult = this.analyzeNode(node.expression, context);
+    
+    // Type cast changes the type
+    const targetType: TypeInfo = { 
+      type: node.targetType as TypeName, 
+      singleton: exprResult.type.singleton 
+    };
+    
+    return {
+      type: targetType,
+      diagnostics: exprResult.diagnostics
+    };
+  }
+
+  /**
+   * Analyzes error nodes.
+   */
+  private analyzeError(node: ErrorNode, context: AnalysisContext): InternalAnalysisResult {
+    return {
+      type: { type: 'Any', singleton: false },
+      diagnostics: [this.createError(node, node.message)]
+    };
+  }
+
+  /**
+   * Analyzes cursor nodes for completion.
+   */
+  private analyzeCursorNode(node: AnyCursorNode, context: AnalysisContext): InternalAnalysisResult {
+    // Store cursor context for completion
+    if (this.cursorMode) {
+      this.stoppedAtCursor = true;
+      this.cursorContext = {
+        typeBeforeCursor: context.inputType,
+        cursorNode: node,
+        expectedType: undefined
+      };
+      
+      // Set expected type based on cursor context
+      if (node.context === CursorContext.Index) {
+        // Index expects an integer
+        this.cursorContext.expectedType = { type: 'Integer', singleton: true };
+      } else if (node.context === CursorContext.Argument) {
+        // Arguments context - we'll handle this specially
+        // TODO: Determine expected type from function signature
+      }
+    }
+    
+    return {
+      type: { type: 'Any', singleton: false },
+      diagnostics: []
+    };
+  }
+
+  /**
+   * Helper to combine types from union branches.
+   */
+  private combineUnionTypes(left: TypeInfo, right: TypeInfo): TypeInfo {
+    // For now, return Any for union types
+    // TODO: Implement proper type union logic
+    return { type: 'Any', singleton: false };
+  }
+
+  /**
+   * Helper to create diagnostic errors.
+   */
+  private createError(node: ASTNode, message: string, code?: string): Diagnostic {
+    return {
+      range: node.range,
+      message,
+      severity: DiagnosticSeverity.Error,
+      code
+    };
+  }
+
   async analyze(
     ast: ASTNode, 
     userVariables?: Record<string, any>, 
     inputType?: TypeInfo,
     options?: AnalyzerOptions
   ): Promise<AnalysisResultWithCursor> {
-    this.diagnostics = [];
-    this.userVariableTypes.clear();
     this.cursorMode = options?.cursorMode ?? false;
     this.stoppedAtCursor = false;
     this.cursorContext = undefined;
     
+    // Create initial context with system and user variables
+    const systemVars = new Map<string, TypeInfo>();
+    systemVars.set('$this', { type: 'Any', singleton: false });
+    systemVars.set('$index', { type: 'Integer', singleton: true });
+    systemVars.set('$total', { type: 'Any', singleton: false });
+    
+    const userVars = new Map<string, TypeInfo>();
     if (userVariables) {
       Object.keys(userVariables).forEach(name => {
-        this.variables.add(name);
-        // Try to infer types from values
         const value = userVariables[name];
         if (value !== undefined && value !== null) {
-          this.userVariableTypes.set(name, this.inferValueType(value));
+          userVars.set(name, this.inferValueType(value));
         }
       });
     }
     
-    // Annotate AST with type information
+    // Create context with analyzeNode callback
+    const initialContext = new AnalysisContext(
+      inputType || { type: 'Any', singleton: false },
+      systemVars,
+      userVars,
+      (node, ctx) => this.analyzeNode(node, ctx)
+    );
+    
+    // Run context-flow analysis
+    const result = this.analyzeNode(ast, initialContext);
+    
+    // For backward compatibility with old annotateAST approach
+    // TODO: Remove this once all callers are updated
+    // We need to run annotateAST even in cursor mode to get model-based type information
     await this.annotateAST(ast, inputType);
     
-    // Perform validation with type checking (if not stopped at cursor)
-    if (!this.stoppedAtCursor) {
-      this.visitNode(ast);
-    }
+    // Clear diagnostics from old visitor pattern if we're using new context-flow
+    // The new context-flow diagnostics are more accurate for variable scoping
+    this.diagnostics = [];
     
     return {
-      diagnostics: this.diagnostics,
+      diagnostics: result.diagnostics,
       ast,
       stoppedAtCursor: this.cursorMode ? this.stoppedAtCursor : undefined,
       cursorContext: this.cursorMode ? this.cursorContext : undefined

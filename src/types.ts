@@ -114,6 +114,10 @@ export interface FunctionDefinition {
     node: any,
     inputType?: TypeInfo
   ) => Promise<TypeInfo>;
+  analyze?: (
+    context: AnalysisContext,
+    args: ASTNode[]
+  ) => InternalAnalysisResult;
 }
 
 // Node types enum - string-based for better debugging
@@ -408,5 +412,71 @@ export function isIdentifierNode(node: ASTNode): node is IdentifierNode {
 
 export function isFunctionNode(node: ASTNode): node is FunctionNode {
   return node.type === NodeType.Function;
+}
+
+/**
+ * Result of analyzing a single AST node in the context-flow architecture.
+ */
+export interface InternalAnalysisResult {
+  type: TypeInfo;
+  diagnostics: Diagnostic[];
+  context?: AnalysisContext;
+}
+
+/**
+ * Immutable context that flows through the analysis tree.
+ * Carries variable scopes and input types through the AST.
+ */
+export class AnalysisContext {
+  constructor(
+    public readonly inputType: TypeInfo,
+    public readonly systemVariables: ReadonlyMap<string, TypeInfo>,
+    public readonly userVariables: ReadonlyMap<string, TypeInfo>,
+    private readonly analyzeNodeCallback: (node: ASTNode, ctx: AnalysisContext) => InternalAnalysisResult
+  ) {}
+
+  withUserVariable(name: string, type: TypeInfo): AnalysisContext {
+    const newUserVars = new Map(this.userVariables);
+    newUserVars.set(name, type);
+    return new AnalysisContext(
+      this.inputType,
+      this.systemVariables,
+      newUserVars,
+      this.analyzeNodeCallback
+    );
+  }
+
+  withSystemVariable(name: string, type: TypeInfo): AnalysisContext {
+    const newSystemVars = new Map(this.systemVariables);
+    newSystemVars.set(name, type);
+    return new AnalysisContext(
+      this.inputType,
+      newSystemVars,
+      this.userVariables,
+      this.analyzeNodeCallback
+    );
+  }
+
+  withInputType(type: TypeInfo): AnalysisContext {
+    return new AnalysisContext(
+      type,
+      this.systemVariables,
+      this.userVariables,
+      this.analyzeNodeCallback
+    );
+  }
+
+  fork(): AnalysisContext {
+    return new AnalysisContext(
+      this.inputType,
+      new Map(this.systemVariables),
+      new Map(this.userVariables),
+      this.analyzeNodeCallback
+    );
+  }
+
+  analyzeNode(node: ASTNode): InternalAnalysisResult {
+    return this.analyzeNodeCallback(node, this);
+  }
 }
 

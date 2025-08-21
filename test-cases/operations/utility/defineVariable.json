@@ -447,8 +447,7 @@
         "navigation",
         "error"
       ],
-      "description": "use of a variable outside context throws error",
-      "pending": "defineVariable creates dynamic variables that analyzer cannot track"
+      "description": "use of a variable outside context throws error"
     },
     {
       "name": "[FHIRPath Lab] defineVariable10",
@@ -531,8 +530,7 @@
         "first",
         "navigation"
       ],
-      "description": "defineVariable() could not be the first child",
-      "pending": "Test expects empty but variable scoping correctly throws error"
+      "description": "defineVariable() could not be the first child"
     },
     {
       "name": "[FHIRPath Lab] defineVariable13",
@@ -635,7 +633,6 @@
         "r1-v1",
         "r1-v2"
       ],
-      "pending": "temporary disable",
       "tags": [
         "defineVariable",
         "fhirpath-lab",
@@ -653,16 +650,22 @@
         {}
       ],
       "expected": [],
+      "error": {
+        "type": "EvaluationError",
+        "message": "Unknown user variable: %v1",
+        "phase": "evaluate",
+        "code": "FP1004"
+      },
       "tags": [
         "defineVariable",
         "fhirpath-lab",
         "select",
         "$this",
         "&",
-        "|"
+        "|",
+        "error"
       ],
-      "description": "multi-tree vars exception",
-      "pending": "Probably wrong test case"
+      "description": "multi-tree vars exception"
     },
     {
       "name": "[FHIRPath Lab] dvCantOverwriteSystemVar",
@@ -742,8 +745,7 @@
         "navigation",
         "error"
       ],
-      "description": "use of a variable outside context throws error",
-      "pending": "defineVariable creates dynamic variables that analyzer cannot track"
+      "description": "use of a variable outside context throws error"
     }
   ]
 }

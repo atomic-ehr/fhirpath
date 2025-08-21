@@ -1,8 +1,10 @@
-import type { FunctionDefinition, LiteralNode } from '../types';
+import type { FunctionDefinition, LiteralNode, AnalysisContext, InternalAnalysisResult } from '../types';
 import { Errors } from '../errors';
 import { RuntimeContextManager } from '../interpreter';
 import { type FunctionEvaluator } from '../types';
 import { box, unbox } from '../boxing';
+import { DiagnosticSeverity } from '../types';
+import { toDiagnostic } from '../errors';
 
 export const evaluate: FunctionEvaluator = async (input, context, args, evaluator) => {
   if (args.length < 1) {
@@ -62,5 +64,64 @@ export const defineVariableFunction: FunctionDefinition & { evaluate: FunctionEv
   async inferResultType(analyzer, node, inputType) {
     // defineVariable returns its input type unchanged
     return inputType || { type: 'Any', singleton: false };
+  },
+  /**
+   * Analysis-time behavior for defineVariable.
+   * Adds the variable to the context for downstream expressions.
+   */
+  analyze(context: AnalysisContext, args): InternalAnalysisResult {
+    const diagnostics: any[] = [];
+    
+    // Validate we have at least one argument
+    if (args.length < 1) {
+      return { 
+        type: context.inputType, 
+        diagnostics: [{
+          range: { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } },
+          message: 'defineVariable requires at least 1 argument',
+          severity: DiagnosticSeverity.Error
+        }]
+      };
+    }
+    
+    // First argument must be a string literal (variable name)
+    const nameNode = args[0] as LiteralNode;
+    if (nameNode.type !== 'Literal' || nameNode.valueType !== 'string') {
+      diagnostics.push({
+        range: nameNode.range,
+        message: 'Variable name must be a string literal',
+        severity: DiagnosticSeverity.Error
+      });
+      return { type: context.inputType, diagnostics };
+    }
+    
+    const varName = nameNode.value as string;
+    
+    // Check if variable already exists
+    if (context.userVariables.has(varName)) {
+      diagnostics.push({
+        range: nameNode.range,
+        message: `Variable '${varName}' is already defined`,
+        severity: DiagnosticSeverity.Error
+      });
+      return { type: context.inputType, diagnostics };
+    }
+    
+    // Determine the type of the variable
+    let varType = context.inputType;
+    
+    if (args.length >= 2 && args[1]) {
+      // If value expression provided, analyze it to get its type
+      const valueResult = context.analyzeNode(args[1]);
+      diagnostics.push(...valueResult.diagnostics);
+      varType = valueResult.type;
+    }
+    
+    // Return with modified context that includes the new variable
+    return {
+      type: context.inputType, // defineVariable returns input unchanged
+      diagnostics,
+      context: context.withUserVariable(varName, varType) // Add variable to context
+    };
   }
 };
