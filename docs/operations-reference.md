@@ -20,6 +20,7 @@ This document provides a comprehensive reference for all operators and functions
    - [String Functions](#string-functions)
    - [Type Conversion Functions](#type-conversion-functions)
    - [Utility Functions](#utility-functions)
+   - [Math Functions](#math-functions)
 
 ## Operators
 
@@ -442,26 +443,26 @@ This document provides a comprehensive reference for all operators and functions
 #### `|` (Union)
 - **Precedence**: 80 (PIPE)
 - **Associativity**: left
-- **Description**: Combines collections preserving duplicates
+- **Description**: Merges two collections into a single collection, eliminating any duplicate values using the equals (=) operator. There is no expectation of order in the resulting collection
 - **Signatures**:
   ```
   Collection<T> | Collection<T> → Collection<T>
   ```
 - **Examples**:
   ```fhirpath
-  (1 | 2) | (2 | 3)  // (1 | 2 | 2 | 3)
-  name | nickname    // all names and nicknames
+  (1 | 2) | (2 | 3)  // (1 | 2 | 3)
+  name | nickname    // all unique names and nicknames
   ```
 - **Implementation**: `src/operations/union-operator.ts`
 
 #### `combine` (Combine Collections)
 - **Precedence**: N/A (function-like operator)
-- **Description**: Combines collections removing duplicates
+- **Description**: Merges the input and other collections into a single collection without eliminating duplicate values.
 - **Examples**:
   ```fhirpath
-  (1 | 2).combine(2 | 3) // (1 | 2 | 3)
+  (1 | 2).combine(2 | 3) // (1 | 2 | 2 | 3)
   ```
-- **Implementation**: `src/operations/combine-operator.ts`
+- **Implementation**: `src/operations/combine-function.ts`
 
 ### Navigation Operators
 
@@ -1088,4 +1089,97 @@ Operations are evaluated in the following precedence order (highest to lowest):
 - FHIRPath Specification: http://hl7.org/fhirpath/
 - Implementation files: `src/operations/`
 - Registry: `src/registry.ts`
-- Type definitions: `src/types.ts`
+- - Type definitions: `src/types.ts`
+
+### Math Functions
+
+#### `abs()`
+- **Description**: Returns the absolute value of the input.
+- **Signature**:
+  ```
+  (Integer | Decimal | Quantity).abs() → (Integer | Decimal | Quantity)
+  ```
+- **Examples**:
+  ```fhirpath
+  (-5).abs() // 5
+  (5.5).abs() // 5.5
+  (-5.5 'mg').abs() // 5.5 'mg'
+  ```
+- **Implementation**: `src/operations/abs-function.ts`
+
+#### `ceiling()`
+- **Description**: Returns the first integer greater than or equal to the input.
+- **Signature**:
+  ```
+  (Integer | Decimal).ceiling() → Integer
+  ```
+- **Examples**:
+  ```fhirpath
+  (1.1).ceiling() // 2
+  (-1.1).ceiling() // -1
+  ```
+- **Implementation**: `src/operations/ceiling-function.ts`
+
+#### `floor()`
+- **Description**: Returns the first integer less than or equal to the input.
+- **Signature**:
+  ```
+  (Integer | Decimal).floor() → Integer
+  ```
+- **Examples**:
+  ```fhirpath
+  (2.1).floor() // 2
+  (-2.1).floor() // -3
+  ```
+- **Implementation**: `src/operations/floor-function.ts`
+
+#### `power(exponent)`
+- **Description**: Raises the input number to the exponent power.
+- **Signature**:
+  ```
+  (Integer | Decimal).power(exponent: Integer | Decimal) → (Integer | Decimal)
+  ```
+- **Examples**:
+  ```fhirpath
+  (2).power(3) // 8
+  (2.5).power(2) // 6.25
+  ```
+- **Implementation**: `src/operations/power-function.ts`
+
+#### `round(precision)`
+- **Description**: Rounds the decimal to the nearest whole number, or to the specified precision.
+- **Signature**:
+  ```
+  Decimal.round(precision?: Integer) → Decimal
+  ```
+- **Examples**:
+  ```fhirpath
+  (3.14159).round(3) // 3.142
+  ```
+- **Implementation**: `src/operations/round-function.ts`
+
+#### `sqrt()`
+- **Description**: Returns the square root of the input number.
+- **Signature**:
+  ```
+  (Integer | Decimal).sqrt() → Decimal
+  ```
+- **Examples**:
+  ```fhirpath
+  (81).sqrt() // 9.0
+  (-1).sqrt() // {} (empty)
+  ```
+- **Implementation**: `src/operations/sqrt-function.ts`
+
+#### `truncate()`
+- **Description**: Returns the integer portion of the input number.
+- **Signature**:
+  ```
+  (Integer | Decimal).truncate() → Integer
+  ```
+- **Examples**:
+  ```fhirpath
+  (1.56).truncate() // 1
+  (-1.56).truncate() // -1
+  ```
+- **Implementation**: `src/operations/truncate-function.ts`

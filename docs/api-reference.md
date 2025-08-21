@@ -18,10 +18,10 @@ This document provides a complete reference for the public API of the FHIRPath T
 Evaluates a FHIRPath expression against input data.
 
 ```typescript
-function evaluate(
+async function evaluate(
   expression: string,
   options?: EvaluateOptions
-): any[]
+): Promise<any[]>
 ```
 
 #### Parameters
@@ -33,14 +33,16 @@ function evaluate(
 
 ```typescript
 interface EvaluateOptions {
-  input?: unknown;                    // Input data (default: [])
-  variables?: Record<string, unknown>; // User-defined variables
+  input?: unknown;
+  variables?: Record<string, unknown>;
+  modelProvider?: import('./types').ModelProvider;
+  inputType?: import('./types').TypeInfo;
 }
 ```
 
 #### Returns
 
-- `any[]`: Always returns an array (collections in FHIRPath)
+- `Promise<any[]>`: A promise that resolves to an array (collections in FHIRPath)
 
 #### Examples
 
@@ -48,7 +50,7 @@ interface EvaluateOptions {
 import { evaluate } from '@fhirpath/core';
 
 // Simple property access
-const names = evaluate('Patient.name', {
+const names = await evaluate('Patient.name', {
   input: {
     resourceType: 'Patient',
     name: [{ given: ['John'], family: 'Doe' }]
@@ -57,18 +59,18 @@ const names = evaluate('Patient.name', {
 // Result: [{ given: ['John'], family: 'Doe' }]
 
 // With filtering
-const officialNames = evaluate("Patient.name.where(use = 'official')", {
+const officialNames = await evaluate("Patient.name.where(use = 'official')", {
   input: patientResource
 });
 
 // With variables
-const result = evaluate('%myVar + 5', {
+const result = await evaluate('%myVar + 5', {
   variables: { myVar: 10 }
 });
 // Result: [15]
 
 // Arithmetic
-const sum = evaluate('5 + 3');
+const sum = await evaluate('5 + 3');
 // Result: [8]
 ```
 
@@ -148,10 +150,10 @@ if (result.errors.length > 0) {
 Performs static analysis on a FHIRPath expression.
 
 ```typescript
-function analyze(
+async function analyze(
   expression: string,
   options?: AnalyzeOptions
-): AnalysisResult
+): Promise<AnalysisResult>
 ```
 
 #### Parameters
@@ -163,8 +165,10 @@ function analyze(
 
 ```typescript
 interface AnalyzeOptions {
-  variables?: Record<string, unknown>; // Known variables
-  modelProvider?: ModelTypeProvider;  // For type checking
+  variables?: Record<string, unknown>;
+  modelProvider?: import('./types').ModelProvider;
+  inputType?: import('./types').TypeInfo;
+  errorRecovery?: boolean;
 }
 ```
 
@@ -183,17 +187,17 @@ interface AnalysisResult {
 import { analyze } from '@fhirpath/core';
 
 // Check for undefined variables
-const result = analyze('$unknown + 5');
+const result = await analyze('$unknown + 5');
 // Diagnostics: [{ message: 'Unknown variable: $unknown', ... }]
 
 // With known variables
-const validResult = analyze('%myVar + 5', {
+const validResult = await analyze('%myVar + 5', {
   variables: { myVar: 10 }
 });
 // Diagnostics: []
 
 // Type checking with model provider
-const typeResult = analyze('Patient.unknownProperty', {
+const typeResult = await analyze('Patient.unknownProperty', {
   modelProvider: fhirModelProvider
 });
 // Diagnostics: [{ message: 'Property not found: unknownProperty', ... }]
@@ -227,11 +231,11 @@ The interpreter class for evaluating AST nodes.
 
 ```typescript
 class Interpreter {
-  evaluate(
+  async evaluate(
     node: ASTNode, 
     input: any[], 
     context?: RuntimeContext
-  ): EvaluationResult;
+  ): Promise<EvaluationResult>;
 }
 ```
 
@@ -244,7 +248,7 @@ const parser = new Parser('5 + 3');
 const ast = parser.parse().ast;
 
 const interpreter = new Interpreter();
-const result = interpreter.evaluate(ast, []);
+const result = await interpreter.evaluate(ast, []);
 // result.value: [8]
 ```
 
@@ -254,15 +258,14 @@ The analyzer class for static analysis.
 
 ```typescript
 class Analyzer {
-  constructor(
-    typeAnalyzer?: TypeAnalyzer,
-    modelProvider?: ModelTypeProvider
-  );
+  constructor(modelProvider?: ModelProvider);
   
-  analyze(
+  async analyze(
     ast: ASTNode,
-    variables?: Record<string, unknown>
-  ): AnalysisResult;
+    userVariables?: Record<string, any>, 
+    inputType?: TypeInfo,
+    options?: { cursorMode?: boolean }
+  ): Promise<AnalysisResult>;
 }
 ```
 
@@ -275,22 +278,7 @@ const parser = new Parser('$this.value');
 const ast = parser.parse().ast;
 
 const analyzer = new Analyzer();
-const result = analyzer.analyze(ast);
-```
-
-### `TypeAnalyzer`
-
-Performs type inference and checking.
-
-```typescript
-class TypeAnalyzer {
-  constructor(
-    registry: Registry,
-    modelProvider?: ModelTypeProvider
-  );
-  
-  analyze(ast: ASTNode): Map<ASTNode, TypeInfo>;
-}
+const result = await analyzer.analyze(ast);
 ```
 
 ## Interfaces
@@ -303,7 +291,7 @@ Base interface for all AST nodes.
 
 ```typescript
 interface BaseASTNode {
-  type: NodeType | 'Error';
+  type: NodeType | 'Error' | 'CursorNode';
   range: Range;
   
   // Optional LSP features
@@ -325,9 +313,11 @@ Runtime evaluation context.
 
 ```typescript
 interface RuntimeContext {
-  input: any[];      // Original input collection
-  focus: any[];      // Current focus
-  variables: Record<string, any>;  // Variables
+  input: any[];
+  focus: any[];
+  variables: Record<string, any>;
+  currentNode?: ASTNode;
+  modelProvider?: ModelProvider;
 }
 ```
 
@@ -337,8 +327,8 @@ Result of expression evaluation.
 
 ```typescript
 interface EvaluationResult {
-  value: any[];           // Result collection
-  context: RuntimeContext; // Updated context
+  value: import('./boxing').FHIRPathValue[];
+  context: RuntimeContext;
 }
 ```
 
@@ -349,36 +339,55 @@ interface EvaluationResult {
 Type information structure.
 
 ```typescript
-interface TypeInfo {
-  type: TypeName;          // FHIRPath type
-  union?: boolean;         // Is union type?
-  singleton?: boolean;     // Single value?
-  namespace?: string;      // Model namespace
-  name?: string;          // Model type name
-  choices?: TypeInfo[];   // Union type choices
-  elements?: {            // Properties
-    [key: string]: TypeInfo;
-  };
-  modelContext?: unknown; // Model-specific data
+interface TypeInfo<TypeContext = unknown> {
+  // FHIRPath type
+  type: TypeName;
+  singleton?: boolean;
+
+  // Model type information FHIR.Patient; FHIR.string; 
+  namespace?: string;
+  name?: string;
+
+  // opaque context for model provider
+  modelContext?: TypeContext;
 }
 ```
 
-#### `ModelTypeProvider`
+#### `ModelProvider`
 
 Interface for integrating with data models.
 
 ```typescript
-interface ModelTypeProvider<TypeContext = unknown> {
-  getTypeByName(typeName: string): TypeInfo | undefined;
-  navigateProperty(parentType: TypeInfo, propertyName: string): TypeInfo | undefined;
-  hasProperty(parentType: TypeInfo, propertyName: string): boolean;
-  getPropertyNames(parentType: TypeInfo): string[];
-  hasTypeName(typeName: string): boolean;
-  getAllTypeNames(): string[];
-  isTypeCompatible(source: TypeInfo, target: TypeInfo): boolean;
-  mapToFHIRPathType(typeName: string): TypeName;
-  getTypeDocumentation?(type: TypeInfo): string | undefined;
-  getPropertyDocumentation?(parentType: TypeInfo, propertyName: string): string | undefined;
+interface ModelProvider<TypeContext = unknown> {
+  getType(typeName: string): Promise<TypeInfo<TypeContext> | undefined>;
+  
+  // get element type from complex type
+  getElementType(parentType: TypeInfo<TypeContext>, propertyName: string): Promise<TypeInfo<TypeContext> | undefined>;
+
+  // get type from union type
+  ofType(type: TypeInfo<TypeContext>, typeName: TypeName): TypeInfo<TypeContext> | undefined;
+
+  // get element names from complex type
+  getElementNames(parentType: TypeInfo<TypeContext>): string[];
+
+  // Returns a union type of all possible child element types
+  getChildrenType(parentType: TypeInfo<TypeContext>): Promise<TypeInfo<TypeContext> | undefined>;
+
+  // Get detailed information about elements of a type for completion suggestions
+  getElements(typeName: string): Promise<Array<{
+    name: string;
+    type: string;
+    documentation?: string;
+  }>>;
+
+  // Get list of all resource types (now async for clean design)
+  getResourceTypes(): Promise<string[]>;
+  
+  // Get list of all complex types
+  getComplexTypes(): Promise<string[]>;
+  
+  // Get list of all primitive types
+  getPrimitiveTypes(): Promise<string[]>;
 }
 ```
 
@@ -442,11 +451,12 @@ AST node types.
 
 ```typescript
 enum NodeType {
-  Literal = 'Literal',
-  Identifier = 'Identifier',
-  TypeOrIdentifier = 'TypeOrIdentifier',
+  EOF = 'EOF',
   Binary = 'Binary',
   Unary = 'Unary',
+  TypeOrIdentifier = 'TypeOrIdentifier',
+  Identifier = 'Identifier',
+  Literal = 'Literal',
   Function = 'Function',
   Variable = 'Variable',
   Index = 'Index',
@@ -454,7 +464,7 @@ enum NodeType {
   TypeCast = 'TypeCast',
   Collection = 'Collection',
   TypeReference = 'TypeReference',
-  Error = 'Error'
+  Quantity = 'Quantity',
 }
 ```
 
@@ -528,7 +538,7 @@ for (const diagnostic of result.diagnostics) {
 import { evaluate } from '@fhirpath/core';
 
 // Property navigation
-const patientNames = evaluate('name.given', {
+const patientNames = await evaluate('name.given', {
   input: {
     name: [
       { given: ['John', 'James'], family: 'Doe' },
@@ -543,12 +553,12 @@ const patientNames = evaluate('name.given', {
 
 ```typescript
 // Filter with where()
-const activePatients = evaluate("entry.resource.where(resourceType = 'Patient' and active = true)", {
+const activePatients = await evaluate("entry.resource.where(resourceType = 'Patient' and active = true)", {
   input: bundle
 });
 
 // Project with select()
-const fullNames = evaluate("Patient.name.select(given.first() + ' ' + family)", {
+const fullNames = await evaluate("Patient.name.select(given.first() + ' ' + family)", {
   input: patient
 });
 ```
@@ -557,13 +567,13 @@ const fullNames = evaluate("Patient.name.select(given.first() + ' ' + family)", 
 
 ```typescript
 // Built-in variables
-const result = evaluate('$this.value > 10', {
+const result = await evaluate('$this.value > 10', {
   input: [{ value: 15 }, { value: 5 }]
 });
 // Result: [true, false]
 
 // User-defined variables
-const calculated = evaluate('%base * %multiplier', {
+const calculated = await evaluate('%base * %multiplier', {
   variables: {
     base: 100,
     multiplier: 1.5
@@ -576,13 +586,13 @@ const calculated = evaluate('%base * %multiplier', {
 
 ```typescript
 // Check types with is operator
-const isPatient = evaluate("Resource is Patient", {
+const isPatient = await evaluate("Resource is Patient", {
   input: { resourceType: 'Patient', id: '123' }
 });
 // Result: [true]
 
 // Cast with as operator
-const patients = evaluate("Bundle.entry.resource as Patient", {
+const patients = await evaluate("Bundle.entry.resource as Patient", {
   input: bundle
 });
 // Result: Only Patient resources
@@ -604,7 +614,7 @@ const query = `
     })
 `;
 
-const results = evaluate(query, { input: observations });
+const results = await evaluate(query, { input: observations });
 ```
 
 ### Error Handling Best Practices
@@ -612,7 +622,7 @@ const results = evaluate(query, { input: observations });
 ```typescript
 import { evaluate, parse, analyze } from '@fhirpath/core';
 
-function safeEvaluate(expression: string, input: any): any[] | null {
+async function safeEvaluate(expression: string, input: any): Promise<any[] | null> {
   // First, parse the expression
   const parseResult = parse(expression);
   if (parseResult.errors.length > 0) {
@@ -621,7 +631,7 @@ function safeEvaluate(expression: string, input: any): any[] | null {
   }
   
   // Then analyze for static errors
-  const analysisResult = analyze(expression);
+  const analysisResult = await analyze(expression);
   if (analysisResult.diagnostics.some(d => d.severity === DiagnosticSeverity.Error)) {
     console.error('Analysis errors:', analysisResult.diagnostics);
     return null;
@@ -629,7 +639,7 @@ function safeEvaluate(expression: string, input: any): any[] | null {
   
   // Finally, evaluate
   try {
-    return evaluate(expression, { input });
+    return await evaluate(expression, { input });
   } catch (error) {
     console.error('Runtime error:', error);
     return null;
@@ -640,31 +650,27 @@ function safeEvaluate(expression: string, input: any): any[] | null {
 ### Custom Model Provider
 
 ```typescript
-import { ModelTypeProvider, TypeInfo } from '@fhirpath/core';
+import { ModelProvider, TypeInfo } from '@fhirpath/core';
 
-class MyModelProvider implements ModelTypeProvider {
-  getTypeByName(typeName: string): TypeInfo | undefined {
+class MyModelProvider implements ModelProvider {
+  async getType(typeName: string): Promise<TypeInfo | undefined> {
     // Return type information for your model
     if (typeName === 'MyResource') {
       return {
         type: 'Any',
         namespace: 'MyModel',
         name: 'MyResource',
-        singleton: true,
-        elements: {
-          id: { type: 'String', singleton: true },
-          items: { type: 'Any', singleton: false }
-        }
+        singleton: true
       };
     }
     return undefined;
   }
   
-  // Implement other required methods...
+  // Implement other required async methods...
 }
 
 // Use with analyzer
-const result = analyze('MyResource.items', {
+const result = await analyze('MyResource.items', {
   modelProvider: new MyModelProvider()
 });
 ```
@@ -675,19 +681,19 @@ const result = analyze('MyResource.items', {
 
 2. **Handle Empty Collections**: FHIRPath uses empty collections for "no value"
    ```typescript
-   const result = evaluate('nonexistent.property');
+   const result = await evaluate('nonexistent.property');
    // Result: [] (not null or undefined)
    ```
 
 3. **Use Type Checking**: When working with polymorphic data, use type checking
    ```typescript
-   const medications = evaluate("List.entry.item.where(resolve() is Medication)");
+   const medications = await evaluate("List.entry.item.where(resolve() is Medication)");
    ```
 
 4. **Provide Variables**: For reusable expressions, use variables
    ```typescript
    const template = '%resource.meta.lastUpdated > %cutoffDate';
-   const recent = evaluate(template, {
+   const recent = await evaluate(template, {
      variables: {
        resource: patient,
        cutoffDate: '2023-01-01'
@@ -697,7 +703,7 @@ const result = analyze('MyResource.items', {
 
 5. **Validate Before Production**: Use analyze() to catch errors early
    ```typescript
-   const diagnostics = analyze(userExpression).diagnostics;
+   const diagnostics = (await analyze(userExpression)).diagnostics;
    if (diagnostics.length === 0) {
      // Safe to use in production
    }
@@ -711,23 +717,23 @@ const result = analyze('MyResource.items', {
    const interpreter = new Interpreter();
    
    for (const resource of resources) {
-     const result = interpreter.evaluate(ast, [resource]);
+     const result = await interpreter.evaluate(ast, [resource]);
    }
    ```
 
 2. **Use Simple Expressions**: Complex expressions with many operations are slower
    ```typescript
    // Prefer
-   evaluate('Patient.name.given');
+   await evaluate('Patient.name.given');
    
    // Over
-   evaluate('Patient.name.select(given).flatten()');
+   await evaluate('Patient.name.select(given).flatten()');
    ```
 
 3. **Limit Collection Sizes**: Operations on large collections can be expensive
    ```typescript
    // Use take() to limit results
-   evaluate('largeList.take(100)');
+   await evaluate('largeList.take(100)');
    ```
 
 ## Migration Guide
@@ -739,9 +745,9 @@ const result = analyze('MyResource.items', {
 const result = eval(`patient.name[0].given[0]`);
 
 // New (safe)
-const result = evaluate('Patient.name.first().given.first()', {
+const result = (await evaluate('Patient.name.first().given.first()', {
   input: patient
-})[0];
+}))[0];
 ```
 
 ### From JSONPath
@@ -751,7 +757,7 @@ const result = evaluate('Patient.name.first().given.first()', {
 const names = jsonpath.query(patient, '$.name[*].given[*]');
 
 // FHIRPath
-const names = evaluate('Patient.name.given', { input: patient });
+const names = await evaluate('Patient.name.given', { input: patient });
 ```
 
 ### From XPath

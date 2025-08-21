@@ -46,30 +46,17 @@ All types inherit from `System.Any`, which serves as the universal base type.
 ### Core TypeInfo Interface
 
 ```typescript
-export interface TypeInfo {
-  // FHIRPath computational type
+export interface TypeInfo<TypeContext = unknown> {
+  // FHIRPath type
   type: TypeName;
-  
-  // Cardinality
-  singleton?: boolean;     // true = single value, false/undefined = collection
-  
-  // Union type indicator
-  union?: boolean;         // true for choice types like value[x]
-  
-  // Model-specific information
-  namespace?: string;      // e.g., "FHIR", "CDA"
-  name?: string;          // e.g., "Patient", "Observation"
-  
-  // Union type choices
-  choices?: TypeInfo[];    // For union types only
-  
-  // Complex type properties
-  elements?: {
-    [propertyName: string]: TypeInfo;
-  };
-  
-  // Model-specific context (opaque)
-  modelContext?: unknown;
+  singleton?: boolean;
+
+  // Model type information FHIR.Patient; FHIR.string; 
+  namespace?: string;
+  name?: string;
+
+  // opaque context for model provider
+  modelContext?: TypeContext;
 }
 ```
 
@@ -405,34 +392,36 @@ toQuantity(unit?: String): Quantity
 ### Interface Definition
 
 ```typescript
-export interface ModelTypeProvider<TypeContext = unknown> {
-  // Type lookup
-  getTypeByName(typeName: string): TypeInfo | undefined;
+export interface ModelProvider<TypeContext = unknown> {
+  getType(typeName: string): Promise<TypeInfo<TypeContext> | undefined>;
   
-  // Property navigation
-  navigateProperty(parentType: TypeInfo, propertyName: string): TypeInfo | undefined;
+  // get element type from complex type
+  getElementType(parentType: TypeInfo<TypeContext>, propertyName: string): Promise<TypeInfo<TypeContext> | undefined>;
+
+  // get type from union type
+  ofType(type: TypeInfo<TypeContext>, typeName: TypeName): TypeInfo<TypeContext> | undefined;
+
+  // get element names from complex type
+  getElementNames(parentType: TypeInfo<TypeContext>): string[];
+
+  // Returns a union type of all possible child element types
+  getChildrenType(parentType: TypeInfo<TypeContext>): Promise<TypeInfo<TypeContext> | undefined>;
+
+  // Get detailed information about elements of a type for completion suggestions
+  getElements(typeName: string): Promise<Array<{
+    name: string;
+    type: string;
+    documentation?: string;
+  }>>;
+
+  // Get list of all resource types (now async for clean design)
+  getResourceTypes(): Promise<string[]>;
   
-  // Property existence check
-  hasProperty(parentType: TypeInfo, propertyName: string): boolean;
+  // Get list of all complex types
+  getComplexTypes(): Promise<string[]>;
   
-  // Available properties
-  getPropertyNames(parentType: TypeInfo): string[];
-  
-  // Check if type name exists
-  hasTypeName(typeName: string): boolean;
-  
-  // All available types
-  getAllTypeNames(): string[];
-  
-  // Type compatibility
-  isTypeCompatible(source: TypeInfo, target: TypeInfo): boolean;
-  
-  // Map to FHIRPath type
-  mapToFHIRPathType(typeName: string): TypeName;
-  
-  // Optional: Documentation
-  getTypeDocumentation?(type: TypeInfo): string | undefined;
-  getPropertyDocumentation?(parentType: TypeInfo, propertyName: string): string | undefined;
+  // Get list of all primitive types
+  getPrimitiveTypes(): Promise<string[]>;
 }
 ```
 
