@@ -106,6 +106,111 @@ describe("Analyzer", () => {
     });
   });
 
+  describe("iif lazy evaluation", () => {
+    it("should analyze all branches when condition is dynamic", async () => {
+      const result = await analyze("iif(name.exists(), (1 | 2).toString(), 'default')");
+      // With dynamic condition, both branches should be analyzed
+      expect(result.diagnostics).toHaveLength(1);
+      expect(result.diagnostics[0]).toMatchObject({
+        code: ErrorCodes.INVALID_OPERAND_TYPE,
+        message: expect.stringContaining("Cannot apply toString() to Integer[]"),
+      });
+    });
+
+    it("should not analyze unreachable branch when condition is literal true", async () => {
+      const result = await analyze("iif(true, true, (1 | 2).toString())");
+      // False branch is unreachable, should only warn about unreachable code
+      expect(result.diagnostics).toHaveLength(1);
+      expect(result.diagnostics[0]).toMatchObject({
+        severity: DiagnosticSeverity.Warning,
+        code: ErrorCodes.UNREACHABLE_CODE,
+        message: expect.stringContaining("Unreachable code: false branch will never execute"),
+      });
+    });
+
+    it("should not analyze unreachable branch when condition is literal false", async () => {
+      const result = await analyze("iif(false, (1 | 2).toString(), true)");
+      // True branch is unreachable, should only warn about unreachable code
+      expect(result.diagnostics).toHaveLength(1);
+      expect(result.diagnostics[0]).toMatchObject({
+        severity: DiagnosticSeverity.Warning,
+        code: ErrorCodes.UNREACHABLE_CODE,
+        message: expect.stringContaining("Unreachable code: true branch will never execute"),
+      });
+    });
+
+    it("should warn about unreachable code with literal true and valid branches", async () => {
+      const result = await analyze("iif(true, 5 + 3, 2 * 4)");
+      expect(result.diagnostics).toHaveLength(1);
+      expect(result.diagnostics[0]).toMatchObject({
+        severity: DiagnosticSeverity.Warning,
+        code: ErrorCodes.UNREACHABLE_CODE,
+        message: expect.stringContaining("Unreachable code: false branch will never execute"),
+      });
+    });
+
+    it("should warn about unreachable code with literal false and valid branches", async () => {
+      const result = await analyze("iif(false, 5 + 3, 2 * 4)");
+      expect(result.diagnostics).toHaveLength(1);
+      expect(result.diagnostics[0]).toMatchObject({
+        severity: DiagnosticSeverity.Warning,
+        code: ErrorCodes.UNREACHABLE_CODE,
+        message: expect.stringContaining("Unreachable code: true branch will never execute"),
+      });
+    });
+
+    it("should handle nested iif with proper lazy evaluation", async () => {
+      const result = await analyze("iif(true, iif(false, (1 | 2).toString(), 'ok'), 'error')");
+      // Outer false branch is unreachable, inner true branch is unreachable
+      // Should have 2 warnings for unreachable code, no type errors
+      expect(result.diagnostics).toHaveLength(2);
+      expect(result.diagnostics[0]).toMatchObject({
+        severity: DiagnosticSeverity.Warning,
+        code: ErrorCodes.UNREACHABLE_CODE,
+        message: expect.stringContaining("Unreachable code: true branch will never execute"),
+      });
+      expect(result.diagnostics[1]).toMatchObject({
+        severity: DiagnosticSeverity.Warning,
+        code: ErrorCodes.UNREACHABLE_CODE,
+        message: expect.stringContaining("Unreachable code: false branch will never execute"),
+      });
+    });
+
+    it("should not warn when condition is dynamic", async () => {
+      const result = await analyze("iif(%cond, 5, 10)", { variables: { cond: true } });
+      // No unreachable code warnings for dynamic conditions
+      expect(result.diagnostics).toEqual([]);
+    });
+
+    it("should handle missing else branch with literal false", async () => {
+      const result = await analyze("iif(false, (1 | 2).toString())");
+      // True branch is unreachable, no else branch to analyze
+      expect(result.diagnostics).toHaveLength(1);
+      expect(result.diagnostics[0]).toMatchObject({
+        severity: DiagnosticSeverity.Warning,
+        code: ErrorCodes.UNREACHABLE_CODE,
+        message: expect.stringContaining("Unreachable code: true branch will never execute"),
+      });
+    });
+
+    it("should not warn for missing else branch with literal true", async () => {
+      const result = await analyze("iif(true, 5)");
+      // No else branch to be unreachable
+      expect(result.diagnostics).toEqual([]);
+    });
+
+    it("should handle complex unreachable expressions without analyzing them", async () => {
+      const result = await analyze("iif(true, 'valid', unknownFunc() + $invalidVar + (1 | 2).toString())");
+      // Should only warn about unreachable code, not analyze the unreachable branch
+      expect(result.diagnostics).toHaveLength(1);
+      expect(result.diagnostics[0]).toMatchObject({
+        severity: DiagnosticSeverity.Warning,
+        code: ErrorCodes.UNREACHABLE_CODE,
+        message: expect.stringContaining("Unreachable code: false branch will never execute"),
+      });
+    });
+  });
+
   describe("LSP compatibility", () => {
     it("should produce LSP-compatible diagnostics", async () => {
       const result = await analyze("$unknown");

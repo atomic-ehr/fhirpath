@@ -20,7 +20,7 @@ import type {
 } from './types';
 import { NodeType, DiagnosticSeverity } from './types';
 import { registry } from './registry';
-import { Errors, toDiagnostic } from './errors';
+import { Errors, toDiagnostic, ErrorCodes } from './errors';
 import { isCursorNode, CursorContext } from './cursor-nodes';
 import type { AnyCursorNode } from './cursor-nodes';
 import { ScopeManager } from './scope-manager';
@@ -284,6 +284,12 @@ export class Analyzer {
     if (node.name.type === NodeType.Identifier) {
       const funcName = (node.name as IdentifierNode).name;
       
+      // Special handling for iif lazy evaluation
+      if (funcName === 'iif') {
+        this.handleIifFunction(node);
+        return;
+      }
+      
       // Check if this is a type operation that requires ModelProvider
       if (funcName === 'ofType' && !this.modelProvider) {
         // Check if the type argument is a primitive type
@@ -374,6 +380,102 @@ export class Analyzer {
     }
     
     node.arguments.forEach(arg => this.visitNode(arg));
+  }
+
+  private handleIifFunction(node: FunctionNode): void {
+    // Validate function exists and has correct arguments
+    const func = registry.getFunction('iif');
+    if (!func) {
+      this.diagnostics.push(
+        toDiagnostic(Errors.unknownFunction('iif', node.range))
+      );
+      return;
+    }
+
+    // Check argument count
+    const params = func.signatures?.[0]?.parameters || [];
+    const requiredParams = params.filter(p => !p.optional).length;
+    const maxParams = params.length;
+    
+    if (node.arguments.length < requiredParams) {
+      this.diagnostics.push(
+        toDiagnostic(Errors.wrongArgumentCount('iif', requiredParams, node.arguments.length, node.range))
+      );
+      return;
+    } else if (node.arguments.length > maxParams) {
+      this.diagnostics.push(
+        toDiagnostic(Errors.wrongArgumentCount('iif', maxParams, node.arguments.length, node.range))
+      );
+      return;
+    }
+
+    // Check if condition is a literal boolean
+    const conditionArg = node.arguments[0];
+    if (!conditionArg) {
+      return;
+    }
+
+    // Always analyze the condition
+    this.visitNode(conditionArg);
+
+    // Check if condition is a literal boolean
+    let isLiteralTrue = false;
+    let isLiteralFalse = false;
+    
+    if (conditionArg.type === NodeType.Literal) {
+      const literalNode = conditionArg as LiteralNode;
+      if (literalNode.value === true) {
+        isLiteralTrue = true;
+      } else if (literalNode.value === false) {
+        isLiteralFalse = true;
+      }
+    }
+
+    const trueBranch = node.arguments[1];
+    const falseBranch = node.arguments[2];
+
+    if (isLiteralTrue) {
+      // Condition is literal true - analyze true branch, warn about false branch
+      if (trueBranch) {
+        this.visitNode(trueBranch);
+      }
+      if (falseBranch) {
+        this.diagnostics.push({
+          severity: DiagnosticSeverity.Warning,
+          code: ErrorCodes.UNREACHABLE_CODE,
+          message: 'Unreachable code: false branch will never execute',
+          source: 'fhirpath',
+          range: falseBranch.range
+        });
+      }
+    } else if (isLiteralFalse) {
+      // Condition is literal false - warn about true branch, analyze false branch
+      if (trueBranch) {
+        this.diagnostics.push({
+          severity: DiagnosticSeverity.Warning,
+          code: ErrorCodes.UNREACHABLE_CODE,
+          message: 'Unreachable code: true branch will never execute',
+          source: 'fhirpath',
+          range: trueBranch.range
+        });
+      }
+      if (falseBranch) {
+        this.visitNode(falseBranch);
+      }
+    } else {
+      // Dynamic condition - analyze both branches
+      if (trueBranch) {
+        this.visitNode(trueBranch);
+      }
+      if (falseBranch) {
+        this.visitNode(falseBranch);
+      }
+    }
+
+    // Type check arguments if we have type information
+    if (node.typeInfo || node.arguments.some(arg => arg.typeInfo)) {
+      this.checkFunctionArgumentTypes(node, func);
+    }
   }
 
   private visitMembershipTest(node: MembershipTestNode): void {
