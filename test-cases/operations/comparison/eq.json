@@ -171,8 +171,7 @@
         "equality",
         "collection",
         "operator:="
-      ],
-      "pending": "Collection equality with different order not implemented"
+      ]
     },
     {
       "name": "collection inequality",

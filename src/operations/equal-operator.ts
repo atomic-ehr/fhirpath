@@ -5,32 +5,75 @@ import { equalQuantities, compareQuantities, type QuantityValue } from '../quant
 import { box, unbox } from '../boxing';
 
 export const evaluate: OperationEvaluator = async (input, context, left, right) => {
+  // If either operand is empty, return empty
   if (left.length === 0 || right.length === 0) {
     return { value: [], context };
   }
   
-  const boxedL = left[0];
-  const boxedR = right[0];
-  
-  if (!boxedL || !boxedR) {
-    return { value: [], context };
-  }
-  
-  const l = unbox(boxedL);
-  const r = unbox(boxedR);
-  
-  // Check if both are quantities
-  if (l && typeof l === 'object' && 'unit' in l && 
-      r && typeof r === 'object' && 'unit' in r) {
-    const comparison = compareQuantities(l as QuantityValue, r as QuantityValue);
-    // If quantities are incomparable (different dimensions), return empty
-    if (comparison === null) {
+  // Handle single item comparison
+  if (left.length === 1 && right.length === 1) {
+    const boxedL = left[0];
+    const boxedR = right[0];
+    
+    if (!boxedL || !boxedR) {
       return { value: [], context };
     }
-    return { value: [box(comparison === 0, { type: 'Boolean', singleton: true })], context };
+    
+    const l = unbox(boxedL);
+    const r = unbox(boxedR);
+    
+    // Check if both are quantities
+    if (l && typeof l === 'object' && 'unit' in l && 
+        r && typeof r === 'object' && 'unit' in r) {
+      const comparison = compareQuantities(l as QuantityValue, r as QuantityValue);
+      // If quantities are incomparable (different dimensions), return empty
+      if (comparison === null) {
+        return { value: [], context };
+      }
+      return { value: [box(comparison === 0, { type: 'Boolean', singleton: true })], context };
+    }
+    
+    return { value: [box(l === r, { type: 'Boolean', singleton: true })], context };
   }
   
-  return { value: [box(l === r, { type: 'Boolean', singleton: true })], context };
+  // Handle multiple item comparison - order dependent
+  // According to spec: "If both operands are collections with multiple items:
+  // - Each item must be equal
+  // - Comparison is order dependent"
+  
+  // Different lengths means not equal
+  if (left.length !== right.length) {
+    return { value: [box(false, { type: 'Boolean', singleton: true })], context };
+  }
+  
+  // Compare each item at the same index
+  for (let i = 0; i < left.length; i++) {
+    const boxedL = left[i];
+    const boxedR = right[i];
+    
+    if (!boxedL || !boxedR) {
+      return { value: [box(false, { type: 'Boolean', singleton: true })], context };
+    }
+    
+    const l = unbox(boxedL);
+    const r = unbox(boxedR);
+    
+    // Check if both are quantities
+    if (l && typeof l === 'object' && 'unit' in l && 
+        r && typeof r === 'object' && 'unit' in r) {
+      const comparison = compareQuantities(l as QuantityValue, r as QuantityValue);
+      // If quantities are incomparable or not equal, return false
+      if (comparison === null || comparison !== 0) {
+        return { value: [box(false, { type: 'Boolean', singleton: true })], context };
+      }
+    } else if (l !== r) {
+      // For non-quantities, use strict equality
+      return { value: [box(false, { type: 'Boolean', singleton: true })], context };
+    }
+  }
+  
+  // All items are equal at their respective positions
+  return { value: [box(true, { type: 'Boolean', singleton: true })], context };
 };
 
 export const equalOperator: OperatorDefinition & { evaluate: OperationEvaluator } = {
