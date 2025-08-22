@@ -11,6 +11,7 @@ export const evaluate: FunctionEvaluator = async (input, context, args, evaluato
 
 export const countFunction: FunctionDefinition & { evaluate: FunctionEvaluator } = {
   name: 'count',
+  doesNotPropagateEmpty: true,
   category: ['collection'],
   description: 'Returns the number of items in the collection',
   examples: ['Patient.name.count()'],

@@ -44,6 +44,7 @@ export const evaluate: FunctionEvaluator = async (input, context, args, evaluato
 
 export const excludeFunction: FunctionDefinition & { evaluate: FunctionEvaluator } = {
   name: 'exclude',
+  doesNotPropagateEmpty: true,  // exclude with empty argument returns the original collection
   category: ['collection'],
   description: 'Returns the set of elements that are not in the other collection. Duplicate items will not be eliminated by this function, and order will be preserved.',
   examples: [

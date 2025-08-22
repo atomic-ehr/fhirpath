@@ -36,6 +36,11 @@ export const evaluate: FunctionEvaluator = async (input, context, args, evaluato
   }
   const suffixResult = await evaluator(args[0], input, context);
   
+  // If suffix is empty, propagate empty
+  if (suffixResult.value.length === 0) {
+    return { value: [], context };
+  }
+  
   // Validate that suffix is a singleton string
   if (suffixResult.value.length !== 1) {
     throw Errors.invalidOperation('endsWith suffix argument must be a single value');

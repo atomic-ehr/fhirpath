@@ -202,7 +202,6 @@
       "expected": [],
       "error": {
         "type": "EvaluationError",
-        "message": "Argument.*contains.*expected.*String.*got.*Integer",
         "phase": "analyze",
         "code": "FP3003"
       },

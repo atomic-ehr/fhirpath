@@ -26,6 +26,9 @@ export interface TypeInfo<TypeContext = unknown> {
   // FHIRPath type
   type: TypeName;
   singleton?: boolean;
+  
+  // Indicates this is definitely an empty collection
+  isEmpty?: boolean;
 
   // Model type information FHIR.Patient; FHIR.string; 
   namespace?: string;
@@ -78,6 +81,7 @@ export interface OperatorSignature {
 export interface OperatorDefinition {
   symbol: string;
   name: string;
+  doesNotPropagateEmpty?: boolean;
   category: string[];
   precedence: PRECEDENCE;
   associativity: 'left' | 'right';
@@ -117,7 +121,8 @@ export interface FunctionDefinition {
   analyze?: (
     context: AnalysisContext,
     args: ASTNode[]
-  ) => InternalAnalysisResult;
+  ) => Promise<InternalAnalysisResult> | InternalAnalysisResult;
+  doesNotPropagateEmpty?: boolean;  // When true, function doesn't propagate empty collections
 }
 
 // Node types enum - string-based for better debugging
@@ -348,6 +353,8 @@ export interface Diagnostic {
 export interface AnalysisResult {
   diagnostics: Diagnostic[];
   ast: ASTNode;
+  type?: TypeInfo;
+  userVariables?: Map<string, TypeInfo>;
 }
 
 // Parse error type
@@ -432,7 +439,8 @@ export class AnalysisContext {
     public readonly inputType: TypeInfo,
     public readonly systemVariables: ReadonlyMap<string, TypeInfo>,
     public readonly userVariables: ReadonlyMap<string, TypeInfo>,
-    private readonly analyzeNodeCallback: (node: ASTNode, ctx: AnalysisContext) => InternalAnalysisResult
+    private readonly analyzeNodeCallback: (node: ASTNode, ctx: AnalysisContext) => Promise<InternalAnalysisResult>,
+    public readonly modelProvider?: ModelProvider
   ) {}
 
   withUserVariable(name: string, type: TypeInfo): AnalysisContext {
@@ -442,7 +450,8 @@ export class AnalysisContext {
       this.inputType,
       this.systemVariables,
       newUserVars,
-      this.analyzeNodeCallback
+      this.analyzeNodeCallback,
+      this.modelProvider
     );
   }
 
@@ -453,7 +462,8 @@ export class AnalysisContext {
       this.inputType,
       newSystemVars,
       this.userVariables,
-      this.analyzeNodeCallback
+      this.analyzeNodeCallback,
+      this.modelProvider
     );
   }
 
@@ -462,7 +472,8 @@ export class AnalysisContext {
       type,
       this.systemVariables,
       this.userVariables,
-      this.analyzeNodeCallback
+      this.analyzeNodeCallback,
+      this.modelProvider
     );
   }
 
@@ -471,11 +482,12 @@ export class AnalysisContext {
       this.inputType,
       new Map(this.systemVariables),
       new Map(this.userVariables),
-      this.analyzeNodeCallback
+      this.analyzeNodeCallback,
+      this.modelProvider
     );
   }
 
-  analyzeNode(node: ASTNode): InternalAnalysisResult {
+  analyzeNode(node: ASTNode): Promise<InternalAnalysisResult> {
     return this.analyzeNodeCallback(node, this);
   }
 }

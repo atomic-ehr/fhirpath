@@ -25,11 +25,14 @@ export const evaluate: FunctionEvaluator = async (input, context, args, evaluato
     value = input;
   } else {
     // Two arguments: defineVariable(name, value) - evaluate value expression
-    const tempContext = RuntimeContextManager.setVariable(context, '$this', input, true);
+    // $this should be set to the input collection (unboxed to avoid double-boxing)
+    const unboxedInput = input.map(v => unbox(v));
+    const tempContext = RuntimeContextManager.setVariable(context, '$this', unboxedInput, true);
     const valueExpr = args[1];
     if (!valueExpr) {
       throw Errors.invalidOperation('defineVariable requires a value expression');
     }
+    
     const valueResult = await evaluator(valueExpr, input, tempContext);
     value = valueResult.value;
   }
@@ -38,12 +41,14 @@ export const evaluate: FunctionEvaluator = async (input, context, args, evaluato
   // This will throw an error if the variable is already defined (per spec)
   const newContext = RuntimeContextManager.setVariable(context, varName, value);
 
+  
   // Pass through input unchanged
   return { value: input, context: newContext };
 };
 
 export const defineVariableFunction: FunctionDefinition & { evaluate: FunctionEvaluator } = {
   name: 'defineVariable',
+  doesNotPropagateEmpty: true,  // defineVariable should always execute to set the variable
   category: ['context'],
   description: 'Defines a variable in the evaluation context',
   examples: [
@@ -56,7 +61,7 @@ export const defineVariableFunction: FunctionDefinition & { evaluate: FunctionEv
     input: { type: 'Any', singleton: false },
     parameters: [
       { name: 'name', type: { type: 'String', singleton: true } },
-      { name: 'value', type: { type: 'Any', singleton: false }, optional: true },
+      { name: 'value', type: { type: 'Any', singleton: false }, optional: true, expression: true },
     ],
     result: { type: 'Any', singleton: false },
   }],
@@ -69,7 +74,7 @@ export const defineVariableFunction: FunctionDefinition & { evaluate: FunctionEv
    * Analysis-time behavior for defineVariable.
    * Adds the variable to the context for downstream expressions.
    */
-  analyze(context: AnalysisContext, args): InternalAnalysisResult {
+  async analyze(context: AnalysisContext, args): Promise<InternalAnalysisResult> {
     const diagnostics: any[] = [];
     
     // Validate we have at least one argument
@@ -112,7 +117,7 @@ export const defineVariableFunction: FunctionDefinition & { evaluate: FunctionEv
     
     if (args.length >= 2 && args[1]) {
       // If value expression provided, analyze it to get its type
-      const valueResult = context.analyzeNode(args[1]);
+      const valueResult = await context.analyzeNode(args[1]);
       diagnostics.push(...valueResult.diagnostics);
       varType = valueResult.type;
     }

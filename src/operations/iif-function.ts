@@ -1,8 +1,10 @@
-import type { FunctionDefinition } from '../types';
-import { Errors } from '../errors';
+import type { FunctionDefinition, AnalysisContext, InternalAnalysisResult } from '../types';
+import { Errors, ErrorCodes } from '../errors';
 import type { FunctionEvaluator } from '../types';
 import { box, unbox } from '../boxing';
 import { RuntimeContextManager } from '../interpreter';
+import { NodeType } from '../parser';
+import { DiagnosticSeverity } from '../types';
 
 export const evaluate: FunctionEvaluator = async (input, context, args, evaluator) => {
   if (args.length < 2) {
@@ -15,7 +17,7 @@ export const evaluate: FunctionEvaluator = async (input, context, args, evaluato
 
   // Check for multiple items in input collection
   if (input.length > 1) {
-    throw Errors.invalidOperation('iif can only be used on single item or empty collections');
+    throw Errors.emptyNotAllowed('iif');
   }
 
   // Always evaluate condition
@@ -72,6 +74,7 @@ export const evaluate: FunctionEvaluator = async (input, context, args, evaluato
 
 export const iifFunction: FunctionDefinition & { evaluate: FunctionEvaluator } = {
   name: 'iif',
+  doesNotPropagateEmpty: true,  // iif evaluates even with empty input
   category: ['control'],
   description: 'If-then-else expression (immediate if)',
   examples: ['iif(gender = "male", "Mr.", "Ms.")'],
@@ -87,6 +90,152 @@ export const iifFunction: FunctionDefinition & { evaluate: FunctionEvaluator } =
     result: { type: 'Any', singleton: false },
   }],
   evaluate,
+  
+  /**
+   * Analysis-time behavior for iif with lazy evaluation.
+   * Only analyzes reachable branches when condition is a literal.
+   */
+  async analyze(context: AnalysisContext, args): Promise<InternalAnalysisResult> {
+    const diagnostics: any[] = [];
+    
+    // Validate argument count
+    if (args.length < 2) {
+      return {
+        type: { type: 'Any', singleton: false },
+        diagnostics: [{
+          message: 'iif requires at least 2 arguments',
+          severity: DiagnosticSeverity.Error,
+          code: ErrorCodes.WRONG_ARGUMENT_COUNT,
+          source: 'fhirpath',
+          range: { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } }
+        }]
+      };
+    }
+    
+    if (args.length > 3) {
+      return {
+        type: { type: 'Any', singleton: false },
+        diagnostics: [{
+          message: 'iif takes at most 3 arguments',
+          severity: DiagnosticSeverity.Error,
+          code: ErrorCodes.WRONG_ARGUMENT_COUNT,
+          source: 'fhirpath',
+          range: { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } }
+        }]
+      };
+    }
+    
+    // Analyze condition
+    const conditionArg = args[0];
+    if (!conditionArg) {
+      return {
+        type: { type: 'Any', singleton: false },
+        diagnostics: [{
+          message: 'iif requires a condition argument',
+          severity: DiagnosticSeverity.Error,
+          code: ErrorCodes.WRONG_ARGUMENT_COUNT,
+          source: 'fhirpath',
+          range: { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } }
+        }]
+      };
+    }
+    const condResult = await context.analyzeNode(conditionArg);
+    diagnostics.push(...condResult.diagnostics);
+    
+    // Check if condition is a literal boolean
+    let isLiteralTrue = false;
+    let isLiteralFalse = false;
+    
+    if (conditionArg.type === NodeType.Literal) {
+      const literalValue = (conditionArg as any).value;
+      if (literalValue === true) {
+        isLiteralTrue = true;
+      } else if (literalValue === false) {
+        isLiteralFalse = true;
+      }
+    }
+    
+    let trueBranchType = { type: 'Any', singleton: false } as any;
+    let falseBranchType = { type: 'Any', singleton: false } as any;
+    
+    // Lazy evaluation: only analyze reachable branches
+    if (isLiteralTrue) {
+      // Only true branch is reachable
+      const trueBranch = args[1];
+      if (!trueBranch) {
+        return {
+          type: { type: 'Any', singleton: false },
+          diagnostics
+        };
+      }
+      const trueBranchResult = await context.analyzeNode(trueBranch);
+      diagnostics.push(...trueBranchResult.diagnostics);
+      trueBranchType = trueBranchResult.type;
+      
+      // Warn about unreachable false branch
+      if (args.length === 3 && args[2]) {
+        diagnostics.push({
+          message: 'Unreachable code: false branch will never execute',
+          severity: DiagnosticSeverity.Warning,
+          code: ErrorCodes.UNREACHABLE_CODE,
+          source: 'fhirpath',
+          range: args[2].range || { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } }
+        });
+      }
+      
+      return { type: trueBranchType, diagnostics };
+    } else if (isLiteralFalse) {
+      // Only false branch is reachable (if it exists)
+      // Warn about unreachable true branch
+      const trueBranch = args[1];
+      if (trueBranch) {
+        diagnostics.push({
+          message: 'Unreachable code: true branch will never execute',
+          severity: DiagnosticSeverity.Warning,
+          code: ErrorCodes.UNREACHABLE_CODE,
+          source: 'fhirpath',
+          range: trueBranch.range || { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } }
+        });
+      }
+      
+      if (args.length === 3 && args[2]) {
+        const falseBranchResult = await context.analyzeNode(args[2]);
+        diagnostics.push(...falseBranchResult.diagnostics);
+        falseBranchType = falseBranchResult.type;
+        return { type: falseBranchType, diagnostics };
+      } else {
+        // No else branch, return empty
+        return { type: { type: 'Any', singleton: false }, diagnostics };
+      }
+    } else {
+      // Dynamic condition: analyze both branches
+      const trueBranch = args[1];
+      if (trueBranch) {
+        const trueBranchResult = await context.analyzeNode(trueBranch);
+        diagnostics.push(...trueBranchResult.diagnostics);
+        trueBranchType = trueBranchResult.type;
+      }
+      
+      if (args.length === 3 && args[2]) {
+        const falseBranchResult = await context.analyzeNode(args[2]);
+        diagnostics.push(...falseBranchResult.diagnostics);
+        falseBranchType = falseBranchResult.type;
+        
+        // Result type is the union of both branches
+        // For now, if they differ, return Any
+        if (trueBranchType.type === falseBranchType.type && 
+            trueBranchType.singleton === falseBranchType.singleton) {
+          return { type: trueBranchType, diagnostics };
+        } else if (trueBranchType.type === falseBranchType.type) {
+          // Same type but different singleton - result is collection
+          return { type: { type: trueBranchType.type, singleton: false }, diagnostics };
+        }
+      }
+      
+      return { type: { type: 'Any', singleton: false }, diagnostics };
+    }
+  },
+  
   async inferResultType(analyzer, node, inputType) {
     // iif returns the common type of the true and false branches
     if (node.arguments.length >= 2) {

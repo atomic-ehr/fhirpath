@@ -42,6 +42,7 @@ export const evaluate: FunctionEvaluator = async (input, context, args, evaluato
 
 export const existsFunction: FunctionDefinition & { evaluate: FunctionEvaluator } = {
   name: 'exists',
+  doesNotPropagateEmpty: true,
   category: ['collection', 'logical'],
   description: 'Returns true if the collection has any items, or if any item satisfies the condition',
   examples: ['Patient.name.exists()', 'Patient.name.exists(use = "official")'],

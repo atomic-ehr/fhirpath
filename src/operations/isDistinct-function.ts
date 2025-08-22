@@ -35,6 +35,7 @@ export const evaluate: FunctionEvaluator = async (input, context, args, evaluato
 
 export const isDistinctFunction: FunctionDefinition & { evaluate: FunctionEvaluator } = {
   name: 'isDistinct',
+  doesNotPropagateEmpty: true,  // Returns true for empty collections
   category: ['existence'],
   description: 'Returns true if all the items in the input collection are distinct. To determine whether two items are distinct, the equals (=) operator is used. If the input collection is empty, the result is true.',
   examples: [

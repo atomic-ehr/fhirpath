@@ -40,6 +40,7 @@ export const evaluate: OperationEvaluator = async (input, context, left, right) 
 export const containsOperator: OperatorDefinition & { evaluate: OperationEvaluator } = {
   symbol: 'contains',
   name: 'contains',
+  doesNotPropagateEmpty: true,  // Empty left operand returns false
   category: ['membership'],
   precedence: PRECEDENCE.IN_CONTAINS,
   associativity: 'left',

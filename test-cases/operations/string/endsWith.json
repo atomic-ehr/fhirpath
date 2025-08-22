@@ -166,8 +166,8 @@
       "expected": [],
       "error": {
         "type": "Error",
-        "message": "endsWith requires a single item, but collection has \\d+ items",
-        "phase": "analyze"
+        "phase": "analyze",
+        "code": "FP2003"
       },
       "tags": [
         "function",

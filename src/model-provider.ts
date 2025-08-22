@@ -277,10 +277,54 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
   
   // Async implementation with lazy loading
   async getType(typeName: string): Promise<TypeInfo<FHIRModelContext> | undefined> {
-    // Check if it's a primitive type - these don't require initialization
-    if (this.typeMapping[typeName]) {
+    // First check if this is a FHIRPath primitive type name
+    const fhirpathPrimitives = ['Boolean', 'String', 'Integer', 'Decimal', 'Date', 'DateTime', 'Time', 'Any'];
+    if (fhirpathPrimitives.includes(typeName)) {
+      // Return the FHIRPath primitive type directly without trying to load a schema
       return {
-        type: this.typeMapping[typeName],
+        type: typeName as TypeName,
+        namespace: 'FHIR',
+        name: typeName,
+        singleton: true,
+        modelContext: {
+          path: typeName,
+          schemaHierarchy: []
+        }
+      };
+    }
+    
+    // Check if it's a FHIR primitive type that maps to a FHIRPath type
+    const mappedType = this.typeMapping[typeName];
+    if (mappedType) {
+      // For types that are both FHIRPath types and complex FHIR types (like Quantity),
+      // we need to check if they have a schema
+      // But skip primitive FHIRPath types that definitely don't have schemas
+      const primitiveTypes = ['Boolean', 'String', 'Integer', 'Decimal', 'Date', 'DateTime', 'Time'];
+      const isPrimitive = primitiveTypes.includes(mappedType);
+      
+      if (this.initialized && !isPrimitive) {
+        const schema = await this.getSchema(typeName);
+        if (schema) {
+          // It's a complex type with properties
+          const schemaHierarchy = await this.getSchemaHierarchyAsync(schema);
+          return {
+            type: mappedType,
+            namespace: 'FHIR',
+            name: typeName,
+            singleton: true,
+            modelContext: {
+              path: typeName,
+              schemaHierarchy,
+              canonicalUrl: schema.url,
+              version: schema.version
+            }
+          };
+        }
+      }
+      
+      // It's a pure primitive type without properties
+      return {
+        type: mappedType,
         namespace: 'FHIR',
         name: typeName,
         singleton: true,
@@ -323,6 +367,26 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
   async getElementType( parentType: TypeInfo<FHIRModelContext>, propertyName: string): Promise<TypeInfo<FHIRModelContext> | undefined> {
     const context = parentType.modelContext;
     if (!context) return undefined;
+    
+    // Handle union types (polymorphic fields like value[x])
+    if (context.isUnion && context.choices) {
+      // For union types, check if the property exists on any of the choice types
+      for (const choice of context.choices) {
+        // Get the type for this choice - use type field which has the proper case
+        const choiceTypeName = choice.type;
+        const choiceType = await this.getType(choiceTypeName);
+        if (choiceType) {
+          // Try to get the property from this choice type
+          const elementType = await this.getElementType(choiceType, propertyName);
+          if (elementType) {
+            // Found the property on this choice type
+            return elementType;
+          }
+        }
+      }
+      // Property not found on any choice type
+      return undefined;
+    }
     
     // Search through schema hierarchy for the property
     for (const schema of context.schemaHierarchy) {

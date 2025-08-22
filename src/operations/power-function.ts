@@ -75,14 +75,39 @@ export const powerFunction: FunctionDefinition & { evaluate: FunctionEvaluator }
     '2.5.power(2)',
     '(-1).power(0.5)'
   ],
-  signatures: [{
-
-    name: 'power',
-    input: { type: 'Decimal', singleton: true },
-    parameters: [
-      { name: 'exponent', type: { type: 'Decimal', singleton: true }, optional: false }
-    ],
-    result: { type: 'Decimal', singleton: true }
-  }],
+  signatures: [
+    {
+      name: 'power-integer',
+      input: { type: 'Integer', singleton: true },
+      parameters: [
+        { name: 'exponent', type: { type: 'Integer', singleton: true }, optional: false }
+      ],
+      result: { type: 'Integer', singleton: true }
+    },
+    {
+      name: 'power-decimal',
+      input: { type: 'Decimal', singleton: true },
+      parameters: [
+        { name: 'exponent', type: { type: 'Decimal', singleton: true }, optional: false }
+      ],
+      result: { type: 'Decimal', singleton: true }
+    },
+    {
+      name: 'power-integer-decimal',
+      input: { type: 'Integer', singleton: true },
+      parameters: [
+        { name: 'exponent', type: { type: 'Decimal', singleton: true }, optional: false }
+      ],
+      result: { type: 'Decimal', singleton: true }
+    },
+    {
+      name: 'power-decimal-integer',
+      input: { type: 'Decimal', singleton: true },
+      parameters: [
+        { name: 'exponent', type: { type: 'Integer', singleton: true }, optional: false }
+      ],
+      result: { type: 'Decimal', singleton: true }
+    }
+  ],
   evaluate
 };

@@ -71,6 +71,30 @@ export const multiplyOperator: OperatorDefinition & { evaluate: OperationEvaluat
       left: { type: 'Quantity', singleton: true },
       right: { type: 'Quantity', singleton: true },
       result: { type: 'Quantity', singleton: true },
+    },
+    {
+      name: 'quantity-integer-multiply',
+      left: { type: 'Quantity', singleton: true },
+      right: { type: 'Integer', singleton: true },
+      result: { type: 'Quantity', singleton: true },
+    },
+    {
+      name: 'integer-quantity-multiply',
+      left: { type: 'Integer', singleton: true },
+      right: { type: 'Quantity', singleton: true },
+      result: { type: 'Quantity', singleton: true },
+    },
+    {
+      name: 'quantity-decimal-multiply',
+      left: { type: 'Quantity', singleton: true },
+      right: { type: 'Decimal', singleton: true },
+      result: { type: 'Quantity', singleton: true },
+    },
+    {
+      name: 'decimal-quantity-multiply',
+      left: { type: 'Decimal', singleton: true },
+      right: { type: 'Quantity', singleton: true },
+      result: { type: 'Quantity', singleton: true },
     }
   ],
   evaluate

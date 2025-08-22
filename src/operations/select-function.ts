@@ -1,4 +1,4 @@
-import type { FunctionDefinition } from '../types';
+import type { FunctionDefinition, AnalysisContext, InternalAnalysisResult } from '../types';
 import { Errors } from '../errors';
 import { RuntimeContextManager } from '../interpreter';
 import { type FunctionEvaluator } from '../types';
@@ -55,5 +55,66 @@ export const selectFunction: FunctionDefinition & { evaluate: FunctionEvaluator 
     ],
     result: 'parameterType' as any,
   }],
-  evaluate
+  evaluate,
+  
+  /**
+   * Analysis-time behavior for select.
+   * The projection expression needs to be analyzed with system variables in scope.
+   */
+  async analyze(context: AnalysisContext, args): Promise<InternalAnalysisResult> {
+    const diagnostics: any[] = [];
+    
+    if (args.length !== 1) {
+      return {
+        type: { type: 'Any', singleton: false },
+        diagnostics: [{
+          message: 'select expects exactly 1 argument',
+          severity: 'error' as any,
+          range: { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } }
+        }]
+      };
+    }
+    
+    // For select, we need to analyze the projection expression with:
+    // 1. $this set to each element type
+    // 2. $index available as Integer
+    // 3. User variables from the outer context preserved
+    
+    // Get element type from input
+    const elementType = context.inputType.singleton 
+      ? context.inputType 
+      : { ...context.inputType, singleton: true };
+    
+    // Create context for analyzing the projection
+    // Add system variables but preserve user variables
+    // IMPORTANT: Also update input type to the element type for property navigation
+    const projectionContext = context
+      .withInputType(elementType)
+      .withSystemVariable('$this', elementType)
+      .withSystemVariable('$index', { type: 'Integer', singleton: true })
+      .withSystemVariable('$total', { type: 'Integer', singleton: true });
+    
+    // Analyze the projection expression
+    const projectionArg = args[0];
+    if (!projectionArg) {
+      return {
+        type: { type: 'Any', singleton: false },
+        diagnostics,
+        context
+      };
+    }
+    const projectionResult = await projectionContext.analyzeNode(projectionArg);
+    diagnostics.push(...projectionResult.diagnostics);
+    
+    // Result type is the type returned by the projection (as a collection)
+    const resultType = projectionResult.type.singleton
+      ? { ...projectionResult.type, singleton: false }
+      : projectionResult.type;
+    
+    return {
+      type: resultType,
+      diagnostics,
+      context // Return original context - select doesn't modify outer scope
+    };
+  }
 };

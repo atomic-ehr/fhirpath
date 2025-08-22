@@ -19,7 +19,10 @@ export const evaluate: FunctionEvaluator = async (input, context, args, evaluato
   }
   // Evaluate the argument with the root context ($this), not the current input
   // This allows expressions like Patient.name.given to work correctly
-  const rootInput = context.variables['$this'] || context.input;
+  // $this contains the original input to the FHIRPath expression
+  // context.input contains the original input passed to evaluate()
+  // We should use $this if available, otherwise fall back to context.input
+  const rootInput = context.variables?.['$this'] || context.input || [];
   const otherResult = await evaluator(argNode, rootInput, context);
   const other = otherResult.value;
 
@@ -52,6 +55,7 @@ export const evaluate: FunctionEvaluator = async (input, context, args, evaluato
 
 export const subsetOfFunction: FunctionDefinition & { evaluate: FunctionEvaluator } = {
   name: 'subsetOf',
+  doesNotPropagateEmpty: true,  // Returns true if input is empty
   category: ['existence'],
   description: 'Returns true if all items in the input collection are members of the collection passed as the other argument. Membership is determined using the equals (=) operation.',
   examples: [

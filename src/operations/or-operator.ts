@@ -30,6 +30,7 @@ export const evaluate: OperationEvaluator = async (input, context, left, right) 
 export const orOperator: OperatorDefinition & { evaluate: OperationEvaluator } = {
   symbol: 'or',
   name: 'or',
+  doesNotPropagateEmpty: true,  // Three-valued logic: true or empty = true
   category: ['logical'],
   precedence: PRECEDENCE.OR,
   associativity: 'left',

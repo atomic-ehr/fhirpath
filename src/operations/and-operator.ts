@@ -30,6 +30,7 @@ export const evaluate: OperationEvaluator = async (input, context, left, right) 
 export const andOperator: OperatorDefinition & { evaluate: OperationEvaluator } = {
   symbol: 'and',
   name: 'and',
+  doesNotPropagateEmpty: true,  // Three-valued logic: false and empty = false
   category: ['logical'],
   precedence: PRECEDENCE.AND,
   associativity: 'left',

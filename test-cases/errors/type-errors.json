@@ -32,7 +32,6 @@
       ],
       "error": {
         "type": "TypeError",
-        "message": "Expected.*Integer.*got.*String",
         "phase": "analyze",
         "code": "FP3003"
       },

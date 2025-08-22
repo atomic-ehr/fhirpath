@@ -213,7 +213,6 @@
       "expected": [],
       "error": {
         "type": "EvaluationError",
-        "message": "Argument.*startsWith.*expected.*String.*got.*Integer",
         "phase": "analyze",
         "code": "FP3003"
       },

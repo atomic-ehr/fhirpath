@@ -5,19 +5,18 @@ import { box, unbox } from '../boxing';
 
 export const evaluate: OperationEvaluator = async (input, context, left, right) => {
   // Combine operator concatenates all values as strings
-  const leftStr = left.map(v => String(unbox(v))).join('');
-  const rightStr = right.map(v => String(unbox(v))).join('');
+  // Empty collections are treated as empty string
+  const leftStr = left.length === 0 ? '' : left.map(v => String(unbox(v))).join('');
+  const rightStr = right.length === 0 ? '' : right.map(v => String(unbox(v))).join('');
   
-  if (leftStr === '' && rightStr === '') {
-    return { value: [], context };
-  }
-  
+  // Always return a string, even if both are empty
   return { value: [box(leftStr + rightStr, { type: 'String', singleton: true })], context };
 };
 
 export const combineOperator: OperatorDefinition & { evaluate: OperationEvaluator } = {
   symbol: '&',
   name: 'combine',
+  doesNotPropagateEmpty: true,  // Treats empty as empty string, always returns a string
   category: ['string'],
   precedence: PRECEDENCE.ADDITIVE,
   associativity: 'left',

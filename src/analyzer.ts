@@ -17,9 +17,11 @@ import type {
   TypeName,
   TypeOrIdentifierNode,
   ErrorNode,
-  InternalAnalysisResult
+  InternalAnalysisResult,
+  QuantityNode
 } from './types';
 import { NodeType, DiagnosticSeverity, AnalysisContext } from './types';
+import type { OperatorSignature, FunctionSignature } from './types';
 import { registry } from './registry';
 import { Errors, toDiagnostic, ErrorCodes } from './errors';
 import { isCursorNode, CursorContext } from './cursor-nodes';
@@ -74,7 +76,7 @@ export class Analyzer {
    * Main entry point for context-flow analysis.
    * Analyzes a node with the given context.
    */
-  private analyzeNode(node: ASTNode, context: AnalysisContext): InternalAnalysisResult {
+  private async analyzeNode(node: ASTNode, context: AnalysisContext): Promise<InternalAnalysisResult> {
     // Handle cursor nodes for completion
     if (isCursorNode(node)) {
       return this.analyzeCursorNode(node as AnyCursorNode, context);
@@ -84,35 +86,38 @@ export class Analyzer {
     
     switch (node.type) {
       case NodeType.Binary:
-        result = this.analyzeBinary(node as BinaryNode, context);
+        result = await this.analyzeBinary(node as BinaryNode, context);
         break;
       case NodeType.Unary:
-        result = this.analyzeUnary(node as UnaryNode, context);
+        result = await this.analyzeUnary(node as UnaryNode, context);
         break;
       case NodeType.Function:
-        result = this.analyzeFunction(node as FunctionNode, context);
+        result = await this.analyzeFunction(node as FunctionNode, context);
         break;
       case NodeType.Variable:
         result = this.analyzeVariable(node as VariableNode, context);
         break;
       case NodeType.Identifier:
       case NodeType.TypeOrIdentifier:
-        result = this.analyzeIdentifier(node as IdentifierNode | TypeOrIdentifierNode, context);
+        result = await this.analyzeIdentifier(node as IdentifierNode | TypeOrIdentifierNode, context);
         break;
       case NodeType.Literal:
         result = this.analyzeLiteral(node as LiteralNode, context);
         break;
       case NodeType.Index:
-        result = this.analyzeIndex(node as IndexNode, context);
+        result = await this.analyzeIndex(node as IndexNode, context);
         break;
       case NodeType.Collection:
-        result = this.analyzeCollection(node as CollectionNode, context);
+        result = await this.analyzeCollection(node as CollectionNode, context);
         break;
       case NodeType.MembershipTest:
-        result = this.analyzeMembershipTest(node as MembershipTestNode, context);
+        result = await this.analyzeMembershipTest(node as MembershipTestNode, context);
         break;
       case NodeType.TypeCast:
-        result = this.analyzeTypeCast(node as TypeCastNode, context);
+        result = await this.analyzeTypeCast(node as TypeCastNode, context);
+        break;
+      case NodeType.Quantity:
+        result = this.analyzeQuantity(node as QuantityNode, context);
         break;
       case 'Error':
         result = this.analyzeError(node as ErrorNode, context);
@@ -133,17 +138,17 @@ export class Analyzer {
   /**
    * Analyzes binary operators with special handling for union and dot.
    */
-  private analyzeBinary(node: BinaryNode, context: AnalysisContext): InternalAnalysisResult {
+  private async analyzeBinary(node: BinaryNode, context: AnalysisContext): Promise<InternalAnalysisResult> {
     const diagnostics: Diagnostic[] = [];
 
     // Special handling for union operator - fork context for each branch
     if (node.operator === '|') {
-      const leftResult = this.analyzeNode(node.left, context.fork());
+      const leftResult = await this.analyzeNode(node.left, context.fork());
       if (this.stoppedAtCursor) {
         return { type: { type: 'Any', singleton: false }, diagnostics: leftResult.diagnostics };
       }
       
-      const rightResult = this.analyzeNode(node.right, context.fork());
+      const rightResult = await this.analyzeNode(node.right, context.fork());
       
       diagnostics.push(...leftResult.diagnostics, ...rightResult.diagnostics);
       
@@ -159,14 +164,14 @@ export class Analyzer {
 
     // Special handling for dot operator - flow context through
     if (node.operator === '.') {
-      const leftResult = this.analyzeNode(node.left, context);
+      const leftResult = await this.analyzeNode(node.left, context);
       if (this.stoppedAtCursor) {
         return { type: { type: 'Any', singleton: false }, diagnostics: leftResult.diagnostics };
       }
       
       // Right side gets left's output as input, with any context changes
       const rightContext = (leftResult.context || context).withInputType(leftResult.type);
-      const rightResult = this.analyzeNode(node.right, rightContext);
+      const rightResult = await this.analyzeNode(node.right, rightContext);
       
       diagnostics.push(...leftResult.diagnostics, ...rightResult.diagnostics);
       
@@ -178,21 +183,100 @@ export class Analyzer {
     }
 
     // Handle other binary operators
-    const leftResult = this.analyzeNode(node.left, context);
+    const leftResult = await this.analyzeNode(node.left, context);
     if (this.stoppedAtCursor) {
       return { type: { type: 'Any', singleton: false }, diagnostics: leftResult.diagnostics };
     }
     
-    // For operator cursor nodes, the left side's type is what matters for completions
-    const rightContext = context.withInputType(leftResult.type);
-    const rightResult = this.analyzeNode(node.right, rightContext);
+    // Check if right side is a cursor node - if so, set proper context
+    if (this.cursorMode && isCursorNode(node.right)) {
+      this.stoppedAtCursor = true;
+      this.cursorContext = {
+        cursorNode: node.right as AnyCursorNode,
+        typeBeforeCursor: leftResult.type,
+        expectedType: undefined
+      };
+      return {
+        type: { type: 'Any', singleton: false },
+        diagnostics: leftResult.diagnostics
+      };
+    }
+    
+    // For most operators, right side evaluates with original context (not left's output)
+    const rightResult = await this.analyzeNode(node.right, context);
     
     diagnostics.push(...leftResult.diagnostics, ...rightResult.diagnostics);
 
-    // For now, handle other operators generically
-    // TODO: Add proper type checking for each operator
+    // Get operator definition for type checking
+    const operatorDef = registry.getOperatorDefinition(node.operator);
+    if (!operatorDef) {
+      diagnostics.push(this.createError(node, `Unknown operator: ${node.operator}`, ErrorCodes.UNKNOWN_OPERATOR));
+      return {
+        type: { type: 'Any', singleton: false },
+        diagnostics
+      };
+    }
 
-    // For now, return Any type - will be refined later
+    // Check operator signatures for type compatibility
+    if (operatorDef.signatures && operatorDef.signatures.length > 0) {
+      // Find a matching signature
+      let matchingSignature: OperatorSignature | null = null;
+      for (const sig of operatorDef.signatures) {
+        // Check if types match (with some flexibility for Any)
+        const leftTypeMatches = sig.left.type === 'Any' || leftResult.type.type === 'Any' || 
+                           sig.left.type === leftResult.type.type ||
+                           (sig.left.type === 'Decimal' && leftResult.type.type === 'Integer');
+        const rightTypeMatches = sig.right.type === 'Any' || rightResult.type.type === 'Any' || 
+                            sig.right.type === rightResult.type.type ||
+                            (sig.right.type === 'Decimal' && rightResult.type.type === 'Integer');
+        
+        // Also check singleton requirements
+        const leftSingletonMatches = !sig.left.singleton || leftResult.type.singleton;
+        const rightSingletonMatches = !sig.right.singleton || rightResult.type.singleton;
+        
+        if (leftTypeMatches && rightTypeMatches && leftSingletonMatches && rightSingletonMatches) {
+          matchingSignature = sig;
+          break;
+        }
+      }
+      
+      if (!matchingSignature) {
+        // No matching signature found - report type error
+        // But don't report if either side is Any (could be from an error)
+        if (leftResult.type.type !== 'Any' && rightResult.type.type !== 'Any') {
+          const leftTypeStr = leftResult.type.singleton ? leftResult.type.type : `${leftResult.type.type}[]`;
+          const rightTypeStr = rightResult.type.singleton ? rightResult.type.type : `${rightResult.type.type}[]`;
+          diagnostics.push(this.createError(
+            node,
+            `Operator '${node.operator}' cannot be applied to types ${leftTypeStr} and ${rightTypeStr}`,
+            ErrorCodes.OPERATOR_TYPE_MISMATCH
+          ));
+        }
+        return {
+          type: { type: 'Any', singleton: false },
+          diagnostics
+        };
+      }
+      
+      // Determine result type from matching signature
+      let resultType: TypeInfo;
+      if (matchingSignature.result === 'leftType') {
+        resultType = leftResult.type;
+      } else if (matchingSignature.result === 'rightType') {
+        resultType = rightResult.type;
+      } else if (typeof matchingSignature.result === 'object') {
+        resultType = matchingSignature.result;
+      } else {
+        resultType = { type: 'Any', singleton: false };
+      }
+      
+      return {
+        type: resultType,
+        diagnostics
+      };
+    }
+
+    // If no signatures defined, return Any type
     return {
       type: { type: 'Any', singleton: false },
       diagnostics
@@ -202,7 +286,7 @@ export class Analyzer {
   /**
    * Analyzes function calls, delegating to function's analyze method if available.
    */
-  private analyzeFunction(node: FunctionNode, context: AnalysisContext): InternalAnalysisResult {
+  private async analyzeFunction(node: FunctionNode, context: AnalysisContext): Promise<InternalAnalysisResult> {
     const diagnostics: Diagnostic[] = [];
     
     // Get function name
@@ -218,46 +302,374 @@ export class Analyzer {
     // Get function definition
     const funcDef = registry.getFunction(functionName);
     if (!funcDef) {
-      diagnostics.push(this.createError(node, `Unknown function: ${functionName}`));
+      diagnostics.push(this.createError(node, `Unknown function: ${functionName}`, ErrorCodes.UNKNOWN_FUNCTION));
       return { type: { type: 'Any', singleton: false }, diagnostics };
+    }
+
+    // Check argument count if function has signatures
+    let hasArgumentError = false;
+    if (funcDef.signatures && funcDef.signatures.length > 0) {
+      const signature = funcDef.signatures[0];
+      if (signature) {
+        const params = signature.parameters || [];
+        const requiredCount = params.filter(p => !p.optional).length;
+        const maxCount = params.length;
+        const actualCount = node.arguments.length;
+        
+        if (actualCount < requiredCount) {
+          diagnostics.push(this.createError(
+            node, 
+            `${functionName} expects at least ${requiredCount} argument${requiredCount !== 1 ? 's' : ''}, got ${actualCount}`,
+            ErrorCodes.WRONG_ARGUMENT_COUNT
+          ));
+          hasArgumentError = true;
+        } else if (actualCount > maxCount) {
+          diagnostics.push(this.createError(
+            node,
+            `${functionName} expects at most ${maxCount} argument${maxCount !== 1 ? 's' : ''}, got ${actualCount}`,
+            ErrorCodes.WRONG_ARGUMENT_COUNT
+          ));
+          hasArgumentError = true;
+        }
+      }
     }
 
     // If function has custom analyze method, use it
     if (funcDef.analyze) {
-      return funcDef.analyze(context, node.arguments);
+      const result = funcDef.analyze(context, node.arguments);
+      // Handle both async and sync analyze methods
+      return result instanceof Promise ? await result : result;
     }
 
     // Default function analysis
-    // Analyze all arguments
-    for (const arg of node.arguments) {
-      const argResult = this.analyzeNode(arg, context);
-      diagnostics.push(...argResult.diagnostics);
+    // Analyze all arguments and collect their types
+    const argTypes: TypeInfo[] = [];
+    const signature = funcDef.signatures?.[0];
+    const params = signature?.parameters || [];
+    
+    for (let i = 0; i < node.arguments.length; i++) {
+      const arg = node.arguments[i]!;
+      const param = params[i];
       
-      if (this.stoppedAtCursor) {
-        return { type: { type: 'Any', singleton: false }, diagnostics };
+      // For functions that expect type names (ofType, is, as), treat identifiers as type references
+      // For other expression parameters (like where, select, etc.), analyze them normally
+      const typeCheckingFunctions = ['ofType', 'is', 'as'];
+      const isTypeParameter = param?.expression && 
+                              typeCheckingFunctions.includes(functionName) &&
+                              (arg.type === NodeType.Identifier || arg.type === NodeType.TypeOrIdentifier);
+      
+      if (isTypeParameter) {
+        // This is a type reference, not a property access
+        argTypes.push({ type: 'TypeReference' as TypeName, singleton: true });
+      } else if (param?.expression) {
+        // Expression parameters are analyzed with the function's input as context
+        // AND with $this set to the item type (singleton version of input)
+        // This matches how the interpreter uses withIterator for each item
+        const itemType = { ...context.inputType, singleton: true };
+        const exprContext = context
+          .withSystemVariable('$this', itemType)
+          .withSystemVariable('$index', { type: 'Integer', singleton: true });
+        
+        const argResult = await this.analyzeNode(arg, exprContext);
+        diagnostics.push(...argResult.diagnostics);
+        argTypes.push(argResult.type);
+        
+        if (this.stoppedAtCursor) {
+          return { type: { type: 'Any', singleton: false }, diagnostics };
+        }
+      } else {
+        // Normal parameters should be analyzed with $this as input
+        // (they're independent expressions evaluated from the root context)
+        const thisType = context.systemVariables.get('$this') || context.inputType;
+        const argContext = context.withInputType(thisType);
+        const argResult = await this.analyzeNode(arg, argContext);
+        diagnostics.push(...argResult.diagnostics);
+        argTypes.push(argResult.type);
+        
+        if (this.stoppedAtCursor) {
+          return { type: { type: 'Any', singleton: false }, diagnostics };
+        }
       }
     }
 
+    // Check input type compatibility only if no argument errors
+    if (!hasArgumentError && funcDef.signatures && funcDef.signatures.length > 0) {
+      // Try to find a matching signature based on input type AND parameters
+      let matchingSignature: FunctionSignature | null = null;
+      const actualInput = context.inputType;
+      
+      for (const sig of funcDef.signatures) {
+        // Check input type first
+        let inputMatches = true;
+        if (sig.input) {
+          const expectedInput = sig.input;
+          
+          // Check both singleton and type requirements
+          const singletonMatch = !expectedInput.singleton || actualInput.singleton;
+          const typeMatch = expectedInput.type === 'Any' || actualInput.type === 'Any' || 
+                           expectedInput.type === actualInput.type ||
+                           (expectedInput.type === 'Decimal' && actualInput.type === 'Integer');
+          
+          inputMatches = singletonMatch && typeMatch;
+        }
+        
+        if (!inputMatches) continue;
+        
+        // Check parameter types
+        let paramsMatch = true;
+        if (sig.parameters) {
+          for (let i = 0; i < argTypes.length; i++) {
+            const param = sig.parameters[i];
+            const argType = argTypes[i];
+            if (param && argType && !param.expression) {
+              // Skip empty arguments - they'll propagate empty at runtime
+              const isEmptyArg = argType.isEmpty || (argType.type === 'Any' && !argType.singleton);
+              if (isEmptyArg && !funcDef.doesNotPropagateEmpty) {
+                continue; // Empty will propagate, so this signature could work
+              }
+              
+              const expectedType = param.type;
+              const typeMatch = expectedType.type === 'Any' || argType.type === 'Any' ||
+                               expectedType.type === argType.type ||
+                               (expectedType.type === 'Decimal' && argType.type === 'Integer');
+              const singletonMatch = !expectedType.singleton || argType.singleton;
+              
+              if (!typeMatch || !singletonMatch) {
+                paramsMatch = false;
+                break;
+              }
+            }
+          }
+        }
+        
+        if (paramsMatch) {
+          matchingSignature = sig;
+          break;
+        }
+      }
+      
+      if (!matchingSignature) {
+        // Check if input is empty and function propagates empty
+        const inputIsEmpty = actualInput.isEmpty || 
+                           (actualInput.type === 'Any' && !actualInput.singleton);
+        if (inputIsEmpty && !funcDef.doesNotPropagateEmpty) {
+          // Empty input will propagate through - no error needed
+          // The empty propagation logic above will handle this
+        } else {
+          // Try to find if there's a signature that matches the input but not the parameters
+          let inputMatchingSignature: FunctionSignature | null = null;
+          for (const sig of funcDef.signatures) {
+            let inputMatches = true;
+            if (sig.input) {
+              const expectedInput = sig.input;
+              const singletonMatch = !expectedInput.singleton || actualInput.singleton;
+              const typeMatch = expectedInput.type === 'Any' || actualInput.type === 'Any' || 
+                               expectedInput.type === actualInput.type ||
+                               (expectedInput.type === 'Decimal' && actualInput.type === 'Integer');
+              inputMatches = singletonMatch && typeMatch;
+            }
+            if (inputMatches) {
+              inputMatchingSignature = sig;
+              break;
+            }
+          }
+          
+          // If we found a signature that matches input but not parameters, report parameter errors
+          if (inputMatchingSignature && inputMatchingSignature.parameters) {
+            // Check which parameter doesn't match
+            for (let i = 0; i < argTypes.length; i++) {
+              const param = inputMatchingSignature.parameters[i];
+              const argType = argTypes[i];
+              if (param && argType && !param.expression) {
+                const isEmptyArg = argType.isEmpty || (argType.type === 'Any' && !argType.singleton);
+                if (!isEmptyArg || funcDef.doesNotPropagateEmpty) {
+                  const expectedType = param.type;
+                  const typeMatch = expectedType.type === 'Any' || argType.type === 'Any' ||
+                                   expectedType.type === argType.type ||
+                                   (expectedType.type === 'Decimal' && argType.type === 'Integer');
+                  const singletonMatch = !expectedType.singleton || argType.singleton;
+                  
+                  if (!typeMatch || !singletonMatch) {
+                    const argTypeStr = argType.singleton ? argType.type : `${argType.type}[]`;
+                    const expectedTypeStr = expectedType.singleton ? expectedType.type : `${expectedType.type}[]`;
+                    // Use warning for singleton mismatches (collection where singleton expected)
+                    // These are checked at runtime in FHIRPath
+                    const isOnlySingletonMismatch = typeMatch && !singletonMatch;
+                    diagnostics.push(isOnlySingletonMismatch ? 
+                      this.createWarning(
+                        node.arguments[i]!,
+                        `Argument ${i + 1} of ${functionName}(): expected ${expectedTypeStr}, got ${argTypeStr}`,
+                        ErrorCodes.ARGUMENT_TYPE_MISMATCH
+                      ) :
+                      this.createError(
+                        node.arguments[i]!,
+                        `Argument ${i + 1} of ${functionName}(): expected ${expectedTypeStr}, got ${argTypeStr}`,
+                        ErrorCodes.ARGUMENT_TYPE_MISMATCH
+                      )
+                    );
+                  }
+                }
+              }
+            }
+          } else {
+            // No signature matches the input type
+            const actualTypeStr = actualInput.singleton ? actualInput.type : `${actualInput.type}[]`;
+            
+            // Check if it's a singleton issue
+            const hasSingletonSignature = funcDef.signatures.some(sig => 
+              sig.input?.singleton && sig.input.type === actualInput.type
+            );
+            
+            if (hasSingletonSignature && !actualInput.singleton) {
+              // It's specifically a singleton mismatch - use the more specific error code
+              diagnostics.push(this.createError(
+                node,
+                `${functionName} expects a singleton value, but received collection type ${actualTypeStr}`,
+                ErrorCodes.SINGLETON_REQUIRED
+              ));
+            } else {
+              // List expected types
+              const expectedTypes = funcDef.signatures
+                .map(sig => sig.input ? 
+                  (sig.input.singleton ? sig.input.type : `${sig.input.type}[]`) : 
+                  'Any')
+                .filter((v, i, a) => a.indexOf(v) === i) // unique
+                .join(' or ');
+              const errorMessage = `Cannot apply ${functionName}() to ${actualTypeStr}. Function expects ${expectedTypes}.`;
+              
+              diagnostics.push(this.createError(
+                node,
+                errorMessage,
+                ErrorCodes.INVALID_OPERAND_TYPE
+              ));
+            }
+          }
+        }
+      } else {
+        // Check argument types against the matching signature
+        if (matchingSignature.parameters) {
+          for (let i = 0; i < argTypes.length; i++) {
+            const param = matchingSignature.parameters[i];
+            if (param) {
+              const argType = argTypes[i];
+              if (argType) {
+                // Skip type validation for expression parameters (they will be evaluated at runtime)
+                // Only validate type for non-expression parameters
+                if (!param.expression) {
+                  // Check type compatibility
+                  const expectedType = param.type;
+                  const typeMatch = expectedType.type === 'Any' || argType.type === 'Any' ||
+                                   expectedType.type === argType.type ||
+                                   (expectedType.type === 'Decimal' && argType.type === 'Integer');
+                  const singletonMatch = !expectedType.singleton || argType.singleton;
+                  
+                  if (!typeMatch || !singletonMatch) {
+                  const argTypeStr = argType.singleton ? argType.type : `${argType.type}[]`;
+                  const expectedTypeStr = expectedType.singleton ? expectedType.type : `${expectedType.type}[]`;
+                  
+                  // Check if this is an empty collection - if so, generate warning instead of error
+                  const isEmptyCollection = argType.isEmpty || 
+                                          (argType.type === 'Any' && !argType.singleton);
+                  
+                  if (isEmptyCollection && !funcDef.doesNotPropagateEmpty) {
+                    // Empty collection will propagate - generate warning
+                    diagnostics.push(this.createWarning(
+                      node.arguments[i]!,
+                      `Argument ${i + 1} of ${functionName}(): expected ${expectedTypeStr}, got empty collection. Result will be empty.`
+                    ));
+                  } else {
+                    // Type mismatch - check if it's only a singleton issue
+                    const isOnlySingletonMismatch = typeMatch && !singletonMatch;
+                    diagnostics.push(isOnlySingletonMismatch ?
+                      this.createWarning(
+                        node.arguments[i]!,
+                        `Argument ${i + 1} of ${functionName}(): expected ${expectedTypeStr}, got ${argTypeStr}`,
+                        ErrorCodes.ARGUMENT_TYPE_MISMATCH
+                      ) :
+                      this.createError(
+                        node.arguments[i]!,
+                        `Argument ${i + 1} of ${functionName}(): expected ${expectedTypeStr}, got ${argTypeStr}`,
+                        ErrorCodes.ARGUMENT_TYPE_MISMATCH
+                      )
+                    );
+                  }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Check for empty propagation
+    // If function propagates empty and input or any argument is empty, result is empty
+    if (!funcDef.doesNotPropagateEmpty) {
+      // Check if input is empty collection
+      const inputIsEmpty = context.inputType.isEmpty || 
+                          (context.inputType.type === 'Any' && !context.inputType.singleton);
+      
+      // Check if any argument is empty collection
+      const hasEmptyArgument = argTypes.some(argType => 
+        argType.isEmpty || (argType.type === 'Any' && !argType.singleton)
+      );
+      
+      if (inputIsEmpty || hasEmptyArgument) {
+        // Function propagates empty - result is empty collection
+        return {
+          type: { type: 'Any', singleton: false, isEmpty: true },
+          diagnostics,
+          context // Preserve context even when empty propagates
+        };
+      }
+    }
+    
     // Determine result type from function signature
     let resultType = context.inputType;
+    let matchingSignature: FunctionSignature | null = null;
     
     if (funcDef.signatures && funcDef.signatures.length > 0) {
-      // Use first signature for now (TODO: match based on argument types)
-      const signature = funcDef.signatures[0];
+      // Find matching signature (same logic as above)
+      const actualInput = context.inputType;
       
-      if (signature.result === 'inputType') {
-        resultType = context.inputType;
-      } else if (signature.result === 'inputTypeSingleton') {
-        // Make the input type a singleton
-        resultType = { ...context.inputType, singleton: true };
-      } else if (typeof signature.result === 'object') {
-        resultType = signature.result;
+      for (const sig of funcDef.signatures) {
+        if (sig.input) {
+          const expectedInput = sig.input;
+          
+          const singletonMatch = !expectedInput.singleton || actualInput.singleton;
+          const typeMatch = expectedInput.type === 'Any' || actualInput.type === 'Any' || 
+                           expectedInput.type === actualInput.type ||
+                           (expectedInput.type === 'Decimal' && actualInput.type === 'Integer');
+          
+          if (singletonMatch && typeMatch) {
+            matchingSignature = sig;
+            break;
+          }
+        } else {
+          matchingSignature = sig;
+          break;
+        }
+      }
+      
+      // Use matching signature or first as fallback
+      const signature = matchingSignature || funcDef.signatures[0];
+      
+      if (signature) {
+        if (signature.result === 'inputType') {
+          resultType = context.inputType;
+        } else if (signature.result === 'inputTypeSingleton') {
+          // Make the input type a singleton
+          resultType = { ...context.inputType, singleton: true };
+        } else if (typeof signature.result === 'object') {
+          resultType = signature.result;
+        }
       }
     }
 
     return {
       type: resultType,
-      diagnostics
+      diagnostics,
+      context // Preserve context with user variables
     };
   }
 
@@ -270,6 +682,14 @@ export class Analyzer {
 
     // Check if it's a user variable (starts with %)
     if (varName.startsWith('%')) {
+      // Special handling for %context - it's a built-in environment variable
+      // that always returns the original input to the evaluation engine
+      if (varName === '%context') {
+        // %context returns the root input type (the original input to evaluate())
+        // In the analyzer, we track this as the initial input type
+        return { type: context.inputType, diagnostics, context };
+      }
+      
       const name = varName.substring(1); // Remove % prefix
       const varType = context.userVariables.get(name);
       
@@ -278,53 +698,78 @@ export class Analyzer {
         return { type: { type: 'Any', singleton: false }, diagnostics };
       }
       
-      return { type: varType, diagnostics };
+      // Attach type info to the node for backward compatibility
+      node.typeInfo = varType;
+      return { type: varType, diagnostics, context };
     }
 
     // Check system variables
     const sysVarType = context.systemVariables.get(varName);
     if (sysVarType) {
-      return { type: sysVarType, diagnostics };
+      // Attach type info to the node for backward compatibility
+      node.typeInfo = sysVarType;
+      return { type: sysVarType, diagnostics, context };
     }
 
     // Unknown variable
-    diagnostics.push(this.createError(node, `Unknown variable: ${varName}`));
+    diagnostics.push(this.createError(node, `Unknown variable: ${varName}`, ErrorCodes.UNKNOWN_VARIABLE));
     return { type: { type: 'Any', singleton: false }, diagnostics };
   }
 
   /**
    * Analyzes identifier nodes (property access).
    */
-  private analyzeIdentifier(node: IdentifierNode | TypeOrIdentifierNode, context: AnalysisContext): InternalAnalysisResult {
+  private async analyzeIdentifier(node: IdentifierNode | TypeOrIdentifierNode, context: AnalysisContext): Promise<InternalAnalysisResult> {
     const name = 'name' in node ? node.name : '';
+    const diagnostics: Diagnostic[] = [];
     
-    // Common FHIR properties that are typically collections
-    const collectionProperties = ['name', 'given', 'identifier', 'telecom', 'address', 'contact'];
-    
-    // Common FHIR properties that are typically singletons
-    const singletonProperties = ['family', 'use', 'text', 'system', 'value', 'code', 'display', 'active', 'gender'];
-    
-    let resultType: TypeInfo;
-    
-    if (singletonProperties.includes(name)) {
-      // Known singleton properties
-      resultType = { type: 'Any', singleton: true };
-    } else if (collectionProperties.includes(name)) {
-      // Known collection properties
-      resultType = { type: 'Any', singleton: false };
-    } else {
-      // Default to collection for unknown properties (safer default)
-      resultType = { type: 'Any', singleton: false };
+    // Try to use model provider for accurate type information
+    if (context.modelProvider) {
+      // First try to navigate from input type (property access)
+      const elementType = await context.modelProvider.getElementType(context.inputType, name);
+      if (elementType) {
+        return {
+          type: elementType,
+          diagnostics,
+          context
+        };
+      }
+      
+      // If property not found and we have a concrete type, report warning
+      // FHIRPath returns empty for unknown properties, not an error
+      if (context.inputType.namespace && context.inputType.name && 
+          context.inputType.modelContext) {
+        diagnostics.push(this.createWarning(
+          node,
+          `Unknown property '${name}' on type '${context.inputType.namespace}.${context.inputType.name}'`,
+          ErrorCodes.UNKNOWN_PROPERTY
+        ));
+        return {
+          type: { type: 'Any', singleton: false },
+          diagnostics,
+          context
+        };
+      }
+      
+      // Try as a type name (for types starting with uppercase)
+      if (/^[A-Z]/.test(name)) {
+        const typeInfo = await context.modelProvider.getType(name);
+        if (typeInfo) {
+          return {
+            type: typeInfo,
+            diagnostics,
+            context
+          };
+        }
+      }
     }
     
-    // Special case for string-returning properties
-    if (['given', 'family', 'display', 'text', 'value'].includes(name)) {
-      resultType.type = 'String';
-    }
-    
+    // Without a model provider, we can't know the type
+    // Return Any type - don't make assumptions
     return {
-      type: resultType,
-      diagnostics: []
+      type: { type: 'Any', singleton: false },
+      diagnostics,
+      context
     };
   }
 
@@ -366,8 +811,8 @@ export class Analyzer {
   /**
    * Analyzes unary operators.
    */
-  private analyzeUnary(node: UnaryNode, context: AnalysisContext): InternalAnalysisResult {
-    const operandResult = this.analyzeNode(node.operand, context);
+  private async analyzeUnary(node: UnaryNode, context: AnalysisContext): Promise<InternalAnalysisResult> {
+    const operandResult = await this.analyzeNode(node.operand, context);
     // For now, preserve operand type
     return operandResult;
   }
@@ -375,9 +820,9 @@ export class Analyzer {
   /**
    * Analyzes index operations.
    */
-  private analyzeIndex(node: IndexNode, context: AnalysisContext): InternalAnalysisResult {
-    const exprResult = this.analyzeNode(node.expression, context);
-    const indexResult = this.analyzeNode(node.index, context);
+  private async analyzeIndex(node: IndexNode, context: AnalysisContext): Promise<InternalAnalysisResult> {
+    const exprResult = await this.analyzeNode(node.expression, context);
+    const indexResult = await this.analyzeNode(node.index, context);
     
     return {
       type: exprResult.type, // Indexing preserves collection element type
@@ -386,13 +831,27 @@ export class Analyzer {
   }
 
   /**
+   * Analyzes quantity literals.
+   */
+  private analyzeQuantity(node: QuantityNode, context: AnalysisContext): InternalAnalysisResult {
+    return {
+      type: { type: 'Quantity', singleton: true },
+      diagnostics: [],
+      context
+    };
+  }
+
+  /**
    * Analyzes collection literals.
    */
-  private analyzeCollection(node: CollectionNode, context: AnalysisContext): InternalAnalysisResult {
+  private async analyzeCollection(node: CollectionNode, context: AnalysisContext): Promise<InternalAnalysisResult> {
     const diagnostics: Diagnostic[] = [];
     
+    // Check if this is an empty collection
+    const isEmpty = node.elements.length === 0;
+    
     for (const element of node.elements) {
-      const elemResult = this.analyzeNode(element, context);
+      const elemResult = await this.analyzeNode(element, context);
       diagnostics.push(...elemResult.diagnostics);
       
       if (this.stoppedAtCursor) {
@@ -401,7 +860,7 @@ export class Analyzer {
     }
     
     return {
-      type: { type: 'Any', singleton: false },
+      type: { type: 'Any', singleton: false, isEmpty },
       diagnostics
     };
   }
@@ -409,8 +868,8 @@ export class Analyzer {
   /**
    * Analyzes membership test (is operator).
    */
-  private analyzeMembershipTest(node: MembershipTestNode, context: AnalysisContext): InternalAnalysisResult {
-    const exprResult = this.analyzeNode(node.expression, context);
+  private async analyzeMembershipTest(node: MembershipTestNode, context: AnalysisContext): Promise<InternalAnalysisResult> {
+    const exprResult = await this.analyzeNode(node.expression, context);
     
     return {
       type: { type: 'Boolean', singleton: true },
@@ -421,8 +880,8 @@ export class Analyzer {
   /**
    * Analyzes type cast (as operator).
    */
-  private analyzeTypeCast(node: TypeCastNode, context: AnalysisContext): InternalAnalysisResult {
-    const exprResult = this.analyzeNode(node.expression, context);
+  private async analyzeTypeCast(node: TypeCastNode, context: AnalysisContext): Promise<InternalAnalysisResult> {
+    const exprResult = await this.analyzeNode(node.expression, context);
     
     // Type cast changes the type
     const targetType: TypeInfo = { 
@@ -456,7 +915,8 @@ export class Analyzer {
       this.cursorContext = {
         typeBeforeCursor: context.inputType,
         cursorNode: node,
-        expectedType: undefined
+        expectedType: undefined,
+        functionCall: undefined
       };
       
       // Set expected type based on cursor context
@@ -464,8 +924,23 @@ export class Analyzer {
         // Index expects an integer
         this.cursorContext.expectedType = { type: 'Integer', singleton: true };
       } else if (node.context === CursorContext.Argument) {
-        // Arguments context - we'll handle this specially
-        // TODO: Determine expected type from function signature
+        // Arguments context - check if we're in a function
+        const parent = (node as any).parent;
+        if (parent && parent.type === NodeType.Function) {
+          const funcNode = parent as FunctionNode;
+          if (funcNode.name.type === NodeType.Identifier) {
+            const funcName = (funcNode.name as IdentifierNode).name;
+            const funcDef = registry.getFunction(funcName);
+            if (funcDef) {
+              // Find argument index
+              const argIndex = funcNode.arguments.indexOf(node);
+              this.cursorContext.functionCall = {
+                definition: funcDef,
+                argumentIndex: argIndex >= 0 ? argIndex : 0
+              };
+            }
+          }
+        }
       }
     }
     
@@ -479,8 +954,19 @@ export class Analyzer {
    * Helper to combine types from union branches.
    */
   private combineUnionTypes(left: TypeInfo, right: TypeInfo): TypeInfo {
-    // For now, return Any for union types
-    // TODO: Implement proper type union logic
+    // Union always produces a collection (never singleton)
+    // If both sides have the same type, preserve it
+    if (left.type === right.type) {
+      return { type: left.type, singleton: false };
+    }
+    
+    // If types are compatible (e.g., Integer and Decimal), use the broader type
+    if ((left.type === 'Integer' && right.type === 'Decimal') ||
+        (left.type === 'Decimal' && right.type === 'Integer')) {
+      return { type: 'Decimal', singleton: false };
+    }
+    
+    // Otherwise, return Any for mixed types
     return { type: 'Any', singleton: false };
   }
 
@@ -492,7 +978,18 @@ export class Analyzer {
       range: node.range,
       message,
       severity: DiagnosticSeverity.Error,
-      code
+      code,
+      source: 'fhirpath'
+    };
+  }
+  
+  private createWarning(node: ASTNode, message: string, code?: string): Diagnostic {
+    return {
+      range: node.range,
+      message,
+      severity: DiagnosticSeverity.Warning,
+      code,
+      source: 'fhirpath'
     };
   }
 
@@ -508,7 +1005,8 @@ export class Analyzer {
     
     // Create initial context with system and user variables
     const systemVars = new Map<string, TypeInfo>();
-    systemVars.set('$this', { type: 'Any', singleton: false });
+    // $this should be the input type (the root context), not Any
+    systemVars.set('$this', inputType || { type: 'Any', singleton: false });
     systemVars.set('$index', { type: 'Integer', singleton: true });
     systemVars.set('$total', { type: 'Any', singleton: false });
     
@@ -522,20 +1020,31 @@ export class Analyzer {
       });
     }
     
-    // Create context with analyzeNode callback
+    // Create context with analyzeNode callback and model provider
     const initialContext = new AnalysisContext(
       inputType || { type: 'Any', singleton: false },
       systemVars,
       userVars,
-      (node, ctx) => this.analyzeNode(node, ctx)
+      (node, ctx) => this.analyzeNode(node, ctx),
+      this.modelProvider
     );
     
     // Run context-flow analysis
-    const result = this.analyzeNode(ast, initialContext);
+    const result = await this.analyzeNode(ast, initialContext);
     
     // For backward compatibility with old annotateAST approach
     // TODO: Remove this once all callers are updated
     // We need to run annotateAST even in cursor mode to get model-based type information
+    // Populate userVariableTypes for the old visitor pattern
+    this.userVariableTypes.clear();
+    if (userVariables) {
+      Object.keys(userVariables).forEach(name => {
+        const value = userVariables[name];
+        if (value !== undefined && value !== null) {
+          this.userVariableTypes.set(name, this.inferValueType(value));
+        }
+      });
+    }
     await this.annotateAST(ast, inputType);
     
     // Clear diagnostics from old visitor pattern if we're using new context-flow
@@ -545,6 +1054,8 @@ export class Analyzer {
     return {
       diagnostics: result.diagnostics,
       ast,
+      type: result.type,
+      userVariables: result.context?.userVariables || initialContext.userVariables,
       stoppedAtCursor: this.cursorMode ? this.stoppedAtCursor : undefined,
       cursorContext: this.cursorMode ? this.cursorContext : undefined
     };
@@ -1252,8 +1763,13 @@ export class Analyzer {
       // Skip diagnostics for union types - they may have dynamic properties
       if (leftType.namespace && leftType.name && leftType.modelContext && 
           !(leftType.modelContext as any).isUnion) {
+        // Use warning instead of error for unknown properties on FHIR types
+        // FHIRPath returns empty for unknown properties, not an error
         this.diagnostics.push(
-          toDiagnostic(Errors.unknownProperty(propertyName, `${leftType.namespace}.${leftType.name}`, node.right.range))
+          toDiagnostic(
+            Errors.unknownProperty(propertyName, `${leftType.namespace}.${leftType.name}`, node.right.range),
+            DiagnosticSeverity.Warning
+          )
         );
       }
     }
@@ -1707,7 +2223,7 @@ export class Analyzer {
           this.stoppedAtCursor = true;
           this.cursorContext = {
             cursorNode: binaryNode.right as AnyCursorNode,
-            typeBeforeCursor: binaryNode.left.typeInfo,
+            typeBeforeCursor: binaryNode.left.typeInfo || { type: 'Any', singleton: false },
             expectedType: this.inferExpectedTypeForCursor(binaryNode.right as AnyCursorNode, binaryNode.left.typeInfo)
           };
           // Still attach type to cursor node

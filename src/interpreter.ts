@@ -162,7 +162,11 @@ export class RuntimeContextManager {
     
     // Handle user-defined variables (add % prefix if not present)
     const varKey = name.startsWith('%') ? name : `%${name}`;
-    return context.variables[varKey];
+    // Use 'in' operator to check prototype chain for inherited variables
+    if (varKey in context.variables) {
+      return context.variables[varKey];
+    }
+    return undefined;
   }
 }
 
@@ -287,6 +291,8 @@ export class Interpreter {
   private async evaluateIdentifier(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): Promise<EvaluationResult> {
     const identifier = node as IdentifierNode;
     const name = identifier.name;
+    
+    
 
     // Navigate property on each boxed item in input
     const results: FHIRPathValue[] = [];
@@ -456,6 +462,8 @@ export class Interpreter {
       }
     }
 
+    
+    
     return {
       value: results,
       context
@@ -490,6 +498,7 @@ export class Interpreter {
     if (operator === '.') {
       // Evaluate left with current input/context
       const leftResult = await this.evaluate(binary.left, input, context);
+      
       // Use left's output as right's input, and left's context flows to right
       return await this.evaluate(binary.right, leftResult.value, leftResult.context);
     }
@@ -520,6 +529,22 @@ export class Interpreter {
       // Most operators evaluate arguments in parallel with same input/context
       const leftResult = await this.evaluate(binary.left, input, context);
       const rightResult = await this.evaluate(binary.right, input, context);
+      
+      // Handle empty propagation for operators
+      // Check if operator has doesNotPropagateEmpty flag
+      const operatorDef = this.registry.getOperatorDefinition(operator);
+      if (operatorDef && !operatorDef.doesNotPropagateEmpty) {
+        // Check if either operand is empty
+        if (leftResult.value.length === 0 || rightResult.value.length === 0) {
+          // Operators like union (|) don't propagate empty - they're collection operators
+          // The combine operator (&) also doesn't propagate empty
+          const collectionOperators = ['|'];
+          if (!collectionOperators.includes(operator)) {
+            return { value: [], context };
+          }
+        }
+      }
+      
       return await evaluator(input, context, leftResult.value, rightResult.value);
     }
 
@@ -587,14 +612,57 @@ export class Interpreter {
     const func = node as FunctionNode;
     const funcName = (func.name as IdentifierNode).name;
 
+    // Get the function definition to check if it propagates empty
+    const functionDef = this.registry.getFunction(funcName);
+    
     // Check if function is registered with an evaluator
     const functionEvaluator = this.functionEvaluators.get(funcName);
-    if (functionEvaluator) {
-      return await functionEvaluator(input, context, func.arguments, this.evaluate.bind(this));
+    if (!functionEvaluator) {
+      // No function found in registry
+      throw Errors.unknownFunction(funcName);
     }
-
-    // No function found in registry
-    throw Errors.unknownFunction(funcName);
+    
+    // Handle empty propagation centrally
+    // Only propagate empty for functions that DO propagate empty (default behavior)
+    if (functionDef && !functionDef.doesNotPropagateEmpty) {
+      // Check if input is empty
+      if (input.length === 0) {
+        return { value: [], context };
+      }
+      
+      // Special case: substring doesn't propagate empty for its length parameter
+      const skipEmptyCheckForParam = funcName === 'substring' ? 1 : -1;
+      
+      // Check if any arguments evaluate to empty
+      // We need to evaluate arguments that aren't expression parameters
+      for (let i = 0; i < func.arguments.length; i++) {
+        // Skip the length parameter for substring (index 1)
+        if (i === skipEmptyCheckForParam) {
+          continue;
+        }
+        
+        const arg = func.arguments[i];
+        const param = functionDef.signatures?.[0]?.parameters?.[i];
+        
+        // Skip expression parameters (they're not evaluated for emptiness)
+        if (param?.expression) {
+          continue;
+        }
+        
+        // Evaluate the argument
+        const argResult = await this.evaluate(arg!, input, context);
+        
+        // If argument is empty, propagate empty
+        if (argResult.value.length === 0) {
+          return { value: [], context };
+        }
+      }
+    }
+    // Functions that don't propagate empty (count, empty, exists, etc.) 
+    // will continue to their evaluator even with empty input
+    
+    // Call the function evaluator
+    return await functionEvaluator(input, context, func.arguments, this.evaluate.bind(this));
   }
 
   // Index evaluator

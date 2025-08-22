@@ -24,6 +24,7 @@ export const evaluate: FunctionEvaluator = async (input, context, args, evaluato
 
 export const anyTrueFunction: FunctionDefinition & { evaluate: FunctionEvaluator } = {
   name: 'anyTrue',
+  doesNotPropagateEmpty: true,
   category: ['existence'],
   description: 'Takes a collection of Boolean values and returns true if any of the items are true. If all the items are false, or if the input is empty, the result is false.',
   examples: [

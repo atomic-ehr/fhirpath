@@ -21,6 +21,11 @@ export const evaluate: FunctionEvaluator = async (input, context, args, evaluato
     total = [];
   }
 
+  // If input is empty and init is provided, return the init value
+  if (input.length === 0 && initExpr) {
+    return { value: total, context };
+  }
+
   // For each item in the input collection, evaluate the aggregator expression
   for (let index = 0; index < input.length; index++) {
     const item = input[index]!;
@@ -46,6 +51,7 @@ export const evaluate: FunctionEvaluator = async (input, context, args, evaluato
 
 export const aggregateFunction: FunctionDefinition & { evaluate: FunctionEvaluator } = {
   name: 'aggregate',
+  doesNotPropagateEmpty: true,  // aggregate with init should return init value for empty input
   category: ['aggregates'],
   description: 'Performs general-purpose aggregation by evaluating the aggregator expression for each element of the input collection',
   examples: [

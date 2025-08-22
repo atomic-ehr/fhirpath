@@ -168,6 +168,22 @@ Use the TypeScript MCP tools for TypeScript-specific operations like finding sym
   - `bun tools/interpreter.ts "name.where(use = 'official').given" '{"name": [{"use": "official", "given": ["John"]}]}'`
   - `bun tools/interpreter.ts "'Hello' + ' ' + 'World'"`
 
+* **Analyzer Tool** (`./tools/analyzer.ts`) - Analyze FHIRPath expressions for type information and diagnostics
+  ```bash
+  bun tools/analyzer.ts "<fhirpath-expression>" [options]
+  ```
+  Options:
+  - `--type, -t` - Input type (e.g., "Patient", "String", etc.)
+  - `--vars, -v` - JSON object with variables
+  - `--singleton` - Input is a singleton (single value)
+  - `--ast` - Show AST structure
+  
+  Examples:
+  - `bun tools/analyzer.ts "5 + 3"` - Analyze simple expression
+  - `bun tools/analyzer.ts "name.given" --type Patient` - Analyze with typed input
+  - `bun tools/analyzer.ts "%x + %y" --vars '{"x": 10, "y": 20}'` - With variables
+  - `bun tools/analyzer.ts "property.defineVariable('x', $this.value).select(%x)"` - Complex expression
+
 * **Inspect Tool** (`./tools/inspect.ts`) - Debug FHIRPath expressions with rich debugging information including traces, AST, and timing
   ```bash
   bun tools/inspect.ts "<fhirpath-expression>" [input-json] [options]

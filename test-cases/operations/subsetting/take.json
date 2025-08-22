@@ -150,16 +150,8 @@
     },
     {
       "name": "take - error on non-integer argument",
-      "expression": "values.take(3.5)",
-      "input": [
-        {
-          "values": [
-            1,
-            2,
-            3
-          ]
-        }
-      ],
+      "expression": "(1 | 2 | 3).take(3.5)",
+      "input": [],
       "expected": [],
       "error": {
         "type": "Error",
@@ -176,16 +168,8 @@
     },
     {
       "name": "take - error on string argument",
-      "expression": "values.take('3')",
-      "input": [
-        {
-          "values": [
-            1,
-            2,
-            3
-          ]
-        }
-      ],
+      "expression": "(1 | 2 | 3).take('3')",
+      "input": [],
       "expected": [],
       "error": {
         "type": "Error",
@@ -201,7 +185,7 @@
       ]
     },
     {
-      "name": "take - error on empty argument",
+      "name": "take - empty argument returns empty",
       "expression": "values.take(({}))",
       "input": [
         {
@@ -213,11 +197,6 @@
         }
       ],
       "expected": [],
-      "error": {
-        "type": "Error",
-        "message": "argument must be a single value",
-        "code": "FP6005"
-      },
       "tags": [
         "function",
         "subsetting",

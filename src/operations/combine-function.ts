@@ -29,6 +29,7 @@ export const evaluate: FunctionEvaluator = async (input, context, args, evaluato
 
 export const combineFunction: FunctionDefinition & { evaluate: FunctionEvaluator } = {
   name: 'combine',
+  doesNotPropagateEmpty: true,  // Combine accepts empty collections as valid input
   category: ['collection'],
   description: 'Merge the input and other collections into a single collection without eliminating duplicate values. Combining an empty collection with a non-empty collection will return the non-empty collection. There is no expectation of order in the resulting collection.',
   examples: [

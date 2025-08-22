@@ -392,8 +392,7 @@
       "expected": [],
       "error": {
         "type": "Error",
-        "message": "iif can only be used on single item or empty collections",
-        "code": "FP6005"
+        "code": "FP2004"
       },
       "tags": [
         "function",

@@ -43,12 +43,19 @@ export const sqrtFunction: FunctionDefinition & { evaluate: FunctionEvaluator } 
     '81.sqrt()',
     '(-1).sqrt()'
   ],
-  signatures: [{
-
-    name: 'sqrt',
-    input: { type: 'Decimal', singleton: true },
-    parameters: [],
-    result: { type: 'Decimal', singleton: true }
-  }],
+  signatures: [
+    {
+      name: 'sqrt-integer',
+      input: { type: 'Integer', singleton: true },
+      parameters: [],
+      result: { type: 'Decimal', singleton: true }
+    },
+    {
+      name: 'sqrt-decimal',
+      input: { type: 'Decimal', singleton: true },
+      parameters: [],
+      result: { type: 'Decimal', singleton: true }
+    }
+  ],
   evaluate
 };

@@ -49,7 +49,7 @@
       "expected": [],
       "error": {
         "type": "Error",
-        "message": "single requires a single item, but collection has \\d+ items"
+        "code": "FP2003"
       },
       "tags": [
         "function",
@@ -112,7 +112,7 @@
       "expected": [],
       "error": {
         "type": "Error",
-        "message": "single requires a single item, but collection has \\d+ items"
+        "code": "FP2003"
       },
       "tags": [
         "function",
@@ -129,7 +129,7 @@
       "expected": [],
       "error": {
         "type": "Error",
-        "message": "single expects 0 arguments, got \\d+"
+        "code": "FP2001"
       },
       "tags": [
         "function",

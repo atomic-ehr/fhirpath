@@ -184,7 +184,7 @@
       "expected": [],
       "error": {
         "type": "Error",
-        "message": "toString expects 0 arguments, got \\d+"
+        "code": "FP2001"
       },
       "tags": [
         "function",

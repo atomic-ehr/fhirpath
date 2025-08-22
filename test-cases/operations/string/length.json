@@ -137,8 +137,8 @@
       "expected": [],
       "error": {
         "type": "EvaluationError",
-        "message": "length.*expects 0 arguments, got",
-        "phase": "analyze"
+        "phase": "analyze",
+        "code": "FP2001"
       },
       "tags": [
         "string",

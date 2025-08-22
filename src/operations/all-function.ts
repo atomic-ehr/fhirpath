@@ -51,6 +51,7 @@ export const evaluate: FunctionEvaluator = async (input, context, args, evaluato
 
 export const allFunction: FunctionDefinition & { evaluate: FunctionEvaluator } = {
   name: 'all',
+  doesNotPropagateEmpty: true,  // Returns true for empty collections
   category: ['existence'],
   description: 'Returns true if for every element in the input collection, criteria evaluates to true. Otherwise, the result is false. If the input collection is empty, the result is true.',
   examples: [
