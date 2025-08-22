@@ -24,7 +24,7 @@ async function main() {
     process.exit(0);
   }
   
-  const expression = args[0];
+  const expression = args[0]!;
   let inputType: any = { type: 'Any', singleton: false };
   let variables: Record<string, any> = {};
   let showAst = false;
@@ -37,7 +37,7 @@ async function main() {
       i++;
       if (i < args.length) {
         try {
-          variables = JSON.parse(args[i]);
+          variables = JSON.parse(args[i]!);
         } catch (e) {
           console.error('Error parsing variables JSON:', e);
           process.exit(1);
@@ -46,7 +46,7 @@ async function main() {
     } else if (arg === '--type' || arg === '-t') {
       i++;
       if (i < args.length) {
-        inputType.type = args[i];
+        inputType.type = args[i]!;
       }
     } else if (arg === '--singleton') {
       inputType.singleton = true;

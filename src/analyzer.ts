@@ -405,7 +405,7 @@ export class Analyzer {
           const expectedInput = sig.input;
           
           // Check both singleton and type requirements
-          const singletonMatch = !expectedInput.singleton || actualInput.singleton;
+          const singletonMatch = !expectedInput.singleton || actualInput.singleton === true;
           const typeMatch = expectedInput.type === 'Any' || actualInput.type === 'Any' || 
                            expectedInput.type === actualInput.type ||
                            (expectedInput.type === 'Decimal' && actualInput.type === 'Integer');
@@ -462,7 +462,7 @@ export class Analyzer {
             let inputMatches = true;
             if (sig.input) {
               const expectedInput = sig.input;
-              const singletonMatch = !expectedInput.singleton || actualInput.singleton;
+              const singletonMatch = !expectedInput.singleton || actualInput.singleton === true;
               const typeMatch = expectedInput.type === 'Any' || actualInput.type === 'Any' || 
                                expectedInput.type === actualInput.type ||
                                (expectedInput.type === 'Decimal' && actualInput.type === 'Integer');
@@ -1055,7 +1055,7 @@ export class Analyzer {
       diagnostics: result.diagnostics,
       ast,
       type: result.type,
-      userVariables: result.context?.userVariables || initialContext.userVariables,
+      userVariables: new Map(result.context?.userVariables || initialContext.userVariables),
       stoppedAtCursor: this.cursorMode ? this.stoppedAtCursor : undefined,
       cursorContext: this.cursorMode ? this.cursorContext : undefined
     };

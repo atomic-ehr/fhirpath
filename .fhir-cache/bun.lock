@@ -1,0 +1,17 @@
+{
+  "lockfileVersion": 1,
+  "workspaces": {
+    "": {
+      "name": ".fhir-cache",
+      "dependencies": {
+        "hl7.fhir.r4.core": "4.0.1",
+        "hl7.fhir.r5.core": "5.0.0",
+      },
+    },
+  },
+  "packages": {
+    "hl7.fhir.r4.core": ["hl7.fhir.r4.core@4.0.1", "http://fs.get-ig.org/-/hl7.fhir.r4.core-4.0.1.tgz", {}, ""],
+
+    "hl7.fhir.r5.core": ["hl7.fhir.r5.core@5.0.0", "http://fs.get-ig.org/-/hl7.fhir.r5.core-5.0.0.tgz", {}, ""],
+  }
+}

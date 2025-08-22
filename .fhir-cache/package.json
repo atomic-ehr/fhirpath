@@ -1,0 +1,16 @@
+{
+  "name": ".fhir-cache",
+  "version": "1.0.0",
+  "type": "module",
+  "fcm": {
+    "packages": [
+      "hl7.fhir.r4.core@4.0.1",
+      "hl7.fhir.r5.core@5.0.0"
+    ],
+    "registry": "https://fs.get-ig.org/pkgs/"
+  },
+  "dependencies": {
+    "hl7.fhir.r4.core": "4.0.1",
+    "hl7.fhir.r5.core": "5.0.0"
+  }
+}

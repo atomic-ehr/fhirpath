@@ -325,6 +325,51 @@ Use the TypeScript MCP tools for TypeScript-specific operations like finding sym
   - Optionally generates a summary comparing responses and extracting common themes
   - Useful for getting diverse perspectives on technical questions during research
 
+* **FHIRPath.js Test Runner** (`./tools/fhirpathjs-tests.ts`) - Run fhirpath.js test cases for compatibility reference
+  ```bash
+  bun tools/fhirpathjs-tests.ts [options] [test-file|pattern]
+  ```
+  
+  **Note**: This is an auxiliary test suite from the fhirpath.js project, used as a reference for compatibility testing. Our primary test cases are in `./test-cases/`. We do not aim for 100% compliance with fhirpath.js - this tool helps identify areas where our implementation differs and whether those differences are intentional.
+  
+  Arguments:
+  - `test-file` - Specific test file to run (e.g., `simple.yaml`)
+  - `pattern` - Pattern to match test files (e.g., `"5.*.yaml"`)
+  
+  Options:
+  - `--list` - List all available test files
+  - `--verbose` - Show detailed output including passed tests
+  - `--filter <expr>` - Filter tests by expression or description
+  - `--summary` - Show only summary (default for all tests)
+  
+  Examples:
+  - `bun tools/fhirpathjs-tests.ts simple.yaml` - Run a specific test file
+  - `bun tools/fhirpathjs-tests.ts --list` - List available test files
+  - `bun tools/fhirpathjs-tests.ts "5.*.yaml"` - Run all section 5 tests
+  - `bun tools/fhirpathjs-tests.ts simple.yaml --filter "name"` - Run only tests containing "name"
+  - `bun tools/fhirpathjs-tests.ts "*.yaml"` - Run all test files
+  
+  Test Convention:
+  - Tests are loaded from `fhirpath.js/test/cases/` (git submodule)
+  - Each YAML file may contain a `subject` field with the test resource
+  - If `subject` contains only `resourceType` and `id`, the tool loads the full resource by convention:
+    - Pattern: `fhirpath.js/test/resources/{model}/{resourceType}-{id}.json`
+    - Example: `Patient` with id `example` → `patient-example.json`
+  - Uses our FHIRModelProvider for R4/R5/STU3/DSTU2 model context
+  
+  Current Status (as of last run):
+  - Overall pass rate: ~62% (1,668/2,675 tests)
+  - FHIR R4 tests: ~56% passing
+  - FHIR R5 tests: ~56% passing
+  - Simple navigation: ~79% passing
+  - Boolean logic: ~93% passing
+  
+  Known Differences:
+  - Some functions like `getValue()`, `hasValue()` are fhirpath.js extensions
+  - Quantity literal format differences (we parse to objects, they keep as strings)
+  - Unicode escape handling differences
+  - Some edge cases in type conversion and coercion
+
 
 
 
