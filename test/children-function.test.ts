@@ -109,7 +109,7 @@ describe('children() function', () => {
     });
   });
 
-  describe.skip('type filtering validation', () => {
+  describe('type filtering validation', () => {
     it('should warn when ofType uses invalid type on children result', async () => {
       const modelProvider = new FHIRModelProvider();
       await modelProvider.initialize();
