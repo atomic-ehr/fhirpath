@@ -23,7 +23,17 @@ export async function evaluate(
   if (parseResult.errors.length > 0) {
     // For backward compatibility, throw the first error
     const firstError = parseResult.errors[0]!;
-    throw Errors.invalidSyntax(firstError.message);
+    // Check if it's an unexpected token error
+    if (firstError.message.includes('Unexpected token:')) {
+      const token = firstError.message.match(/Unexpected token: (.+)/)?.[1] || 'unknown';
+      throw Errors.unexpectedToken(token);
+    } else if (firstError.message.includes('Unterminated string')) {
+      throw Errors.invalidSyntax(firstError.message);
+    } else if (firstError.message.includes('Expected')) {
+      throw Errors.invalidSyntax(firstError.message);
+    } else {
+      throw Errors.invalidSyntax(firstError.message);
+    }
   }
   
   // ALWAYS analyze the AST

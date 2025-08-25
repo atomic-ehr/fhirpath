@@ -453,8 +453,39 @@ export class Analyzer {
         const inputIsEmpty = actualInput.isEmpty || 
                            (actualInput.type === 'Any' && !actualInput.singleton);
         if (inputIsEmpty && !funcDef.doesNotPropagateEmpty) {
-          // Empty input will propagate through - no error needed
-          // The empty propagation logic above will handle this
+          // Empty input will propagate through
+          // But still check if arguments have type errors for better diagnostics
+          // Use the first signature to check parameter types
+          const sig = funcDef.signatures[0];
+          if (sig && sig.parameters) {
+            for (let i = 0; i < argTypes.length; i++) {
+              const param = sig.parameters[i];
+              const argType = argTypes[i];
+              if (param && argType && !param.expression) {
+                // Skip empty arguments - they will propagate empty
+                const isEmptyArg = argType.isEmpty || (argType.type === 'Any' && !argType.singleton);
+                if (isEmptyArg) {
+                  continue; // Empty arguments propagate, no error needed
+                }
+                
+                const expectedType = param.type;
+                const typeMatch = expectedType.type === 'Any' || argType.type === 'Any' ||
+                                 expectedType.type === argType.type ||
+                                 (expectedType.type === 'Decimal' && argType.type === 'Integer');
+                const singletonMatch = !expectedType.singleton || argType.singleton;
+                
+                if (!typeMatch || !singletonMatch) {
+                  const argTypeStr = argType.singleton ? argType.type : `${argType.type}[]`;
+                  const expectedTypeStr = expectedType.singleton ? expectedType.type : `${expectedType.type}[]`;
+                  diagnostics.push(this.createError(
+                    node.arguments[i]!,
+                    `Argument ${i + 1} of ${functionName}(): expected ${expectedTypeStr}, got ${argTypeStr}`,
+                    ErrorCodes.ARGUMENT_TYPE_MISMATCH
+                  ));
+                }
+              }
+            }
+          }
         } else {
           // Try to find if there's a signature that matches the input but not the parameters
           let inputMatchingSignature: FunctionSignature | null = null;

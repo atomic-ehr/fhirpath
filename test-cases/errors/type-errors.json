@@ -17,8 +17,7 @@
         "message": "Cannot apply .* to.*String.*Integer",
         "phase": "analyze",
         "code": "FP3006"
-      },
-      "pending": "Type error handling needs implementation"
+      }
     },
     {
       "name": "invalid function argument type",
@@ -34,8 +33,7 @@
         "type": "TypeError",
         "phase": "analyze",
         "code": "FP3003"
-      },
-      "pending": "Type error handling needs implementation"
+      }
     }
   ]
 }

@@ -16,8 +16,7 @@
         "message": "Unterminated string",
         "phase": "parse",
         "code": "FP5003"
-      },
-      "pending": "Error handling tests need implementation"
+      }
     },
     {
       "name": "invalid operator",
@@ -33,8 +32,7 @@
         "message": "Unexpected token",
         "phase": "parse",
         "code": "FP5001"
-      },
-      "pending": "Error handling tests need implementation"
+      }
     },
     {
       "name": "missing closing parenthesis",
@@ -49,8 +47,7 @@
         "type": "ParseError",
         "message": "Expected '\\)'",
         "phase": "parse"
-      },
-      "pending": "Error handling tests need implementation"
+      }
     }
   ]
 }

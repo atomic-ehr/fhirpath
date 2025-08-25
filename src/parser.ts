@@ -733,10 +733,8 @@ export class Parser {
     }
     
     const token = this.peek();
-    const tokenStr = token.value || TokenType[token.type];
-    const range = this.getRangeFromToken(token);
-    const error = Errors.expectedToken(TokenType[type], tokenStr, range);
-    return this.handleError(error.message, token) as any;
+    // Pass the message directly to handleError
+    return this.handleError(message, token) as any;
   }
 
   // Implement node creation methods
@@ -985,7 +983,18 @@ export class Parser {
     
     // In simple mode, throw error
     const range = token ? this.getRangeFromToken(token) : undefined;
-    throw Errors.invalidSyntax(message, range);
+    
+    // Choose the appropriate error based on the message
+    if (message.includes('Unexpected token:')) {
+      const tokenMatch = message.match(/Unexpected token: (.+)/);
+      const tokenValue = tokenMatch ? tokenMatch[1] : 'unknown';
+      throw Errors.unexpectedToken(tokenValue, range);
+    } else if (message.includes('Expected')) {
+      // This covers "Expected ')'" and similar cases
+      throw Errors.invalidSyntax(message, range);
+    } else {
+      throw Errors.invalidSyntax(message, range);
+    }
   }
   
   // LSP mode helper methods
