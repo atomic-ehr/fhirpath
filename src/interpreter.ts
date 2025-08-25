@@ -114,8 +114,8 @@ export class RuntimeContextManager {
     const systemVariables = ['context', 'resource', 'rootResource', 'ucum', 'sct', 'loinc'];
     const baseVarName = varKey.startsWith('%') ? varKey.substring(1) : varKey;
     if (systemVariables.includes(baseVarName)) {
-      // Silently return original context for system variable redefinition
-      return context;
+      // Throw error when trying to override system variables
+      throw Errors.invalidOperation(`Cannot override system variable: ${baseVarName}`);
     }
     
     // Check if variable already exists (unless redefinition is allowed)

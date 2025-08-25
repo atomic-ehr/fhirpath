@@ -695,8 +695,7 @@
         "fhirpath-lab",
         "error"
       ],
-      "description": "Cannot override system variables",
-      "pending": "System variable protection not implemented"
+      "description": "Cannot override system variables"
     },
     {
       "name": "[FHIRPath Lab] defineVariable19",
