@@ -45,6 +45,7 @@ export const inOperator: OperatorDefinition & { evaluate: OperationEvaluator } =
   category: ['membership'],
   precedence: PRECEDENCE.IN_CONTAINS,
   associativity: 'left',
+  doesNotPropagateEmpty: true,  // Has custom empty handling per spec
   description: 'If the left operand is a collection with a single item, returns true if the item is in the right operand using equality semantics. If the left is empty, the result is empty. If the right is empty, the result is false.',
   examples: ['\'Joe\' in Patient.name.given', '5 in (1 | 2 | 3 | 4 | 5)', 'code in terminologyServer.valueset(\'my-valueset\').code'],
   signatures: [

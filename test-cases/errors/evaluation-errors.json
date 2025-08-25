@@ -17,8 +17,7 @@
         "message": "Division by zero",
         "phase": "evaluate",
         "code": "FP6001"
-      },
-      "pending": "Division by zero error handling needs implementation"
+      }
     },
     {
       "name": "single() with multiple items",

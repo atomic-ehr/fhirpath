@@ -47,8 +47,12 @@ describe('FHIRPath Test Cases', () => {
     describe(group, () => {
       files.forEach(file => {
         const suite = loadTestSuite(file);
+        // Get relative path from test-cases directory for better context
+        const relativePath = file.replace(TEST_CASES_DIR + '/', '');
+        // Always show filename for clarity, along with suite name if it exists
+        const testSuiteName = suite.name ? `${suite.name} (${basename(file)})` : relativePath;
         
-        describe(suite.name || basename(file), () => {
+        describe(testSuiteName, () => {
           suite.tests.forEach(test => {
             const testName = String(test.name || 'unnamed test');
 
