@@ -78,7 +78,7 @@ export interface CompletionItem {
   documentation?: string;
   /** Text to insert (if different from label) */
   insertText?: string;
-  /** Sort order */
+  /** Sort text for ordering (if different from label) */
   sortText?: string;
 }
 
@@ -360,7 +360,8 @@ async function getTypeCompletions(
       completions.push({
         label: type,
         kind: CompletionKind.Type,
-        detail: 'FHIRPath primitive type'
+        detail: 'FHIRPath primitive type',
+        sortText: `0_${type}` // Priority 0 for primitives
       });
     }
     
@@ -370,20 +371,22 @@ async function getTypeCompletions(
       completions.push({
         label: type,
         kind: CompletionKind.Type,
-        detail: 'FHIR complex type'
+        detail: 'FHIR complex type',
+        sortText: `1_${type}` // Priority 1 for complex types
       });
     }
   }
   
-  // For ofType, add resource types
-  const typeOperator = (cursorNode as any).typeOperator;
-  if (typeOperator === 'ofType' && modelProvider) {
+  // Always add resource types when we have a model provider
+  // They're valid type names in contexts like ofType()
+  if (modelProvider) {
     const resourceTypes = await modelProvider.getResourceTypes();
     for (const type of resourceTypes) {
       completions.push({
         label: type,
         kind: CompletionKind.Type,
-        detail: 'FHIR resource type'
+        detail: 'FHIR resource type',
+        sortText: `2_${type}` // Priority 2 for resource types
       });
     }
   }
@@ -404,6 +407,17 @@ async function getArgumentCompletions(
     argumentIndex: number;
   }
 ): Promise<CompletionItem[]> {
+  // Check if this function parameter expects a type reference
+  if (functionCall?.definition && functionCall.argumentIndex >= 0) {
+    const signature = functionCall.definition.signatures[0];
+    const param = signature?.parameters[functionCall.argumentIndex];
+    
+    if (param?.typeReference) {
+      // This parameter expects a type name, provide type completions
+      return getTypeCompletions(cursorNode, modelProvider);
+    }
+  }
+  
   const completions: CompletionItem[] = [];
   const argNode = cursorNode as any;
   
@@ -529,6 +543,13 @@ function filterCompletions(completions: CompletionItem[], partialText: string): 
  */
 function rankCompletions(completions: CompletionItem[]): CompletionItem[] {
   return completions.sort((a, b) => {
+    // First check if items have sortText
+    if (a.sortText || b.sortText) {
+      const aSortText = a.sortText || a.label;
+      const bSortText = b.sortText || b.label;
+      return aSortText.localeCompare(bSortText);
+    }
+    
     // Sort by kind priority
     const kindPriority: Record<CompletionKind, number> = {
       [CompletionKind.Property]: 1,

@@ -21,7 +21,8 @@ export const ofTypeFunction: FunctionDefinition & { evaluate: FunctionEvaluator 
       { 
         name: 'type', 
         type: { type: 'Any', singleton: true },
-        expression: true
+        expression: true,
+        typeReference: true // This parameter expects a type name
       }
     ],
     result: 'inputType'
