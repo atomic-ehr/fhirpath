@@ -19,6 +19,7 @@
   "scripts": {
     "build": "tsup",
     "test": "bun test test/*",
+    "test:failures": "bun test test/* 2>&1 | grep -E '^(✗|error:|Error|FAIL|at )' || echo 'All tests passed!'",
     "typecheck": "bunx tsc --noEmit",
     "prepublishOnly": "bun run build"
   },

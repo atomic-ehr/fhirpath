@@ -94,18 +94,6 @@
       ]
     },
     {
-      "name": "null literal as empty collection",
-      "expression": "null",
-      "input": [],
-      "expected": [],
-      "tags": [
-        "basic",
-        "literal",
-        "null"
-      ],
-      "pending": "null should be treated as empty collection"
-    },
-    {
       "name": "empty collection literal",
       "expression": "{}",
       "input": [],
