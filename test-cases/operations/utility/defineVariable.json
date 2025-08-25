@@ -711,8 +711,7 @@
         "fhirpath-lab",
         "select"
       ],
-      "description": "defineVariable in function parameters (1)",
-      "pending": "Dynamic variable names not supported"
+      "description": "defineVariable in function parameters (1)"
     },
     {
       "name": "[FHIRPath Lab] dvParametersDontColide",

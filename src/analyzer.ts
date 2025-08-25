@@ -784,8 +784,16 @@ export class Analyzer {
       const varType = context.userVariables.get(name);
       
       if (!varType) {
-        diagnostics.push(this.createError(node, Errors.unknownUserVariable(varName).message, ErrorCodes.UNKNOWN_USER_VARIABLE));
-        return { type: { type: 'Any', singleton: false }, diagnostics };
+        // If we have dynamic variables in scope, we can't be sure this is an error
+        if (context.hasDynamicVariables) {
+          diagnostics.push(this.createWarning(node, `Variable '${varName}' may not be defined (dynamic variables in scope)`));
+          // Return Any type since we don't know the actual type
+          return { type: { type: 'Any', singleton: false }, diagnostics };
+        } else {
+          // No dynamic variables, so this is definitely an error
+          diagnostics.push(this.createError(node, Errors.unknownUserVariable(varName).message, ErrorCodes.UNKNOWN_USER_VARIABLE));
+          return { type: { type: 'Any', singleton: false }, diagnostics };
+        }
       }
       
       // Attach type info to the node for backward compatibility

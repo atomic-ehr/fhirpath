@@ -11,12 +11,29 @@ export const evaluate: FunctionEvaluator = async (input, context, args, evaluato
     throw Errors.invalidOperation('defineVariable requires at least 1 argument');
   }
 
-  const nameNode = args[0] as LiteralNode;
-  if (nameNode.valueType !== 'string') {
-    throw Errors.invalidOperation('Variable name must be a string');
+  let varName: string;
+  
+  // Check if first argument is a literal
+  const nameArg = args[0];
+  if (nameArg && nameArg.type === 'Literal' && (nameArg as LiteralNode).valueType === 'string') {
+    // Fast path: literal string
+    varName = (nameArg as LiteralNode).value as string;
+  } else {
+    // Slow path: evaluate expression to get name
+    const nameResult = await evaluator(nameArg!, input, context);
+    if (nameResult.value.length === 0) {
+      throw Errors.invalidOperation('Variable name expression evaluated to empty');
+    }
+    const firstValue = nameResult.value[0];
+    if (!firstValue) {
+      throw Errors.invalidOperation('Variable name expression evaluated to empty');
+    }
+    const nameValue = unbox(firstValue);
+    if (typeof nameValue !== 'string') {
+      throw Errors.invalidOperation('Variable name must evaluate to a string');
+    }
+    varName = nameValue;
   }
-
-  const varName = nameNode.value as string;
   
   let value: any[];
   
@@ -89,27 +106,47 @@ export const defineVariableFunction: FunctionDefinition & { evaluate: FunctionEv
       };
     }
     
-    // First argument must be a string literal (variable name)
-    const nameNode = args[0] as LiteralNode;
-    if (nameNode.type !== 'Literal' || nameNode.valueType !== 'string') {
-      diagnostics.push({
-        range: nameNode.range,
-        message: 'Variable name must be a string literal',
-        severity: DiagnosticSeverity.Error
-      });
-      return { type: context.inputType, diagnostics };
-    }
+    // First argument: variable name (can be literal or expression)
+    const nameNode = args[0];
+    let varName: string | undefined;
+    let isDynamic = false;
     
-    const varName = nameNode.value as string;
-    
-    // Check if variable already exists
-    if (context.userVariables.has(varName)) {
+    if (nameNode && nameNode.type === 'Literal' && (nameNode as LiteralNode).valueType === 'string') {
+      // Static variable name - full analysis
+      varName = (nameNode as LiteralNode).value as string;
+      
+      // Check if variable already exists
+      if (context.userVariables.has(varName)) {
+        diagnostics.push({
+          range: nameNode.range,
+          message: `Variable '${varName}' is already defined`,
+          severity: DiagnosticSeverity.Error
+        });
+        return { type: context.inputType, diagnostics };
+      }
+    } else {
+      // Dynamic variable name - limited analysis
+      isDynamic = true;
       diagnostics.push({
-        range: nameNode.range,
-        message: `Variable '${varName}' is already defined`,
-        severity: DiagnosticSeverity.Error
+        range: nameNode?.range || { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } },
+        message: 'Dynamic variable name: cannot validate variable references at compile time',
+        severity: DiagnosticSeverity.Warning
       });
-      return { type: context.inputType, diagnostics };
+      
+      // Still analyze the expression for other errors
+      if (nameNode) {
+        const nameResult = await context.analyzeNode(nameNode);
+        diagnostics.push(...nameResult.diagnostics);
+        
+        // Check if it evaluates to string type
+        if (nameResult.type.type !== 'String') {
+          diagnostics.push({
+            range: nameNode.range,
+            message: 'Variable name expression must evaluate to String type',
+            severity: DiagnosticSeverity.Error
+          });
+        }
+      }
     }
     
     // Determine the type of the variable
@@ -122,11 +159,20 @@ export const defineVariableFunction: FunctionDefinition & { evaluate: FunctionEv
       varType = valueResult.type;
     }
     
-    // Return with modified context that includes the new variable
+    // Return with modified context
+    // For static names, add the variable to context
+    // For dynamic names, mark that dynamic variables exist
+    let resultContext = context;
+    if (varName) {
+      resultContext = context.withUserVariable(varName, varType);
+    } else if (isDynamic) {
+      resultContext = context.withDynamicVariables();
+    }
+    
     return {
       type: context.inputType, // defineVariable returns input unchanged
       diagnostics,
-      context: context.withUserVariable(varName, varType) // Add variable to context
+      context: resultContext
     };
   }
 };
