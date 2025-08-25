@@ -601,16 +601,13 @@ export class Parser {
     const elements: ASTNode[] = [];
     
     if (this.peek().type === TokenType.RBRACE) {
-      return elements;
+      return elements; // Empty collection {} is valid
     }
 
-    elements.push(this.expression());
-    
-    while (this.match(TokenType.COMMA)) {
-      elements.push(this.expression());
-    }
-
-    return elements;
+    // Any other token is an error - braces can only contain empty collections
+    const unexpectedToken = this.peek();
+    const message = `Unexpected token '${unexpectedToken.value}', expected '}'. Braces can only be used for empty collections. Use parentheses and pipe operators for non-empty collections: (1 | 2 | 3)`;
+    return this.handleError(message, unexpectedToken) as any;
   }
   
   protected parseTypeName(): string {

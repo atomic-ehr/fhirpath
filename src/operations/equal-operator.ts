@@ -84,11 +84,19 @@ export const equalOperator: OperatorDefinition & { evaluate: OperationEvaluator 
   associativity: 'left',
   description: 'Returns true if the left collection is equal to the right collection. For single items, comparison is type-specific. For collections, comparison is order-dependent.',
   examples: ['name = "John"', 'Patient.name.given = "John"', '5 = 5', '@2018-03-01 = @2018-03-01'],
-  signatures: [{
-    name: 'equal',
-    left: { type: 'Any', singleton: true },
-    right: { type: 'Any', singleton: true },
-    result: { type: 'Boolean', singleton: true },
-  }],
+  signatures: [
+    {
+      name: 'equal',
+      left: { type: 'Any', singleton: true },
+      right: { type: 'Any', singleton: true },
+      result: { type: 'Boolean', singleton: true },
+    },
+    {
+      name: 'equal',
+      left: { type: 'Any', singleton: false },
+      right: { type: 'Any', singleton: false },
+      result: { type: 'Boolean', singleton: true },
+    }
+  ],
   evaluate
 };

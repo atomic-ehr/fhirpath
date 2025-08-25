@@ -4,7 +4,7 @@
   "tests": [
     {
       "name": "contains - collection contains item",
-      "expression": "{1, 2, 3} contains 1",
+      "expression": "(1 | 2 | 3) contains 1",
       "input": [],
       "expected": [
         true
@@ -33,7 +33,7 @@
     },
     {
       "name": "contains - not found",
-      "expression": "{1, 2, 3} contains 4",
+      "expression": "(1 | 2 | 3) contains 4",
       "input": [],
       "expected": [
         false
@@ -77,7 +77,7 @@
     },
     {
       "name": "contains - empty right operand",
-      "expression": "{1, 2, 3} contains {}",
+      "expression": "(1 | 2 | 3) contains {}",
       "input": [],
       "expected": [],
       "tags": [

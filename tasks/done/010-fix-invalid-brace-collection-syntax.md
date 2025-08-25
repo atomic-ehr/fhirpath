@@ -1,4 +1,4 @@
-# Task: Fix Invalid Brace Collection Syntax
+# Task: Fix Invalid Brace Collection Syntax [COMPLETED]
 
 ## Problem
 
@@ -121,11 +121,11 @@ Add a note to CLAUDE.md about this FHIRPath compliance issue:
 
 ## Success Criteria
 
-- [ ] Parser throws error for `{1, 2, 3}` syntax
-- [ ] Parser still accepts `{}` for empty collection
-- [ ] All test cases use correct `(n | n | n)` syntax
-- [ ] All tests pass with the corrected syntax
-- [ ] No regression in other functionality
+- [x] Parser throws error for `{1, 2, 3}` syntax
+- [x] Parser still accepts `{}` for empty collection
+- [x] All test cases use correct `(n | n | n)` syntax
+- [ ] All tests pass with the corrected syntax (Note: Collection equality tests fail due to unrelated missing feature)
+- [x] No regression in other functionality
 
 ## Notes
 

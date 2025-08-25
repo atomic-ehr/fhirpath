@@ -192,7 +192,7 @@ describe('FHIRPath Interpreter', () => {
     });
 
     it('should evaluate distinct', async () => {
-      expect(await evaluate('{1, 2, 2, 3, 1}.distinct()')).toEqual([1, 2, 3]);
+      expect(await evaluate('(1 | 2 | 2 | 3 | 1).distinct()')).toEqual([1, 2, 3]);
     });
   });
 
@@ -226,7 +226,7 @@ describe('FHIRPath Interpreter', () => {
 
   describe('Union operator', () => {
     it('should combine collections', async () => {
-      expect(await evaluate('{1, 2} | {3, 4}')).toEqual([1, 2, 3, 4]);
+      expect(await evaluate('(1 | 2) | (3 | 4)')).toEqual([1, 2, 3, 4]);
     });
   });
 
