@@ -1,13 +1,13 @@
 # FHIRPath Implementation Status
 
-Generated: 2025-08-25T16:02:05.287Z
+Generated: 2025-08-26T (manually updated)
 
 ## Summary
 
 ### Functions
 - **Total Functions**: 80
-- **Implemented**: 44 (55%)
-- **Fully Tested**: 38 (86% of implemented)
+- **Implemented**: 45 (56%)
+- **Fully Tested**: 39 (87% of implemented)
 - **Partially Tested**: 6
 - **Untested**: 0
 
@@ -46,11 +46,11 @@ Generated: 2025-08-25T16:02:05.287Z
 | select | ✅ | operations/select-function.ts | 28 files | Full | - |
 | where | ✅ | operations/where-function.ts | 34 files | Full | - |
 
-### Subsetting Functions (8/9 implemented)
+### Subsetting Functions (9/9 implemented)
 
 | Function | Status | Implementation | Tests | Coverage | Notes |
 |----------|--------|----------------|-------|----------|-------|
-| [index] | ❌ | - | 110 files | - | Not implemented |
+| [index] | ✅ | interpreter.ts:669-686, parser.ts:333-343 | 110 files | Full | - |
 | exclude | ✅ | operations/exclude-function.ts | 1 file | Partial | - |
 | first | ✅ | operations/first-function.ts | 30 files | Full | - |
 | intersect | ✅ | operations/intersect-function.ts | 1 file | Partial | - |
