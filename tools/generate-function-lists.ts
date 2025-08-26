@@ -31,8 +31,8 @@ function parseFunctionsFromSpec(): FunctionItem[] {
     if (line.startsWith('### ') && line.includes('(§')) {
       const categoryMatch = line.match(/### \d+\.\s+(.+?)\s+\(§([\d.]+)\)/);
       if (categoryMatch) {
-        currentCategory = categoryMatch[1];
-        currentSection = categoryMatch[2];
+        currentCategory = categoryMatch[1]!;
+        currentSection = categoryMatch[2]!;
       }
     }
     

@@ -350,9 +350,7 @@ export class Analyzer {
         let targetType: string | undefined;
         const typeArg = node.arguments[0]!;
         
-        if (typeArg.type === NodeType.Identifier || typeArg.type === 'Identifier') {
-          targetType = (typeArg as IdentifierNode).name;
-        } else if (typeArg.type === NodeType.TypeOrIdentifier || typeArg.type === 'TypeOrIdentifier') {
+        if (typeArg.type === NodeType.TypeOrIdentifier) {
           targetType = (typeArg as TypeOrIdentifierNode).name;
         }
         

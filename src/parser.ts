@@ -990,7 +990,7 @@ export class Parser {
     // Choose the appropriate error based on the message
     if (message.includes('Unexpected token:')) {
       const tokenMatch = message.match(/Unexpected token: (.+)/);
-      const tokenValue = tokenMatch ? tokenMatch[1] : 'unknown';
+      const tokenValue = tokenMatch?.[1] ?? 'unknown';
       throw Errors.unexpectedToken(tokenValue, range);
     } else if (message.includes('Expected')) {
       // This covers "Expected ')'" and similar cases

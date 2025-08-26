@@ -899,7 +899,7 @@ export function parseTemporalLiteral(literal: string): FHIRDate | FHIRDateTime |
       // Check for timezone
       const tzMatch = remaining.match(/(Z|[+-]\d{2}:\d{2})$/);
       if (tzMatch) {
-        tzPart = tzMatch[1];
+        tzPart = tzMatch[1]!;
         timePart = remaining.substring(0, remaining.length - tzPart.length);
       } else {
         timePart = remaining;

@@ -42,7 +42,7 @@ const UNIT_RANK: Record<TimeUnit, number> = {
 function needsCoercion(precision: PrecisionInfo, unit: TimeUnit): boolean {
   const precisionRank = PRECISION_RANK[precision.level];
   const unitRank = UNIT_RANK[unit];
-  return precisionRank < unitRank;
+  return precisionRank !== undefined && precisionRank < unitRank;
 }
 
 // ============================================================================

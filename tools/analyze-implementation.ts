@@ -3,6 +3,7 @@
 import { existsSync, readdirSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { registry } from '../src/registry';
+import type { OperatorDefinition, FunctionDefinition } from '../src/types';
 import { execSync } from 'child_process';
 
 interface AnalysisResult {
@@ -179,9 +180,9 @@ function determineTestCoverage(testFiles: string[], implemented: boolean): 'full
 
 function analyzeItem(name: string, type: 'function' | 'operator' = 'function'): AnalysisResult {
   // Check registry
-  let registryEntry = null;
+  let registryEntry: OperatorDefinition | FunctionDefinition | undefined;
   try {
-    registryEntry = registry.getOperation(name);
+    registryEntry = registry.getOperationInfo(name);
   } catch (e) {
     // Not in registry
   }
@@ -212,9 +213,9 @@ function analyzeItem(name: string, type: 'function' | 'operator' = 'function'): 
     testFiles,
     testCoverage,
     registryEntry: registryEntry ? {
-      type: registryEntry.type,
+      type: 'symbol' in registryEntry ? 'operator' : 'function',
       category: registryEntry.category,
-      precedence: registryEntry.precedence
+      precedence: 'precedence' in registryEntry ? registryEntry.precedence : undefined
     } : null,
     notes
   };
@@ -231,7 +232,7 @@ function main() {
     process.exit(1);
   }
   
-  const name = args[0];
+  const name = args[0]!;
   const type = (args[1] as 'function' | 'operator') || 'function';
   
   const result = analyzeItem(name, type);
@@ -239,7 +240,8 @@ function main() {
 }
 
 // Export for use by other tools
-export { analyzeItem, AnalysisResult };
+export { analyzeItem };
+export type { AnalysisResult };
 
 // Run if called directly
 if (import.meta.main) {
