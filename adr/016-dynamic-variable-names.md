@@ -1,4 +1,4 @@
-# ADR-020: Support Dynamic Variable Names in defineVariable
+# ADR-016: Support Dynamic Variable Names in defineVariable
 
 ## Status
 Proposed

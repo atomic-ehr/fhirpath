@@ -54,7 +54,7 @@ export function parse(string: string): Date | DateTime | Time {
     throw new Error("parse not implemented");
 }
 
-export function dateTime(year: number, month?: number, day?: number, hour?: number, minute?: number, second?: number, millisecond?: number, timeZoneOffset?: number): DateTime {
+export function newDateTime(year: number, month?: number, day?: number, hour?: number, minute?: number, second?: number, millisecond?: number, timeZoneOffset?: number): DateTime {
     return {
         precision: TemoralPrecision.Year,
         type: "dateTime",
@@ -110,11 +110,6 @@ export function newTime(hour: number, minute?: number, second?: number, millisec
         second,
         millisecond,
     }
-}
-
-// update yers, months if overflow
-function calculateComponents(date: Date): Date {
-    return date;
 }
 
 // convert quantity to date precision and add to date
