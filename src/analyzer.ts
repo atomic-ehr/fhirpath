@@ -334,11 +334,62 @@ export class Analyzer {
       }
     }
 
+    // Special validation for type-related functions with union types - must happen before custom analyze
+    if (['ofType', 'is', 'as'].includes(functionName) && node.arguments.length > 0) {
+      const inputType = context.inputType;
+      
+      // Check if input is a union type
+      if (inputType.modelContext && 
+          typeof inputType.modelContext === 'object' &&
+          'isUnion' in inputType.modelContext && 
+          inputType.modelContext.isUnion &&
+          'choices' in inputType.modelContext &&
+          Array.isArray(inputType.modelContext.choices)) {
+        
+        // Extract target type from first argument
+        let targetType: string | undefined;
+        const typeArg = node.arguments[0]!;
+        
+        if (typeArg.type === NodeType.Identifier || typeArg.type === 'Identifier') {
+          targetType = (typeArg as IdentifierNode).name;
+        } else if (typeArg.type === NodeType.TypeOrIdentifier || typeArg.type === 'TypeOrIdentifier') {
+          targetType = (typeArg as TypeOrIdentifierNode).name;
+        }
+        
+        if (targetType) {
+          const validChoice = inputType.modelContext.choices.find((choice: any) => 
+            choice.type === targetType || choice.code === targetType
+          );
+          
+          if (!validChoice) {
+            const availableTypes = inputType.modelContext.choices
+              .map((c: any) => c.type || c.code)
+              .filter((t: string) => t)
+              .join(', ');
+            
+            if (functionName === 'ofType') {
+              diagnostics.push({
+                severity: DiagnosticSeverity.Warning,
+                code: 'invalid-type-filter',
+                message: `Type '${targetType}' is not present in the union type. Available types: ${availableTypes}`,
+                range: typeArg.range || node.range
+              });
+            }
+          }
+        }
+      }
+    }
+    
     // If function has custom analyze method, use it
     if (funcDef.analyze) {
       const result = funcDef.analyze(context, node.arguments);
       // Handle both async and sync analyze methods
-      return result instanceof Promise ? await result : result;
+      const analysisResult = result instanceof Promise ? await result : result;
+      // Merge our diagnostics with the custom analyze result
+      return {
+        ...analysisResult,
+        diagnostics: [...diagnostics, ...analysisResult.diagnostics]
+      };
     }
 
     // Default function analysis
@@ -655,44 +706,52 @@ export class Analyzer {
       }
     }
     
-    // Determine result type from function signature
-    let resultType = context.inputType;
-    let matchingSignature: FunctionSignature | null = null;
     
-    if (funcDef.signatures && funcDef.signatures.length > 0) {
-      // Find matching signature (same logic as above)
-      const actualInput = context.inputType;
+    // Determine result type - use custom inference if available
+    let resultType = context.inputType;
+    
+    // Check if function has custom type inference
+    if (funcDef.inferResultType) {
+      resultType = await funcDef.inferResultType(this, node, context.inputType);
+    } else {
+      // Use signature-based type inference
+      let matchingSignature: FunctionSignature | null = null;
       
-      for (const sig of funcDef.signatures) {
-        if (sig.input) {
-          const expectedInput = sig.input;
-          
-          const singletonMatch = !expectedInput.singleton || actualInput.singleton;
-          const typeMatch = expectedInput.type === 'Any' || actualInput.type === 'Any' || 
-                           expectedInput.type === actualInput.type ||
-                           (expectedInput.type === 'Decimal' && actualInput.type === 'Integer');
-          
-          if (singletonMatch && typeMatch) {
+      if (funcDef.signatures && funcDef.signatures.length > 0) {
+        // Find matching signature (same logic as above)
+        const actualInput = context.inputType;
+        
+        for (const sig of funcDef.signatures) {
+          if (sig.input) {
+            const expectedInput = sig.input;
+            
+            const singletonMatch = !expectedInput.singleton || actualInput.singleton;
+            const typeMatch = expectedInput.type === 'Any' || actualInput.type === 'Any' || 
+                             expectedInput.type === actualInput.type ||
+                             (expectedInput.type === 'Decimal' && actualInput.type === 'Integer');
+            
+            if (singletonMatch && typeMatch) {
+              matchingSignature = sig;
+              break;
+            }
+          } else {
             matchingSignature = sig;
             break;
           }
-        } else {
-          matchingSignature = sig;
-          break;
         }
-      }
-      
-      // Use matching signature or first as fallback
-      const signature = matchingSignature || funcDef.signatures[0];
-      
-      if (signature) {
-        if (signature.result === 'inputType') {
-          resultType = context.inputType;
-        } else if (signature.result === 'inputTypeSingleton') {
-          // Make the input type a singleton
-          resultType = { ...context.inputType, singleton: true };
-        } else if (typeof signature.result === 'object') {
-          resultType = signature.result;
+        
+        // Use matching signature or first as fallback
+        const signature = matchingSignature || funcDef.signatures[0];
+        
+        if (signature) {
+          if (signature.result === 'inputType') {
+            resultType = context.inputType;
+          } else if (signature.result === 'inputTypeSingleton') {
+            // Make the input type a singleton
+            resultType = { ...context.inputType, singleton: true };
+          } else if (typeof signature.result === 'object') {
+            resultType = signature.result;
+          }
         }
       }
     }
@@ -725,8 +784,16 @@ export class Analyzer {
       const varType = context.userVariables.get(name);
       
       if (!varType) {
-        diagnostics.push(this.createError(node, Errors.unknownUserVariable(varName).message, ErrorCodes.UNKNOWN_USER_VARIABLE));
-        return { type: { type: 'Any', singleton: false }, diagnostics };
+        // If we have dynamic variables in scope, we can't be sure this is an error
+        if (context.hasDynamicVariables) {
+          diagnostics.push(this.createWarning(node, `Variable '${varName}' may not be defined (dynamic variables in scope)`));
+          // Return Any type since we don't know the actual type
+          return { type: { type: 'Any', singleton: false }, diagnostics };
+        } else {
+          // No dynamic variables, so this is definitely an error
+          diagnostics.push(this.createError(node, Errors.unknownUserVariable(varName).message, ErrorCodes.UNKNOWN_USER_VARIABLE));
+          return { type: { type: 'Any', singleton: false }, diagnostics };
+        }
       }
       
       // Attach type info to the node for backward compatibility
@@ -766,6 +833,19 @@ export class Analyzer {
         };
       }
       
+      // For TypeOrIdentifier nodes with uppercase names, check if it's a type name
+      // This handles cases like "Patient.children()" where Patient is a type, not a property
+      if (node.type === 'TypeOrIdentifier' && /^[A-Z]/.test(name)) {
+        const typeInfo = await context.modelProvider.getType(name);
+        if (typeInfo) {
+          return {
+            type: typeInfo,
+            diagnostics,
+            context
+          };
+        }
+      }
+      
       // If property not found and we have a concrete type, report warning
       // FHIRPath returns empty for unknown properties, not an error
       if (context.inputType.namespace && context.inputType.name && 
@@ -780,18 +860,6 @@ export class Analyzer {
           diagnostics,
           context
         };
-      }
-      
-      // Try as a type name (for types starting with uppercase)
-      if (/^[A-Z]/.test(name)) {
-        const typeInfo = await context.modelProvider.getType(name);
-        if (typeInfo) {
-          return {
-            type: typeInfo,
-            diagnostics,
-            context
-          };
-        }
       }
     }
     
@@ -901,10 +969,39 @@ export class Analyzer {
    */
   private async analyzeMembershipTest(node: MembershipTestNode, context: AnalysisContext): Promise<InternalAnalysisResult> {
     const exprResult = await this.analyzeNode(node.expression, context);
+    const diagnostics = [...exprResult.diagnostics];
+    
+    // Check if testing against a union type
+    if (exprResult.type.modelContext && 
+        typeof exprResult.type.modelContext === 'object' &&
+        'isUnion' in exprResult.type.modelContext && 
+        exprResult.type.modelContext.isUnion &&
+        'choices' in exprResult.type.modelContext &&
+        Array.isArray(exprResult.type.modelContext.choices)) {
+      
+      const targetType = node.targetType;
+      const validChoice = exprResult.type.modelContext.choices.find((choice: any) => 
+        choice.type === targetType || choice.code === targetType
+      );
+      
+      if (!validChoice) {
+        const availableTypes = exprResult.type.modelContext.choices
+          .map((c: any) => c.type || c.code)
+          .filter((t: string) => t)
+          .join(', ');
+        
+        diagnostics.push({
+          severity: DiagnosticSeverity.Warning,
+          code: 'invalid-type-test',
+          message: `Type test 'is ${targetType}' will always be false - type not present in union. Available types: ${availableTypes}`,
+          range: node.range
+        });
+      }
+    }
     
     return {
       type: { type: 'Boolean', singleton: true },
-      diagnostics: exprResult.diagnostics
+      diagnostics
     };
   }
 
@@ -913,6 +1010,35 @@ export class Analyzer {
    */
   private async analyzeTypeCast(node: TypeCastNode, context: AnalysisContext): Promise<InternalAnalysisResult> {
     const exprResult = await this.analyzeNode(node.expression, context);
+    const diagnostics = [...exprResult.diagnostics];
+    
+    // Check if casting from a union type
+    if (exprResult.type.modelContext && 
+        typeof exprResult.type.modelContext === 'object' &&
+        'isUnion' in exprResult.type.modelContext && 
+        exprResult.type.modelContext.isUnion &&
+        'choices' in exprResult.type.modelContext &&
+        Array.isArray(exprResult.type.modelContext.choices)) {
+      
+      const targetTypeName = node.targetType;
+      const validChoice = exprResult.type.modelContext.choices.find((choice: any) => 
+        choice.type === targetTypeName || choice.code === targetTypeName
+      );
+      
+      if (!validChoice) {
+        const availableTypes = exprResult.type.modelContext.choices
+          .map((c: any) => c.type || c.code)
+          .filter((t: string) => t)
+          .join(', ');
+        
+        diagnostics.push({
+          severity: DiagnosticSeverity.Warning,
+          code: 'invalid-type-cast',
+          message: `Type cast 'as ${targetTypeName}' may fail - type not present in union. Available types: ${availableTypes}`,
+          range: node.range
+        });
+      }
+    }
     
     // Type cast changes the type
     const targetType: TypeInfo = { 
@@ -922,7 +1048,7 @@ export class Analyzer {
     
     return {
       type: targetType,
-      diagnostics: exprResult.diagnostics
+      diagnostics
     };
   }
 

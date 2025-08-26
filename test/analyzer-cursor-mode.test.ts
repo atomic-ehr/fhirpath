@@ -146,20 +146,8 @@ describe('Analyzer Cursor Mode', () => {
       expect(result.cursorContext?.typeBeforeCursor).toBeDefined();
     });
 
-    it('should handle cursor in collection', async () => {
-      const expression = '{1, 2, ';
-      const ast = parse(expression, { cursorPosition: 7 }).ast!;
-      
-      const result = await analyzer.analyze(ast, undefined, undefined, { cursorMode: true });
-      
-      expect(result.stoppedAtCursor).toBe(true);
-      // Should have analyzed the first two elements
-      const collNode = ast as any;
-      if (collNode.elements) {
-        expect(collNode.elements[0].typeInfo).toBeDefined();
-        expect(collNode.elements[1].typeInfo).toBeDefined();
-      }
-    });
+    // Removed test for cursor in {1, 2, ...} syntax as it's invalid per FHIRPath spec
+    // Collections with values must use pipe syntax: (1 | 2 | 3)
 
     it('should handle cursor between expressions', async () => {
       const expression = '5 + ';

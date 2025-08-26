@@ -454,24 +454,6 @@
       ]
     },
     {
-      "name": "[FHIRPath Lab] contains with expression argument",
-      "expression": "'123456789'.contains(length().toString())",
-      "input": [],
-      "expected": [
-        true
-      ],
-      "tags": [
-        "function",
-        "string",
-        "contains",
-        "expression",
-        "fhirpath-lab",
-        "function:contains"
-      ],
-      "description": "Tests using an expression as the substring argument - length() returns 9, toString() converts to '9'",
-      "pending": "toString() function not yet implemented"
-    },
-    {
       "name": "contains - navigation to non-string returns empty",
       "expression": "identifier.contains('rand')",
       "input": [

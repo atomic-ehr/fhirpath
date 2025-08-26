@@ -10,6 +10,7 @@ import {
   createCursorArgumentNode,
   createCursorIndexNode,
   createCursorTypeNode,
+  isCursorNode,
 } from './cursor-nodes';
 import type {
   Position,
@@ -269,6 +270,11 @@ export class Parser {
       if (!this.isAtEnd()) {
         const token = this.peek();
         this.addError(Errors.unexpectedToken(token.value || TokenType[token.type], this.getRangeFromToken(token)).message, token);
+      }
+      
+      // Transform cursor nodes in ofType function arguments
+      if (this.options.cursorPosition !== undefined) {
+        ast = this.transformOfTypeCursorNodes(ast);
       }
     } catch (error) {
       // In LSP mode, create error node on fatal errors
@@ -601,16 +607,13 @@ export class Parser {
     const elements: ASTNode[] = [];
     
     if (this.peek().type === TokenType.RBRACE) {
-      return elements;
+      return elements; // Empty collection {} is valid
     }
 
-    elements.push(this.expression());
-    
-    while (this.match(TokenType.COMMA)) {
-      elements.push(this.expression());
-    }
-
-    return elements;
+    // Any other token is an error - braces can only contain empty collections
+    const unexpectedToken = this.peek();
+    const message = `Unexpected token '${unexpectedToken.value}', expected '}'. Braces can only be used for empty collections. Use parentheses and pipe operators for non-empty collections: (1 | 2 | 3)`;
+    return this.handleError(message, unexpectedToken) as any;
   }
   
   protected parseTypeName(): string {
@@ -1078,6 +1081,112 @@ export class Parser {
     }
   }
   
+  private transformOfTypeCursorNodes(node: ASTNode): ASTNode {
+    // Recursively transform cursor nodes in ofType function arguments
+    switch (node.type) {
+      case NodeType.Binary: {
+        const binary = node as BinaryNode;
+        
+        // Check if right is a function call to ofType BEFORE recursively transforming
+        if (binary.right.type === NodeType.Function) {
+          const func = binary.right as FunctionNode;
+          if ((func.name as any).name === 'ofType') {
+            // Transform cursor nodes in arguments to type cursor nodes
+            func.arguments = func.arguments.map((arg, index) => {
+              if (isCursorNode(arg)) {
+                const cursorNode = arg as AnyCursorNode;
+                // Create a new CursorTypeNode with ofType context
+                return createCursorTypeNode(cursorNode.position, 'ofType') as any;
+              }
+              // Handle Binary node with cursor on right (e.g., "P" <cursor>)
+              if (arg.type === NodeType.Binary) {
+                const binaryArg = arg as BinaryNode;
+                if (isCursorNode(binaryArg.right)) {
+                  // Replace the entire binary node with a cursor type node
+                  // preserving the partial text from the left side
+                  const cursorNode = binaryArg.right as AnyCursorNode;
+                  let partialText: string | undefined;
+                  if (binaryArg.left.type === NodeType.TypeOrIdentifier || binaryArg.left.type === NodeType.Identifier) {
+                    partialText = (binaryArg.left as any).name;
+                  }
+                  return createCursorTypeNode(cursorNode.position, 'ofType', partialText) as any;
+                }
+              }
+              return arg;
+            });
+          }
+          // Still need to transform left side
+          binary.left = this.transformOfTypeCursorNodes(binary.left);
+        } else {
+          // Not ofType, do normal recursive transformation
+          binary.left = this.transformOfTypeCursorNodes(binary.left);
+          binary.right = this.transformOfTypeCursorNodes(binary.right);
+        }
+        break;
+      }
+      case NodeType.Function: {
+        const func = node as FunctionNode;
+        if ((func.name as any).name === 'ofType') {
+          // Transform cursor nodes in arguments to type cursor nodes
+          func.arguments = func.arguments.map((arg, index) => {
+            if (isCursorNode(arg)) {
+              const cursorNode = arg as AnyCursorNode;
+              // Create a new CursorTypeNode with ofType context
+              return createCursorTypeNode(cursorNode.position, 'ofType') as any;
+            }
+            // Handle Binary node with cursor on right (e.g., "P" <cursor>)
+            if (arg.type === NodeType.Binary) {
+              const binaryArg = arg as BinaryNode;
+              if (isCursorNode(binaryArg.right)) {
+                // Replace the entire binary node with a cursor type node
+                // preserving the partial text from the left side
+                const cursorNode = binaryArg.right as AnyCursorNode;
+                let partialText: string | undefined;
+                if (binaryArg.left.type === NodeType.TypeOrIdentifier || binaryArg.left.type === NodeType.Identifier) {
+                  partialText = (binaryArg.left as any).name;
+                }
+                return createCursorTypeNode(cursorNode.position, 'ofType', partialText) as any;
+              }
+            }
+            return arg;
+          });
+        } else {
+          // Recursively transform arguments for other functions
+          func.arguments = func.arguments.map(arg => this.transformOfTypeCursorNodes(arg));
+        }
+        break;
+      }
+      case NodeType.Unary: {
+        const unary = node as UnaryNode;
+        unary.operand = this.transformOfTypeCursorNodes(unary.operand);
+        break;
+      }
+      case NodeType.Index: {
+        const idx = node as IndexNode;
+        idx.expression = this.transformOfTypeCursorNodes(idx.expression);
+        idx.index = this.transformOfTypeCursorNodes(idx.index);
+        break;
+      }
+      case NodeType.Collection: {
+        const coll = node as CollectionNode;
+        coll.elements = coll.elements.map(el => this.transformOfTypeCursorNodes(el));
+        break;
+      }
+      case NodeType.MembershipTest: {
+        const mt = node as MembershipTestNode;
+        mt.expression = this.transformOfTypeCursorNodes(mt.expression);
+        break;
+      }
+      case NodeType.TypeCast: {
+        const tc = node as TypeCastNode;
+        tc.expression = this.transformOfTypeCursorNodes(tc.expression);
+        break;
+      }
+    }
+    
+    return node;
+  }
+
   private findNodeAtPosition(root: ASTNode, offset: number): ASTNode | null {
     // DFS to find the most specific node containing the position
     if (offset < root.range.start.offset! || offset > root.range.end.offset!) {

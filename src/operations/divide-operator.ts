@@ -4,6 +4,7 @@ import type { OperationEvaluator } from '../types';
 import { divideQuantities } from '../quantity-value';
 import type { QuantityValue } from '../quantity-value';
 import { box, unbox } from '../boxing';
+import { Errors } from '../errors';
 
 export const evaluate: OperationEvaluator = async (input, context, left, right) => {
   if (left.length === 0 || right.length === 0) {
@@ -20,14 +21,18 @@ export const evaluate: OperationEvaluator = async (input, context, left, right) 
   // Check if both are quantities
   if (l && typeof l === 'object' && 'unit' in l && 
       r && typeof r === 'object' && 'unit' in r) {
-    const result = divideQuantities(l as QuantityValue, r as QuantityValue);
+    const rightQuantity = r as QuantityValue;
+    if (rightQuantity.value === 0) {
+      throw Errors.divisionByZero();
+    }
+    const result = divideQuantities(l as QuantityValue, rightQuantity);
     return { value: result ? [box(result, { type: 'Quantity', singleton: true })] : [], context };
   }
   
   // Handle quantity / number
   if (l && typeof l === 'object' && 'unit' in l && typeof r === 'number') {
     if (r === 0) {
-      return { value: [], context };
+      throw Errors.divisionByZero();
     }
     const q = l as QuantityValue;
     return { value: [box({ value: q.value / r, unit: q.unit }, { type: 'Quantity', singleton: true })], context };
@@ -36,7 +41,7 @@ export const evaluate: OperationEvaluator = async (input, context, left, right) 
   // Handle numeric division
   if (typeof l === 'number' && typeof r === 'number') {
     if (r === 0) {
-      return { value: [], context };
+      throw Errors.divisionByZero();
     }
     return { value: [box(l / r, { type: 'Any', singleton: true })], context };
   }
@@ -51,7 +56,7 @@ export const divideOperator: OperatorDefinition & { evaluate: OperationEvaluator
   category: ['arithmetic'],
   precedence: PRECEDENCE.MULTIPLICATIVE,
   associativity: 'left',
-  description: 'Divides the left operand by the right operand (supported for Integer, Decimal, and Quantity). The result is always Decimal, even if inputs are both Integer. Division by zero returns empty.',
+  description: 'Divides the left operand by the right operand (supported for Integer, Decimal, and Quantity). The result is always Decimal, even if inputs are both Integer. Division by zero throws an error.',
   examples: ['10 / 2', '7.5 / 1.5', '12 \'cm2\' / 3 \'cm\'', '12 / 0'],
   signatures: [
     {

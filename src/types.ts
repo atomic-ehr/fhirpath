@@ -102,6 +102,7 @@ export interface FunctionSignature {
     optional?: boolean;
     type: TypeInfo;
     expression?: boolean;
+    typeReference?: boolean; // When true, this parameter expects a type name (e.g., ofType(Patient))
   }>;
   result: TypeInfo | 'inputType' | 'inputTypeSingleton' | 'parameterType';
 }
@@ -440,7 +441,8 @@ export class AnalysisContext {
     public readonly systemVariables: ReadonlyMap<string, TypeInfo>,
     public readonly userVariables: ReadonlyMap<string, TypeInfo>,
     private readonly analyzeNodeCallback: (node: ASTNode, ctx: AnalysisContext) => Promise<InternalAnalysisResult>,
-    public readonly modelProvider?: ModelProvider
+    public readonly modelProvider?: ModelProvider,
+    public readonly hasDynamicVariables: boolean = false
   ) {}
 
   withUserVariable(name: string, type: TypeInfo): AnalysisContext {
@@ -451,7 +453,8 @@ export class AnalysisContext {
       this.systemVariables,
       newUserVars,
       this.analyzeNodeCallback,
-      this.modelProvider
+      this.modelProvider,
+      this.hasDynamicVariables
     );
   }
 
@@ -463,7 +466,8 @@ export class AnalysisContext {
       newSystemVars,
       this.userVariables,
       this.analyzeNodeCallback,
-      this.modelProvider
+      this.modelProvider,
+      this.hasDynamicVariables
     );
   }
 
@@ -473,7 +477,19 @@ export class AnalysisContext {
       this.systemVariables,
       this.userVariables,
       this.analyzeNodeCallback,
-      this.modelProvider
+      this.modelProvider,
+      this.hasDynamicVariables
+    );
+  }
+
+  withDynamicVariables(): AnalysisContext {
+    return new AnalysisContext(
+      this.inputType,
+      this.systemVariables,
+      this.userVariables,
+      this.analyzeNodeCallback,
+      this.modelProvider,
+      true
     );
   }
 
@@ -483,7 +499,8 @@ export class AnalysisContext {
       new Map(this.systemVariables),
       new Map(this.userVariables),
       this.analyzeNodeCallback,
-      this.modelProvider
+      this.modelProvider,
+      this.hasDynamicVariables
     );
   }
 

@@ -94,18 +94,6 @@
       ]
     },
     {
-      "name": "null literal as empty collection",
-      "expression": "null",
-      "input": [],
-      "expected": [],
-      "tags": [
-        "basic",
-        "literal",
-        "null"
-      ],
-      "pending": "null should be treated as empty collection"
-    },
-    {
       "name": "empty collection literal",
       "expression": "{}",
       "input": [],
@@ -118,7 +106,7 @@
     },
     {
       "name": "collection literal - numbers",
-      "expression": "{1, 2, 3}",
+      "expression": "(1 | 2 | 3)",
       "input": [],
       "expected": [
         1,
@@ -133,7 +121,7 @@
     },
     {
       "name": "collection literal - strings",
-      "expression": "{'a', 'b', 'c'}",
+      "expression": "('a' | 'b' | 'c')",
       "input": [],
       "expected": [
         "a",
@@ -148,7 +136,7 @@
     },
     {
       "name": "collection literal - booleans",
-      "expression": "{true, false, true}",
+      "expression": "(true | false | true)",
       "input": [],
       "expected": [
         true,

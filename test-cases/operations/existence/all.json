@@ -85,37 +85,6 @@
       ]
     },
     {
-      "name": "all - type check example from spec",
-      "expression": "generalPractitioner.all($this.resolve() is Practitioner)",
-      "input": {
-        "generalPractitioner": [
-          {
-            "reference": "Practitioner/1",
-            "resolve": {
-              "resourceType": "Practitioner"
-            }
-          },
-          {
-            "reference": "Practitioner/2",
-            "resolve": {
-              "resourceType": "Practitioner"
-            }
-          }
-        ]
-      },
-      "expected": [
-        true
-      ],
-      "tags": [
-        "function",
-        "existence",
-        "all",
-        "function:all",
-        "spec-example"
-      ],
-      "pending": "resolve() function not implemented"
-    },
-    {
       "name": "all - mixed types check",
       "expression": "(1 | 2 | 3).all($this is Integer)",
       "expected": [

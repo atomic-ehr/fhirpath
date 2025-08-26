@@ -36,6 +36,7 @@ export interface CursorIndexNode extends CursorNode {
 export interface CursorTypeNode extends CursorNode {
   context: CursorContext.Type;
   typeOperator: 'is' | 'as' | 'ofType';
+  partialText?: string;
 }
 
 export type AnyCursorNode = 
@@ -98,7 +99,8 @@ export function createCursorIndexNode(position: number): CursorIndexNode {
 
 export function createCursorTypeNode(
   position: number,
-  typeOperator: 'is' | 'as' | 'ofType'
+  typeOperator: 'is' | 'as' | 'ofType',
+  partialText?: string
 ): CursorTypeNode {
   const point = { line: 0, character: position, offset: position };
   return {
@@ -106,6 +108,7 @@ export function createCursorTypeNode(
     context: CursorContext.Type,
     position,
     typeOperator,
+    partialText,
     range: { start: point, end: point },
   };
 }

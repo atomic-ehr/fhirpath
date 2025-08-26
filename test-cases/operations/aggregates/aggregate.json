@@ -250,48 +250,6 @@
       ]
     },
     {
-      "name": "aggregate - build object without init",
-      "expression": "Observation.component.aggregate(iif($total.empty(), {}, $total.where(code = $this.code).aggregate($total | {code: $this.code, values: (value | $this.value)})))",
-      "input": {
-        "resourceType": "Observation",
-        "component": [
-          {
-            "code": "A",
-            "value": 1
-          },
-          {
-            "code": "B",
-            "value": 2
-          },
-          {
-            "code": "A",
-            "value": 3
-          }
-        ]
-      },
-      "expected": [
-        {
-          "code": "A",
-          "values": [
-            1,
-            3
-          ]
-        },
-        {
-          "code": "B",
-          "values": [
-            2
-          ]
-        }
-      ],
-      "tags": [
-        "aggregate",
-        "complex",
-        "no-init"
-      ],
-      "pending": "Cannot infer aggregate result type without init parameter"
-    },
-    {
       "name": "aggregate - type-dependent operations without init",
       "expression": "(1 | 2 | 3).aggregate(iif($total.empty(), $this.toString(), $total + ',' + $this.toString())).split(',')",
       "input": [],
@@ -336,8 +294,7 @@
         "aggregate",
         "polymorphic",
         "no-init"
-      ],
-      "pending": "Cannot determine if result is single item or collection without init"
+      ]
     }
   ]
 }

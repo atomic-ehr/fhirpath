@@ -89,14 +89,8 @@ describe("FHIRPath Parser", () => {
       expect(ast.valueType).toBe("time");
     });
 
-    it("should parse collections", async () => {
-      const ast = parse("{1, 2, 3}") as CollectionNode;
-      expect(ast.type).toBe(NodeType.Collection);
-      expect(ast.elements).toHaveLength(3);
-      expect((ast.elements[0] as LiteralNode).value).toBe(1);
-      expect((ast.elements[1] as LiteralNode).value).toBe(2);
-      expect((ast.elements[2] as LiteralNode).value).toBe(3);
-    });
+    // Removed test for {1, 2, 3} syntax as it's invalid per FHIRPath spec
+    // Collections with values must use pipe syntax: (1 | 2 | 3)
 
     it("should parse empty collections", async () => {
       const ast = parse("{}") as CollectionNode;

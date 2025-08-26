@@ -174,9 +174,12 @@ describe("Completion Provider", () => {
       expect(typeCompletions).toHaveLength(0);
     });
 
-    it.skip("should provide resource types for ofType with modelProvider", async () => {
-      const expression = "Bundle.entry.resource.ofType(";
-      const cursorPosition = 30;
+    // The parser now properly handles cursor positions in ofType function arguments
+    // by transforming cursor nodes to have the correct Type context
+    it("should provide resource types for ofType with modelProvider", async () => {
+      // Use a partial identifier to trigger argument context
+      const expression = "Bundle.entry.resource.ofType(P)";
+      const cursorPosition = 30; // After "P", before ")"
       const options: CompletionOptions = {
         modelProvider: modelProvider,
       };
@@ -187,15 +190,41 @@ describe("Completion Provider", () => {
         options,
       );
 
-      // Should have resource types
+      // Should have resource types starting with "P"
       const patientType = completions.find((c) => c.label === "Patient");
       expect(patientType).toBeDefined();
       expect(patientType?.kind).toBe(CompletionKind.Type);
 
+      // Should filter out types not starting with "P" (like Observation)
       const observationType = completions.find(
         (c) => c.label === "Observation",
       );
-      expect(observationType).toBeDefined();
+      expect(observationType).toBeUndefined();
+    });
+
+    it("should provide filtered resource types when user starts typing in ofType", async () => {
+      const expression = "Bundle.entry.resource.ofType(Pat)";
+      const cursorPosition = 32; // After "Pat", before ")"
+      const options: CompletionOptions = {
+        modelProvider: modelProvider,
+      };
+
+      const completions = await provideCompletions(
+        expression,
+        cursorPosition,
+        options,
+      );
+
+      // Should have Patient (matches "Pat")
+      const patientType = completions.find((c) => c.label === "Patient");
+      expect(patientType).toBeDefined();
+      expect(patientType?.kind).toBe(CompletionKind.Type);
+
+      // Should not have Observation (doesn't match "Pat")
+      const observationType = completions.find(
+        (c) => c.label === "Observation",
+      );
+      expect(observationType).toBeUndefined();
     });
   });
 

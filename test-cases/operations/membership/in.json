@@ -4,7 +4,7 @@
   "tests": [
     {
       "name": "in - string in collection",
-      "expression": "'active' in {'active', 'inactive', 'pending'}",
+      "expression": "'active' in ('active' | 'inactive' | 'pending')",
       "input": [],
       "expected": [
         true
@@ -18,7 +18,7 @@
     },
     {
       "name": "in - number in collection",
-      "expression": "1 in {1, 2, 3}",
+      "expression": "1 in (1 | 2 | 3)",
       "input": [],
       "expected": [
         true
@@ -31,11 +31,11 @@
       ]
     },
     {
-      "name": "in - substring",
+      "name": "in - single string not equal to another string",
       "expression": "'a' in 'abc'",
       "input": [],
       "expected": [
-        true
+        false
       ],
       "tags": [
         "operator",
@@ -44,11 +44,11 @@
         "string",
         "operator:in"
       ],
-      "pending": "in operator substring matching not implemented"
+      "description": "'in' operator checks equality, not substring. 'a' != 'abc', so result is false"
     },
     {
       "name": "in - not found",
-      "expression": "4 in {1, 2, 3}",
+      "expression": "4 in (1 | 2 | 3)",
       "input": [],
       "expected": [
         false
@@ -62,7 +62,7 @@
     },
     {
       "name": "contains - collection contains item",
-      "expression": "{1, 2, 3} contains 1",
+      "expression": "(1 | 2 | 3) contains 1",
       "input": [],
       "expected": [
         true
@@ -91,7 +91,7 @@
     },
     {
       "name": "contains - not found",
-      "expression": "{1, 2, 3} contains 4",
+      "expression": "(1 | 2 | 3) contains 4",
       "input": [],
       "expected": [
         false
@@ -104,8 +104,22 @@
       ]
     },
     {
-      "name": "in - substring not found",
-      "expression": "'x' in 'abc'",
+      "name": "in - empty left operand",
+      "expression": "{} in (1 | 2 | 3)",
+      "input": [],
+      "expected": [],
+      "tags": [
+        "operator",
+        "membership",
+        "in",
+        "empty",
+        "operator:in"
+      ],
+      "description": "When left operand is empty, result is empty per spec"
+    },
+    {
+      "name": "in - empty right operand",
+      "expression": "1 in {}",
       "input": [],
       "expected": [
         false
@@ -114,12 +128,13 @@
         "operator",
         "membership",
         "in",
-        "string",
+        "empty",
         "operator:in"
-      ]
+      ],
+      "description": "When right operand is empty, result is false per spec"
     },
     {
-      "name": "contains - substring not found",
+      "name": "contains - single string is not a collection",
       "expression": "'abc' contains 'x'",
       "input": [],
       "expected": [
@@ -130,8 +145,39 @@
         "membership",
         "contains",
         "string",
-        "operator:in"
-      ]
+        "operator:contains"
+      ],
+      "description": "'contains' operator checks if item is in collection. Single string 'abc' as collection has one item 'abc', which != 'x'"
+    },
+    {
+      "name": "contains - empty left operand",
+      "expression": "{} contains 1",
+      "input": [],
+      "expected": [
+        false
+      ],
+      "tags": [
+        "operator",
+        "membership",
+        "contains",
+        "empty",
+        "operator:contains"
+      ],
+      "description": "When left operand is empty, result is false per spec"
+    },
+    {
+      "name": "contains - empty right operand",
+      "expression": "(1 | 2 | 3) contains {}",
+      "input": [],
+      "expected": [],
+      "tags": [
+        "operator",
+        "membership",
+        "contains",
+        "empty",
+        "operator:contains"
+      ],
+      "description": "When right operand is empty, result is empty per spec"
     }
   ]
 }

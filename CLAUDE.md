@@ -116,7 +116,8 @@ const result = evaluate("Patient.name.where(use = 'official').given", {
 * Use `bun run <filename.ts>` to run files
 * When you create or update typescript file, run `bun tsc --noEmit` to check for errors and fix them.
 * Create tests for new functionality. Put test file as ./test/<filename>.test.ts by convention.
-* Use `import {describe, it, expect} from 'bun:test'` and `bun run test` to run tests.
+* Use `import {describe, it, expect} from 'bun:test'` for writing tests
+* **IMPORTANT**: When running all tests, use `bun run test:failures` instead of `bun run test` - this filters output to show only failures, making it easier to identify issues quickly
 * Main test cases are located in ./test-cases folder as JSON files organized according to ADR-008:
   - ./test-cases/operations/ contains subdirectories for each operation category (arithmetic/, logical/, etc.)
   - Each operation has its own test file (e.g., plus.json, where.json)

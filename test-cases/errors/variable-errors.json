@@ -76,65 +76,67 @@
         "variable",
         "redefinition",
         "defineVariable"
-      ],
-      "pending": "Variable redefinition checking not implemented"
+      ]
     },
     {
-      "name": "overriding system variable $this",
-      "expression": "defineVariable('this', 'invalid')",
+      "name": "user variable %this does not collide with $this",
+      "expression": "(1 | 2 | 3).defineVariable('this', 100).where($this > 1).select(%this)",
       "input": [],
-      "expected": [],
-      "error": {
-        "type": "EvaluationError",
-        "message": "Cannot.*override.*system.*variable.*this",
-        "phase": "evaluate",
-        "code": "FP6005"
-      },
+      "expected": [100, 100],
       "tags": [
-        "error",
         "variable",
+        "defineVariable",
         "system",
-        "defineVariable"
+        "where",
+        "select"
       ],
-      "pending": "System variable protection not implemented"
+      "description": "User variable %this is separate from system variable $this"
     },
     {
-      "name": "overriding system variable $index",
-      "expression": "defineVariable('index', 0)",
+      "name": "user variable %index does not collide with $index",
+      "expression": "(1 | 2 | 3).defineVariable('index', 999).select($index + %index)",
       "input": [],
-      "expected": [],
-      "error": {
-        "type": "EvaluationError",
-        "message": "Cannot.*override.*system.*variable.*index",
-        "phase": "evaluate",
-        "code": "FP6005"
-      },
+      "expected": [999, 1000, 1001],
       "tags": [
-        "error",
         "variable",
+        "defineVariable",
         "system",
-        "defineVariable"
+        "select",
+        "operator:+"
       ],
-      "pending": "System variable protection not implemented"
+      "description": "User variable %index is separate from system variable $index"
     },
     {
-      "name": "overriding system variable $total",
-      "expression": "defineVariable('total', 100)",
+      "name": "user variable %total does not collide with $total",
+      "expression": "(1 | 2 | 3).defineVariable('total', 50).where($total = 3).select(%total)",
       "input": [],
-      "expected": [],
-      "error": {
-        "type": "EvaluationError",
-        "message": "Cannot.*override.*system.*variable.*total",
-        "phase": "evaluate",
-        "code": "FP6005"
-      },
+      "expected": [50, 50, 50],
       "tags": [
-        "error",
         "variable",
+        "defineVariable",
         "system",
-        "defineVariable"
+        "where",
+        "select"
       ],
-      "pending": "System variable protection not implemented"
+      "description": "User variable %total is separate from system variable $total"
+    },
+    {
+      "name": "all system and user variables coexist",
+      "expression": "(5 | 10 | 15).defineVariable('this', 'userThis').defineVariable('index', 'userIndex').defineVariable('total', 'userTotal').select($this & ' @ ' & $index & ' of ' & $total & ' with %this=' & %this & ', %index=' & %index & ', %total=' & %total)",
+      "input": [],
+      "expected": [
+        "5 @ 0 of 3 with %this=userThis, %index=userIndex, %total=userTotal",
+        "10 @ 1 of 3 with %this=userThis, %index=userIndex, %total=userTotal",
+        "15 @ 2 of 3 with %this=userThis, %index=userIndex, %total=userTotal"
+      ],
+      "tags": [
+        "variable",
+        "defineVariable",
+        "system",
+        "select",
+        "operator:&"
+      ],
+      "description": "All system variables ($this, $index, $total) and user variables (%this, %index, %total) can coexist"
     },
     {
       "name": "variable out of scope - union operator",
