@@ -279,6 +279,27 @@ describe('Temporal Values Implementation', () => {
 
   });
 
+  describe('Seconds+Milliseconds single precision compare', () => {
+    it('Time: 31s vs 31.100s compares at single precision', () => {
+      const t1 = createTime(10, 30, 31);
+      const t2 = createTime(10, 30, 31, 100);
+      expect(compare(t1, t2)).toBe(-1); // currently returns null
+    });
+
+    it('DateTime (naive): 31s vs 31.001s compares at single precision', () => {
+      const d1 = createDateTime(2012, 1, 1, 10, 30, 31);
+      const d2 = createDateTime(2012, 1, 1, 10, 30, 31, 1);
+      expect(compare(d1, d2)).toBe(-1); // currently returns null
+    });
+
+    it('DateTime (timezone-aware): normalized seconds+ms compare', () => {
+      // Left = 10:30:31.000Z, Right = 10:30:31.100Z (converted from -04:00)
+      const leftUTC = createDateTime(2020, 1, 1, 10, 30, 31, 0, 0);
+      const rightTZ = createDateTime(2020, 1, 1, 6, 30, 31, 100, -240);
+      expect(compare(leftUTC, rightTZ)).toBe(-1); // currently returns null
+    });
+  });
+
   describe('parseTemporalLiteral', () => {
     describe('Date parsing', () => {
       it('should parse year-only date', () => {

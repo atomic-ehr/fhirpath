@@ -327,17 +327,17 @@ export function equals(a: TemporalValue, b: TemporalValue): boolean | null {
     }
     
     // Compare second/millisecond as a single precision per spec
-    if ((a.second !== undefined || a.millisecond !== undefined) || 
+    if ((a.second !== undefined || a.millisecond !== undefined) ||
         (b.second !== undefined || b.millisecond !== undefined)) {
       const aHasSecondPrecision = a.second !== undefined || a.millisecond !== undefined;
       const bHasSecondPrecision = b.second !== undefined || b.millisecond !== undefined;
-      
+
       if (!aHasSecondPrecision || !bHasSecondPrecision) return null;
-      
-      // Compare as decimal seconds
-      const aSeconds = (a.second ?? 0) + (a.millisecond ?? 0) / 1000;
-      const bSeconds = (b.second ?? 0) + (b.millisecond ?? 0) / 1000;
-      if (Math.abs(aSeconds - bSeconds) > 0.0001) return false;
+
+      // Compare as integer milliseconds for exact decimal semantics
+      const aMs = (a.second ?? 0) * 1000 + (a.millisecond ?? 0);
+      const bMs = (b.second ?? 0) * 1000 + (b.millisecond ?? 0);
+      if (aMs !== bMs) return false;
     }
     
     return true;
@@ -378,16 +378,16 @@ export function equals(a: TemporalValue, b: TemporalValue): boolean | null {
       }
       
       // Compare second/millisecond as single precision
-      if ((aUtc.second !== undefined || aUtc.millisecond !== undefined) || 
+      if ((aUtc.second !== undefined || aUtc.millisecond !== undefined) ||
           (bUtc.second !== undefined || bUtc.millisecond !== undefined)) {
         const aHasSecondPrecision = aUtc.second !== undefined || aUtc.millisecond !== undefined;
         const bHasSecondPrecision = bUtc.second !== undefined || bUtc.millisecond !== undefined;
-        
+
         if (!aHasSecondPrecision || !bHasSecondPrecision) return null;
-        
-        const aSeconds = (aUtc.second ?? 0) + (aUtc.millisecond ?? 0) / 1000;
-        const bSeconds = (bUtc.second ?? 0) + (bUtc.millisecond ?? 0) / 1000;
-        if (Math.abs(aSeconds - bSeconds) > 0.0001) return false;
+
+        const aMs = (aUtc.second ?? 0) * 1000 + (aUtc.millisecond ?? 0);
+        const bMs = (bUtc.second ?? 0) * 1000 + (bUtc.millisecond ?? 0);
+        if (aMs !== bMs) return false;
       }
       
       return true;
@@ -421,16 +421,16 @@ export function equals(a: TemporalValue, b: TemporalValue): boolean | null {
       }
       
       // Compare second/millisecond as single precision
-      if ((a.second !== undefined || a.millisecond !== undefined) || 
+      if ((a.second !== undefined || a.millisecond !== undefined) ||
           (b.second !== undefined || b.millisecond !== undefined)) {
         const aHasSecondPrecision = a.second !== undefined || a.millisecond !== undefined;
         const bHasSecondPrecision = b.second !== undefined || b.millisecond !== undefined;
-        
+
         if (!aHasSecondPrecision || !bHasSecondPrecision) return null;
-        
-        const aSeconds = (a.second ?? 0) + (a.millisecond ?? 0) / 1000;
-        const bSeconds = (b.second ?? 0) + (b.millisecond ?? 0) / 1000;
-        if (Math.abs(aSeconds - bSeconds) > 0.0001) return false;
+
+        const aMs = (a.second ?? 0) * 1000 + (a.millisecond ?? 0);
+        const bMs = (b.second ?? 0) * 1000 + (b.millisecond ?? 0);
+        if (aMs !== bMs) return false;
       }
       
       return true;
@@ -494,16 +494,15 @@ export function compare(a: TemporalValue, b: TemporalValue): -1 | 0 | 1 | null {
       if (a.minute !== b.minute) return a.minute < b.minute ? -1 : 1;
     }
     
-    // Compare second - if one has it and other doesn't, return null
-    if (a.second !== undefined || b.second !== undefined) {
-      if (a.second === undefined || b.second === undefined) return null;
-      if (a.second !== b.second) return a.second < b.second ? -1 : 1;
-    }
-    
-    // Compare millisecond - if one has it and other doesn't, return null
-    if (a.millisecond !== undefined || b.millisecond !== undefined) {
-      if (a.millisecond === undefined || b.millisecond === undefined) return null;
-      if (a.millisecond !== b.millisecond) return a.millisecond < b.millisecond ? -1 : 1;
+    // Compare seconds+milliseconds as a single precision group
+    if ((a.second !== undefined || a.millisecond !== undefined) ||
+        (b.second !== undefined || b.millisecond !== undefined)) {
+      const aHasSecondPrecision = a.second !== undefined || a.millisecond !== undefined;
+      const bHasSecondPrecision = b.second !== undefined || b.millisecond !== undefined;
+      if (!aHasSecondPrecision || !bHasSecondPrecision) return null;
+      const aMs = (a.second ?? 0) * 1000 + (a.millisecond ?? 0);
+      const bMs = (b.second ?? 0) * 1000 + (b.millisecond ?? 0);
+      if (aMs !== bMs) return aMs < bMs ? -1 : 1;
     }
     
     return 0;
@@ -543,16 +542,15 @@ export function compare(a: TemporalValue, b: TemporalValue): -1 | 0 | 1 | null {
         if (aUtc.minute !== bUtc.minute) return aUtc.minute < bUtc.minute ? -1 : 1;
       }
       
-      // Compare second
-      if (aUtc.second !== undefined || bUtc.second !== undefined) {
-        if (aUtc.second === undefined || bUtc.second === undefined) return null;
-        if (aUtc.second !== bUtc.second) return aUtc.second < bUtc.second ? -1 : 1;
-      }
-      
-      // Compare millisecond
-      if (aUtc.millisecond !== undefined || bUtc.millisecond !== undefined) {
-        if (aUtc.millisecond === undefined || bUtc.millisecond === undefined) return null;
-        if (aUtc.millisecond !== bUtc.millisecond) return aUtc.millisecond < bUtc.millisecond ? -1 : 1;
+      // Compare seconds+milliseconds as a single precision group
+      if ((aUtc.second !== undefined || aUtc.millisecond !== undefined) ||
+          (bUtc.second !== undefined || bUtc.millisecond !== undefined)) {
+        const aHasSecondPrecision = aUtc.second !== undefined || aUtc.millisecond !== undefined;
+        const bHasSecondPrecision = bUtc.second !== undefined || bUtc.millisecond !== undefined;
+        if (!aHasSecondPrecision || !bHasSecondPrecision) return null;
+        const aMs = (aUtc.second ?? 0) * 1000 + (aUtc.millisecond ?? 0);
+        const bMs = (bUtc.second ?? 0) * 1000 + (bUtc.millisecond ?? 0);
+        if (aMs !== bMs) return aMs < bMs ? -1 : 1;
       }
       
       return 0;
@@ -585,16 +583,15 @@ export function compare(a: TemporalValue, b: TemporalValue): -1 | 0 | 1 | null {
         if (a.minute !== b.minute) return a.minute < b.minute ? -1 : 1;
       }
       
-      // Compare second
-      if (a.second !== undefined || b.second !== undefined) {
-        if (a.second === undefined || b.second === undefined) return null;
-        if (a.second !== b.second) return a.second < b.second ? -1 : 1;
-      }
-      
-      // Compare millisecond
-      if (a.millisecond !== undefined || b.millisecond !== undefined) {
-        if (a.millisecond === undefined || b.millisecond === undefined) return null;
-        if (a.millisecond !== b.millisecond) return a.millisecond < b.millisecond ? -1 : 1;
+      // Compare seconds+milliseconds as a single precision group
+      if ((a.second !== undefined || a.millisecond !== undefined) ||
+          (b.second !== undefined || b.millisecond !== undefined)) {
+        const aHasSecondPrecision = a.second !== undefined || a.millisecond !== undefined;
+        const bHasSecondPrecision = b.second !== undefined || b.millisecond !== undefined;
+        if (!aHasSecondPrecision || !bHasSecondPrecision) return null;
+        const aMs = (a.second ?? 0) * 1000 + (a.millisecond ?? 0);
+        const bMs = (b.second ?? 0) * 1000 + (b.millisecond ?? 0);
+        if (aMs !== bMs) return aMs < bMs ? -1 : 1;
       }
       
       return 0;
