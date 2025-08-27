@@ -990,7 +990,7 @@ function addToDate(date: FHIRDate, quantity: TimeQuantity): FHIRDate {
   
   // Handle time units that can convert to days
   if (normalizedUnit === 'hour') {
-    // For hours, ignore decimal portion and convert to days if possible
+    // For hours, ignore decimal portion and convert to days if possible (preserve existing semantics)
     const hours = Math.trunc(quantity.value);
     const days = Math.trunc(hours / 24);
     if (days > 0) {
@@ -1005,83 +1005,9 @@ function addToDate(date: FHIRDate, quantity: TimeQuantity): FHIRDate {
   if (!['year', 'month', 'week', 'day'].includes(normalizedUnit)) {
     return date;
   }
-  
-  let newYear = date.year;
-  let newMonth = date.month;
-  let newDay = date.day;
-  
-  if (normalizedUnit === 'year') {
-    const yearsToAdd = Math.trunc(quantity.value);
-    newYear += yearsToAdd;
-  } else if (normalizedUnit === 'month') {
-    const monthsToAdd = Math.trunc(quantity.value);
-    if (date.month !== undefined) {
-      let totalMonths = (date.year * 12) + (date.month - 1) + monthsToAdd;
-      newYear = Math.floor(totalMonths / 12);
-      newMonth = (totalMonths % 12) + 1;
-      if (newMonth <= 0) {
-        newMonth += 12;
-        newYear--;
-      }
-    } else {
-      // Convert months to years
-      const yearsToAdd = convertAndTruncate(quantity, 'year');
-      newYear += yearsToAdd;
-    }
-  } else if (normalizedUnit === 'week') {
-    // Convert weeks to days and handle as days
-    // For calendar units, truncate decimal values towards zero
-    const weeksToAdd = Math.trunc(quantity.value);
-    const daysQuantity = createTimeQuantity(weeksToAdd * 7, 'day');
-    return addToDate(date, daysQuantity);
-  } else if (normalizedUnit === 'day') {
-    if (date.day !== undefined && date.month !== undefined) {
-      // Proper day addition with calendar logic
-      const daysToAdd = Math.trunc(quantity.value);
-      let currentYear = newYear;
-      let currentMonth = newMonth!;
-      let currentDay = newDay! + daysToAdd;
-      
-      // Handle overflow (moving forward in time)
-      while (currentDay > getDaysInMonth(currentYear, currentMonth)) {
-        currentDay -= getDaysInMonth(currentYear, currentMonth);
-        currentMonth++;
-        if (currentMonth > 12) {
-          currentMonth = 1;
-          currentYear++;
-        }
-      }
-      
-      // Handle underflow (moving backward in time)
-      while (currentDay < 1) {
-        currentMonth--;
-        if (currentMonth < 1) {
-          currentMonth = 12;
-          currentYear--;
-        }
-        currentDay += getDaysInMonth(currentYear, currentMonth);
-      }
-      
-      newYear = currentYear;
-      newMonth = currentMonth;
-      newDay = currentDay;
-    } else if (date.month !== undefined) {
-      // Convert days to months
-      const monthsToAdd = convertAndTruncate(quantity, 'month');
-      let totalMonths = (date.year * 12) + (date.month - 1) + monthsToAdd;
-      newYear = Math.floor(totalMonths / 12);
-      newMonth = (totalMonths % 12) + 1;
-    } else {
-      // Convert days to years
-      const yearsToAdd = convertAndTruncate(quantity, 'year');
-      newYear += yearsToAdd;
-    }
-  }
-  
-  // Clamp the day if necessary (e.g., Jan 31 + 1 month = Feb 29/28)
-  newDay = clampDay(newYear, newMonth, newDay);
-  
-  return createDate(newYear, newMonth, newDay);
+
+  const cal = addCalendarParts(date.year, date.month, date.day, normalizedUnit as CalendarUnit, quantity.value);
+  return createDate(cal.year, cal.month, cal.day);
 }
 
 function addToTime(time: FHIRTime, quantity: TimeQuantity): FHIRTime {
