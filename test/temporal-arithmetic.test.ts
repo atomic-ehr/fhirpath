@@ -84,6 +84,13 @@ describe('Temporal Arithmetic - Following ADR-017', () => {
     });
 
     describe('High Precision Date (Day) - Full Calendar Arithmetic', () => {
+      it('@2020-01-01 + 1 month = @2020-02-01', () => {
+        const date = createDate(2020, 1, 1);
+        const result = date.add(createTimeQuantity(1, 'month'));
+        expect(result.toString()).toBe('2020-02-01');
+        expect(result.precision.level).toBe('day');
+      });
+
       it('@2020-01-01 + 13 months = @2021-02-01', () => {
         const date = createDate(2020, 1, 1);
         const result = date.add(createTimeQuantity(13, 'month'));
