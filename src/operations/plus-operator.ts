@@ -27,32 +27,43 @@ export const evaluate: OperationEvaluator = async (input, context, left, right) 
   if ((leftType === 'Date' || leftType === 'DateTime' || leftType === 'Time') && rightType === 'Quantity') {
     // Left is temporal, right is quantity
     const temporalType = leftType;
+    const temporal = l;
     const quantity = r as QuantityValue;
     
     // Import temporal utilities and create TimeQuantity
     const { createTimeQuantity } = await import('../temporal');
     
-    // Check if it's a time unit
-    const timeUnits = ['year', 'years', 'month', 'months', 'week', 'weeks', 
-                      'day', 'days', 'hour', 'hours', 'minute', 'minutes', 
-                      'second', 'seconds', 'millisecond', 'milliseconds',
-                      's', 'min', 'h', 'd', 'wk', 'mo', 'a', 'ms'];
+    // Calendar duration units (allowed for temporal arithmetic)
+    const calendarUnits = ['year', 'years', 'month', 'months', 'week', 'weeks', 
+                          'day', 'days', 'hour', 'hours', 'minute', 'minutes', 
+                          'second', 'seconds', 'millisecond', 'milliseconds'];
     
-    // Map short units to full names
-    const unitMap: Record<string, string> = {
-      's': 'second',
-      'min': 'minute',
-      'h': 'hour',
+    // Variable duration UCUM units (not allowed for temporal arithmetic - they have calendar-dependent durations)
+    const variableDurationUnits = ['a', 'mo'];
+    
+    // Fixed duration UCUM units (allowed - they map directly to calendar units)
+    const fixedDurationUnitMap: Record<string, string> = {
       'd': 'day',
-      'wk': 'week',
-      'mo': 'month',
-      'a': 'year',
+      'wk': 'week', 
+      'h': 'hour',
+      'min': 'minute',
+      's': 'second',
       'ms': 'millisecond'
     };
     
-    const mappedUnit = unitMap[quantity.unit] || quantity.unit;
+    // Check if this is a variable duration unit (not allowed)
+    if (variableDurationUnits.includes(quantity.unit)) {
+      // Variable duration units like 'a' and 'mo' cannot be added to temporal values
+      // because they don't have fixed durations
+      const { Errors } = await import('../errors');
+      throw Errors.invalidTemporalUnit(temporalType, quantity.unit);
+    }
     
-    if (!timeUnits.includes(quantity.unit)) {
+    // Map fixed duration UCUM units to calendar units
+    let mappedUnit = fixedDurationUnitMap[quantity.unit] || quantity.unit;
+    
+    // Check if this is a valid calendar duration unit (after mapping)
+    if (!calendarUnits.includes(mappedUnit)) {
       // Non-time units with temporal values return empty per FHIRPath spec
       return { value: [], context };
     }
@@ -62,37 +73,52 @@ export const evaluate: OperationEvaluator = async (input, context, left, right) 
     let result;
     if (temporalType === 'Date') {
       const { FHIRDate } = await import('../temporal');
-      if (!(l instanceof FHIRDate)) {
-        // If it's not already a FHIRDate instance, it might be a plain object representation
-        const date = Object.setPrototypeOf(l, FHIRDate.prototype);
+      if (!(temporal instanceof FHIRDate)) {
+        // Reconstruct the FHIRDate from the plain object
+        const dateObj = temporal as any;
+        const date = new FHIRDate(dateObj.year, dateObj.month, dateObj.day);
         result = date.add(timeQuantity);
       } else {
-        result = l.add(timeQuantity);
+        result = temporal.add(timeQuantity);
       }
       return { value: [box(result, { type: 'Date', singleton: true })], context };
     } else if (temporalType === 'DateTime') {
       const { FHIRDateTime } = await import('../temporal');
-      if (!(l instanceof FHIRDateTime)) {
-        const dateTime = Object.setPrototypeOf(l, FHIRDateTime.prototype);
+      if (!(temporal instanceof FHIRDateTime)) {
+        // Reconstruct the FHIRDateTime from the plain object
+        const dateTimeObj = temporal as any;
+        const dateTime = new FHIRDateTime(
+          dateTimeObj.year,
+          dateTimeObj.month,
+          dateTimeObj.day,
+          dateTimeObj.hour,
+          dateTimeObj.minute,
+          dateTimeObj.second,
+          dateTimeObj.millisecond,
+          dateTimeObj.timezoneOffset
+        );
         result = dateTime.add(timeQuantity);
       } else {
-        result = l.add(timeQuantity);
+        result = temporal.add(timeQuantity);
       }
       return { value: [box(result, { type: 'DateTime', singleton: true })], context };
     } else if (temporalType === 'Time') {
       const { FHIRTime } = await import('../temporal');
-      try {
-        if (!(l instanceof FHIRTime)) {
-          const time = Object.setPrototypeOf(l, FHIRTime.prototype);
-          result = time.add(timeQuantity);
-        } else {
-          result = l.add(timeQuantity);
-        }
-        return { value: [box(result, { type: 'Time', singleton: true })], context };
-      } catch (error) {
-        // Invalid operation (e.g., adding calendar units to Time) returns empty per FHIRPath spec
-        return { value: [], context };
+      // Let the error propagate - adding calendar units to Time should throw
+      if (!(temporal instanceof FHIRTime)) {
+        // Reconstruct the FHIRTime from the plain object
+        const timeObj = temporal as any;
+        const time = new FHIRTime(
+          timeObj.hour, 
+          timeObj.minute, 
+          timeObj.second, 
+          timeObj.millisecond
+        );
+        result = time.add(timeQuantity);
+      } else {
+        result = temporal.add(timeQuantity);
       }
+      return { value: [box(result, { type: 'Time', singleton: true })], context };
     }
   }
   
@@ -103,8 +129,9 @@ export const evaluate: OperationEvaluator = async (input, context, left, right) 
     return { value: result ? [box(result, { type: 'Quantity', singleton: true })] : [], context };
   }
   
-  if (typeof l === 'string' || typeof r === 'string') {
-    return { value: [box(String(l) + String(r), { type: 'String', singleton: true })], context };
+  // String concatenation only works for string + string
+  if (typeof l === 'string' && typeof r === 'string') {
+    return { value: [box(l + r, { type: 'String', singleton: true })], context };
   }
   
   if (typeof l === 'number' && typeof r === 'number') {
@@ -115,8 +142,8 @@ export const evaluate: OperationEvaluator = async (input, context, left, right) 
     return { value: [box(result, typeInfo)], context };
   }
   
-  // For other types, convert to string
-  return { value: [box(String(l) + String(r), { type: 'String', singleton: true })], context };
+  // For incompatible types, return empty per FHIRPath spec
+  return { value: [], context };
 };
 
 export const plusOperator: OperatorDefinition & { evaluate: OperationEvaluator } = {

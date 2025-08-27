@@ -11,35 +11,27 @@ export interface QuantityValue {
 }
 
 /**
- * Calendar duration unit to UCUM unit mapping
+ * Calendar duration units used in FHIRPath
+ * These are NOT UCUM units and should not be converted
  */
-export const CALENDAR_TO_UCUM: Record<string, string> = {
-  'year': 'a',      // annum
-  'years': 'a',
-  'month': 'mo',    // month
-  'months': 'mo',
-  'week': 'wk',     // week
-  'weeks': 'wk',
-  'day': 'd',       // day
-  'days': 'd',
-  'hour': 'h',      // hour
-  'hours': 'h',
-  'minute': 'min',  // minute
-  'minutes': 'min',
-  'second': 's',    // second
-  'seconds': 's',
-  'millisecond': 'ms', // millisecond
-  'milliseconds': 'ms'
-};
+export const CALENDAR_DURATION_UNITS = new Set([
+  'year', 'years',
+  'month', 'months',
+  'week', 'weeks',
+  'day', 'days',
+  'hour', 'hours',
+  'minute', 'minutes',
+  'second', 'seconds',
+  'millisecond', 'milliseconds'
+]);
 
 /**
  * Create a quantity value
  */
-export function createQuantity(value: number, unit: string, isCalendarUnit: boolean = false): QuantityValue {
-  const actualUnit = isCalendarUnit && CALENDAR_TO_UCUM[unit] ? CALENDAR_TO_UCUM[unit] : unit;
+export function createQuantity(value: number, unit: string): QuantityValue {
   return {
     value,
-    unit: actualUnit
+    unit
   };
 }
 
@@ -47,6 +39,11 @@ export function createQuantity(value: number, unit: string, isCalendarUnit: bool
  * Get or create the UCUM quantity for a QuantityValue
  */
 export function getUcumQuantity(quantity: QuantityValue): Quantity | null {
+  // Calendar duration units are not UCUM units
+  if (CALENDAR_DURATION_UNITS.has(quantity.unit)) {
+    return null;
+  }
+  
   if (!quantity._ucumQuantity) {
     try {
       quantity._ucumQuantity = ucum.quantity(quantity.value, quantity.unit);
@@ -60,8 +57,14 @@ export function getUcumQuantity(quantity: QuantityValue): Quantity | null {
 
 /**
  * Check if a quantity has a valid unit
+ * Valid units are either UCUM units or calendar duration units
  */
 export function isValidQuantity(quantity: QuantityValue): boolean {
+  // Calendar duration units are valid FHIRPath quantities
+  if (CALENDAR_DURATION_UNITS.has(quantity.unit)) {
+    return true;
+  }
+  // Otherwise check if it's a valid UCUM unit
   return getUcumQuantity(quantity) !== null;
 }
 
@@ -69,6 +72,19 @@ export function isValidQuantity(quantity: QuantityValue): boolean {
  * Add two quantities
  */
 export function addQuantities(left: QuantityValue, right: QuantityValue): QuantityValue | null {
+  // Special case: adding calendar durations with the same unit
+  if (CALENDAR_DURATION_UNITS.has(left.unit) && left.unit === right.unit) {
+    return {
+      value: left.value + right.value,
+      unit: left.unit
+    };
+  }
+  
+  // Different calendar units cannot be added
+  if (CALENDAR_DURATION_UNITS.has(left.unit) || CALENDAR_DURATION_UNITS.has(right.unit)) {
+    return null;
+  }
+  
   const leftUcum = getUcumQuantity(left);
   const rightUcum = getUcumQuantity(right);
   
@@ -92,6 +108,19 @@ export function addQuantities(left: QuantityValue, right: QuantityValue): Quanti
  * Subtract two quantities
  */
 export function subtractQuantities(left: QuantityValue, right: QuantityValue): QuantityValue | null {
+  // Special case: subtracting calendar durations with the same unit
+  if (CALENDAR_DURATION_UNITS.has(left.unit) && left.unit === right.unit) {
+    return {
+      value: left.value - right.value,
+      unit: left.unit
+    };
+  }
+  
+  // Different calendar units cannot be subtracted
+  if (CALENDAR_DURATION_UNITS.has(left.unit) || CALENDAR_DURATION_UNITS.has(right.unit)) {
+    return null;
+  }
+  
   const leftUcum = getUcumQuantity(left);
   const rightUcum = getUcumQuantity(right);
   
@@ -115,6 +144,34 @@ export function subtractQuantities(left: QuantityValue, right: QuantityValue): Q
  * Multiply two quantities
  */
 export function multiplyQuantities(left: QuantityValue, right: QuantityValue): QuantityValue | null {
+  // Special case: multiplying calendar duration by a dimensionless number
+  // e.g., 1 year * 2 = 2 years, or 2 * 1 year = 2 years
+  if (CALENDAR_DURATION_UNITS.has(left.unit) && right.unit === '1') {
+    // Calendar duration * number
+    return {
+      value: left.value * right.value,
+      unit: left.unit
+    };
+  }
+  if (CALENDAR_DURATION_UNITS.has(right.unit) && left.unit === '1') {
+    // Number * calendar duration
+    return {
+      value: left.value * right.value,
+      unit: right.unit
+    };
+  }
+  
+  // Check if both are calendar duration units - this is not allowed
+  if (CALENDAR_DURATION_UNITS.has(left.unit) && CALENDAR_DURATION_UNITS.has(right.unit)) {
+    // Calendar duration units cannot be multiplied together - the result would be meaningless
+    throw new Error(`Cannot multiply calendar duration units: ${left.unit} * ${right.unit}`);
+  }
+  
+  // Mixed calendar and non-calendar units are not allowed
+  if (CALENDAR_DURATION_UNITS.has(left.unit) || CALENDAR_DURATION_UNITS.has(right.unit)) {
+    throw new Error(`Cannot multiply calendar duration with non-calendar units: ${left.unit} * ${right.unit}`);
+  }
+  
   const leftUcum = getUcumQuantity(left);
   const rightUcum = getUcumQuantity(right);
   
@@ -137,6 +194,23 @@ export function multiplyQuantities(left: QuantityValue, right: QuantityValue): Q
  * Divide two quantities
  */
 export function divideQuantities(left: QuantityValue, right: QuantityValue): QuantityValue | null {
+  // Special case: dividing calendar duration by a dimensionless number
+  // e.g., 10 months / 2 = 5 months
+  if (CALENDAR_DURATION_UNITS.has(left.unit) && right.unit === '1') {
+    // Calendar duration / number
+    return {
+      value: left.value / right.value,
+      unit: left.unit
+    };
+  }
+  
+  // Division of number by calendar duration is not allowed
+  // Division of two calendar durations is not allowed
+  if (CALENDAR_DURATION_UNITS.has(left.unit) || CALENDAR_DURATION_UNITS.has(right.unit)) {
+    // Calendar duration units cannot be divided except by dimensionless numbers
+    throw new Error(`Cannot divide calendar duration units: ${left.unit} / ${right.unit}`);
+  }
+  
   const leftUcum = getUcumQuantity(left);
   const rightUcum = getUcumQuantity(right);
   
@@ -160,6 +234,22 @@ export function divideQuantities(left: QuantityValue, right: QuantityValue): Qua
  * Returns -1 if left < right, 0 if equal, 1 if left > right, null if incomparable
  */
 export function compareQuantities(left: QuantityValue, right: QuantityValue): number | null {
+  // Special case: comparing calendar durations with the same unit
+  if (CALENDAR_DURATION_UNITS.has(left.unit) && left.unit === right.unit) {
+    if (left.value < right.value) {
+      return -1;
+    } else if (left.value > right.value) {
+      return 1;
+    } else {
+      return 0;
+    }
+  }
+  
+  // Different calendar units cannot be compared
+  if (CALENDAR_DURATION_UNITS.has(left.unit) || CALENDAR_DURATION_UNITS.has(right.unit)) {
+    return null;
+  }
+  
   const leftUcum = getUcumQuantity(left);
   const rightUcum = getUcumQuantity(right);
   

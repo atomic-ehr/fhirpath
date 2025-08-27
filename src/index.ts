@@ -98,10 +98,9 @@ export async function evaluate(
   const result = await interpreter.evaluate(analysisResult.ast, input, context);
   
   // Unbox the results before returning
-  // For temporal values, return their string representation
   return result.value.map(boxedValue => {
     const value = unbox(boxedValue);
-    // Check if it's a temporal value by checking for toString method and type field
+    // Convert temporal values to string representation for output
     if (value && typeof value === 'object' && 'type' in value && 
         (value.type === 'Date' || value.type === 'DateTime' || value.type === 'Time') &&
         'toString' in value && typeof value.toString === 'function') {

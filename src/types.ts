@@ -297,7 +297,6 @@ export interface QuantityNode extends BaseASTNode {
   type: NodeType.Quantity;
   value: number;
   unit: string;
-  isCalendarUnit?: boolean;
 }
 
 // Unified ASTNode type - discriminated union

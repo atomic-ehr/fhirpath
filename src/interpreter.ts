@@ -445,7 +445,17 @@ export class Interpreter {
                 }
                 results.push(box(v, resourceTypeInfo, primitiveElement));
               } else {
-                results.push(box(v, elementTypeInfo, primitiveElement));
+                // Convert string dates to Date/DateTime/Time objects when type info indicates it
+                // Only do this when we have a model provider providing the type info
+                let valueToBox = v;
+                if (context.modelProvider && elementTypeInfo && typeof v === 'string') {
+                  if (elementTypeInfo.type === 'Date' || elementTypeInfo.type === 'DateTime' || elementTypeInfo.type === 'Time') {
+                    const { parseTemporalLiteral } = await import('./temporal');
+                    // Add @ prefix since parseTemporalLiteral expects it
+                    valueToBox = parseTemporalLiteral('@' + v);
+                  }
+                }
+                results.push(box(valueToBox, elementTypeInfo, primitiveElement));
               }
             }
           } else if (value !== null && value !== undefined) {
@@ -471,8 +481,18 @@ export class Interpreter {
               }
               results.push(box(value, resourceTypeInfo, primitiveElement));
             } else {
+              // Convert string dates to Date/DateTime/Time objects when type info indicates it
+              // Only do this when we have a model provider providing the type info
+              let valueToBox = value;
+              if (context.modelProvider && nodeTypeInfo && typeof value === 'string') {
+                if (nodeTypeInfo.type === 'Date' || nodeTypeInfo.type === 'DateTime' || nodeTypeInfo.type === 'Time') {
+                  const { parseTemporalLiteral } = await import('./temporal');
+                  // Add @ prefix since parseTemporalLiteral expects it
+                  valueToBox = parseTemporalLiteral('@' + value);
+                }
+              }
               // Box single value with primitive element if available
-              results.push(box(value, nodeTypeInfo, primitiveElement));
+              results.push(box(valueToBox, nodeTypeInfo, primitiveElement));
             }
           }
         }
@@ -749,7 +769,7 @@ export class Interpreter {
   
   private async evaluateQuantity(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): Promise<EvaluationResult> {
     const quantity = node as QuantityNode;
-    const quantityValue = createQuantity(quantity.value, quantity.unit, quantity.isCalendarUnit);
+    const quantityValue = createQuantity(quantity.value, quantity.unit);
     return {
       value: [box(quantityValue, { type: 'Quantity', singleton: true })],
       context

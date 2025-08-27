@@ -249,11 +249,14 @@ export function addToDate(date: FHIRDate, quantity: TimeQuantity): FHIRDate {
       break;
       
     case 'week':
-      day += Math.floor(quantity.value) * 7;
+      // For weeks, truncate to integer weeks (FHIRPath behavior)
+      // Use Math.trunc to truncate towards zero (not floor which rounds down)
+      day += Math.trunc(quantity.value) * 7;
       break;
       
     case 'day':
-      day += Math.floor(quantity.value);
+      // For calendar days, truncate to integer (ignore decimal part)
+      day += Math.trunc(quantity.value);
       break;
       
     default:
@@ -270,8 +273,9 @@ export function addToDate(date: FHIRDate, quantity: TimeQuantity): FHIRDate {
   // Handle date arithmetic that changes months/days
   if (date.precision.level === 'day' && (normalizedUnit === 'day' || normalizedUnit === 'week')) {
     // Need to handle month/year rollovers properly
-    // Don't use adjusted values, use the raw computed values
-    const jsDate = new Date(year, month - 1, day);
+    // Round fractional days to nearest integer
+    const roundedDay = Math.round(day);
+    const jsDate = new Date(year, month - 1, roundedDay);
     let resultYear = jsDate.getFullYear();
     // Clamp year to valid range
     if (resultYear > 9999) resultYear = 9999;
@@ -351,16 +355,19 @@ export function addToTime(time: FHIRTime, quantity: TimeQuantity): FHIRTime {
   
   switch (normalizedUnit) {
     case 'hour':
-      totalMilliseconds += Math.floor(quantity.value) * 3600000;
+      // For hours, truncate to integer (ignore decimal part)
+      totalMilliseconds += Math.trunc(quantity.value) * 3600000;
       break;
     case 'minute':
-      totalMilliseconds += Math.floor(quantity.value) * 60000;
+      // For minutes, truncate to integer (ignore decimal part)
+      totalMilliseconds += Math.trunc(quantity.value) * 60000;
       break;
     case 'second':
-      totalMilliseconds += Math.floor(quantity.value) * 1000;
+      // Seconds and milliseconds keep decimal parts
+      totalMilliseconds += quantity.value * 1000;
       break;
     case 'millisecond':
-      totalMilliseconds += Math.floor(quantity.value);
+      totalMilliseconds += quantity.value;
       break;
   }
   
@@ -375,12 +382,22 @@ export function addToTime(time: FHIRTime, quantity: TimeQuantity): FHIRTime {
   const newSecond = Math.floor((totalMilliseconds % 60000) / 1000);
   const newMillisecond = totalMilliseconds % 1000;
   
-  // Preserve original precision
-  if (time.precision.level === 'hour') {
+  // Result precision should be the more precise of the two
+  // If we're adding milliseconds to a time with second precision,
+  // the result should have millisecond precision
+  // Also, if the result has non-zero milliseconds, we need millisecond precision
+  let resultPrecision = quantityRank > timeRank ? normalizedUnit : time.precision.level;
+  
+  // If we have non-zero milliseconds, upgrade to millisecond precision
+  if (newMillisecond !== 0 && getPrecisionRank(resultPrecision) < getPrecisionRank('millisecond')) {
+    resultPrecision = 'millisecond';
+  }
+  
+  if (resultPrecision === 'hour') {
     return new FHIRTime(newHour);
-  } else if (time.precision.level === 'minute') {
+  } else if (resultPrecision === 'minute') {
     return new FHIRTime(newHour, newMinute);
-  } else if (time.precision.level === 'second') {
+  } else if (resultPrecision === 'second') {
     return new FHIRTime(newHour, newMinute, newSecond);
   } else {
     return new FHIRTime(newHour, newMinute, newSecond, newMillisecond);
@@ -460,11 +477,14 @@ export function addToDateTime(dt: FHIRDateTime, quantity: TimeQuantity): FHIRDat
         break;
         
       case 'week':
-        day += Math.floor(quantity.value) * 7;
+        // For weeks, truncate to integer weeks (FHIRPath behavior)
+        // Use Math.trunc to truncate towards zero (not floor which rounds down)
+        day += Math.trunc(quantity.value) * 7;
         break;
         
       case 'day':
-        day += Math.floor(quantity.value);
+        // For calendar days, truncate to integer (ignore decimal part)
+        day += Math.trunc(quantity.value);
         break;
     }
     

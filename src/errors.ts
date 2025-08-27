@@ -196,6 +196,10 @@ export const Errors = {
   
   invalidNumericOperation(operation: string, paramName: string, expectedType: string, location?: Range): FHIRPathError {
     return new FHIRPathError(ErrorCodes.INVALID_NUMERIC_OPERATION, `${operation} ${paramName} must be ${expectedType}`, location);
+  },
+  
+  invalidTemporalUnit(temporalType: string, unit: string, location?: Range): FHIRPathError {
+    return new FHIRPathError(ErrorCodes.INVALID_TEMPORAL_UNIT, `Cannot use variable-duration unit '${unit}' with ${temporalType} - use calendar duration keywords instead`, location);
   }
 };
 
@@ -246,10 +250,11 @@ export enum ErrorCodes {
   INDEX_OUT_OF_BOUNDS = 'FP6004',
   INVALID_OPERATION = 'FP6005',
   INVALID_PRECISION = 'FP6006',
-  
-  // Static analysis warnings (7000-7999)
-  UNREACHABLE_CODE = 'FP7001',
   INVALID_STRING_OPERATION = 'FP6007',
   INVALID_NUMERIC_OPERATION = 'FP6008',
-  VARIABLE_ALREADY_DEFINED = 'FP6009'
+  VARIABLE_ALREADY_DEFINED = 'FP6009',
+  INVALID_TEMPORAL_UNIT = 'FP6010',
+  
+  // Static analysis warnings (7000-7999)
+  UNREACHABLE_CODE = 'FP7001'
 }

@@ -29,28 +29,39 @@ export const evaluate: OperationEvaluator = async (input, context, left, right) 
     // Import temporal utilities and create TimeQuantity
     const { createTimeQuantity } = await import('../temporal');
     
-    // Check if it's a time unit
-    const timeUnits = ['year', 'years', 'month', 'months', 'week', 'weeks', 
-                      'day', 'days', 'hour', 'hours', 'minute', 'minutes', 
-                      'second', 'seconds', 'millisecond', 'milliseconds',
-                      's', 'min', 'h', 'd', 'wk', 'mo', 'a', 'ms'];
+    // Calendar duration units (allowed for temporal arithmetic)
+    const calendarUnits = ['year', 'years', 'month', 'months', 'week', 'weeks', 
+                          'day', 'days', 'hour', 'hours', 'minute', 'minutes', 
+                          'second', 'seconds', 'millisecond', 'milliseconds'];
     
-    // Map short units to full names
-    const unitMap: Record<string, string> = {
-      's': 'second',
-      'min': 'minute',
-      'h': 'hour',
+    // Variable duration UCUM units (not allowed for temporal arithmetic - they have calendar-dependent durations)
+    const variableDurationUnits = ['a', 'mo'];
+    
+    // Fixed duration UCUM units (allowed - they map directly to calendar units)
+    const fixedDurationUnitMap: Record<string, string> = {
       'd': 'day',
-      'wk': 'week',
-      'mo': 'month',
-      'a': 'year',
+      'wk': 'week', 
+      'h': 'hour',
+      'min': 'minute',
+      's': 'second',
       'ms': 'millisecond'
     };
     
-    const mappedUnit = unitMap[quantity.unit] || quantity.unit;
+    // Check if this is a variable duration unit (not allowed)
+    if (variableDurationUnits.includes(quantity.unit)) {
+      // Variable duration units like 'a' and 'mo' cannot be subtracted from temporal values
+      // because they don't have fixed durations
+      const { Errors } = await import('../errors');
+      throw Errors.invalidTemporalUnit(temporalType, quantity.unit);
+    }
     
-    if (!timeUnits.includes(quantity.unit)) {
-      throw new Error(`Cannot subtract quantity with unit '${quantity.unit}' from temporal value`);
+    // Map fixed duration UCUM units to calendar units
+    let mappedUnit = fixedDurationUnitMap[quantity.unit] || quantity.unit;
+    
+    // Check if this is a valid calendar duration unit (after mapping)
+    if (!calendarUnits.includes(mappedUnit)) {
+      // Non-time units with temporal values return empty per FHIRPath spec
+      return { value: [], context };
     }
     
     const timeQuantity = createTimeQuantity(quantity.value, mappedUnit as any);
@@ -59,7 +70,9 @@ export const evaluate: OperationEvaluator = async (input, context, left, right) 
     if (temporalType === 'Date') {
       const { FHIRDate } = await import('../temporal');
       if (!(l instanceof FHIRDate)) {
-        const date = Object.setPrototypeOf(l, FHIRDate.prototype);
+        // Reconstruct the FHIRDate from the plain object
+        const dateObj = l as any;
+        const date = new FHIRDate(dateObj.year, dateObj.month, dateObj.day);
         result = date.subtract(timeQuantity);
       } else {
         result = l.subtract(timeQuantity);
@@ -68,7 +81,18 @@ export const evaluate: OperationEvaluator = async (input, context, left, right) 
     } else if (temporalType === 'DateTime') {
       const { FHIRDateTime } = await import('../temporal');
       if (!(l instanceof FHIRDateTime)) {
-        const dateTime = Object.setPrototypeOf(l, FHIRDateTime.prototype);
+        // Reconstruct the FHIRDateTime from the plain object
+        const dateTimeObj = l as any;
+        const dateTime = new FHIRDateTime(
+          dateTimeObj.year,
+          dateTimeObj.month,
+          dateTimeObj.day,
+          dateTimeObj.hour,
+          dateTimeObj.minute,
+          dateTimeObj.second,
+          dateTimeObj.millisecond,
+          dateTimeObj.timezoneOffset
+        );
         result = dateTime.subtract(timeQuantity);
       } else {
         result = l.subtract(timeQuantity);
@@ -77,7 +101,14 @@ export const evaluate: OperationEvaluator = async (input, context, left, right) 
     } else if (temporalType === 'Time') {
       const { FHIRTime } = await import('../temporal');
       if (!(l instanceof FHIRTime)) {
-        const time = Object.setPrototypeOf(l, FHIRTime.prototype);
+        // Reconstruct the FHIRTime from the plain object
+        const timeObj = l as any;
+        const time = new FHIRTime(
+          timeObj.hour,
+          timeObj.minute,
+          timeObj.second,
+          timeObj.millisecond
+        );
         result = time.subtract(timeQuantity);
       } else {
         result = l.subtract(timeQuantity);

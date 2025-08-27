@@ -137,7 +137,7 @@
     {
       "name": "Invalid operation - Time + days",
       "expression": "@T10:30:00 + 1 day",
-      "expected": [],
+      "error": true,
       "tags": ["temporal", "arithmetic", "invalid"]
     },
     {
@@ -353,7 +353,7 @@
     {
       "name": "Invalid operation - Time + calendar unit",
       "expression": "@T10:30 + 1 day",
-      "expected": [],
+      "error": true,
       "tags": ["temporal", "invalid", "arithmetic"]
     },
     {
@@ -373,6 +373,289 @@
       "expression": "@2019-02-28 + 1 day",
       "expected": ["2019-03-01"],
       "tags": ["temporal", "arithmetic"]
+    },
+    {
+      "name": "Invalid - year literal with abbreviated unit",
+      "expression": "@2018 + 1 'a'",
+      "error": {
+        "code": "FP6010",
+        "message": "Cannot use variable-duration unit 'a' with Date - use calendar duration keywords instead"
+      },
+      "tags": ["temporal", "arithmetic", "error", "abbreviation"]
+    },
+    {
+      "name": "Invalid - month literal with abbreviated unit",
+      "expression": "@2018-02 + 1 'mo'",
+      "error": {
+        "code": "FP6010",
+        "message": "Cannot use variable-duration unit 'mo' with Date - use calendar duration keywords instead"
+      },
+      "tags": ["temporal", "arithmetic", "error", "abbreviation"]
+    },
+    {
+      "name": "Valid - day literal with UCUM unit 'd'",
+      "expression": "@2016-01 + 29 'd'",
+      "expected": ["2016-01"],
+      "tags": ["temporal", "arithmetic", "ucum", "day"]
+    },
+    {
+      "name": "Valid - day literal with UCUM unit 'd' (30 days)",
+      "expression": "@2016-01 + 30 'd'",
+      "expected": ["2016-02"],
+      "tags": ["temporal", "arithmetic", "ucum", "day"]
+    },
+    {
+      "name": "Add 30 days to January - month changes",
+      "expression": "@2016-01 + 30 days",
+      "expected": ["2016-02"],
+      "tags": ["temporal", "arithmetic", "day"]
+    },
+    {
+      "name": "Add 1 hour to month precision - no change",
+      "expression": "@2016-01 + 1 hour",
+      "expected": ["2016-01"],
+      "tags": ["temporal", "arithmetic", "precision", "hour"]
+    },
+    {
+      "name": "Add 2 years to full date",
+      "expression": "@2018-01-03 + 2 years",
+      "expected": ["2020-01-03"],
+      "tags": ["temporal", "arithmetic", "date", "year"]
+    },
+    {
+      "name": "Add 2 years to DateTime with timezone",
+      "expression": "@2018-02-18T12:23:45-05:00 + 2 years",
+      "expected": ["2020-02-18T12:23:45-05:00"],
+      "tags": ["temporal", "arithmetic", "datetime", "timezone"]
+    },
+    {
+      "name": "Add 1 month to Feb 29 - leap year",
+      "expression": "@2016-02-29 + 1 month",
+      "expected": ["2016-03-29"],
+      "tags": ["temporal", "arithmetic", "leapYear", "monthEnd"]
+    },
+    {
+      "name": "Add 1 year to Feb 29 - non-leap year adjustment",
+      "expression": "@2016-02-29 + 1 year",
+      "expected": ["2017-02-28"],
+      "tags": ["temporal", "arithmetic", "leapYear", "yearAdjustment"]
+    },
+    {
+      "name": "Invalid - quantity + date (non-commutative)",
+      "expression": "1 year + @2016-02-29",
+      "error": true,
+      "tags": ["temporal", "arithmetic", "error", "nonCommutative"]
+    },
+    {
+      "name": "Invalid - date plus date",
+      "expression": "@2016-02-29 + @2016-02-29",
+      "error": true,
+      "tags": ["temporal", "arithmetic", "error", "invalidOperation"]
+    },
+    {
+      "name": "Invalid - quantity minus date",
+      "expression": "1 year - @2016-02-29",
+      "error": true,
+      "tags": ["temporal", "arithmetic", "error", "invalidOperation"]
+    },
+    {
+      "name": "Quantity multiplication",
+      "expression": "1 year * 2 = 2 year",
+      "expected": [true],
+      "tags": ["temporal", "arithmetic", "quantity", "multiplication"]
+    },
+    {
+      "name": "Quantity multiplication - commutative",
+      "expression": "2 * 5 months = 10 months",
+      "expected": [true],
+      "tags": ["temporal", "arithmetic", "quantity", "multiplication"]
+    },
+    {
+      "name": "Quantity division - calendar units error",
+      "expression": "1 year / 6 months",
+      "error": true,
+      "description": "Calendar duration units cannot be divided",
+      "tags": ["temporal", "arithmetic", "quantity", "division", "error"]
+    },
+    {
+      "name": "Month end adjustment - Jan 31 + 1 month + 1 day",
+      "expression": "@2016-01-31 + 1 month + 1 day",
+      "expected": ["2016-03-01"],
+      "tags": ["temporal", "arithmetic", "monthEnd", "chain"]
+    },
+    {
+      "name": "Add 1 week to date",
+      "expression": "@2016-02-28 + 1 week",
+      "expected": ["2016-03-06"],
+      "tags": ["temporal", "arithmetic", "week"]
+    },
+    {
+      "name": "Valid - week literal with UCUM unit 'wk'",
+      "expression": "@2016-02-28 + 1 'wk'",
+      "expected": ["2016-03-06"],
+      "tags": ["temporal", "arithmetic", "ucum", "week"]
+    },
+    {
+      "name": "Add 2 days to Feb 28 (leap year)",
+      "expression": "@2016-02-28 + 2 days",
+      "expected": ["2016-03-01"],
+      "tags": ["temporal", "arithmetic", "leapYear"]
+    },
+    {
+      "name": "Subtract 2 days from Feb 28",
+      "expression": "@2016-02-28 - 2 days",
+      "expected": ["2016-02-26"],
+      "tags": ["temporal", "arithmetic", "subtraction"]
+    },
+    {
+      "name": "Add 24 hours to date",
+      "expression": "@2016-01-01 + 24 hours",
+      "expected": ["2016-01-02"],
+      "tags": ["temporal", "arithmetic", "hours", "dayRollover"]
+    },
+    {
+      "name": "Add 47 hours to date - same day due to date precision",
+      "expression": "@2016-01-01 + 47 hours",
+      "expected": ["2016-01-02"],
+      "tags": ["temporal", "arithmetic", "hours", "precision"]
+    },
+    {
+      "name": "Add 59 minutes to DateTime hour - no change",
+      "expression": "@2018-02-18T12 + 59 minutes = @2018-02-18T12",
+      "expected": [true],
+      "tags": ["temporal", "arithmetic", "minutes", "precision"]
+    },
+    {
+      "name": "Add 60 minutes to DateTime hour - hour changes",
+      "expression": "@2018-02-18T12 + 60 minutes = @2018-02-18T13",
+      "expected": [true],
+      "tags": ["temporal", "arithmetic", "minutes", "hourRollover"]
+    },
+    {
+      "name": "Add 59 seconds to DateTime minute - no change",
+      "expression": "@2018-02-18T12:00 + 59 seconds = @2018-02-18T12:00",
+      "expected": [true],
+      "tags": ["temporal", "arithmetic", "seconds", "precision"]
+    },
+    {
+      "name": "Add 60 seconds to DateTime minute - minute changes",
+      "expression": "@2018-02-18T12:00 + 60 seconds = @2018-02-18T12:01",
+      "expected": [true],
+      "tags": ["temporal", "arithmetic", "seconds", "minuteRollover"]
+    },
+    {
+      "name": "Invalid - Time plus years",
+      "expression": "@T09:45:23 + 2 years",
+      "error": true,
+      "tags": ["temporal", "arithmetic", "error", "invalidUnit"]
+    },
+    {
+      "name": "Time plus 120 seconds",
+      "expression": "@T09:45 + 120 seconds = @T09:47",
+      "expected": [true],
+      "tags": ["temporal", "arithmetic", "time", "seconds"]
+    },
+    {
+      "name": "Time plus 59 seconds - no minute change",
+      "expression": "@T09:45 + 59 seconds = @T09:45",
+      "expected": [true],
+      "tags": ["temporal", "arithmetic", "time", "seconds", "precision"]
+    },
+    {
+      "name": "Time plus 2 minutes with milliseconds",
+      "expression": "@T09:45:23 + 2 minutes = @T09:47:23.000",
+      "expected": [true],
+      "tags": ["temporal", "arithmetic", "time", "minutes"]
+    },
+    {
+      "name": "Time wraparound - 23:59 + 2 minutes",
+      "expression": "@T23:59:23 + 2 minutes = @T00:01:23",
+      "expected": [true],
+      "tags": ["temporal", "arithmetic", "time", "wraparound"]
+    },
+    {
+      "name": "Invalid - Time plus days",
+      "expression": "@T23:59:23 + 2 days",
+      "error": true,
+      "tags": ["temporal", "arithmetic", "error", "invalidUnit"]
+    },
+    {
+      "name": "Time plus 5 milliseconds",
+      "expression": "@T23:59:23 + 5 milliseconds = @T23:59:23.005",
+      "expected": [true],
+      "tags": ["temporal", "arithmetic", "time", "milliseconds"]
+    },
+    {
+      "name": "Time plus 1.5 seconds",
+      "expression": "@T23:59:23 + 1.5 seconds = @T23:59:24.500",
+      "expected": [true],
+      "tags": ["temporal", "arithmetic", "time", "decimal", "seconds"]
+    },
+    {
+      "name": "Time plus 1.5 's' literal",
+      "expression": "@T23:59:23 + 1.5 's' = @T23:59:24.500",
+      "expected": [true],
+      "tags": ["temporal", "arithmetic", "time", "decimal", "literal"]
+    },
+    {
+      "name": "Time minus 1.5 's' literal",
+      "expression": "@T23:59:23 - 1.5 's' = @T23:59:21.500",
+      "expected": [true],
+      "tags": ["temporal", "arithmetic", "time", "subtraction", "decimal"]
+    },
+    {
+      "name": "Time plus 1000 milliseconds",
+      "expression": "@T23:59:23 + 1000 milliseconds = @T23:59:24",
+      "expected": [true],
+      "tags": ["temporal", "arithmetic", "time", "milliseconds"]
+    },
+    {
+      "name": "Time plus 995 milliseconds with existing ms",
+      "expression": "@T23:59:23.005 + 995 milliseconds = @T23:59:24",
+      "expected": [true],
+      "tags": ["temporal", "arithmetic", "time", "milliseconds"]
+    },
+    {
+      "name": "Time plus 1990 milliseconds with existing ms",
+      "expression": "@T23:59:23.005 + 1990 milliseconds = @T23:59:24.995",
+      "expected": [true],
+      "tags": ["temporal", "arithmetic", "time", "milliseconds"]
+    },
+    {
+      "name": "Decimal year ignored for calendar precision",
+      "expression": "@2016-02-29 + 1.5 year",
+      "expected": ["2017-02-28"],
+      "tags": ["temporal", "arithmetic", "decimal", "precision"]
+    },
+    {
+      "name": "Decimal weeks ignored for calendar precision",
+      "expression": "@2016-02-28 + 1.5 weeks",
+      "expected": ["2016-03-06"],
+      "tags": ["temporal", "arithmetic", "decimal", "weeks"]
+    },
+    {
+      "name": "Decimal weeks subtraction",
+      "expression": "@2016-02-28 - 1.5 weeks",
+      "expected": ["2016-02-21"],
+      "tags": ["temporal", "arithmetic", "decimal", "weeks", "subtraction"]
+    },
+    {
+      "name": "Valid - decimal weeks with UCUM unit 'wk'",
+      "expression": "@2016-02-28 + 1.5 'wk'",
+      "expected": ["2016-03-06"],
+      "tags": ["temporal", "arithmetic", "ucum", "week", "decimal"]
+    },
+    {
+      "name": "Decimal days ignored for calendar precision",
+      "expression": "@2016-02-28 + 1.5 day",
+      "expected": ["2016-02-29"],
+      "tags": ["temporal", "arithmetic", "decimal", "days"]
+    },
+    {
+      "name": "Time plus 1.5 hours",
+      "expression": "@T23:59:23 + 1.5 hours = @T00:59:23",
+      "expected": [true],
+      "tags": ["temporal", "arithmetic", "time", "decimal", "hours", "wraparound"]
     }
   ]
 }

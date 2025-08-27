@@ -33,6 +33,26 @@ export const evaluate: OperationEvaluator = async (input, context, left, right) 
       return { value: [box(comparison === 0, { type: 'Boolean', singleton: true })], context };
     }
     
+    // Check if one is a dimensionless quantity and the other is a number
+    if (l && typeof l === 'object' && 'unit' in l && typeof r === 'number') {
+      const quantity = l as QuantityValue;
+      // Dimensionless quantities have unit '1' or empty string
+      if (quantity.unit === '1' || quantity.unit === '') {
+        return { value: [box(quantity.value === r, { type: 'Boolean', singleton: true })], context };
+      }
+      // Non-dimensionless quantity compared to number returns empty
+      return { value: [], context };
+    }
+    if (typeof l === 'number' && r && typeof r === 'object' && 'unit' in r) {
+      const quantity = r as QuantityValue;
+      // Dimensionless quantities have unit '1' or empty string
+      if (quantity.unit === '1' || quantity.unit === '') {
+        return { value: [box(l === quantity.value, { type: 'Boolean', singleton: true })], context };
+      }
+      // Number compared to non-dimensionless quantity returns empty
+      return { value: [], context };
+    }
+    
     // Check if both are temporal values (Date, DateTime, Time)
     if (l && typeof l === 'object' && 'type' in l && 'equals' in l &&
         r && typeof r === 'object' && 'type' in r && 'equals' in r) {

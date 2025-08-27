@@ -434,7 +434,7 @@ export class Parser {
       if (nextToken.type === TokenType.STRING) {
         this.advance();
         const unit = this.parseStringValue(nextToken.value);
-        return this.createQuantityNode(numberValue, unit, false, token, nextToken);
+        return this.createQuantityNode(numberValue, unit, token, nextToken);
       }
       
       // Check if next token is a calendar duration identifier
@@ -444,7 +444,7 @@ export class Parser {
                               'second', 'seconds', 'millisecond', 'milliseconds'];
         if (calendarUnits.includes(nextToken.value)) {
           this.advance();
-          return this.createQuantityNode(numberValue, nextToken.value, true, token, nextToken);
+          return this.createQuantityNode(numberValue, nextToken.value, token, nextToken);
         }
       }
       
@@ -962,12 +962,11 @@ export class Parser {
     return node;
   }
 
-  protected createQuantityNode(value: number, unit: string, isCalendarUnit: boolean, startToken: Token, endToken: Token): QuantityNode {
+  protected createQuantityNode(value: number, unit: string, startToken: Token, endToken: Token): QuantityNode {
     const node: QuantityNode = {
       type: NodeType.Quantity,
       value,
       unit,
-      isCalendarUnit,
       range: this.getRangeFromTokens(startToken, endToken)
     };
     
@@ -1423,9 +1422,6 @@ export function pprint(node: ASTNode, indent: number = 0): string {
     
     case NodeType.Quantity: {
       const q = node as QuantityNode;
-      if (q.isCalendarUnit) {
-        return `${q.value} ${q.unit}`;
-      }
       return `${q.value} '${q.unit}'`;
     }
     

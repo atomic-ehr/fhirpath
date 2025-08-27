@@ -67,7 +67,7 @@ export interface TimeQuantity {
 }
 
 export function createTimeQuantity(value: number, unit: TimeUnit): TimeQuantity {
-  const calendarUnits = new Set(['year', 'month', 'week', 'day']);
+  const calendarUnits = new Set(['year', 'years', 'month', 'months', 'week', 'weeks', 'day', 'days']);
   return {
     value,
     unit,

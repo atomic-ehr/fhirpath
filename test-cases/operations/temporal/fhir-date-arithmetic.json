@@ -1,0 +1,42 @@
+{
+  "name": "FHIR Date Arithmetic Tests",
+  "description": "Tests for date arithmetic operations with FHIR resources",
+  "tests": [
+    {
+      "name": "Patient birthDate - 1 day",
+      "expression": "Patient.birthDate - 1 day = @1974-12-24",
+      "modelProvider": "r4",
+      "input": [{
+        "resourceType": "Patient",
+        "birthDate": "1974-12-25"
+      }],
+      "expected": [true],
+      "tags": ["temporal", "arithmetic", "fhir", "date", "subtraction"]
+    },
+    {
+      "name": "Patient birthDate + 1 day",
+      "expression": "Patient.birthDate + 1 day = @1974-12-26",
+      "modelProvider": "r4",
+      "input": [{
+        "resourceType": "Patient",
+        "birthDate": "1974-12-25"
+      }],
+      "expected": [true],
+      "tags": ["temporal", "arithmetic", "fhir", "date", "addition"]
+    },
+    {
+      "name": "Patient birthDate + 1 day without model - should return empty",
+      "expression": "Patient.birthDate + 1 day = @1974-12-26",
+      "input": [
+        {
+          "resourceType": "Patient",
+          "birthDate": "1974-12-25"
+        }
+      ],
+      "skipModelProvider": true,
+      "expected": [],
+      "description": "Should not convert a resource node value to Date without model, so arithmetic returns empty and comparison returns empty",
+      "tags": ["temporal", "arithmetic", "fhir", "noModel"]
+    }
+  ]
+}
