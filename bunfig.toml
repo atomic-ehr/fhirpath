@@ -1,0 +1,9 @@
+[test]
+# Only run tests in the test directory
+root = "./test"
+
+# Optional: Set test timeout
+# timeout = 5000
+
+# Optional: Set test runner configuration
+# preload = ["./test/setup.ts"]

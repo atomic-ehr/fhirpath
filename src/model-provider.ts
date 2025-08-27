@@ -172,7 +172,8 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
       
       return schema;
     } catch (error) {
-      console.warn(`Failed to load schema for ${typeName}:`, error);
+      // Silently fail for unknown types - this is expected for non-FHIR types
+      // like function names or property names that get speculatively checked
       return undefined;
     }
   }

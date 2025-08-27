@@ -596,7 +596,7 @@ describe("New Simplified Lexer", () => {
 
     it("manual", async () => {
       const result = tokenize("Patient.name.given");
-      console.log(result);
+      expect(result).toBeDefined();
     });
   });
 });

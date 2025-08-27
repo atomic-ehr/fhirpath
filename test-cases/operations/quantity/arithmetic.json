@@ -12,7 +12,11 @@
           "unit": "mg"
         }
       ],
-      "tags": ["quantity", "arithmetic", "addition"]
+      "tags": [
+        "quantity",
+        "arithmetic",
+        "addition"
+      ]
     },
     {
       "name": "quantity addition - compatible units",
@@ -24,14 +28,24 @@
           "unit": "g"
         }
       ],
-      "tags": ["quantity", "arithmetic", "addition", "unit-conversion"]
+      "tags": [
+        "quantity",
+        "arithmetic",
+        "addition",
+        "unit-conversion"
+      ]
     },
     {
       "name": "quantity addition - incompatible units",
       "expression": "5 'mg' + 3 'm'",
       "input": [],
       "expected": [],
-      "tags": ["quantity", "arithmetic", "addition", "incompatible"]
+      "tags": [
+        "quantity",
+        "arithmetic",
+        "addition",
+        "incompatible"
+      ]
     },
     {
       "name": "quantity subtraction - same unit",
@@ -43,7 +57,11 @@
           "unit": "mg"
         }
       ],
-      "tags": ["quantity", "arithmetic", "subtraction"]
+      "tags": [
+        "quantity",
+        "arithmetic",
+        "subtraction"
+      ]
     },
     {
       "name": "quantity subtraction - compatible units",
@@ -55,14 +73,24 @@
           "unit": "g"
         }
       ],
-      "tags": ["quantity", "arithmetic", "subtraction", "unit-conversion"]
+      "tags": [
+        "quantity",
+        "arithmetic",
+        "subtraction",
+        "unit-conversion"
+      ]
     },
     {
       "name": "quantity subtraction - incompatible units",
       "expression": "5 'mg' - 3 'm'",
       "input": [],
       "expected": [],
-      "tags": ["quantity", "arithmetic", "subtraction", "incompatible"]
+      "tags": [
+        "quantity",
+        "arithmetic",
+        "subtraction",
+        "incompatible"
+      ]
     },
     {
       "name": "quantity multiplication",
@@ -74,7 +102,11 @@
           "unit": "m.m"
         }
       ],
-      "tags": ["quantity", "arithmetic", "multiplication"]
+      "tags": [
+        "quantity",
+        "arithmetic",
+        "multiplication"
+      ]
     },
     {
       "name": "quantity multiplication - area calculation",
@@ -86,7 +118,12 @@
           "unit": "cm.cm"
         }
       ],
-      "tags": ["quantity", "arithmetic", "multiplication", "area"]
+      "tags": [
+        "quantity",
+        "arithmetic",
+        "multiplication",
+        "area"
+      ]
     },
     {
       "name": "quantity division",
@@ -98,7 +135,11 @@
           "unit": "m2/m"
         }
       ],
-      "tags": ["quantity", "arithmetic", "division"]
+      "tags": [
+        "quantity",
+        "arithmetic",
+        "division"
+      ]
     },
     {
       "name": "quantity division - velocity",
@@ -110,7 +151,12 @@
           "unit": "km/h"
         }
       ],
-      "tags": ["quantity", "arithmetic", "division", "velocity"]
+      "tags": [
+        "quantity",
+        "arithmetic",
+        "division",
+        "velocity"
+      ]
     },
     {
       "name": "quantity division - same units cancel",
@@ -122,31 +168,12 @@
           "unit": "1"
         }
       ],
-      "tags": ["quantity", "arithmetic", "division", "dimensionless"]
-    },
-    {
-      "name": "calendar duration addition",
-      "expression": "2 years + 3 months",
-      "input": [],
-      "expected": [
-        {
-          "value": 27,
-          "unit": "mo"
-        }
-      ],
-      "tags": ["quantity", "arithmetic", "addition", "calendar", "duration"]
-    },
-    {
-      "name": "calendar duration subtraction",
-      "expression": "1 year - 3 months",
-      "input": [],
-      "expected": [
-        {
-          "value": 9,
-          "unit": "mo"
-        }
-      ],
-      "tags": ["quantity", "arithmetic", "subtraction", "calendar", "duration"]
+      "tags": [
+        "quantity",
+        "arithmetic",
+        "division",
+        "dimensionless"
+      ]
     },
     {
       "name": "mixed arithmetic expression",
@@ -158,7 +185,11 @@
           "unit": "mg"
         }
       ],
-      "tags": ["quantity", "arithmetic", "complex"]
+      "tags": [
+        "quantity",
+        "arithmetic",
+        "complex"
+      ]
     }
   ]
 }

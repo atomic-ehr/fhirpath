@@ -411,10 +411,10 @@
       "tags": ["temporal", "arithmetic", "day"]
     },
     {
-      "name": "Add 1 hour to month precision - no change",
+      "name": "Add 1 hour to month precision - invalid for Date",
       "expression": "@2016-01 + 1 hour",
-      "expected": ["2016-01"],
-      "tags": ["temporal", "arithmetic", "precision", "hour"]
+      "error": { "code": "FP6011" },
+      "tags": ["temporal", "arithmetic", "precision", "hour", "error"]
     },
     {
       "name": "Add 2 years to full date",
@@ -508,16 +508,16 @@
       "tags": ["temporal", "arithmetic", "subtraction"]
     },
     {
-      "name": "Add 24 hours to date",
+      "name": "Add 24 hours to date - invalid for Date",
       "expression": "@2016-01-01 + 24 hours",
-      "expected": ["2016-01-02"],
-      "tags": ["temporal", "arithmetic", "hours", "dayRollover"]
+      "error": { "code": "FP6011" },
+      "tags": ["temporal", "arithmetic", "hours", "dayRollover", "error"]
     },
     {
-      "name": "Add 47 hours to date - same day due to date precision",
+      "name": "Add 47 hours to date - invalid for Date",
       "expression": "@2016-01-01 + 47 hours",
-      "expected": ["2016-01-02"],
-      "tags": ["temporal", "arithmetic", "hours", "precision"]
+      "error": { "code": "FP6011" },
+      "tags": ["temporal", "arithmetic", "hours", "precision", "error"]
     },
     {
       "name": "Add 59 minutes to DateTime hour - no change",

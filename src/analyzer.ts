@@ -2471,7 +2471,8 @@ export class Analyzer {
         
       case NodeType.Function:
         const funcNode = node as FunctionNode;
-        await this.annotateAST(funcNode.name, inputType);
+        // Don't annotate function names as standalone identifiers - they're part of the function syntax
+        // This prevents spurious type lookups for function names like 'now', 'today', 'iif', etc.
         
         // Special handling for aggregate function arguments
         if (funcNode.name.type === NodeType.Identifier && 
