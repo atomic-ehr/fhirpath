@@ -200,6 +200,14 @@ export const Errors = {
   
   invalidTemporalUnit(temporalType: string, unit: string, location?: Range): FHIRPathError {
     return new FHIRPathError(ErrorCodes.INVALID_TEMPORAL_UNIT, `Cannot use variable-duration unit '${unit}' with ${temporalType} - use calendar duration keywords instead`, location);
+  },
+
+  unsupportedTemporalUnitForType(temporalType: string, unit: string, location?: Range): FHIRPathError {
+    return new FHIRPathError(
+      ErrorCodes.UNSUPPORTED_TEMPORAL_UNIT_FOR_TYPE,
+      `Unit '${unit}' is not allowed for ${temporalType} arithmetic; allowed units: years, months, weeks, days`,
+      location
+    );
   }
 };
 
@@ -254,6 +262,7 @@ export enum ErrorCodes {
   INVALID_NUMERIC_OPERATION = 'FP6008',
   VARIABLE_ALREADY_DEFINED = 'FP6009',
   INVALID_TEMPORAL_UNIT = 'FP6010',
+  UNSUPPORTED_TEMPORAL_UNIT_FOR_TYPE = 'FP6011',
   
   // Static analysis warnings (7000-7999)
   UNREACHABLE_CODE = 'FP7001'

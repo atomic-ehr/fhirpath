@@ -152,6 +152,28 @@ describe('Temporal Arithmetic - Following ADR-017', () => {
         expect(toTemporalString(result)).toBe('2020-02-29');
       });
     });
+
+    describe('Date error cases (disallowed time units)', () => {
+      it('Date + hour should throw', () => {
+        const date = createDate(2014, 1, 1);
+        expect(() => add(date, createTimeQuantity(1, 'hour'))).toThrow();
+      });
+
+      it('Date + minute should throw', () => {
+        const date = createDate(2014, 1, 1);
+        expect(() => add(date, createTimeQuantity(60, 'minute'))).toThrow();
+      });
+
+      it('Date + second should throw', () => {
+        const date = createDate(2014, 1, 1);
+        expect(() => add(date, createTimeQuantity(1, 'second'))).toThrow();
+      });
+
+      it('Date + millisecond should throw', () => {
+        const date = createDate(2014, 1, 1);
+        expect(() => add(date, createTimeQuantity(1000, 'millisecond'))).toThrow();
+      });
+    });
   });
 
   describe('Time Arithmetic', () => {

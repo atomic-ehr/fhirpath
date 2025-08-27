@@ -1,5 +1,6 @@
 // FHIRPath Temporal Values - Functional Implementation
 // Following ADR-019: Refactor from Classes to Functions and Interfaces
+import { Errors } from './errors';
 
 // ============================================================================
 // Precision System
@@ -980,30 +981,24 @@ function clampDay(year: number, month: number | undefined, day: number | undefin
 function addToDate(date: FHIRDate, quantity: TimeQuantity): FHIRDate {
   // Check for unsupported UCUM units
   if ((quantity.unit as string) === 'a') {
-    throw new Error("Cannot use variable-duration unit 'a' with Date - use calendar duration keywords instead");
-  }
-  
-  const normalizedUnit = normalizeUnit(quantity.unit);
-  
-  // Handle time units that can convert to days
-  if (normalizedUnit === 'hour') {
-    // For hours, ignore decimal portion and convert to days if possible (preserve existing semantics)
-    const hours = Math.trunc(quantity.value);
-    const days = Math.trunc(hours / 24);
-    if (days > 0) {
-      const dayQuantity = createTimeQuantity(days, 'day');
-      return addToDate(date, dayQuantity);
-    }
-    return date; // Less than 24 hours, no change
-  }
-  
-  // Only year/month/week/day units allowed for Date
-  // Other time units (minute/second/millisecond) are ignored - return original
-  if (!['year', 'month', 'week', 'day'].includes(normalizedUnit)) {
-    return date;
+    throw Errors.invalidTemporalUnit('Date', quantity.unit as string);
   }
 
-  const cal = addCalendarParts(date.year, date.month, date.day, normalizedUnit as CalendarUnit, quantity.value);
+  const normalizedUnit = normalizeUnit(quantity.unit);
+
+  // Only year/month/week/day units allowed for Date per spec
+  if (!['year', 'month', 'week', 'day'].includes(normalizedUnit)) {
+    // Includes hour/minute/second/millisecond and any other non-calendar unit
+    throw Errors.unsupportedTemporalUnitForType('Date', quantity.unit as string);
+  }
+
+  const cal = addCalendarParts(
+    date.year,
+    date.month,
+    date.day,
+    normalizedUnit as CalendarUnit,
+    quantity.value
+  );
   return createDate(cal.year, cal.month, cal.day);
 }
 
