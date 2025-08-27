@@ -1,0 +1,54 @@
+{
+  "name": "Temporal Type Checking Tests",
+  "description": "Tests for type checking operators (is/as) with temporal values",
+  "tests": [
+    {
+      "name": "Type check - Date.is(Date)",
+      "expression": "@2018.is(Date)",
+      "expected": [true],
+      "tags": ["temporal", "type", "is"]
+    },
+    {
+      "name": "Type check - Date.is(DateTime)",
+      "expression": "@2018.is(DateTime)",
+      "expected": [false],
+      "tags": ["temporal", "type", "is"]
+    },
+    {
+      "name": "Type check - DateTime.is(DateTime)",
+      "expression": "@2018T.is(DateTime)",
+      "expected": [true],
+      "tags": ["temporal", "type", "is"]
+    },
+    {
+      "name": "Type check - Time.is(Time)",
+      "expression": "@T10:30.is(Time)",
+      "expected": [true],
+      "tags": ["temporal", "type", "is"]
+    },
+    {
+      "name": "Type cast - Date.as(Date)",
+      "expression": "@2018.as(Date).exists()",
+      "expected": [true],
+      "tags": ["temporal", "type", "as"]
+    },
+    {
+      "name": "Type cast - Date.as(DateTime) returns empty",
+      "expression": "@2018.as(DateTime)",
+      "expected": [],
+      "tags": ["temporal", "type", "as"]
+    },
+    {
+      "name": "Type cast - DateTime.as(DateTime)",
+      "expression": "@2018T.as(DateTime).exists()",
+      "expected": [true],
+      "tags": ["temporal", "type", "as"]
+    },
+    {
+      "name": "Type cast - Time.as(Time)",
+      "expression": "@T10:30.as(Time).exists()",
+      "expected": [true],
+      "tags": ["temporal", "type", "as"]
+    }
+  ]
+}

@@ -1,0 +1,282 @@
+{
+  "name": "Temporal Comparison Tests",
+  "description": "Tests for comparison operators with temporal values",
+  "tests": [
+    {
+      "name": "UTC and timezone offset DateTime equality - equal",
+      "expression": "@2019-02-03T01:00Z = @2019-02-02T21:00-04:00",
+      "expected": [true],
+      "tags": ["temporal", "datetime", "timezone", "equality"]
+    },
+    {
+      "name": "UTC and timezone offset DateTime equality - not equal",
+      "expression": "@2019-02-03T02:00Z = @2019-02-02T21:00-04:00",
+      "expected": [false],
+      "tags": ["temporal", "datetime", "timezone", "equality"]
+    },
+    {
+      "name": "DateTime equality - same year",
+      "expression": "@2018 = @2018",
+      "expected": [true],
+      "tags": ["temporal", "equality", "year"]
+    },
+    {
+      "name": "DateTime equality - different year",
+      "expression": "@2018 = @2017",
+      "expected": [false],
+      "tags": ["temporal", "equality", "year"]
+    },
+    {
+      "name": "DateTime equality - same month",
+      "expression": "@2018-02 = @2018-02",
+      "expected": [true],
+      "tags": ["temporal", "equality", "month"]
+    },
+    {
+      "name": "DateTime equality - different month",
+      "expression": "@2018-02 = @2018-03",
+      "expected": [false],
+      "tags": ["temporal", "equality", "month"]
+    },
+    {
+      "name": "DateTime equality - same day",
+      "expression": "@2018-02-02 = @2018-02-02",
+      "expected": [true],
+      "tags": ["temporal", "equality", "day"]
+    },
+    {
+      "name": "DateTime equality - different day",
+      "expression": "@2018-02-02 = @2018-02-03",
+      "expected": [false],
+      "tags": ["temporal", "equality", "day"]
+    },
+    {
+      "name": "DateTime equality - different precision returns empty",
+      "expression": "@2018 = @2018-02",
+      "expected": [],
+      "tags": ["temporal", "equality", "precision"]
+    },
+    {
+      "name": "DateTime equality - different precision with different values",
+      "expression": "@2018 = @2019-02",
+      "expected": [false],
+      "tags": ["temporal", "equality", "precision"]
+    },
+    {
+      "name": "DateTime equality with time - same",
+      "expression": "@2018-02-02T12:00 = @2018-02-02T12:00",
+      "expected": [true],
+      "tags": ["temporal", "equality", "datetime"]
+    },
+    {
+      "name": "DateTime equality with time - different",
+      "expression": "@2018-02-02T12:00 = @2018-02-02T13:00",
+      "expected": [false],
+      "tags": ["temporal", "equality", "datetime"]
+    },
+    {
+      "name": "DateTime equality with seconds - same",
+      "expression": "@2018-02-02T12:00:00 = @2018-02-02T12:00:00",
+      "expected": [true],
+      "tags": ["temporal", "equality", "seconds"]
+    },
+    {
+      "name": "DateTime equality with seconds - different",
+      "expression": "@2018-02-02T12:00:00 = @2018-02-02T12:00:01",
+      "expected": [false],
+      "tags": ["temporal", "equality", "seconds"]
+    },
+    {
+      "name": "DateTime equality with milliseconds - same",
+      "expression": "@2018-02-02T12:00:00.000 = @2018-02-02T12:00:00.000",
+      "expected": [true],
+      "tags": ["temporal", "equality", "milliseconds"]
+    },
+    {
+      "name": "DateTime equality with milliseconds - different",
+      "expression": "@2018-02-02T12:00:00.000 = @2018-02-02T12:00:00.001",
+      "expected": [false],
+      "tags": ["temporal", "equality", "milliseconds"]
+    },
+    {
+      "name": "Time equality - same",
+      "expression": "@T12:00 = @T12:00",
+      "expected": [true],
+      "tags": ["temporal", "equality", "time"]
+    },
+    {
+      "name": "Time equality - different",
+      "expression": "@T12:00 = @T13:00",
+      "expected": [false],
+      "tags": ["temporal", "equality", "time"]
+    },
+    {
+      "name": "Time equality with seconds - same",
+      "expression": "@T12:00:00 = @T12:00:00",
+      "expected": [true],
+      "tags": ["temporal", "equality", "time", "seconds"]
+    },
+    {
+      "name": "Time equality with seconds - different",
+      "expression": "@T12:00:00 = @T12:00:01",
+      "expected": [false],
+      "tags": ["temporal", "equality", "time", "seconds"]
+    },
+    {
+      "name": "Date > comparison - false",
+      "expression": "@2018 > @2019",
+      "expected": [false],
+      "tags": ["temporal", "comparison", "greater"]
+    },
+    {
+      "name": "Date > comparison - true",
+      "expression": "@2018 > @2017",
+      "expected": [true],
+      "tags": ["temporal", "comparison", "greater"]
+    },
+    {
+      "name": "Date > comparison - different precision returns empty",
+      "expression": "@2018-12-31 > @2018",
+      "expected": [],
+      "tags": ["temporal", "comparison", "precision"]
+    },
+    {
+      "name": "Date > comparison - different precision when clear",
+      "expression": "@2018 > @2017-01",
+      "expected": [true],
+      "tags": ["temporal", "comparison", "precision"]
+    },
+    {
+      "name": "Date >= comparison - greater",
+      "expression": "@2018 >= @2017",
+      "expected": [true],
+      "tags": ["temporal", "comparison", "greaterOrEqual"]
+    },
+    {
+      "name": "Date >= comparison - equal",
+      "expression": "@2018 >= @2018",
+      "expected": [true],
+      "tags": ["temporal", "comparison", "greaterOrEqual"]
+    },
+    {
+      "name": "Date >= comparison - less",
+      "expression": "@2018 >= @2019",
+      "expected": [false],
+      "tags": ["temporal", "comparison", "greaterOrEqual"]
+    },
+    {
+      "name": "Date <= comparison - less",
+      "expression": "@2018 <= @2017",
+      "expected": [false],
+      "tags": ["temporal", "comparison", "lessOrEqual"]
+    },
+    {
+      "name": "Date <= comparison - equal",
+      "expression": "@2018 <= @2018",
+      "expected": [true],
+      "tags": ["temporal", "comparison", "lessOrEqual"]
+    },
+    {
+      "name": "Date <= comparison - greater",
+      "expression": "@2018 <= @2019",
+      "expected": [true],
+      "tags": ["temporal", "comparison", "lessOrEqual"]
+    },
+    {
+      "name": "Date < comparison - false when greater",
+      "expression": "@2018 < @2017",
+      "expected": [false],
+      "tags": ["temporal", "comparison", "less"]
+    },
+    {
+      "name": "Date < comparison - false when equal",
+      "expression": "@2018 < @2018",
+      "expected": [false],
+      "tags": ["temporal", "comparison", "less"]
+    },
+    {
+      "name": "Date < comparison - true",
+      "expression": "@2018 < @2019",
+      "expected": [true],
+      "tags": ["temporal", "comparison", "less"]
+    },
+    {
+      "name": "DateTime > comparison - equal",
+      "expression": "@2018-12-21T12:01 > @2018-12-21T12:01",
+      "expected": [false],
+      "tags": ["temporal", "comparison", "datetime"]
+    },
+    {
+      "name": "DateTime > comparison - less",
+      "expression": "@2018-12-21T12:01 > @2018-12-21T12:02",
+      "expected": [false],
+      "tags": ["temporal", "comparison", "datetime"]
+    },
+    {
+      "name": "DateTime > comparison - greater",
+      "expression": "@2018-12-21T12:02 > @2018-12-21T12:01",
+      "expected": [true],
+      "tags": ["temporal", "comparison", "datetime"]
+    },
+    {
+      "name": "DateTime > comparison - different days",
+      "expression": "@2018-12-22T12:02 > @2018-12-21T12:01",
+      "expected": [true],
+      "tags": ["temporal", "comparison", "datetime"]
+    },
+    {
+      "name": "DateTime > comparison - earlier day",
+      "expression": "@2018-12-20T12:02 > @2018-12-21T12:01",
+      "expected": [false],
+      "tags": ["temporal", "comparison", "datetime"]
+    },
+    {
+      "name": "DateTime > comparison - different precision",
+      "expression": "@2018-12-20T12 > @2018-12-20T12:01",
+      "expected": [],
+      "tags": ["temporal", "comparison", "precision"]
+    },
+    {
+      "name": "DateTime > comparison - hour precision clear comparison",
+      "expression": "@2018-12-20T12 > @2018-12-20T11:01",
+      "expected": [true],
+      "tags": ["temporal", "comparison", "precision"]
+    },
+    {
+      "name": "DateTime with timezone > comparison - 12:02+03:00 vs 12:01+02:00",
+      "expression": "@2018-12-21T12:02+03:00 > @2018-12-21T12:01+02:00",
+      "expected": [false],
+      "tags": ["temporal", "comparison", "timezone"]
+    },
+    {
+      "name": "DateTime with timezone > comparison - 12:02+02:00 vs 12:01+03:00",
+      "expression": "@2018-12-21T12:02+02:00 > @2018-12-21T12:01+03:00",
+      "expected": [true],
+      "tags": ["temporal", "comparison", "timezone"]
+    },
+    {
+      "name": "Precision comparison - different precisions return empty",
+      "expression": "@2018 > @2018-01",
+      "expected": [],
+      "tags": ["temporal", "comparison", "precision"]
+    },
+    {
+      "name": "Precision comparison - different precisions return empty (reverse)",
+      "expression": "@2018-01 < @2018",
+      "expected": [],
+      "tags": ["temporal", "comparison", "precision"]
+    },
+    {
+      "name": "Precision comparison - clear comparison with different precisions",
+      "expression": "@2018 > @2017-12",
+      "expected": [true],
+      "tags": ["temporal", "comparison", "precision"]
+    },
+    {
+      "name": "Precision comparison - clear comparison with different precisions (2)",
+      "expression": "@2018-01 < @2019",
+      "expected": [true],
+      "tags": ["temporal", "comparison", "precision"]
+    }
+  ]
+}

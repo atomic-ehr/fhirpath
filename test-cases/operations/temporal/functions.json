@@ -157,6 +157,42 @@
       "expression": "'2020-01-15'.toDate().first().toDateTime()",
       "expected": ["2020-01-15T00:00:00.000"],
       "tags": ["temporal", "function", "conversion", "chained"]
+    },
+    {
+      "name": "String to DateTime conversion",
+      "expression": "'2019-02-06T19:17-05:00'.toDateTime() = @2019-02-06T19:17-05:00",
+      "expected": [true],
+      "tags": ["temporal", "function", "conversion", "toDateTime"]
+    },
+    {
+      "name": "String to Time conversion",
+      "expression": "'19:15'.toTime() = @T19:15",
+      "expected": [true],
+      "tags": ["temporal", "function", "conversion", "toTime"]
+    },
+    {
+      "name": "String to Date conversion",
+      "expression": "'2019-02-06'.toDate() = @2019-02-06",
+      "expected": [true],
+      "tags": ["temporal", "function", "conversion", "toDate"]
+    },
+    {
+      "name": "Empty to DateTime conversion",
+      "expression": "({}).empty().toDateTime()",
+      "expected": [],
+      "tags": ["temporal", "function", "conversion", "empty"]
+    },
+    {
+      "name": "Empty to Time conversion",
+      "expression": "({}).empty().toTime()",
+      "expected": [],
+      "tags": ["temporal", "function", "conversion", "empty"]
+    },
+    {
+      "name": "Empty to Date conversion",
+      "expression": "({}).empty().toDate()",
+      "expected": [],
+      "tags": ["temporal", "function", "conversion", "empty"]
     }
   ]
 }

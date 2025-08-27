@@ -67,6 +67,42 @@
       "expression": "@T10:30:45.500",
       "expected": ["10:30:45.500"],
       "tags": ["temporal", "time", "literal", "precision:millisecond"]
+    },
+    {
+      "name": "Parse year literal @2019",
+      "expression": "@2019",
+      "expected": ["2019"],
+      "tags": ["temporal", "literal", "year"]
+    },
+    {
+      "name": "Boundary date - year 0001",
+      "expression": "@0001",
+      "expected": ["0001"],
+      "tags": ["temporal", "boundary", "literal"]
+    },
+    {
+      "name": "Boundary date - year 9999",
+      "expression": "@9999",
+      "expected": ["9999"],
+      "tags": ["temporal", "boundary", "literal"]
+    },
+    {
+      "name": "Boundary date - 0001-01-01",
+      "expression": "@0001-01-01",
+      "expected": ["0001-01-01"],
+      "tags": ["temporal", "boundary", "literal"]
+    },
+    {
+      "name": "Boundary date - 9999-12-31",
+      "expression": "@9999-12-31",
+      "expected": ["9999-12-31"],
+      "tags": ["temporal", "boundary", "literal"]
+    },
+    {
+      "name": "Leap year date",
+      "expression": "@2020-02-29",
+      "expected": ["2020-02-29"],
+      "tags": ["temporal", "leapYear", "literal"]
     }
   ]
 }
