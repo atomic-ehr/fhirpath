@@ -175,7 +175,7 @@ export const toDateFunction: FunctionDefinition & { evaluate: typeof toDateEvalu
       name: 'any-toDate',
       parameters: [],
       input: { type: 'Any', singleton: true },
-      result: { type: 'Date', singleton: false }
+      result: { type: 'Date', singleton: true }
     }
   ],
   evaluate: toDateEvaluator
@@ -261,7 +261,7 @@ export const toDateTimeFunction: FunctionDefinition & { evaluate: typeof toDateT
       name: 'any-toDateTime',
       parameters: [],
       input: { type: 'Any', singleton: true },
-      result: { type: 'DateTime', singleton: false }
+      result: { type: 'DateTime', singleton: true }
     }
   ],
   evaluate: toDateTimeEvaluator
@@ -334,7 +334,7 @@ export const toTimeFunction: FunctionDefinition & { evaluate: typeof toTimeEvalu
       name: 'any-toTime',
       parameters: [],
       input: { type: 'Any', singleton: true },
-      result: { type: 'Time', singleton: false }
+      result: { type: 'Time', singleton: true }
     }
   ],
   evaluate: toTimeEvaluator
