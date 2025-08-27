@@ -288,6 +288,44 @@ describe('Temporal Arithmetic - Following ADR-017', () => {
     });
   });
 
+  describe('Partial DateTime precision-preserving additions (spec §1.6.7)', () => {
+    it('@2014-01-01T + 24 hours => @2014-01-02 (day rolls, no time)', () => {
+      const dt = createDateTime(2014, 1, 1);
+      const result = add(dt, createTimeQuantity(24, 'hour'));
+      expect(toTemporalString(result)).toBe('2014-01-02');
+    });
+
+    it('@2014-01-01T + 1440 minutes => @2014-01-02 (minutes convert to day)', () => {
+      const dt = createDateTime(2014, 1, 1);
+      const result = add(dt, createTimeQuantity(1440, 'minute'));
+      expect(toTemporalString(result)).toBe('2014-01-02');
+    });
+
+    it('@2014-01-01T + 86400 seconds => @2014-01-02 (seconds convert to day)', () => {
+      const dt = createDateTime(2014, 1, 1);
+      const result = add(dt, createTimeQuantity(86400, 'second'));
+      expect(toTemporalString(result)).toBe('2014-01-02');
+    });
+
+    it('@2014-01-01T + 86400000 millisecond => @2014-01-02 (ms convert to day)', () => {
+      const dt = createDateTime(2014, 1, 1);
+      const result = add(dt, createTimeQuantity(86400000, 'millisecond'));
+      expect(toTemporalString(result)).toBe('2014-01-02');
+    });
+
+    it('@2014-01-01T10 + 3600 seconds => @2014-01-01T11 (seconds convert to hour)', () => {
+      const dt = createDateTime(2014, 1, 1, 10);
+      const result = add(dt, createTimeQuantity(3600, 'second'));
+      expect(toTemporalString(result)).toBe('2014-01-01T11');
+    });
+
+    it('@2014-01-01T10:30 + 60000 millisecond => @2014-01-01T10:31 (ms convert to minute)', () => {
+      const dt = createDateTime(2014, 1, 1, 10, 30);
+      const result = add(dt, createTimeQuantity(60000, 'millisecond'));
+      expect(toTemporalString(result)).toBe('2014-01-01T10:31');
+    });
+  });
+
   describe('Helper functions - addCalendarParts and addClockParts (TDD stubs)', () => {
     describe('addCalendarParts', () => {
       it('clamps Jan 31 + 1 month to Feb 29 in leap year', () => {

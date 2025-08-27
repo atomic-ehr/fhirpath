@@ -1118,21 +1118,15 @@ function addToDateTime(dt: FHIRDateTime, quantity: TimeQuantity): FHIRDateTime {
 
   // Time units: delegate to clock helper with precision preservation
   if (['hour', 'minute', 'second', 'millisecond'].includes(normalizedUnit)) {
-    // Gating by available precision to mirror existing semantics
-    if (normalizedUnit === 'hour' && dt.hour === undefined) {
-      return dt;
-    }
-    if (normalizedUnit === 'minute' && dt.hour === undefined) {
-      return dt;
-    }
-    if (normalizedUnit === 'second' && dt.minute === undefined) {
-      return dt;
-    }
-    if (normalizedUnit === 'millisecond' && dt.millisecond === undefined) {
-      return dt;
-    }
-
-    const clock = addClockParts(dt.hour, dt.minute, dt.second, dt.millisecond, normalizedUnit as ClockUnit, quantity.value, true);
+    const clock = addClockParts(
+      dt.hour,
+      dt.minute,
+      dt.second,
+      dt.millisecond,
+      normalizedUnit as ClockUnit,
+      quantity.value,
+      true
+    );
     newHour = clock.hour;
     newMinute = clock.minute;
     newSecond = clock.second;
@@ -1367,8 +1361,12 @@ export function addClockParts(
   let wrapped = newTotal - dayDelta * DAY_MS;
 
   // Reconstruct time parts with precision preservation
-  let newHour = Math.floor(wrapped / HOUR_MS);
-  wrapped %= HOUR_MS;
+  // Preserve hour precision: if hour was undefined, don't materialize it
+  let newHour: number | undefined =
+    hour !== undefined ? Math.floor(wrapped / HOUR_MS) : undefined;
+  if (hour !== undefined) {
+    wrapped %= HOUR_MS;
+  }
 
   let newMinute: number | undefined = undefined;
   let newSecond: number | undefined = undefined;
