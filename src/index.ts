@@ -98,7 +98,17 @@ export async function evaluate(
   const result = await interpreter.evaluate(analysisResult.ast, input, context);
   
   // Unbox the results before returning
-  return result.value.map(unbox);
+  // For temporal values, return their string representation
+  return result.value.map(boxedValue => {
+    const value = unbox(boxedValue);
+    // Check if it's a temporal value by checking for toString method and type field
+    if (value && typeof value === 'object' && 'type' in value && 
+        (value.type === 'Date' || value.type === 'DateTime' || value.type === 'Time') &&
+        'toString' in value && typeof value.toString === 'function') {
+      return value.toString();
+    }
+    return value;
+  });
 }
 
 export async function analyze(

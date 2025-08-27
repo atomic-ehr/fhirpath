@@ -14,7 +14,7 @@ export const evaluate: OperationEvaluator = async (input, context, left, right) 
   const item = unbox(boxedItem);
   const typeName = right[0] as string; // Should be a type name like 'String', 'Integer', etc.
   
-  // If we have a ModelProvider in context, use it for accurate type checking
+  // If we have a ModelProvider and typeInfo, use it for accurate type checking (handles subtypes)
   if (context.modelProvider && boxedItem?.typeInfo) {
     const matchingType = context.modelProvider.ofType(boxedItem.typeInfo, typeName as TypeName);
     return { 
@@ -23,9 +23,8 @@ export const evaluate: OperationEvaluator = async (input, context, left, right) 
     };
   }
   
-  // Check if the box has type information
+  // Check if the box has type information (without ModelProvider, just check exact match)
   if (boxedItem?.typeInfo) {
-    // For now, just check exact type match (no subtype support without ModelProvider)
     return { 
       value: [box(boxedItem.typeInfo.type === typeName, { type: 'Boolean', singleton: true })], 
       context 
@@ -61,10 +60,26 @@ export const evaluate: OperationEvaluator = async (input, context, left, right) 
     case 'Decimal':
       return { value: [box(typeof item === 'number', { type: 'Boolean', singleton: true })], context };
     case 'Date':
+      // Check if it's a FHIRDate instance or has Date type
+      if (item && typeof item === 'object') {
+        const { FHIRDate } = require('../temporal');
+        return { value: [box(item instanceof FHIRDate || (item as any).type === 'Date', { type: 'Boolean', singleton: true })], context };
+      }
+      return { value: [box(false, { type: 'Boolean', singleton: true })], context };
     case 'DateTime':
+      // Check if it's a FHIRDateTime instance or has DateTime type
+      if (item && typeof item === 'object') {
+        const { FHIRDateTime } = require('../temporal');
+        return { value: [box(item instanceof FHIRDateTime || (item as any).type === 'DateTime', { type: 'Boolean', singleton: true })], context };
+      }
+      return { value: [box(false, { type: 'Boolean', singleton: true })], context };
     case 'Time':
-      // Simple check for date-like strings
-      return { value: [box(typeof item === 'string' && !isNaN(Date.parse(item)), { type: 'Boolean', singleton: true })], context };
+      // Check if it's a FHIRTime instance or has Time type
+      if (item && typeof item === 'object') {
+        const { FHIRTime } = require('../temporal');
+        return { value: [box(item instanceof FHIRTime || (item as any).type === 'Time', { type: 'Boolean', singleton: true })], context };
+      }
+      return { value: [box(false, { type: 'Boolean', singleton: true })], context };
     default:
       // For complex types, check resourceType
       if (item && typeof item === 'object' && 'resourceType' in item) {

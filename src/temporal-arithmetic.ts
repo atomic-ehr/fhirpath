@@ -1,195 +1,170 @@
-// FHIRPath Temporal Arithmetic Implementation
-// Following ADR-017: The "Coerce or Calendar" Algorithm
+// Temporal Arithmetic Implementation
+// Following ADR-017: Temporal Values Implementation
 
-import type { 
-  FHIRDate, 
-  FHIRDateTime, 
-  FHIRTime, 
-  TimeQuantity, 
-  TimeUnit,
-  PrecisionInfo 
+import {
+  FHIRDate,
+  FHIRDateTime,
+  FHIRTime,
+  PRECISION_VALUES,
+  type TimeQuantity,
+  type DatePrecisionLevel,
+  type TimePrecisionLevel,
+  type DateTimePrecisionLevel,
 } from './temporal';
 
 // ============================================================================
-// Precision Ranking for Coercion Decision
+// Conversion Utilities
 // ============================================================================
 
-const PRECISION_RANK: Record<string, number> = {
-  year: 1,
-  month: 2,
-  day: 3,
-  hour: 4,
-  minute: 5,
-  second: 6,
-  millisecond: 7
-};
+const DAYS_PER_MONTH = 30; // FHIRPath convention
+const DAYS_PER_YEAR = 365; // FHIRPath convention
+const DAYS_PER_WEEK = 7;
+const HOURS_PER_DAY = 24;
+const MINUTES_PER_HOUR = 60;
+const SECONDS_PER_MINUTE = 60;
+const MILLISECONDS_PER_SECOND = 1000;
 
-const UNIT_RANK: Record<TimeUnit, number> = {
-  year: 1,
-  month: 2,
-  week: 3,
-  day: 3,  // Week and day have same rank
-  hour: 4,
-  minute: 5,
-  second: 6,
-  millisecond: 7
-};
+/**
+ * Convert a time quantity to a different unit, truncating the result
+ */
+function convertAndTruncate(quantity: TimeQuantity, targetUnit: string): number {
+  // Normalize unit first (remove plurals)
+  const normalizedQuantityUnit = normalizeUnit(quantity.unit);
+  
+  // Direct conversion for calendar units (year <-> month)
+  // Avoids precision loss from going through days
+  if (normalizedQuantityUnit === 'month' && targetUnit === 'year') {
+    return Math.floor(quantity.value / 12);
+  }
+  if (normalizedQuantityUnit === 'year' && targetUnit === 'month') {
+    return Math.floor(quantity.value * 12);
+  }
+  
+  let valueInDays = 0;
+  
+  // Convert to days first (common unit)
+  switch (normalizedQuantityUnit) {
+    case 'year':
+      valueInDays = quantity.value * DAYS_PER_YEAR;
+      break;
+    case 'month':
+      valueInDays = quantity.value * DAYS_PER_MONTH;
+      break;
+    case 'week':
+      valueInDays = quantity.value * DAYS_PER_WEEK;
+      break;
+    case 'day':
+      valueInDays = quantity.value;
+      break;
+    case 'hour':
+      valueInDays = quantity.value / HOURS_PER_DAY;
+      break;
+    case 'minute':
+      valueInDays = quantity.value / (HOURS_PER_DAY * MINUTES_PER_HOUR);
+      break;
+    case 'second':
+      valueInDays = quantity.value / (HOURS_PER_DAY * MINUTES_PER_HOUR * SECONDS_PER_MINUTE);
+      break;
+    case 'millisecond':
+      valueInDays = quantity.value / (HOURS_PER_DAY * MINUTES_PER_HOUR * SECONDS_PER_MINUTE * MILLISECONDS_PER_SECOND);
+      break;
+  }
+  
+  // Convert from days to target unit
+  let result = 0;
+  switch (targetUnit) {
+    case 'year':
+      result = valueInDays / DAYS_PER_YEAR;
+      break;
+    case 'month':
+      result = valueInDays / DAYS_PER_MONTH;
+      break;
+    case 'week':
+      result = valueInDays / DAYS_PER_WEEK;
+      break;
+    case 'day':
+      result = valueInDays;
+      break;
+    case 'hour':
+      result = valueInDays * HOURS_PER_DAY;
+      break;
+    case 'minute':
+      result = valueInDays * HOURS_PER_DAY * MINUTES_PER_HOUR;
+      break;
+    case 'second':
+      result = valueInDays * HOURS_PER_DAY * MINUTES_PER_HOUR * SECONDS_PER_MINUTE;
+      break;
+    case 'millisecond':
+      result = valueInDays * HOURS_PER_DAY * MINUTES_PER_HOUR * SECONDS_PER_MINUTE * MILLISECONDS_PER_SECOND;
+      break;
+  }
+  
+  // Truncate toward zero (not floor) for proper coercion
+  return Math.trunc(result);
+}
 
-// ============================================================================
-// Core Decision: Coerce or Calendar?
-// ============================================================================
+/**
+ * Get precision ranking for comparison
+ */
+function getPrecisionRank(precision: string): number {
+  const ranks: Record<string, number> = {
+    'year': 1,
+    'month': 2,
+    'week': 3,
+    'day': 3, // Week and day have same rank
+    'hour': 4,
+    'minute': 5,
+    'second': 6,
+    'millisecond': 7,
+  };
+  return ranks[precision] || 0;
+}
 
-function needsCoercion(precision: PrecisionInfo, unit: TimeUnit): boolean {
-  const precisionRank = PRECISION_RANK[precision.level];
-  const unitRank = UNIT_RANK[unit];
-  return precisionRank !== undefined && precisionRank < unitRank;
+/**
+ * Normalize time unit to singular form
+ */
+function normalizeUnit(unit: string): string {
+  // Handle single letter 's' for seconds
+  if (unit === 's') {
+    return 'second';
+  }
+  // Remove plural 's' if present
+  if (unit.endsWith('s') && unit !== 'milliseconds' && unit.length > 1) {
+    return unit.slice(0, -1);
+  }
+  if (unit === 'milliseconds') {
+    return 'millisecond';
+  }
+  return unit;
 }
 
 // ============================================================================
-// Conversion Factors for Coercion
+// Date Arithmetic
 // ============================================================================
 
-const CONVERSION_FACTORS = {
-  // Calendar conversions (fixed ratios per spec)
-  monthsPerYear: 12,
-  daysPerMonth: 30,    // Fixed by spec for conversion
-  daysPerYear: 365,    // Fixed by spec for conversion
-  daysPerWeek: 7,
-  
-  // Clock conversions (exact)
-  hoursPerDay: 24,
-  minutesPerHour: 60,
-  secondsPerMinute: 60,
-  millisecondsPerSecond: 1000
-};
-
-// ============================================================================
-// Coercion Functions (with truncation)
-// ============================================================================
-
-interface CoercedQuantity {
-  value: number;
-  unit: TimeUnit;
-}
-
-function coerceQuantity(quantity: TimeQuantity, targetPrecision: PrecisionInfo): CoercedQuantity {
-  const { value, unit } = quantity;
-  const target = targetPrecision.level;
-  
-  // Convert to target precision level and truncate
-  if (target === 'year') {
-    switch (unit) {
-      case 'year':
-        return { value: Math.trunc(value), unit: 'year' };
-      case 'month':
-        return { value: Math.trunc(value / CONVERSION_FACTORS.monthsPerYear), unit: 'year' };
-      case 'week':
-        const days = value * CONVERSION_FACTORS.daysPerWeek;
-        return { value: Math.trunc(days / CONVERSION_FACTORS.daysPerYear), unit: 'year' };
-      case 'day':
-        return { value: Math.trunc(value / CONVERSION_FACTORS.daysPerYear), unit: 'year' };
-      case 'hour':
-        const daysFromHours = value / CONVERSION_FACTORS.hoursPerDay;
-        return { value: Math.trunc(daysFromHours / CONVERSION_FACTORS.daysPerYear), unit: 'year' };
-      case 'minute':
-        const daysFromMinutes = value / (CONVERSION_FACTORS.minutesPerHour * CONVERSION_FACTORS.hoursPerDay);
-        return { value: Math.trunc(daysFromMinutes / CONVERSION_FACTORS.daysPerYear), unit: 'year' };
-      case 'second':
-        const daysFromSeconds = value / (CONVERSION_FACTORS.secondsPerMinute * CONVERSION_FACTORS.minutesPerHour * CONVERSION_FACTORS.hoursPerDay);
-        return { value: Math.trunc(daysFromSeconds / CONVERSION_FACTORS.daysPerYear), unit: 'year' };
-      case 'millisecond':
-        const daysFromMs = value / (CONVERSION_FACTORS.millisecondsPerSecond * CONVERSION_FACTORS.secondsPerMinute * CONVERSION_FACTORS.minutesPerHour * CONVERSION_FACTORS.hoursPerDay);
-        return { value: Math.trunc(daysFromMs / CONVERSION_FACTORS.daysPerYear), unit: 'year' };
-    }
-  }
-  
-  if (target === 'month') {
-    switch (unit) {
-      case 'year':
-        return { value: value * CONVERSION_FACTORS.monthsPerYear, unit: 'month' };
-      case 'month':
-        return { value: Math.trunc(value), unit: 'month' };
-      case 'week':
-        const days = value * CONVERSION_FACTORS.daysPerWeek;
-        return { value: Math.trunc(days / CONVERSION_FACTORS.daysPerMonth), unit: 'month' };
-      case 'day':
-        return { value: Math.trunc(value / CONVERSION_FACTORS.daysPerMonth), unit: 'month' };
-      case 'hour':
-        const daysFromHours = value / CONVERSION_FACTORS.hoursPerDay;
-        return { value: Math.trunc(daysFromHours / CONVERSION_FACTORS.daysPerMonth), unit: 'month' };
-      case 'minute':
-        const daysFromMinutes = value / (CONVERSION_FACTORS.minutesPerHour * CONVERSION_FACTORS.hoursPerDay);
-        return { value: Math.trunc(daysFromMinutes / CONVERSION_FACTORS.daysPerMonth), unit: 'month' };
-      case 'second':
-        const daysFromSeconds = value / (CONVERSION_FACTORS.secondsPerMinute * CONVERSION_FACTORS.minutesPerHour * CONVERSION_FACTORS.hoursPerDay);
-        return { value: Math.trunc(daysFromSeconds / CONVERSION_FACTORS.daysPerMonth), unit: 'month' };
-      case 'millisecond':
-        const daysFromMs = value / (CONVERSION_FACTORS.millisecondsPerSecond * CONVERSION_FACTORS.secondsPerMinute * CONVERSION_FACTORS.minutesPerHour * CONVERSION_FACTORS.hoursPerDay);
-        return { value: Math.trunc(daysFromMs / CONVERSION_FACTORS.daysPerMonth), unit: 'month' };
-    }
-  }
-  
-  if (target === 'day') {
-    // Day precision doesn't coerce - uses calendar arithmetic
-    return { value, unit };
-  }
-  
-  // For Time types
-  if (target === 'hour') {
-    switch (unit) {
-      case 'hour':
-        return { value: Math.trunc(value), unit: 'hour' };
-      case 'minute':
-        return { value: Math.trunc(value / CONVERSION_FACTORS.minutesPerHour), unit: 'hour' };
-      case 'second':
-        return { value: Math.trunc(value / (CONVERSION_FACTORS.secondsPerMinute * CONVERSION_FACTORS.minutesPerHour)), unit: 'hour' };
-      case 'millisecond':
-        return { value: Math.trunc(value / (CONVERSION_FACTORS.millisecondsPerSecond * CONVERSION_FACTORS.secondsPerMinute * CONVERSION_FACTORS.minutesPerHour)), unit: 'hour' };
-      default:
-        // Calendar units not allowed for Time
-        throw new Error(`Cannot add ${unit} to Time value`);
-    }
-  }
-  
-  if (target === 'minute') {
-    switch (unit) {
-      case 'hour':
-        return { value: value * CONVERSION_FACTORS.minutesPerHour, unit: 'minute' };
-      case 'minute':
-        return { value: Math.trunc(value), unit: 'minute' };
-      case 'second':
-        return { value: Math.trunc(value / CONVERSION_FACTORS.secondsPerMinute), unit: 'minute' };
-      case 'millisecond':
-        return { value: Math.trunc(value / (CONVERSION_FACTORS.millisecondsPerSecond * CONVERSION_FACTORS.secondsPerMinute)), unit: 'minute' };
-      default:
-        throw new Error(`Cannot add ${unit} to Time value`);
-    }
-  }
-  
-  // Second and millisecond precision don't coerce
-  return { value, unit };
-}
-
-// ============================================================================
-// Calendar Helper Functions
-// ============================================================================
-
+/**
+ * Check if a year is a leap year
+ */
 function isLeapYear(year: number): boolean {
   return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
 }
 
-function getDaysInMonth(year: number, month: number): number {
+/**
+ * Get the number of days in a month
+ */
+function daysInMonth(year: number, month: number): number {
   const daysPerMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-  
   if (month === 2 && isLeapYear(year)) {
     return 29;
   }
-  
-  return daysPerMonth[month - 1] ?? 31;
+  return daysPerMonth[month - 1]!;
 }
 
-function normalizeDate(year: number, month: number, day: number): { year: number; month: number; day: number } {
-  // Normalize month overflow/underflow
+/**
+ * Validate and adjust date components for calendar validity
+ */
+function adjustDateForValidity(year: number, month: number, day: number): { year: number; month: number; day: number } {
+  // Handle month overflow/underflow
   while (month > 12) {
     month -= 12;
     year += 1;
@@ -200,611 +175,388 @@ function normalizeDate(year: number, month: number, day: number): { year: number
   }
   
   // Adjust day to be valid for the month
-  const maxDay = getDaysInMonth(year, month);
+  const maxDay = daysInMonth(year, month);
   if (day > maxDay) {
-    day = maxDay;  // Cap at last day of month (month-end semantics)
+    day = maxDay;
   }
   if (day < 1) {
     day = 1;
   }
   
+  // Validate year bounds
+  if (year < 1) year = 1;
+  if (year > 9999) year = 9999;
+  
   return { year, month, day };
 }
 
-// ============================================================================
-// Calendar Arithmetic Implementation
-// ============================================================================
-
-interface DateComponents {
-  year: number;
-  month?: number;
-  day?: number;
-}
-
-function addCalendarUnits(date: DateComponents, quantity: TimeQuantity, isSubtraction: boolean = false): DateComponents {
-  const sign = isSubtraction ? -1 : 1;
-  let { year, month, day } = date;
-  const { value: rawValue, unit } = quantity;
-  const value = rawValue * sign;
+/**
+ * Add to Date with FHIRPath precision rules
+ */
+export function addToDate(date: FHIRDate, quantity: TimeQuantity): FHIRDate {
+  const normalizedUnit = normalizeUnit(quantity.unit);
+  const quantityRank = getPrecisionRank(normalizedUnit);
+  const dateRank = getPrecisionRank(date.precision.level);
   
-  switch (unit) {
-    case 'year':
-      year += Math.trunc(value);
-      // Clamp year to valid range
-      if (year < 1) year = 1;
-      if (year > 9999) year = 9999;
-      // Handle month-end for leap year transitions
-      if (month !== undefined && day !== undefined) {
-        const normalized = normalizeDate(year, month, day);
-        return normalized;
+  // Core decision: coerce if date precision is lower than quantity precision
+  if (dateRank < quantityRank) {
+    // Coercion path: convert quantity to date's precision level
+    const coercedValue = convertAndTruncate(quantity, date.precision.level);
+    
+    if (date.precision.level === 'year') {
+      return new FHIRDate(date.year + coercedValue);
+    } else if (date.precision.level === 'month') {
+      let newMonth = (date.month || 1) + coercedValue;
+      let newYear = date.year;
+      
+      // Handle month overflow
+      while (newMonth > 12) {
+        newMonth -= 12;
+        newYear += 1;
       }
-      return { year, month, day };
+      while (newMonth < 1) {
+        newMonth += 12;
+        newYear -= 1;
+      }
+      
+      return new FHIRDate(newYear, newMonth);
+    }
+  }
+  
+  // Calendar arithmetic path
+  let year = date.year;
+  let month = date.month || 1;
+  let day = date.day || 1;
+  
+  switch (normalizedUnit) {
+    case 'year':
+      year += Math.floor(quantity.value);
+      break;
       
     case 'month':
-      if (month === undefined) {
-        // Should not happen if we're using calendar arithmetic
-        throw new Error('Cannot add months to year-only date using calendar arithmetic');
-      }
+      const monthsToAdd = Math.floor(quantity.value);
+      month += monthsToAdd;
       
-      // Add months with proper year overflow
-      // Convert to absolute month count from year 1
-      const currentAbsoluteMonths = year * 12 + month;
-      const newAbsoluteMonths = currentAbsoluteMonths + Math.trunc(value);
-      
-      // Convert back to year and month
-      if (newAbsoluteMonths <= 0) {
-        // Handle negative months (before year 1)
-        year = 1;
-        month = 1;
-      } else {
-        year = Math.floor((newAbsoluteMonths - 1) / 12);
-        month = ((newAbsoluteMonths - 1) % 12) + 1;
-        // Clamp year to valid range
-        if (year < 1) year = 1;
-        if (year > 9999) year = 9999;
+      // Handle overflow/underflow properly
+      while (month > 12) {
+        month -= 12;
+        year += 1;
       }
-      
-      // Handle month-end semantics
-      if (day !== undefined) {
-        const normalized = normalizeDate(year, month, day);
-        return normalized;
+      while (month < 1) {
+        month += 12;
+        year -= 1;
       }
-      return { year, month, day };
+      break;
       
     case 'week':
-      // Convert weeks to days
-      return addCalendarUnits(date, { value: value * 7, unit: 'day', isCalendarUnit: true }, false);
+      day += Math.floor(quantity.value) * 7;
+      break;
       
     case 'day':
-      if (day === undefined) {
-        // Should not happen if we're using calendar arithmetic  
-        throw new Error('Cannot add days to date without day component using calendar arithmetic');
-      }
-      
-      // Add days with proper month/year overflow
-      let tempDay = day + Math.trunc(value);
-      let tempMonth = month ?? 1;
-      let tempYear = year;
-      
-      // Handle overflow
-      while (tempDay > getDaysInMonth(tempYear, tempMonth)) {
-        tempDay -= getDaysInMonth(tempYear, tempMonth);
-        tempMonth++;
-        if (tempMonth > 12) {
-          tempMonth = 1;
-          tempYear++;
-        }
-      }
-      
-      // Handle underflow
-      while (tempDay < 1) {
-        tempMonth--;
-        if (tempMonth < 1) {
-          tempMonth = 12;
-          tempYear--;
-        }
-        tempDay += getDaysInMonth(tempYear, tempMonth);
-      }
-      
-      // Clamp year to valid range
-      if (tempYear < 1) {
-        tempYear = 1;
-        tempMonth = 1;
-        tempDay = 1;
-      } else if (tempYear > 9999) {
-        tempYear = 9999;
-        tempMonth = 12;
-        tempDay = 31;
-      }
-      
-      return { year: tempYear, month: tempMonth, day: tempDay };
+      day += Math.floor(quantity.value);
+      break;
       
     default:
-      // Hours, minutes, seconds, milliseconds need DateTime
-      throw new Error(`Cannot add ${unit} to Date value`);
-  }
-}
-
-// ============================================================================
-// Clock Arithmetic Implementation
-// ============================================================================
-
-interface TimeComponents {
-  hour: number;
-  minute?: number;
-  second?: number;
-  millisecond?: number;
-}
-
-function addClockUnits(time: TimeComponents, quantity: TimeQuantity, isSubtraction: boolean = false): TimeComponents {
-  const sign = isSubtraction ? -1 : 1;
-  const { value: rawValue, unit } = quantity;
-  const value = rawValue * sign;
-  
-  // Convert everything to milliseconds for calculation
-  let totalMs = time.hour * 60 * 60 * 1000;
-  if (time.minute !== undefined) {
-    totalMs += time.minute * 60 * 1000;
-  }
-  if (time.second !== undefined) {
-    totalMs += time.second * 1000;
-  }
-  if (time.millisecond !== undefined) {
-    totalMs += time.millisecond;
+      // For time units with Date, convert to days
+      if (date.precision.level === 'day') {
+        const days = convertAndTruncate(quantity, 'day');
+        day += days;
+      }
   }
   
-  // Add the quantity
-  switch (unit) {
-    case 'hour':
-      totalMs += value * 60 * 60 * 1000;
-      break;
-    case 'minute':
-      totalMs += value * 60 * 1000;
-      break;
-    case 'second':
-      totalMs += value * 1000;
-      break;
-    case 'millisecond':
-      totalMs += value;
-      break;
-    default:
-      throw new Error(`Cannot add ${unit} to Time value`);
+  // Adjust for calendar validity
+  const adjusted = adjustDateForValidity(year, month, day);
+  
+  // Handle date arithmetic that changes months/days
+  if (date.precision.level === 'day' && (normalizedUnit === 'day' || normalizedUnit === 'week')) {
+    // Need to handle month/year rollovers properly
+    // Don't use adjusted values, use the raw computed values
+    const jsDate = new Date(year, month - 1, day);
+    let resultYear = jsDate.getFullYear();
+    // Clamp year to valid range
+    if (resultYear > 9999) resultYear = 9999;
+    if (resultYear < 1) resultYear = 1;
+    return new FHIRDate(resultYear, jsDate.getMonth() + 1, jsDate.getDate());
   }
   
-  // Wrap at 24 hours (86400000 ms)
-  const msPerDay = 24 * 60 * 60 * 1000;
-  totalMs = totalMs % msPerDay;
-  if (totalMs < 0) {
-    totalMs += msPerDay;
-  }
-  
-  // Extract components based on original precision
-  const hour = Math.floor(totalMs / (60 * 60 * 1000));
-  totalMs %= 60 * 60 * 1000;
-  
-  let minute: number | undefined;
-  let second: number | undefined;
-  let millisecond: number | undefined;
-  
-  if (time.minute !== undefined) {
-    minute = Math.floor(totalMs / (60 * 1000));
-    totalMs %= 60 * 1000;
-  }
-  
-  if (time.second !== undefined) {
-    second = Math.floor(totalMs / 1000);
-    totalMs %= 1000;
-  }
-  
-  if (time.millisecond !== undefined) {
-    millisecond = Math.floor(totalMs);
-  }
-  
-  return { hour, minute, second, millisecond };
-}
-
-// ============================================================================
-// DateTime Arithmetic (combines calendar and clock)
-// ============================================================================
-
-interface DateTimeComponents {
-  year: number;
-  month?: number;
-  day?: number;
-  hour?: number;
-  minute?: number;
-  second?: number;
-  millisecond?: number;
-  timezoneOffset?: number;
-}
-
-function addDateTimeComponents(dt: DateTimeComponents, quantity: TimeQuantity, isSubtraction: boolean = false): DateTimeComponents {
-  const { unit } = quantity;
-  
-  // Calendar units
-  if (unit === 'year' || unit === 'month' || unit === 'week' || unit === 'day') {
-    const dateResult = addCalendarUnits(
-      { year: dt.year, month: dt.month, day: dt.day },
-      quantity,
-      isSubtraction
-    );
-    
-    // For day units with time components, handle day overflow from hours
-    if (unit === 'day' && dt.hour !== undefined) {
-      // Days are added as calendar days, not 24-hour periods
-      return {
-        ...dateResult,
-        hour: dt.hour,
-        minute: dt.minute,
-        second: dt.second,
-        millisecond: dt.millisecond,
-        timezoneOffset: dt.timezoneOffset
-      };
-    }
-    
-    return {
-      ...dateResult,
-      hour: dt.hour,
-      minute: dt.minute,
-      second: dt.second,
-      millisecond: dt.millisecond,
-      timezoneOffset: dt.timezoneOffset
-    };
-  }
-  
-  // Clock units
-  if (dt.hour !== undefined) {
-    // Can add clock units
-    const timeResult = addClockUnits(
-      {
-        hour: dt.hour,
-        minute: dt.minute,
-        second: dt.second,
-        millisecond: dt.millisecond
-      },
-      quantity,
-      isSubtraction
-    );
-    
-    // Check for day overflow by calculating total time before and after
-    let dayOffset = 0;
-    
-    // Calculate original total minutes from start of day
-    const originalTotalMinutes = dt.hour * 60 + (dt.minute ?? 0);
-    const newTotalMinutes = timeResult.hour * 60 + (timeResult.minute ?? 0);
-    
-    // Detect day boundary crossing
-    const sign = isSubtraction ? -1 : 1;
-    if (quantity.unit === 'hour' || quantity.unit === 'minute') {
-      const totalMinutesAdded = 
-        quantity.unit === 'hour' ? quantity.value * 60 * sign :
-        quantity.value * sign;
-      const expectedMinutes = originalTotalMinutes + totalMinutesAdded;
-      dayOffset = Math.floor(expectedMinutes / (24 * 60));
-    } else if (quantity.unit === 'second' || quantity.unit === 'millisecond') {
-      const originalSeconds = originalTotalMinutes * 60 + (dt.second ?? 0);
-      const newSeconds = newTotalMinutes * 60 + (timeResult.second ?? 0);
-      const totalSecondsAdded = 
-        quantity.unit === 'second' ? quantity.value * sign :
-        quantity.value * sign / 1000;
-      const expectedSeconds = originalSeconds + totalSecondsAdded;
-      dayOffset = Math.floor(expectedSeconds / (24 * 60 * 60));
-    }
-    
-    // Apply day offset if needed
-    if (dayOffset !== 0 && dt.day !== undefined) {
-      const dateWithOffset = addCalendarUnits(
-        { year: dt.year, month: dt.month, day: dt.day },
-        { value: dayOffset, unit: 'day', isCalendarUnit: true },
-        false
-      );
-      
-      return {
-        ...dateWithOffset,
-        hour: timeResult.hour,
-        minute: timeResult.minute,
-        second: timeResult.second,
-        millisecond: timeResult.millisecond,
-        timezoneOffset: dt.timezoneOffset
-      };
-    }
-    
-    return {
-      year: dt.year,
-      month: dt.month,
-      day: dt.day,
-      hour: timeResult.hour,
-      minute: timeResult.minute,
-      second: timeResult.second,
-      millisecond: timeResult.millisecond,
-      timezoneOffset: dt.timezoneOffset
-    };
-  }
-  
-  // No time components - should have used calendar arithmetic
-  throw new Error(`Cannot add ${unit} to DateTime without time components`);
-}
-
-// ============================================================================
-// Main Exported Arithmetic Functions
-// ============================================================================
-
-export function addToDate(date: FHIRDate, quantity: TimeQuantity): FHIRDate {
-  const FHIRDate = require('./temporal').FHIRDate;
-  
-  // The ONE QUESTION: Coerce or Calendar?
-  if (needsCoercion(date.precision, quantity.unit)) {
-    // Path A: Coerce and truncate
-    const coerced = coerceQuantity(quantity, date.precision);
-    
-    // Simple addition based on precision
-    if (date.precision.level === 'year') {
-      let newYear = date.year + coerced.value;
-      if (newYear < 1) newYear = 1;
-      if (newYear > 9999) newYear = 9999;
-      return new FHIRDate(newYear);
-    } else if (date.precision.level === 'month') {
-      // Coerced value is in months
-      const totalMonths = (date.month ?? 1) + coerced.value;
-      const yearsToAdd = Math.floor((totalMonths - 1) / 12);
-      const newMonth = ((totalMonths - 1) % 12) + 1;
-      return new FHIRDate(date.year + yearsToAdd, newMonth);
-    }
-    // Day precision shouldn't coerce
-    throw new Error('Unexpected coercion for day precision');
-    
+  // Preserve original precision
+  if (date.precision.level === 'year') {
+    return new FHIRDate(adjusted.year);
+  } else if (date.precision.level === 'month') {
+    return new FHIRDate(adjusted.year, adjusted.month);
   } else {
-    // Path B: Calendar arithmetic
-    const result = addCalendarUnits(
-      { year: date.year, month: date.month, day: date.day },
-      quantity,
-      false
-    );
-    
-    return new FHIRDate(result.year, result.month, result.day);
+    return new FHIRDate(adjusted.year, adjusted.month, adjusted.day);
   }
 }
 
+/**
+ * Subtract from Date with FHIRPath precision rules
+ */
 export function subtractFromDate(date: FHIRDate, quantity: TimeQuantity): FHIRDate {
-  const FHIRDate = require('./temporal').FHIRDate;
-  
-  // The ONE QUESTION: Coerce or Calendar?
-  if (needsCoercion(date.precision, quantity.unit)) {
-    // Path A: Coerce and truncate
-    const coerced = coerceQuantity(quantity, date.precision);
-    
-    // Simple subtraction based on precision
-    if (date.precision.level === 'year') {
-      let newYear = date.year - coerced.value;
-      if (newYear < 1) newYear = 1;
-      if (newYear > 9999) newYear = 9999;
-      return new FHIRDate(newYear);
-    } else if (date.precision.level === 'month') {
-      // Coerced value is in months - do simple subtraction
-      // 2020-02 = year 2020, month 2 = 2020*12 + 2 = 24242 total months
-      // subtract 3 = 24239 months
-      // 24239 / 12 = 2019.916... year 2019 
-      // 24239 % 12 = 11, so month 11
-      const totalMonths = date.year * 12 + (date.month ?? 1) - coerced.value;
-      
-      if (totalMonths <= 0) {
-        // Handle going before year 1
-        return new FHIRDate(1, 1);
-      }
-      
-      // Calculate year and month from total months
-      // We need to be careful: month 1 = January, not month 0
-      const newYear = Math.floor((totalMonths - 1) / 12); 
-      const newMonth = ((totalMonths - 1) % 12) + 1;
-      
-      return new FHIRDate(newYear < 1 ? 1 : newYear, newMonth);
-    }
-    throw new Error('Unexpected coercion for day precision');
-    
-  } else {
-    // Path B: Calendar arithmetic
-    const result = addCalendarUnits(
-      { year: date.year, month: date.month, day: date.day },
-      quantity,
-      true  // isSubtraction
-    );
-    
-    return new FHIRDate(result.year, result.month, result.day);
-  }
+  // Negate the quantity and use addition
+  const negatedQuantity: TimeQuantity = {
+    value: -quantity.value,
+    unit: quantity.unit,
+    isCalendarUnit: quantity.isCalendarUnit,
+  };
+  return addToDate(date, negatedQuantity);
 }
 
+// ============================================================================
+// Time Arithmetic
+// ============================================================================
+
+/**
+ * Add to Time with FHIRPath precision rules
+ */
 export function addToTime(time: FHIRTime, quantity: TimeQuantity): FHIRTime {
-  const FHIRTime = require('./temporal').FHIRTime;
-  
-  // Check that quantity is a clock unit
+  // Time cannot accept calendar units
   if (quantity.isCalendarUnit) {
     throw new Error(`Cannot add calendar unit ${quantity.unit} to Time value`);
   }
   
-  // The ONE QUESTION: Coerce or Clock?
-  if (needsCoercion(time.precision, quantity.unit)) {
-    // Path A: Coerce and truncate
-    const coerced = coerceQuantity(quantity, time.precision);
+  const normalizedUnit = normalizeUnit(quantity.unit);
+  const quantityRank = getPrecisionRank(normalizedUnit);
+  const timeRank = getPrecisionRank(time.precision.level);
+  
+  // Core decision: coerce if time precision is lower than quantity precision
+  if (timeRank < quantityRank) {
+    // Coercion path
+    const coercedValue = convertAndTruncate(quantity, time.precision.level);
     
-    // Simple addition based on precision
     if (time.precision.level === 'hour') {
-      let newHour = time.hour + coerced.value;
-      // Wrap at 24 hours
-      newHour = newHour % 24;
+      let newHour = (time.hour + coercedValue) % 24;
       if (newHour < 0) newHour += 24;
       return new FHIRTime(newHour);
     } else if (time.precision.level === 'minute') {
-      const totalMinutes = (time.hour * 60 + (time.minute ?? 0)) + coerced.value;
-      const hours = Math.floor(totalMinutes / 60) % 24;
-      const minutes = totalMinutes % 60;
-      return new FHIRTime(hours < 0 ? hours + 24 : hours, minutes < 0 ? minutes + 60 : minutes);
-    }
-    // Second/millisecond precision shouldn't coerce
-    
-  }
-  
-  // Path B: Clock arithmetic
-  const result = addClockUnits(
-    {
-      hour: time.hour,
-      minute: time.minute,
-      second: time.second,
-      millisecond: time.millisecond
-    },
-    quantity,
-    false
-  );
-  
-  return new FHIRTime(result.hour, result.minute, result.second, result.millisecond);
-}
-
-export function subtractFromTime(time: FHIRTime, quantity: TimeQuantity): FHIRTime {
-  const FHIRTime = require('./temporal').FHIRTime;
-  
-  // Check that quantity is a clock unit
-  if (quantity.isCalendarUnit) {
-    throw new Error(`Cannot subtract calendar unit ${quantity.unit} from Time value`);
-  }
-  
-  // The ONE QUESTION: Coerce or Clock?
-  if (needsCoercion(time.precision, quantity.unit)) {
-    // Path A: Coerce and truncate
-    const coerced = coerceQuantity(quantity, time.precision);
-    
-    // Simple subtraction based on precision
-    if (time.precision.level === 'hour') {
-      let newHour = time.hour - coerced.value;
-      // Wrap at 24 hours
-      newHour = newHour % 24;
+      const totalMinutes = time.hour * 60 + (time.minute || 0) + coercedValue;
+      let newHour = Math.floor(totalMinutes / 60) % 24;
+      let newMinute = totalMinutes % 60;
       if (newHour < 0) newHour += 24;
-      return new FHIRTime(newHour);
-    } else if (time.precision.level === 'minute') {
-      const totalMinutes = (time.hour * 60 + (time.minute ?? 0)) - coerced.value;
-      let hours = Math.floor(totalMinutes / 60) % 24;
-      let minutes = totalMinutes % 60;
-      if (minutes < 0) {
-        minutes += 60;
-        hours -= 1;
+      if (newMinute < 0) {
+        newMinute += 60;
+        newHour -= 1;
+        if (newHour < 0) newHour += 24;
       }
-      if (hours < 0) hours += 24;
-      return new FHIRTime(hours, minutes);
+      return new FHIRTime(newHour, newMinute);
     }
   }
   
-  // Path B: Clock arithmetic
-  const result = addClockUnits(
-    {
-      hour: time.hour,
-      minute: time.minute,
-      second: time.second,
-      millisecond: time.millisecond
-    },
-    quantity,
-    true  // isSubtraction
-  );
+  // Clock arithmetic path
+  let totalMilliseconds = 
+    time.hour * 3600000 +
+    (time.minute || 0) * 60000 +
+    (time.second || 0) * 1000 +
+    (time.millisecond || 0);
   
-  return new FHIRTime(result.hour, result.minute, result.second, result.millisecond);
+  switch (normalizedUnit) {
+    case 'hour':
+      totalMilliseconds += Math.floor(quantity.value) * 3600000;
+      break;
+    case 'minute':
+      totalMilliseconds += Math.floor(quantity.value) * 60000;
+      break;
+    case 'second':
+      totalMilliseconds += Math.floor(quantity.value) * 1000;
+      break;
+    case 'millisecond':
+      totalMilliseconds += Math.floor(quantity.value);
+      break;
+  }
+  
+  // Wrap around 24 hours
+  totalMilliseconds = totalMilliseconds % (24 * 3600000);
+  if (totalMilliseconds < 0) {
+    totalMilliseconds += 24 * 3600000;
+  }
+  
+  const newHour = Math.floor(totalMilliseconds / 3600000);
+  const newMinute = Math.floor((totalMilliseconds % 3600000) / 60000);
+  const newSecond = Math.floor((totalMilliseconds % 60000) / 1000);
+  const newMillisecond = totalMilliseconds % 1000;
+  
+  // Preserve original precision
+  if (time.precision.level === 'hour') {
+    return new FHIRTime(newHour);
+  } else if (time.precision.level === 'minute') {
+    return new FHIRTime(newHour, newMinute);
+  } else if (time.precision.level === 'second') {
+    return new FHIRTime(newHour, newMinute, newSecond);
+  } else {
+    return new FHIRTime(newHour, newMinute, newSecond, newMillisecond);
+  }
 }
 
+/**
+ * Subtract from Time with FHIRPath precision rules
+ */
+export function subtractFromTime(time: FHIRTime, quantity: TimeQuantity): FHIRTime {
+  // Negate the quantity and use addition
+  const negatedQuantity: TimeQuantity = {
+    value: -quantity.value,
+    unit: quantity.unit,
+    isCalendarUnit: false,
+  };
+  return addToTime(time, negatedQuantity);
+}
+
+// ============================================================================
+// DateTime Arithmetic
+// ============================================================================
+
+/**
+ * Add to DateTime with FHIRPath precision rules
+ */
 export function addToDateTime(dt: FHIRDateTime, quantity: TimeQuantity): FHIRDateTime {
-  const FHIRDateTime = require('./temporal').FHIRDateTime;
+  const normalizedUnit = normalizeUnit(quantity.unit);
+  const quantityRank = getPrecisionRank(normalizedUnit);
+  const dtRank = getPrecisionRank(dt.precision.level);
   
-  // The ONE QUESTION: Coerce or Calendar/Clock?
-  if (needsCoercion(dt.precision, quantity.unit)) {
-    // Path A: Coerce and truncate
-    const coerced = coerceQuantity(quantity, dt.precision);
+  // Core decision: coerce if datetime precision is lower than quantity precision
+  if (dtRank < quantityRank) {
+    // Coercion path
+    const coercedValue = convertAndTruncate(quantity, dt.precision.level);
     
-    // Apply based on precision level
     if (dt.precision.level === 'year') {
-      return new FHIRDateTime(dt.year + coerced.value);
+      return new FHIRDateTime(dt.year + coercedValue);
     } else if (dt.precision.level === 'month') {
-      const totalMonths = (dt.month ?? 1) + coerced.value;
-      const yearsToAdd = Math.floor((totalMonths - 1) / 12);
-      const newMonth = ((totalMonths - 1) % 12) + 1;
-      return new FHIRDateTime(dt.year + yearsToAdd, newMonth);
-    }
-    // Other precisions use calendar/clock arithmetic
-  }
-  
-  // Path B: Calendar/Clock arithmetic
-  const result = addDateTimeComponents(
-    {
-      year: dt.year,
-      month: dt.month,
-      day: dt.day,
-      hour: dt.hour,
-      minute: dt.minute,
-      second: dt.second,
-      millisecond: dt.millisecond,
-      timezoneOffset: dt.timezoneOffset
-    },
-    quantity,
-    false
-  );
-  
-  return new FHIRDateTime(
-    result.year,
-    result.month,
-    result.day,
-    result.hour,
-    result.minute,
-    result.second,
-    result.millisecond,
-    result.timezoneOffset
-  );
-}
-
-export function subtractFromDateTime(dt: FHIRDateTime, quantity: TimeQuantity): FHIRDateTime {
-  const FHIRDateTime = require('./temporal').FHIRDateTime;
-  
-  // The ONE QUESTION: Coerce or Calendar/Clock?
-  if (needsCoercion(dt.precision, quantity.unit)) {
-    // Path A: Coerce and truncate
-    const coerced = coerceQuantity(quantity, dt.precision);
-    
-    // Apply based on precision level
-    if (dt.precision.level === 'year') {
-      return new FHIRDateTime(dt.year - coerced.value);
-    } else if (dt.precision.level === 'month') {
-      const totalMonths = (dt.month ?? 1) - coerced.value;
-      let newMonth = totalMonths;
+      let newMonth = (dt.month || 1) + coercedValue;
       let newYear = dt.year;
       
-      if (totalMonths < 1) {
-        const yearsBack = Math.ceil(Math.abs(totalMonths - 1) / 12);
-        newYear -= yearsBack;
-        newMonth = 12 - (Math.abs(totalMonths - 1) % 12);
-        if (newMonth === 0) newMonth = 12;
+      while (newMonth > 12) {
+        newMonth -= 12;
+        newYear += 1;
+      }
+      while (newMonth < 1) {
+        newMonth += 12;
+        newYear -= 1;
       }
       
       return new FHIRDateTime(newYear, newMonth);
     }
+    // For higher precisions, continue to full arithmetic
   }
   
-  // Path B: Calendar/Clock arithmetic
-  const result = addDateTimeComponents(
-    {
-      year: dt.year,
-      month: dt.month,
-      day: dt.day,
-      hour: dt.hour,
-      minute: dt.minute,
-      second: dt.second,
-      millisecond: dt.millisecond,
-      timezoneOffset: dt.timezoneOffset
-    },
-    quantity,
-    true  // isSubtraction
-  );
-  
-  return new FHIRDateTime(
-    result.year,
-    result.month,
-    result.day,
-    result.hour,
-    result.minute,
-    result.second,
-    result.millisecond,
-    result.timezoneOffset
-  );
+  // Full calendar/clock arithmetic path
+  if (quantity.isCalendarUnit) {
+    // Calendar arithmetic
+    let year = dt.year;
+    let month = dt.month || 1;
+    let day = dt.day || 1;
+    
+    switch (normalizedUnit) {
+      case 'year':
+        year += Math.floor(quantity.value);
+        break;
+        
+      case 'month':
+        const totalMonths = month + Math.floor(quantity.value);
+        year += Math.floor((totalMonths - 1) / 12);
+        month = ((totalMonths - 1) % 12) + 1;
+        if (month <= 0) {
+          month += 12;
+          year -= 1;
+        }
+        break;
+        
+      case 'week':
+        day += Math.floor(quantity.value) * 7;
+        break;
+        
+      case 'day':
+        day += Math.floor(quantity.value);
+        break;
+    }
+    
+    // Adjust for calendar validity
+    const adjusted = adjustDateForValidity(year, month, day);
+    
+    // Handle day overflow into next month/year
+    if (dt.precision.level === 'day' || dt.precision.level === 'hour' || 
+        dt.precision.level === 'minute' || dt.precision.level === 'second' || 
+        dt.precision.level === 'millisecond') {
+      const jsDate = new Date(
+        adjusted.year,
+        adjusted.month - 1,
+        adjusted.day,
+        dt.hour || 0,
+        dt.minute || 0,
+        dt.second || 0,
+        dt.millisecond || 0
+      );
+      
+      return new FHIRDateTime(
+        jsDate.getFullYear(),
+        dt.month !== undefined ? jsDate.getMonth() + 1 : undefined,
+        dt.day !== undefined ? jsDate.getDate() : undefined,
+        dt.hour,
+        dt.minute,
+        dt.second,
+        dt.millisecond,
+        dt.timezoneOffset
+      );
+    }
+    
+    // Preserve precision
+    return new FHIRDateTime(
+      adjusted.year,
+      dt.month !== undefined ? adjusted.month : undefined,
+      dt.day !== undefined ? adjusted.day : undefined,
+      dt.hour,
+      dt.minute,
+      dt.second,
+      dt.millisecond,
+      dt.timezoneOffset
+    );
+  } else {
+    // Clock arithmetic for time units
+    const jsDate = new Date(
+      dt.year,
+      (dt.month || 1) - 1,
+      dt.day || 1,
+      dt.hour || 0,
+      dt.minute || 0,
+      dt.second || 0,
+      dt.millisecond || 0
+    );
+    
+    switch (normalizedUnit) {
+      case 'hour':
+        jsDate.setHours(jsDate.getHours() + Math.floor(quantity.value));
+        break;
+      case 'minute':
+        jsDate.setMinutes(jsDate.getMinutes() + Math.floor(quantity.value));
+        break;
+      case 'second':
+        jsDate.setSeconds(jsDate.getSeconds() + Math.floor(quantity.value));
+        break;
+      case 'millisecond':
+        jsDate.setMilliseconds(jsDate.getMilliseconds() + Math.floor(quantity.value));
+        break;
+    }
+    
+    return new FHIRDateTime(
+      jsDate.getFullYear(),
+      dt.month !== undefined ? jsDate.getMonth() + 1 : undefined,
+      dt.day !== undefined ? jsDate.getDate() : undefined,
+      dt.hour !== undefined ? jsDate.getHours() : undefined,
+      dt.minute !== undefined ? jsDate.getMinutes() : undefined,
+      dt.second !== undefined ? jsDate.getSeconds() : undefined,
+      dt.millisecond !== undefined ? jsDate.getMilliseconds() : undefined,
+      dt.timezoneOffset
+    );
+  }
+}
+
+/**
+ * Subtract from DateTime with FHIRPath precision rules
+ */
+export function subtractFromDateTime(dt: FHIRDateTime, quantity: TimeQuantity): FHIRDateTime {
+  // Negate the quantity and use addition
+  const negatedQuantity: TimeQuantity = {
+    value: -quantity.value,
+    unit: quantity.unit,
+    isCalendarUnit: quantity.isCalendarUnit,
+  };
+  return addToDateTime(dt, negatedQuantity);
 }

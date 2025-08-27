@@ -125,12 +125,37 @@ export class FHIRDate implements TemporalValue {
   
   equals(other: TemporalValue): boolean | null {
     if (other.type !== 'Date') return false;
-    if (this.precision.value !== other.precision.value) return null;
     
     const otherDate = other as FHIRDate;
-    return this.year === otherDate.year &&
-           this.month === otherDate.month &&
-           this.day === otherDate.day;
+    
+    // Compare year (always present)
+    if (this.year !== otherDate.year) return false;
+    
+    // Check month precision
+    const thisHasMonth = this.month !== undefined;
+    const otherHasMonth = otherDate.month !== undefined;
+    
+    if (thisHasMonth && otherHasMonth) {
+      // Both have month, compare values
+      if (this.month !== otherDate.month) return false;
+    } else if (thisHasMonth !== otherHasMonth) {
+      // One has month, other doesn't - different precision
+      return null;
+    }
+    
+    // Check day precision
+    const thisHasDay = this.day !== undefined;
+    const otherHasDay = otherDate.day !== undefined;
+    
+    if (thisHasDay && otherHasDay) {
+      // Both have day, compare values
+      if (this.day !== otherDate.day) return false;
+    } else if (thisHasDay !== otherHasDay) {
+      // One has day, other doesn't - different precision
+      return null;
+    }
+    
+    return true;
   }
   
   equivalent(other: TemporalValue): boolean {
@@ -171,12 +196,17 @@ export class FHIRDate implements TemporalValue {
   }
   
   toString(): string {
+    // Format year with 4-digit padding for years 0001-0999
+    const yearStr = this.year >= 0 && this.year < 10000 ? 
+      String(this.year).padStart(4, '0') : 
+      String(this.year);
+    
     if (this.precision.level === 'year') {
-      return String(this.year);
+      return yearStr;
     } else if (this.precision.level === 'month') {
-      return `${this.year}-${String(this.month).padStart(2, '0')}`;
+      return `${yearStr}-${String(this.month).padStart(2, '0')}`;
     } else {
-      return `${this.year}-${String(this.month).padStart(2, '0')}-${String(this.day).padStart(2, '0')}`;
+      return `${yearStr}-${String(this.month).padStart(2, '0')}-${String(this.day).padStart(2, '0')}`;
     }
   }
   
@@ -522,36 +552,67 @@ export class FHIRDateTime implements TemporalValue {
     const bothAware = this.timezoneOffset !== undefined && otherDateTime.timezoneOffset !== undefined;
     if (!bothNaive && !bothAware) return null;
     
-    // Special handling for second/millisecond precision
-    const thisSecondLevel = this.precision.level === 'second' || this.precision.level === 'millisecond';
-    const otherSecondLevel = otherDateTime.precision.level === 'second' || otherDateTime.precision.level === 'millisecond';
+    // For timezone-aware comparisons, convert to UTC if needed
+    const thisToCompare = bothAware && this.timezoneOffset !== otherDateTime.timezoneOffset ? this.toUTC() : this;
+    const otherToCompare = bothAware && this.timezoneOffset !== otherDateTime.timezoneOffset ? otherDateTime.toUTC() : otherDateTime;
     
-    if (thisSecondLevel && otherSecondLevel) {
-      // Both have second-level precision, can compare
-    } else if (this.precision.value !== otherDateTime.precision.value) {
+    // Compare year (always present)
+    if (thisToCompare.year !== otherToCompare.year) return false;
+    
+    // Check month precision
+    const thisHasMonth = thisToCompare.month !== undefined;
+    const otherHasMonth = otherToCompare.month !== undefined;
+    
+    if (thisHasMonth && otherHasMonth) {
+      if (thisToCompare.month !== otherToCompare.month) return false;
+    } else if (thisHasMonth !== otherHasMonth) {
       return null;
     }
     
-    // For timezone-aware comparisons, convert to UTC
-    if (bothAware && this.timezoneOffset !== otherDateTime.timezoneOffset) {
-      const thisUTC = this.toUTC();
-      const otherUTC = otherDateTime.toUTC();
-      return thisUTC.year === otherUTC.year &&
-             thisUTC.month === otherUTC.month &&
-             thisUTC.day === otherUTC.day &&
-             thisUTC.hour === otherUTC.hour &&
-             thisUTC.minute === otherUTC.minute &&
-             thisUTC.second === otherUTC.second &&
-             thisUTC.millisecond === otherUTC.millisecond;
+    // Check day precision
+    const thisHasDay = thisToCompare.day !== undefined;
+    const otherHasDay = otherToCompare.day !== undefined;
+    
+    if (thisHasDay && otherHasDay) {
+      if (thisToCompare.day !== otherToCompare.day) return false;
+    } else if (thisHasDay !== otherHasDay) {
+      return null;
     }
     
-    return this.year === otherDateTime.year &&
-           this.month === otherDateTime.month &&
-           this.day === otherDateTime.day &&
-           this.hour === otherDateTime.hour &&
-           this.minute === otherDateTime.minute &&
-           this.second === otherDateTime.second &&
-           this.millisecond === otherDateTime.millisecond;
+    // Check hour precision
+    const thisHasHour = thisToCompare.hour !== undefined;
+    const otherHasHour = otherToCompare.hour !== undefined;
+    
+    if (thisHasHour && otherHasHour) {
+      if (thisToCompare.hour !== otherToCompare.hour) return false;
+    } else if (thisHasHour !== otherHasHour) {
+      return null;
+    }
+    
+    // Check minute precision
+    const thisHasMinute = thisToCompare.minute !== undefined;
+    const otherHasMinute = otherToCompare.minute !== undefined;
+    
+    if (thisHasMinute && otherHasMinute) {
+      if (thisToCompare.minute !== otherToCompare.minute) return false;
+    } else if (thisHasMinute !== otherHasMinute) {
+      return null;
+    }
+    
+    // Check second/millisecond precision (treated as one level per spec)
+    const thisHasSecond = thisToCompare.second !== undefined;
+    const otherHasSecond = otherToCompare.second !== undefined;
+    
+    if (thisHasSecond && otherHasSecond) {
+      // For seconds and milliseconds, use decimal comparison semantics
+      const thisMs = thisToCompare.millisecond ?? 0;
+      const otherMs = otherToCompare.millisecond ?? 0;
+      if (thisToCompare.second !== otherToCompare.second || thisMs !== otherMs) return false;
+    } else if (thisHasSecond !== otherHasSecond) {
+      return null;
+    }
+    
+    return true;
   }
   
   equivalent(other: TemporalValue): boolean {
@@ -671,7 +732,10 @@ export class FHIRDateTime implements TemporalValue {
   }
   
   toString(): string {
-    let result = String(this.year);
+    // Format year with 4-digit padding for years 0001-0999
+    let result = this.year >= 0 && this.year < 10000 ? 
+      String(this.year).padStart(4, '0') : 
+      String(this.year);
     
     if (this.month !== undefined) {
       result += '-' + String(this.month).padStart(2, '0');
@@ -688,7 +752,7 @@ export class FHIRDateTime implements TemporalValue {
             if (this.second !== undefined) {
               result += ':' + String(this.second).padStart(2, '0');
               
-              if (this.millisecond !== undefined && this.millisecond !== 0) {
+              if (this.millisecond !== undefined) {
                 result += '.' + String(this.millisecond).padStart(3, '0');
               }
             }
@@ -868,6 +932,12 @@ export function parseTemporalLiteral(literal: string): FHIRDate | FHIRDateTime |
     const second = parts[2] ? parseInt(parts[2], 10) : undefined;
     const millisecond = parts[3] ? parseInt(parts[3], 10) : undefined;
     
+    // Validate parsed values
+    if (isNaN(hour) || (minute !== undefined && isNaN(minute)) || 
+        (second !== undefined && isNaN(second)) || (millisecond !== undefined && isNaN(millisecond))) {
+      throw new Error(`Invalid time format: ${value}`);
+    }
+    
     return new FHIRTime(hour, minute, second, millisecond);
   }
   
@@ -880,6 +950,11 @@ export function parseTemporalLiteral(literal: string): FHIRDate | FHIRDateTime |
     const year = parseInt(parts[0] ?? '0', 10);
     const month = parts[1] ? parseInt(parts[1], 10) : undefined;
     const day = parts[2] ? parseInt(parts[2], 10) : undefined;
+    
+    // Validate parsed values
+    if (isNaN(year) || (month !== undefined && isNaN(month)) || (day !== undefined && isNaN(day))) {
+      throw new Error(`Invalid date format: ${value}`);
+    }
     
     return new FHIRDate(year, month, day);
   } else {
@@ -912,6 +987,11 @@ export function parseTemporalLiteral(literal: string): FHIRDate | FHIRDateTime |
     const month = dateParts[1] ? parseInt(dateParts[1], 10) : undefined;
     const day = dateParts[2] ? parseInt(dateParts[2], 10) : undefined;
     
+    // Validate date components
+    if (isNaN(year) || (month !== undefined && isNaN(month)) || (day !== undefined && isNaN(day))) {
+      throw new Error(`Invalid datetime format: ${value}`);
+    }
+    
     // Parse time components
     let hour: number | undefined;
     let minute: number | undefined;
@@ -924,6 +1004,12 @@ export function parseTemporalLiteral(literal: string): FHIRDate | FHIRDateTime |
       minute = timeParts[1] ? parseInt(timeParts[1], 10) : undefined;
       second = timeParts[2] ? parseInt(timeParts[2], 10) : undefined;
       millisecond = timeParts[3] ? parseInt(timeParts[3], 10) : undefined;
+      
+      // Validate time components
+      if ((hour !== undefined && isNaN(hour)) || (minute !== undefined && isNaN(minute)) || 
+          (second !== undefined && isNaN(second)) || (millisecond !== undefined && isNaN(millisecond))) {
+        throw new Error(`Invalid datetime format: ${value}`);
+      }
     }
     
     // Parse timezone

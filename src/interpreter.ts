@@ -269,9 +269,26 @@ export class Interpreter {
     
     // Box the literal value with appropriate type info
     let typeInfo: import('./types').TypeInfo | undefined;
-    const value = literal.value;
+    let value: any = literal.value;
     
-    if (typeof value === 'string') {
+    // Handle temporal literals
+    if (literal.valueType === 'date' || literal.valueType === 'datetime' || literal.valueType === 'time') {
+      // Import temporal parsing function
+      const { parseTemporalLiteral } = await import('./temporal');
+      // Parse the temporal literal (add @ back since it was stripped by parser)
+      const temporalValue = parseTemporalLiteral('@' + literal.value);
+      
+      // Set appropriate type info
+      if (literal.valueType === 'date') {
+        typeInfo = { type: 'Date', singleton: true };
+      } else if (literal.valueType === 'datetime') {
+        typeInfo = { type: 'DateTime', singleton: true };
+      } else if (literal.valueType === 'time') {
+        typeInfo = { type: 'Time', singleton: true };
+      }
+      
+      value = temporalValue;
+    } else if (typeof value === 'string') {
       typeInfo = { type: 'String', singleton: true };
     } else if (typeof value === 'number') {
       typeInfo = Number.isInteger(value) ? 
@@ -282,7 +299,7 @@ export class Interpreter {
     }
     
     return {
-      value: [box(literal.value, typeInfo)],
+      value: [box(value, typeInfo)],
       context
     };
   }
@@ -476,10 +493,23 @@ export class Interpreter {
     const name = typeOrId.name;
 
     // First try as type filter
-    const filtered = input.filter(boxedItem => {
+    const filtered: FHIRPathValue[] = [];
+    for (const boxedItem of input) {
       const item = unbox(boxedItem);
-      return item && typeof item === 'object' && item.resourceType === name;
-    });
+      if (item && typeof item === 'object' && item.resourceType === name) {
+        // Re-box with proper type info if we have a model provider
+        if (context.modelProvider) {
+          const typeInfo = await context.modelProvider.getType(name);
+          if (typeInfo) {
+            filtered.push(box(item, { ...typeInfo, singleton: true }));
+          } else {
+            filtered.push(boxedItem);
+          }
+        } else {
+          filtered.push(boxedItem);
+        }
+      }
+    }
 
     if (filtered.length > 0) {
       return { value: filtered, context };
@@ -692,76 +722,14 @@ export class Interpreter {
     const test = node as MembershipTestNode;
     const exprResult = await this.evaluate(test.expression, input, context);
     
-    // If expression evaluates to empty, return empty
-    if (exprResult.value.length === 0) {
-      return { value: [], context };
+    // Use the is-operator implementation for consistency
+    const isOperator = this.operationEvaluators.get('is');
+    if (isOperator) {
+      return isOperator(input, context, exprResult.value, [test.targetType]);
     }
     
-    // If we have type information from analyzer (with ModelProvider), use it
-    if (context.currentNode?.typeInfo?.modelContext) {
-      const modelContext = context.currentNode.typeInfo.modelContext as any;
-      
-      // For union types, check if the target type is valid
-      if (modelContext.isUnion && modelContext.choices) {
-        const hasValidChoice = modelContext.choices.some((c: any) => 
-          c.type === test.targetType || c.elementType === test.targetType
-        );
-        
-        if (!hasValidChoice) {
-          // Type system knows this will always be false
-          return { 
-            value: exprResult.value.map(() => box(false, { type: 'Boolean', singleton: true })), 
-            context 
-          };
-        }
-      }
-    }
-    
-    // Type checking with subtype support via ModelProvider
-    const results = await Promise.all(exprResult.value.map(async boxedItem => {
-      const item = unbox(boxedItem);
-      
-      // If we have a ModelProvider and typeInfo, use it for accurate subtype checking
-      if (context.modelProvider && boxedItem.typeInfo) {
-        const matchingType = context.modelProvider.ofType(boxedItem.typeInfo, test.targetType as import('./types').TypeName);
-        return box(matchingType !== undefined, { type: 'Boolean', singleton: true });
-      }
-      
-      // For FHIR resources without typeInfo, try to get it from modelProvider
-      if (context.modelProvider && item && typeof item === 'object' && 'resourceType' in item && typeof item.resourceType === 'string') {
-        const typeInfo = await context.modelProvider.getType(item.resourceType);
-        if (typeInfo) {
-          const matchingType = context.modelProvider.ofType(typeInfo, test.targetType as import('./types').TypeName);
-          return box(matchingType !== undefined, { type: 'Boolean', singleton: true });
-        }
-        // Fall back to exact match
-        return box(item.resourceType === test.targetType, { type: 'Boolean', singleton: true });
-      }
-      
-      // Check for FHIR resource types (no ModelProvider available)
-      if (item && typeof item === 'object' && 'resourceType' in item) {
-        return box(item.resourceType === test.targetType, { type: 'Boolean', singleton: true });
-      }
-      
-      // Check primitive types
-      const isMatch = (() => {
-        switch (test.targetType) {
-          case 'String': return typeof item === 'string';
-          case 'Boolean': return typeof item === 'boolean';
-          case 'Integer': return Number.isInteger(item);
-          case 'Decimal': return typeof item === 'number';
-          case 'Date':
-          case 'DateTime':
-          case 'Time':
-            // Simple check for date-like strings
-            return typeof item === 'string' && !isNaN(Date.parse(item));
-          default: return false;
-        }
-      })();
-      return box(isMatch, { type: 'Boolean', singleton: true });
-    }));
-
-    return { value: results, context };
+    // Fallback - shouldn't reach here normally
+    return { value: [], context };
   }
 
   // Type cast (as operator)
@@ -769,68 +737,14 @@ export class Interpreter {
     const cast = node as TypeCastNode;
     const exprResult = await this.evaluate(cast.expression, input, context);
     
-    // If we have type information from analyzer (with ModelProvider), use it
-    if (context.currentNode?.typeInfo?.modelContext) {
-      const modelContext = context.currentNode.typeInfo.modelContext as any;
-      
-      // For union types, check if the cast is valid
-      if (modelContext.isUnion && modelContext.choices) {
-        const validChoice = modelContext.choices.find((c: any) => 
-          c.type === cast.targetType || c.elementType === cast.targetType
-        );
-        
-        if (!validChoice) {
-          // Invalid cast - return empty
-          return { value: [], context };
-        }
-      }
+    // Use the as-operator implementation for consistency
+    const asOperator = this.operationEvaluators.get('as');
+    if (asOperator) {
+      return asOperator(input, context, exprResult.value, [cast.targetType]);
     }
     
-    // Filter values that match the target type with subtype support
-    const filtered = await Promise.all(exprResult.value.map(async boxedItem => {
-      const item = unbox(boxedItem);
-      
-      // If we have a ModelProvider and typeInfo, use it for accurate subtype checking
-      if (context.modelProvider && boxedItem.typeInfo) {
-        const matchingType = context.modelProvider.ofType(boxedItem.typeInfo, cast.targetType as import('./types').TypeName);
-        return matchingType !== undefined;
-      }
-      
-      // For FHIR resources without typeInfo, try to get it from modelProvider
-      if (context.modelProvider && item && typeof item === 'object' && 'resourceType' in item && typeof item.resourceType === 'string') {
-        const typeInfo = await context.modelProvider.getType(item.resourceType);
-        if (typeInfo) {
-          const matchingType = context.modelProvider.ofType(typeInfo, cast.targetType as import('./types').TypeName);
-          return matchingType !== undefined;
-        }
-        // Fall back to exact match
-        return item.resourceType === cast.targetType;
-      }
-      
-      // Check for FHIR resource types (no ModelProvider available)
-      if (item && typeof item === 'object' && 'resourceType' in item) {
-        return item.resourceType === cast.targetType;
-      }
-      
-      // Check primitive types
-      switch (cast.targetType) {
-        case 'String': return typeof item === 'string';
-        case 'Boolean': return typeof item === 'boolean';
-        case 'Integer': return Number.isInteger(item);
-        case 'Decimal': return typeof item === 'number';
-        case 'Date':
-        case 'DateTime':
-        case 'Time':
-          // Simple check for date-like strings
-          return typeof item === 'string' && !isNaN(Date.parse(item));
-        default: return false;
-      }
-    }));
-    
-    // Filter out the false results (filter returns boolean for each item)
-    const actualFiltered = exprResult.value.filter((_, index) => filtered[index]);
-    
-    return { value: actualFiltered, context };
+    // Fallback implementation (shouldn't normally reach here)
+    return { value: [], context };
   }
   
   private async evaluateQuantity(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): Promise<EvaluationResult> {

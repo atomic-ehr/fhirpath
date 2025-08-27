@@ -467,6 +467,12 @@ export class Parser {
       return this.createLiteralNode(null, 'null', token);
     }
 
+    if (token.type === TokenType.DATE) {
+      this.advance();
+      const value = token.value.substring(1); // Remove @
+      return this.createLiteralNode(value, 'date', token);
+    }
+
     if (token.type === TokenType.DATETIME) {
       this.advance();
       const value = token.value.substring(1); // Remove @

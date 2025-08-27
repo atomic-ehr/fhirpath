@@ -23,6 +23,8 @@ export enum TokenType {
   DATETIME = 4,
   TIME = 5,
   QUANTITY = 6,     // Quantity literals like 5 'mg'
+  DATE = 7,         // Date literals like @2020-01-01
+  TEMPORAL_LITERAL = 8,  // Generic temporal literal (used during parsing)
   
   // Operators (all symbol operators consolidated)
   OPERATOR = 10,    // +, -, *, /, <, >, <=, >=, =, !=, ~, !~, |, &
@@ -574,6 +576,8 @@ export class Lexer {
       this.advance();
     }
     
+    let hasTime = false;
+    
     // Optional month, day, time parts
     if (this.current() === '-') {
       this.advance();
@@ -597,17 +601,31 @@ export class Lexer {
       }
     }
     
-    // Optional time part
+    // Check for time part or T suffix
     if (this.current() === 'T') {
+      hasTime = true;
       this.advance();
-      this.readTimeFormat();
+      // Check if there's actual time content after T
+      if (this.isDigit(this.current())) {
+        this.readTimeFormat();
+      }
+      // else: it's just a T suffix like @2020T or @2020-01T
     }
     
-    // Optional timezone
-    this.readTimezone();
+    // Optional timezone (only if we have time component with actual time values)
+    if (hasTime && this.position > 0 && this.input[this.position - 1] !== 'T') {
+      // Only read timezone if there's actual time content after T
+      this.readTimezone();
+    }
     
     const value = this.input.substring(start, this.position);
-    return this.createToken(TokenType.DATETIME, value, start, this.position, startLine, startColumn);
+    
+    // Determine token type based on content
+    // DateTime: has 'T' anywhere
+    // Date: no 'T' at all
+    const tokenType = hasTime ? TokenType.DATETIME : TokenType.DATE;
+    
+    return this.createToken(tokenType, value, start, this.position, startLine, startColumn);
   }
   
   private readTime(start: number, startLine: number, startColumn: number): Token {
@@ -648,11 +666,11 @@ export class Lexer {
         }
         
         // Optional milliseconds
-        if (this.current() === '.') {
+        // Only consume the period if it's followed by a digit
+        // This prevents consuming periods that are method calls like .toDate()
+        if (this.current() === '.' && this.position + 1 < this.input.length && 
+            this.isDigit(this.input[this.position + 1]!)) {
           this.advance();
-          if (!this.isDigit(this.current())) {
-            throw this.error('Invalid time format');
-          }
           while (this.isDigit(this.current())) {
             this.advance();
           }

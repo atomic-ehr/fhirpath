@@ -6,8 +6,8 @@ Generated: 2025-08-26T (manually updated)
 
 ### Functions
 - **Total Functions**: 80
-- **Implemented**: 45 (56%)
-- **Fully Tested**: 39 (87% of implemented)
+- **Implemented**: 48 (60%)
+- **Fully Tested**: 42 (88% of implemented)
 - **Partially Tested**: 6
 - **Untested**: 0
 
@@ -67,7 +67,7 @@ Generated: 2025-08-26T (manually updated)
 | combine | ✅ | operations/combine-function.ts | 4 files | Full | - |
 | union | ✅ | operations/union-function.ts | 10 files | Full | - |
 
-### Conversion Functions (5/19 implemented)
+### Conversion Functions (8/19 implemented)
 
 | Function | Status | Implementation | Tests | Coverage | Notes |
 |----------|--------|----------------|-------|----------|-------|
@@ -82,14 +82,14 @@ Generated: 2025-08-26T (manually updated)
 | convertsToTime | ❌ | - | - | - | Not implemented |
 | iif | ✅ | operations/iif-function.ts | 6 files | Full | - |
 | toBoolean | ✅ | operations/toBoolean-function.ts | 2 files | Full | - |
-| toDate | ❌ | - | 1 file | - | Not implemented |
-| toDateTime | ❌ | - | 1 file | - | Not implemented |
+| toDate | ✅ | operations/temporal-functions.ts | 2 files | Full | - |
+| toDateTime | ✅ | operations/temporal-functions.ts | 2 files | Full | - |
 | toDecimal | ✅ | operations/toDecimal-function.ts | 2 files | Full | - |
 | toInteger | ✅ | operations/toInteger-function.ts | 4 files | Full | - |
 | toLong | ❌ | - | - | - | Not implemented |
 | toQuantity | ❌ | - | - | - | Not implemented |
 | toString | ✅ | operations/toString-function.ts | 7 files | Full | - |
-| toTime | ❌ | - | 1 file | - | Not implemented |
+| toTime | ✅ | operations/temporal-functions.ts | 2 files | Full | - |
 
 ### String Manipulation Functions (9/14 implemented)
 

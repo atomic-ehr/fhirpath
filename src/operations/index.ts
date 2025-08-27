@@ -34,6 +34,8 @@ export { containsOperator } from './contains-operator';
 export { isOperator } from './is-operator';
 export { asOperator } from './as-operator';
 export { ofTypeFunction } from './ofType-function';
+export { isFunction } from './is-function';
+export { asFunction } from './as-function';
 
 // Other operators
 export { unionOperator } from './union-operator';
@@ -60,6 +62,19 @@ export { distinctFunction } from './distinct-function';
 export { isDistinctFunction } from './isDistinct-function';
 export { iifFunction } from './iif-function';
 export { defineVariableFunction } from './defineVariable-function';
+
+// Temporal functions
+export { 
+  nowFunction, 
+  todayFunction, 
+  timeOfDayFunction,
+  toDateFunction,
+  toDateTimeFunction,
+  toTimeFunction,
+  convertsToDateFunction,
+  convertsToDateTimeFunction,
+  convertsToTimeFunction
+} from './temporal-functions';
 export { joinFunction } from './join-function';
 export { replaceFunction } from './replace-function';
 export { unionFunction } from './union-function';

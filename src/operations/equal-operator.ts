@@ -33,6 +33,22 @@ export const evaluate: OperationEvaluator = async (input, context, left, right) 
       return { value: [box(comparison === 0, { type: 'Boolean', singleton: true })], context };
     }
     
+    // Check if both are temporal values (Date, DateTime, Time)
+    if (l && typeof l === 'object' && 'type' in l && 'equals' in l &&
+        r && typeof r === 'object' && 'type' in r && 'equals' in r) {
+      const temporalL = l as any; // Has type and equals method
+      const temporalR = r as any;
+      if (['Date', 'DateTime', 'Time'].includes(temporalL.type) &&
+          ['Date', 'DateTime', 'Time'].includes(temporalR.type)) {
+        const result = temporalL.equals(temporalR);
+        // null means incomparable (returns empty), false means not equal, true means equal
+        if (result === null) {
+          return { value: [], context };
+        }
+        return { value: [box(result, { type: 'Boolean', singleton: true })], context };
+      }
+    }
+    
     return { value: [box(l === r, { type: 'Boolean', singleton: true })], context };
   }
   
@@ -64,6 +80,22 @@ export const evaluate: OperationEvaluator = async (input, context, left, right) 
       const comparison = compareQuantities(l as QuantityValue, r as QuantityValue);
       // If quantities are incomparable or not equal, return false
       if (comparison === null || comparison !== 0) {
+        return { value: [box(false, { type: 'Boolean', singleton: true })], context };
+      }
+    } else if (l && typeof l === 'object' && 'type' in l && 'equals' in l &&
+               r && typeof r === 'object' && 'type' in r && 'equals' in r) {
+      // Check if both are temporal values
+      const temporalL = l as any;
+      const temporalR = r as any;
+      if (['Date', 'DateTime', 'Time'].includes(temporalL.type) &&
+          ['Date', 'DateTime', 'Time'].includes(temporalR.type)) {
+        const result = temporalL.equals(temporalR);
+        // null means incomparable (returns empty for single comparison, false for collection)
+        // false means not equal
+        if (result !== true) {
+          return { value: [box(false, { type: 'Boolean', singleton: true })], context };
+        }
+      } else if (l !== r) {
         return { value: [box(false, { type: 'Boolean', singleton: true })], context };
       }
     } else if (l !== r) {

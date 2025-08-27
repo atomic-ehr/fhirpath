@@ -1,0 +1,72 @@
+{
+  "name": "Temporal Literal Tests",
+  "description": "Tests for FHIRPath temporal literals",
+  "tests": [
+    {
+      "name": "Date literal - year precision",
+      "expression": "@2020",
+      "expected": ["2020"],
+      "tags": ["temporal", "date", "literal", "precision:year"]
+    },
+    {
+      "name": "Date literal - month precision",
+      "expression": "@2020-01",
+      "expected": ["2020-01"],
+      "tags": ["temporal", "date", "literal", "precision:month"]
+    },
+    {
+      "name": "Date literal - day precision",
+      "expression": "@2020-01-15",
+      "expected": ["2020-01-15"],
+      "tags": ["temporal", "date", "literal", "precision:day"]
+    },
+    {
+      "name": "DateTime literal - year precision",
+      "expression": "@2020T",
+      "expected": ["2020T"],
+      "tags": ["temporal", "datetime", "literal", "precision:year"]
+    },
+    {
+      "name": "DateTime literal - month precision",
+      "expression": "@2020-01T",
+      "expected": ["2020-01T"],
+      "tags": ["temporal", "datetime", "literal", "precision:month"]
+    },
+    {
+      "name": "DateTime literal - full precision with timezone",
+      "expression": "@2020-01-15T10:30:45.123Z",
+      "expected": ["2020-01-15T10:30:45.123Z"],
+      "tags": ["temporal", "datetime", "literal", "timezone", "precision:millisecond"]
+    },
+    {
+      "name": "DateTime literal with positive timezone",
+      "expression": "@2020-01-15T10:30:00+05:30",
+      "expected": ["2020-01-15T10:30:00+05:30"],
+      "tags": ["temporal", "datetime", "literal", "timezone"]
+    },
+    {
+      "name": "Time literal - hour precision",
+      "expression": "@T10",
+      "expected": ["10"],
+      "tags": ["temporal", "time", "literal", "precision:hour"]
+    },
+    {
+      "name": "Time literal - minute precision",
+      "expression": "@T10:30",
+      "expected": ["10:30"],
+      "tags": ["temporal", "time", "literal", "precision:minute"]
+    },
+    {
+      "name": "Time literal - second precision",
+      "expression": "@T10:30:45",
+      "expected": ["10:30:45"],
+      "tags": ["temporal", "time", "literal", "precision:second"]
+    },
+    {
+      "name": "Time literal - millisecond precision",
+      "expression": "@T10:30:45.500",
+      "expected": ["10:30:45.500"],
+      "tags": ["temporal", "time", "literal", "precision:millisecond"]
+    }
+  ]
+}

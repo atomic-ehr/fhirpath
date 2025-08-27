@@ -202,11 +202,22 @@ describe("New Simplified Lexer", () => {
       expect(getToken(tokens, 0).value).toBe("'hello\\'world'");
     });
 
-    it("should tokenize datetime literals", async () => {
-      const datetimes = [
+    it("should tokenize date and datetime literals", async () => {
+      // Pure dates (no T) should be TokenType.DATE
+      const dates = [
         "@2023",
         "@2023-12",
         "@2023-12-25",
+      ];
+
+      for (const dt of dates) {
+        const tokens = tokenize(dt);
+        expect(getToken(tokens, 0).type).toBe(TokenType.DATE);
+        expect(getToken(tokens, 0).value).toBe(dt);
+      }
+
+      // DateTime (with T) should be TokenType.DATETIME
+      const datetimes = [
         "@2023-12-25T10:30:00",
         "@2023-12-25T10:30:00Z",
         "@2023-12-25T10:30:00+05:30",

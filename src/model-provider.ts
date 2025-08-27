@@ -189,7 +189,8 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
     let current = schema;
     
     // Walk up the inheritance chain
-    while (current.base && current.base !== 'Resource' && current.base !== 'Element') {
+    // Include all base types including DomainResource, Resource, and Element
+    while (current.base) {
       // Extract just the type name from the base URL if it's a full URL
       let baseTypeName = current.base;
       if (baseTypeName && baseTypeName.startsWith('http://')) {

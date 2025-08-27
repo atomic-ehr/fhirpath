@@ -1,0 +1,144 @@
+{
+  "name": "Temporal Arithmetic Tests",
+  "description": "Tests for arithmetic operations with temporal values",
+  "tests": [
+    {
+      "name": "Date + days",
+      "expression": "@2020-01-15 + 7 days",
+      "expected": ["2020-01-22"],
+      "tags": ["temporal", "arithmetic", "date", "addition"]
+    },
+    {
+      "name": "Date + months",
+      "expression": "@2020-01-15 + 2 months",
+      "expected": ["2020-03-15"],
+      "tags": ["temporal", "arithmetic", "date", "addition"]
+    },
+    {
+      "name": "Date + years",
+      "expression": "@2020-01-15 + 3 years",
+      "expected": ["2023-01-15"],
+      "tags": ["temporal", "arithmetic", "date", "addition"]
+    },
+    {
+      "name": "Date - days",
+      "expression": "@2020-01-15 - 5 days",
+      "expected": ["2020-01-10"],
+      "tags": ["temporal", "arithmetic", "date", "subtraction"]
+    },
+    {
+      "name": "Date year rollover forward",
+      "expression": "@1973-12-25 + 7 days",
+      "expected": ["1974-01-01"],
+      "tags": ["temporal", "arithmetic", "date", "rollover"]
+    },
+    {
+      "name": "Date year rollover backward",
+      "expression": "@2020-01-05 - 10 days",
+      "expected": ["2019-12-26"],
+      "tags": ["temporal", "arithmetic", "date", "rollover"]
+    },
+    {
+      "name": "Date month-end adjustment - leap year",
+      "expression": "@2020-01-31 + 1 month",
+      "expected": ["2020-02-29"],
+      "tags": ["temporal", "arithmetic", "date", "month-end", "leap-year"]
+    },
+    {
+      "name": "Date month-end adjustment - non-leap year",
+      "expression": "@2019-01-31 + 1 month",
+      "expected": ["2019-02-28"],
+      "tags": ["temporal", "arithmetic", "date", "month-end"]
+    },
+    {
+      "name": "DateTime + hours",
+      "expression": "@2020-01-15T10:30:00 + 5 hours",
+      "expected": ["2020-01-15T15:30:00"],
+      "tags": ["temporal", "arithmetic", "datetime", "addition"]
+    },
+    {
+      "name": "DateTime + minutes",
+      "expression": "@2020-01-15T10:30:00 + 90 minutes",
+      "expected": ["2020-01-15T12:00:00"],
+      "tags": ["temporal", "arithmetic", "datetime", "addition"]
+    },
+    {
+      "name": "DateTime + seconds",
+      "expression": "@2020-01-15T10:30:45 + 75 seconds",
+      "expected": ["2020-01-15T10:32:00"],
+      "tags": ["temporal", "arithmetic", "datetime", "addition"]
+    },
+    {
+      "name": "DateTime + milliseconds",
+      "expression": "@2020-01-15T10:30:45.500 + 1500 milliseconds",
+      "expected": ["2020-01-15T10:30:47.000"],
+      "tags": ["temporal", "arithmetic", "datetime", "milliseconds"]
+    },
+    {
+      "name": "DateTime day rollover",
+      "expression": "@2020-01-15T22:00:00 + 5 hours",
+      "expected": ["2020-01-16T03:00:00"],
+      "tags": ["temporal", "arithmetic", "datetime", "rollover"]
+    },
+    {
+      "name": "DateTime with timezone + hours",
+      "expression": "@2020-01-15T10:30:00Z + 3 hours",
+      "expected": ["2020-01-15T13:30:00Z"],
+      "tags": ["temporal", "arithmetic", "datetime", "timezone"]
+    },
+    {
+      "name": "Time + hours",
+      "expression": "@T10:30:00 + 2 hours",
+      "expected": ["12:30:00"],
+      "tags": ["temporal", "arithmetic", "time", "addition"]
+    },
+    {
+      "name": "Time + minutes",
+      "expression": "@T10:30 + 45 minutes",
+      "expected": ["11:15"],
+      "tags": ["temporal", "arithmetic", "time", "addition"]
+    },
+    {
+      "name": "Time - hours",
+      "expression": "@T10:30:00 - 3 hours",
+      "expected": ["07:30:00"],
+      "tags": ["temporal", "arithmetic", "time", "subtraction"]
+    },
+    {
+      "name": "Time wraparound forward",
+      "expression": "@T23:30:00 + 1 hour",
+      "expected": ["00:30:00"],
+      "tags": ["temporal", "arithmetic", "time", "wraparound"]
+    },
+    {
+      "name": "Time wraparound backward",
+      "expression": "@T01:30:00 - 2 hours",
+      "expected": ["23:30:00"],
+      "tags": ["temporal", "arithmetic", "time", "wraparound"]
+    },
+    {
+      "name": "Precision preservation - year + months (coerced to 0)",
+      "expression": "@2020T + 6 months",
+      "expected": ["2020T"],
+      "tags": ["temporal", "arithmetic", "precision", "coercion"]
+    },
+    {
+      "name": "Precision preservation - month + days (coerced to 0)",
+      "expression": "@2020-01T + 15 days",
+      "expected": ["2020-01T"],
+      "tags": ["temporal", "arithmetic", "precision", "coercion"]
+    },
+    {
+      "name": "Invalid operation - Date + incorrect unit",
+      "expression": "@2020-01-15 + 5 'liters'",
+      "expected": [],
+      "tags": ["temporal", "arithmetic", "invalid"]
+    },
+    {
+      "name": "Invalid operation - Time + days",
+      "expression": "@T10:30:00 + 1 day",
+      "expected": [],
+      "tags": ["temporal", "arithmetic", "invalid"]
+    }
+  ]
+}

@@ -281,14 +281,14 @@ describe('Temporal Arithmetic - Following ADR-017', () => {
       it('@2020-01-01T10:30:00Z + 14 hours = @2020-01-02T00:30:00Z', () => {
         const dt = createDateTime(2020, 1, 1, 10, 30, 0, 0, 0); // UTC
         const result = dt.add(createTimeQuantity(14, 'hour'));
-        expect(result.toString()).toBe('2020-01-02T00:30:00Z');
+        expect(result.toString()).toBe('2020-01-02T00:30:00.000Z');
         expect(result.timezoneOffset).toBe(0);
       });
 
       it('@2020-01-01T10:30:00-05:00 + 1 day = @2020-01-02T10:30:00-05:00', () => {
         const dt = createDateTime(2020, 1, 1, 10, 30, 0, 0, -300); // EST
         const result = dt.add(createTimeQuantity(1, 'day'));
-        expect(result.toString()).toBe('2020-01-02T10:30:00-05:00');
+        expect(result.toString()).toBe('2020-01-02T10:30:00.000-05:00');
         expect(result.timezoneOffset).toBe(-300);
       });
     });

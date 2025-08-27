@@ -20,6 +20,82 @@ export const evaluate: OperationEvaluator = async (input, context, left, right) 
   const l = unbox(boxedL);
   const r = unbox(boxedR);
   
+  // Check for temporal arithmetic using boxed type information
+  const leftType = boxedL?.typeInfo?.type;
+  const rightType = boxedR?.typeInfo?.type;
+  
+  if ((leftType === 'Date' || leftType === 'DateTime' || leftType === 'Time') && rightType === 'Quantity') {
+    // Left is temporal, right is quantity
+    const temporalType = leftType;
+    const quantity = r as QuantityValue;
+    
+    // Import temporal utilities and create TimeQuantity
+    const { createTimeQuantity } = await import('../temporal');
+    
+    // Check if it's a time unit
+    const timeUnits = ['year', 'years', 'month', 'months', 'week', 'weeks', 
+                      'day', 'days', 'hour', 'hours', 'minute', 'minutes', 
+                      'second', 'seconds', 'millisecond', 'milliseconds',
+                      's', 'min', 'h', 'd', 'wk', 'mo', 'a', 'ms'];
+    
+    // Map short units to full names
+    const unitMap: Record<string, string> = {
+      's': 'second',
+      'min': 'minute',
+      'h': 'hour',
+      'd': 'day',
+      'wk': 'week',
+      'mo': 'month',
+      'a': 'year',
+      'ms': 'millisecond'
+    };
+    
+    const mappedUnit = unitMap[quantity.unit] || quantity.unit;
+    
+    if (!timeUnits.includes(quantity.unit)) {
+      // Non-time units with temporal values return empty per FHIRPath spec
+      return { value: [], context };
+    }
+    
+    const timeQuantity = createTimeQuantity(quantity.value, mappedUnit as any);
+    
+    let result;
+    if (temporalType === 'Date') {
+      const { FHIRDate } = await import('../temporal');
+      if (!(l instanceof FHIRDate)) {
+        // If it's not already a FHIRDate instance, it might be a plain object representation
+        const date = Object.setPrototypeOf(l, FHIRDate.prototype);
+        result = date.add(timeQuantity);
+      } else {
+        result = l.add(timeQuantity);
+      }
+      return { value: [box(result, { type: 'Date', singleton: true })], context };
+    } else if (temporalType === 'DateTime') {
+      const { FHIRDateTime } = await import('../temporal');
+      if (!(l instanceof FHIRDateTime)) {
+        const dateTime = Object.setPrototypeOf(l, FHIRDateTime.prototype);
+        result = dateTime.add(timeQuantity);
+      } else {
+        result = l.add(timeQuantity);
+      }
+      return { value: [box(result, { type: 'DateTime', singleton: true })], context };
+    } else if (temporalType === 'Time') {
+      const { FHIRTime } = await import('../temporal');
+      try {
+        if (!(l instanceof FHIRTime)) {
+          const time = Object.setPrototypeOf(l, FHIRTime.prototype);
+          result = time.add(timeQuantity);
+        } else {
+          result = l.add(timeQuantity);
+        }
+        return { value: [box(result, { type: 'Time', singleton: true })], context };
+      } catch (error) {
+        // Invalid operation (e.g., adding calendar units to Time) returns empty per FHIRPath spec
+        return { value: [], context };
+      }
+    }
+  }
+  
   // Check if both are quantities
   if (l && typeof l === 'object' && 'unit' in l && 
       r && typeof r === 'object' && 'unit' in r) {

@@ -17,6 +17,75 @@ export const evaluate: OperationEvaluator = async (input, context, left, right) 
   if (!boxedr) return { value: [], context };
   const r = unbox(boxedr);
   
+  // Check for temporal arithmetic using boxed type information
+  const leftType = boxedl?.typeInfo?.type;
+  const rightType = boxedr?.typeInfo?.type;
+  
+  if ((leftType === 'Date' || leftType === 'DateTime' || leftType === 'Time') && rightType === 'Quantity') {
+    // Left is temporal, right is quantity
+    const temporalType = leftType;
+    const quantity = r as QuantityValue;
+    
+    // Import temporal utilities and create TimeQuantity
+    const { createTimeQuantity } = await import('../temporal');
+    
+    // Check if it's a time unit
+    const timeUnits = ['year', 'years', 'month', 'months', 'week', 'weeks', 
+                      'day', 'days', 'hour', 'hours', 'minute', 'minutes', 
+                      'second', 'seconds', 'millisecond', 'milliseconds',
+                      's', 'min', 'h', 'd', 'wk', 'mo', 'a', 'ms'];
+    
+    // Map short units to full names
+    const unitMap: Record<string, string> = {
+      's': 'second',
+      'min': 'minute',
+      'h': 'hour',
+      'd': 'day',
+      'wk': 'week',
+      'mo': 'month',
+      'a': 'year',
+      'ms': 'millisecond'
+    };
+    
+    const mappedUnit = unitMap[quantity.unit] || quantity.unit;
+    
+    if (!timeUnits.includes(quantity.unit)) {
+      throw new Error(`Cannot subtract quantity with unit '${quantity.unit}' from temporal value`);
+    }
+    
+    const timeQuantity = createTimeQuantity(quantity.value, mappedUnit as any);
+    
+    let result;
+    if (temporalType === 'Date') {
+      const { FHIRDate } = await import('../temporal');
+      if (!(l instanceof FHIRDate)) {
+        const date = Object.setPrototypeOf(l, FHIRDate.prototype);
+        result = date.subtract(timeQuantity);
+      } else {
+        result = l.subtract(timeQuantity);
+      }
+      return { value: [box(result, { type: 'Date', singleton: true })], context };
+    } else if (temporalType === 'DateTime') {
+      const { FHIRDateTime } = await import('../temporal');
+      if (!(l instanceof FHIRDateTime)) {
+        const dateTime = Object.setPrototypeOf(l, FHIRDateTime.prototype);
+        result = dateTime.subtract(timeQuantity);
+      } else {
+        result = l.subtract(timeQuantity);
+      }
+      return { value: [box(result, { type: 'DateTime', singleton: true })], context };
+    } else if (temporalType === 'Time') {
+      const { FHIRTime } = await import('../temporal');
+      if (!(l instanceof FHIRTime)) {
+        const time = Object.setPrototypeOf(l, FHIRTime.prototype);
+        result = time.subtract(timeQuantity);
+      } else {
+        result = l.subtract(timeQuantity);
+      }
+      return { value: [box(result, { type: 'Time', singleton: true })], context };
+    }
+  }
+  
   // Check if both are quantities
   if (l && typeof l === 'object' && 'unit' in l && 
       r && typeof r === 'object' && 'unit' in r) {
@@ -26,7 +95,11 @@ export const evaluate: OperationEvaluator = async (input, context, left, right) 
   
   // Handle numeric subtraction
   if (typeof l === 'number' && typeof r === 'number') {
-    return { value: [box(l - r, { type: 'Any', singleton: true })], context };
+    const result = l - r;
+    const typeInfo = Number.isInteger(result) ? 
+      { type: 'Integer' as const, singleton: true } : 
+      { type: 'Decimal' as const, singleton: true };
+    return { value: [box(result, typeInfo)], context };
   }
   
   // For other types, return empty

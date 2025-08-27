@@ -1,0 +1,162 @@
+{
+  "name": "Temporal Functions Tests",
+  "description": "Tests for built-in temporal functions",
+  "tests": [
+    {
+      "name": "toDate() from string",
+      "expression": "'2020-01-15'.toDate()",
+      "expected": ["2020-01-15"],
+      "tags": ["temporal", "function", "conversion", "toDate"]
+    },
+    {
+      "name": "toDate() from DateTime",
+      "expression": "@2020-01-15T10:30:00.toDate()",
+      "expected": ["2020-01-15"],
+      "tags": ["temporal", "function", "conversion", "toDate"]
+    },
+    {
+      "name": "toDate() invalid string",
+      "expression": "'invalid-date'.toDate()",
+      "expected": [],
+      "tags": ["temporal", "function", "conversion", "toDate", "invalid"]
+    },
+    {
+      "name": "toDateTime() from string",
+      "expression": "'2020-01-15T10:30:00Z'.toDateTime()",
+      "expected": ["2020-01-15T10:30:00Z"],
+      "tags": ["temporal", "function", "conversion", "toDateTime"]
+    },
+    {
+      "name": "toDateTime() from Date",
+      "expression": "@2020-01-15.toDateTime()",
+      "expected": ["2020-01-15T00:00:00.000"],
+      "tags": ["temporal", "function", "conversion", "toDateTime"]
+    },
+    {
+      "name": "toTime() from string",
+      "expression": "'14:30:00'.toTime()",
+      "expected": ["14:30:00"],
+      "tags": ["temporal", "function", "conversion", "toTime"]
+    },
+    {
+      "name": "toTime() from DateTime",
+      "expression": "@2020-01-15T14:30:45.toTime()",
+      "expected": ["14:30:45"],
+      "tags": ["temporal", "function", "conversion", "toTime"]
+    },
+    {
+      "name": "toTime() from DateTime with milliseconds",
+      "expression": "@2020-01-15T14:30:45.123.toTime()",
+      "expected": ["14:30:45.123"],
+      "tags": ["temporal", "function", "conversion", "toTime"]
+    },
+    {
+      "name": "convertsToDate() - valid date string",
+      "expression": "'2020-01-15'.convertsToDate()",
+      "expected": [true],
+      "tags": ["temporal", "function", "validation", "convertsToDate"]
+    },
+    {
+      "name": "convertsToDate() - invalid string",
+      "expression": "'not-a-date'.convertsToDate()",
+      "expected": [false],
+      "tags": ["temporal", "function", "validation", "convertsToDate"]
+    },
+    {
+      "name": "convertsToDate() - DateTime value",
+      "expression": "@2020-01-15T10:30:00.convertsToDate()",
+      "expected": [true],
+      "tags": ["temporal", "function", "validation", "convertsToDate"]
+    },
+    {
+      "name": "convertsToDate() - Date value",
+      "expression": "@2020-01-15.convertsToDate()",
+      "expected": [true],
+      "tags": ["temporal", "function", "validation", "convertsToDate"]
+    },
+    {
+      "name": "convertsToDateTime() - valid datetime string",
+      "expression": "'2020-01-15T10:30:00'.convertsToDateTime()",
+      "expected": [true],
+      "tags": ["temporal", "function", "validation", "convertsToDateTime"]
+    },
+    {
+      "name": "convertsToDateTime() - valid date string",
+      "expression": "'2020-01-15'.convertsToDateTime()",
+      "expected": [true],
+      "tags": ["temporal", "function", "validation", "convertsToDateTime"]
+    },
+    {
+      "name": "convertsToDateTime() - invalid string",
+      "expression": "'not-a-datetime'.convertsToDateTime()",
+      "expected": [false],
+      "tags": ["temporal", "function", "validation", "convertsToDateTime"]
+    },
+    {
+      "name": "convertsToDateTime() - Date value",
+      "expression": "@2020-01-15.convertsToDateTime()",
+      "expected": [true],
+      "tags": ["temporal", "function", "validation", "convertsToDateTime"]
+    },
+    {
+      "name": "convertsToTime() - valid time string",
+      "expression": "'14:30:00'.convertsToTime()",
+      "expected": [true],
+      "tags": ["temporal", "function", "validation", "convertsToTime"]
+    },
+    {
+      "name": "convertsToTime() - time string with T prefix",
+      "expression": "'T14:30:00'.convertsToTime()",
+      "expected": [true],
+      "tags": ["temporal", "function", "validation", "convertsToTime"]
+    },
+    {
+      "name": "convertsToTime() - invalid string",
+      "expression": "'not-a-time'.convertsToTime()",
+      "expected": [false],
+      "tags": ["temporal", "function", "validation", "convertsToTime"]
+    },
+    {
+      "name": "convertsToTime() - DateTime value",
+      "expression": "@2020-01-15T14:30:00.convertsToTime()",
+      "expected": [true],
+      "tags": ["temporal", "function", "validation", "convertsToTime"]
+    },
+    {
+      "name": "convertsToTime() - Time value",
+      "expression": "@T14:30:00.convertsToTime()",
+      "expected": [true],
+      "tags": ["temporal", "function", "validation", "convertsToTime"]
+    },
+    {
+      "name": "now() function",
+      "expression": "now() is DateTime",
+      "input": [{}],
+      "expected": [true],
+      "tags": ["temporal", "function", "now"],
+      "note": "Tests that now() returns a DateTime type"
+    },
+    {
+      "name": "today() function",
+      "expression": "today() is Date",
+      "input": [{}],
+      "expected": [true],
+      "tags": ["temporal", "function", "today"],
+      "note": "Tests that today() returns a Date type"
+    },
+    {
+      "name": "timeOfDay() function",
+      "expression": "timeOfDay() is Time",
+      "input": [{}],
+      "expected": [true],
+      "tags": ["temporal", "function", "timeOfDay"],
+      "note": "Tests that timeOfDay() returns a Time type"
+    },
+    {
+      "name": "Chained conversion - string to Date to DateTime",
+      "expression": "'2020-01-15'.toDate().first().toDateTime()",
+      "expected": ["2020-01-15T00:00:00.000"],
+      "tags": ["temporal", "function", "conversion", "chained"]
+    }
+  ]
+}
