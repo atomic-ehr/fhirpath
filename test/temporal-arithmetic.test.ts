@@ -383,18 +383,18 @@ describe('Temporal Arithmetic - Following ADR-017', () => {
     it('@2020-01-01 + 1 a (annum/year) = @2021-01-01', () => {
       // 'a' is UCUM for year, but we don't support it for temporal arithmetic
       const date = createDate(2020, 1, 1);
-      expect(() => add(date, { value: 1, unit: 'a', isCalendarUnit: false })).toThrow();
+      expect(() => add(date, { value: 1, unit: 'a' as any, isCalendarUnit: false })).toThrow();
     });
 
     it('@2020-01-01 + 30 d (day) = @2020-01-31', () => {
       const date = createDate(2020, 1, 1);
-      const result = add(date, { value: 30, unit: 'd', isCalendarUnit: true });
+      const result = add(date, { value: 30, unit: 'd' as any, isCalendarUnit: true });
       expect(toTemporalString(result)).toBe('2020-01-31');
     });
 
     it('@T10:00:00 + 30 min (minute) = @T10:30:00', () => {
       const time = createTime(10, 0, 0);
-      const result = add(time, { value: 30, unit: 'min', isCalendarUnit: false });
+      const result = add(time, { value: 30, unit: 'min' as any, isCalendarUnit: false });
       expect(toTemporalString(result)).toBe('10:30:00');
     });
   });

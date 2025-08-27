@@ -982,7 +982,7 @@ function clampDay(year: number, month: number | undefined, day: number | undefin
 
 function addToDate(date: FHIRDate, quantity: TimeQuantity): FHIRDate {
   // Check for unsupported UCUM units
-  if (quantity.unit === 'a') {
+  if ((quantity.unit as string) === 'a') {
     throw new Error("Cannot use variable-duration unit 'a' with Date - use calendar duration keywords instead");
   }
   
@@ -1012,7 +1012,7 @@ function addToDate(date: FHIRDate, quantity: TimeQuantity): FHIRDate {
 
 function addToTime(time: FHIRTime, quantity: TimeQuantity): FHIRTime {
   // Check for unsupported UCUM units
-  if (quantity.unit === 'a') {
+  if ((quantity.unit as string) === 'a') {
     throw new Error("Cannot use variable-duration unit 'a' with Time - use calendar duration keywords instead");
   }
   
@@ -1094,7 +1094,7 @@ function addToTime(time: FHIRTime, quantity: TimeQuantity): FHIRTime {
 
 function addToDateTime(dt: FHIRDateTime, quantity: TimeQuantity): FHIRDateTime {
   // Check for unsupported UCUM units
-  if (quantity.unit === 'a') {
+  if ((quantity.unit as string) === 'a') {
     throw new Error("Cannot use variable-duration unit 'a' with DateTime - use calendar duration keywords instead");
   }
   
