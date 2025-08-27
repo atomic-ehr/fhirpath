@@ -1173,7 +1173,6 @@ function addToDateTime(dt: FHIRDateTime, quantity: TimeQuantity): FHIRDateTime {
   }
   
   const normalizedUnit = normalizeUnit(quantity.unit);
-  
   let newYear = dt.year;
   let newMonth = dt.month;
   let newDay = dt.day;
@@ -1181,174 +1180,47 @@ function addToDateTime(dt: FHIRDateTime, quantity: TimeQuantity): FHIRDateTime {
   let newMinute = dt.minute;
   let newSecond = dt.second;
   let newMillisecond = dt.millisecond;
-  
-  // Calendar units
-  if (['year', 'month', 'day'].includes(normalizedUnit)) {
-    if (normalizedUnit === 'year') {
-      newYear += Math.floor(quantity.value);
-    } else if (normalizedUnit === 'month' && newMonth !== undefined) {
-      let totalMonths = (newYear * 12) + (newMonth - 1) + Math.floor(quantity.value);
-      newYear = Math.floor(totalMonths / 12);
-      newMonth = (totalMonths % 12) + 1;
-    } else if (normalizedUnit === 'day' && newDay !== undefined) {
-      // Simplified day arithmetic
-      newDay += Math.floor(quantity.value);
-      
-      while (newDay > 31 && newMonth !== undefined) {
-        newDay -= 30;
-        newMonth++;
-        if (newMonth > 12) {
-          newMonth = 1;
-          newYear++;
-        }
-      }
-      while (newDay < 1 && newMonth !== undefined) {
-        newDay += 30;
-        newMonth--;
-        if (newMonth < 1) {
-          newMonth = 12;
-          newYear--;
-        }
-      }
-    }
+
+  // Calendar units: delegate to shared helper
+  if (['year', 'month', 'week', 'day'].includes(normalizedUnit)) {
+    const cal = addCalendarParts(newYear, newMonth, newDay, normalizedUnit as CalendarUnit, quantity.value);
+    newYear = cal.year;
+    newMonth = cal.month;
+    newDay = cal.day;
+    return createDateTime(newYear, newMonth, newDay, newHour, newMinute, newSecond, newMillisecond, dt.timezoneOffset);
   }
-  
-  // Time units
+
+  // Time units: delegate to clock helper with precision preservation
   if (['hour', 'minute', 'second', 'millisecond'].includes(normalizedUnit)) {
-    if (normalizedUnit === 'hour' && newHour !== undefined) {
-      // For precisions above seconds, ignore decimal portion per spec
-      const hoursToAdd = Math.trunc(quantity.value);
-      newHour += hoursToAdd;
-      
-      // Handle day overflow
-      if (newDay !== undefined) {
-        const daysToAdd = Math.floor(newHour / 24);
-        newHour = newHour % 24;
-        if (newHour < 0) {
-          newHour += 24;
-          newDay--;
-        }
-        if (daysToAdd !== 0) {
-          // Use proper day addition
-          const dayQuantity = createTimeQuantity(daysToAdd, 'day');
-          const tempDate = createDate(newYear, newMonth, newDay);
-          const adjustedDate = addToDate(tempDate, dayQuantity);
-          newYear = adjustedDate.year;
-          newMonth = adjustedDate.month;
-          newDay = adjustedDate.day;
-        }
-      }
-    } else if (normalizedUnit === 'minute') {
-      // If we have hour precision but not minute, convert minutes to hours
-      if (newHour !== undefined && newMinute === undefined) {
-        const hoursToAdd = Math.floor(quantity.value / 60);
-        if (hoursToAdd !== 0) {
-          const hourQuantity = createTimeQuantity(hoursToAdd, 'hour');
-          return addToDateTime(dt, hourQuantity);
-        }
-        return dt; // Less than 60 minutes doesn't affect hour precision
-      } else if (newMinute !== undefined) {
-        const minutesToAdd = Math.floor(quantity.value);
-        let totalMinutes = newMinute + minutesToAdd;
-        
-        // Handle hour overflow
-        const hoursToAdd = Math.floor(totalMinutes / 60);
-        newMinute = totalMinutes % 60;
-        if (newMinute < 0) {
-          newMinute += 60;
-          newHour = (newHour ?? 0) - 1;
-        }
-        
-        if (hoursToAdd !== 0 && newHour !== undefined) {
-          // Add hours recursively
-          const hourQuantity = createTimeQuantity(hoursToAdd, 'hour');
-          const temp = createDateTime(newYear, newMonth, newDay, newHour, newMinute, newSecond, newMillisecond, dt.timezoneOffset);
-          const adjusted = addToDateTime(temp, hourQuantity);
-          newYear = adjusted.year;
-          newMonth = adjusted.month;
-          newDay = adjusted.day;
-          newHour = adjusted.hour;
-        }
-      }
-    } else if (normalizedUnit === 'second') {
-      // If we have minute precision but not second, convert seconds to minutes
-      if (newMinute !== undefined && newSecond === undefined) {
-        const minutesToAdd = Math.floor(quantity.value / 60);
-        if (minutesToAdd !== 0) {
-          const minuteQuantity = createTimeQuantity(minutesToAdd, 'minute');
-          return addToDateTime(dt, minuteQuantity);
-        }
-        return dt; // Less than 60 seconds doesn't affect minute precision
-      } else if (newSecond !== undefined) {
-      // Handle decimal seconds - fractional part becomes milliseconds
-      const wholeSeconds = Math.trunc(quantity.value);
-      const fractionalMs = Math.round((quantity.value - wholeSeconds) * 1000);
-      
-      let totalSeconds = newSecond + wholeSeconds;
-      
-      // Add fractional milliseconds if present
-      if (fractionalMs !== 0 && newMillisecond !== undefined) {
-        newMillisecond = (newMillisecond ?? 0) + fractionalMs;
-        // Handle millisecond overflow
-        const extraSeconds = Math.floor(newMillisecond / 1000);
-        newMillisecond = newMillisecond % 1000;
-        if (newMillisecond < 0) {
-          newMillisecond += 1000;
-          totalSeconds--;
-        }
-        totalSeconds += extraSeconds;
-      } else if (fractionalMs !== 0) {
-        // If we have fractional seconds but no millisecond precision, add them
-        newMillisecond = fractionalMs;
-      }
-      
-      // Handle minute overflow
-      const minutesToAdd = Math.floor(totalSeconds / 60);
-      newSecond = totalSeconds % 60;
-      if (newSecond < 0) {
-        newSecond += 60;
-        newMinute = (newMinute ?? 0) - 1;
-      }
-      
-      if (minutesToAdd !== 0 && newMinute !== undefined) {
-        // Add minutes recursively
-        const minuteQuantity = createTimeQuantity(minutesToAdd, 'minute');
-        const temp = createDateTime(newYear, newMonth, newDay, newHour, newMinute, newSecond, newMillisecond, dt.timezoneOffset);
-        const adjusted = addToDateTime(temp, minuteQuantity);
-        newYear = adjusted.year;
-        newMonth = adjusted.month;
-        newDay = adjusted.day;
-        newHour = adjusted.hour;
-        newMinute = adjusted.minute;
-      }
-      }
-    } else if (normalizedUnit === 'millisecond' && newMillisecond !== undefined) {
-      const millisecondsToAdd = Math.floor(quantity.value);
-      let totalMs = newMillisecond + millisecondsToAdd;
-      
-      // Handle second overflow
-      const secondsToAdd = Math.floor(totalMs / 1000);
-      newMillisecond = totalMs % 1000;
-      if (newMillisecond < 0) {
-        newMillisecond += 1000;
-        newSecond = (newSecond ?? 0) - 1;
-      }
-      
-      if (secondsToAdd !== 0 && newSecond !== undefined) {
-        // Add seconds recursively
-        const secondQuantity = createTimeQuantity(secondsToAdd, 'second');
-        const temp = createDateTime(newYear, newMonth, newDay, newHour, newMinute, newSecond, newMillisecond, dt.timezoneOffset);
-        const adjusted = addToDateTime(temp, secondQuantity);
-        newYear = adjusted.year;
-        newMonth = adjusted.month;
-        newDay = adjusted.day;
-        newHour = adjusted.hour;
-        newMinute = adjusted.minute;
-        newSecond = adjusted.second;
-      }
+    // Gating by available precision to mirror existing semantics
+    if (normalizedUnit === 'hour' && dt.hour === undefined) {
+      return dt;
     }
+    if (normalizedUnit === 'minute' && dt.hour === undefined) {
+      return dt;
+    }
+    if (normalizedUnit === 'second' && dt.minute === undefined) {
+      return dt;
+    }
+    if (normalizedUnit === 'millisecond' && dt.millisecond === undefined) {
+      return dt;
+    }
+
+    const clock = addClockParts(dt.hour, dt.minute, dt.second, dt.millisecond, normalizedUnit as ClockUnit, quantity.value, true);
+    newHour = clock.hour;
+    newMinute = clock.minute;
+    newSecond = clock.second;
+    newMillisecond = clock.millisecond;
+
+    if (clock.dayDelta !== 0) {
+      const cal = addCalendarParts(newYear, newMonth, newDay, 'day', clock.dayDelta);
+      newYear = cal.year;
+      newMonth = cal.month;
+      newDay = cal.day;
+    }
+    return createDateTime(newYear, newMonth, newDay, newHour, newMinute, newSecond, newMillisecond, dt.timezoneOffset);
   }
-  
+
   return createDateTime(newYear, newMonth, newDay, newHour, newMinute, newSecond, newMillisecond, dt.timezoneOffset);
 }
 
@@ -1420,6 +1292,189 @@ export function millisecondOf(temporal: TemporalValue): number | null {
 // ============================================================================
 // Helper Functions
 // ============================================================================
+
+// Shared helper scaffolding for refactor (TDD-first)
+export type CalendarUnit = 'year' | 'month' | 'week' | 'day';
+export type ClockUnit = 'hour' | 'minute' | 'second' | 'millisecond';
+
+export interface CalendarPartsResult {
+  year: number;
+  month?: number;
+  day?: number;
+}
+
+export interface ClockPartsResult {
+  hour?: number;
+  minute?: number;
+  second?: number;
+  millisecond?: number;
+  // +1 when time addition crosses midnight forward, -1 when backward, 0 otherwise
+  dayDelta: number;
+}
+
+// Intentionally left unimplemented for now (tests drive implementation)
+export function addCalendarParts(
+  year: number,
+  month: number | undefined,
+  day: number | undefined,
+  unit: CalendarUnit,
+  amount: number
+): CalendarPartsResult {
+  const normalizedUnit = normalizeUnit(unit);
+
+  let newYear = year;
+  let newMonth = month;
+  let newDay = day;
+
+  if (normalizedUnit === 'week') {
+    // Convert weeks to days using calendar semantics (truncate fractional weeks)
+    const weeksToAdd = Math.trunc(amount);
+    return addCalendarParts(newYear, newMonth, newDay, 'day', weeksToAdd * 7);
+  }
+
+  if (normalizedUnit === 'year') {
+    newYear += Math.trunc(amount);
+  } else if (normalizedUnit === 'month') {
+    const monthsToAdd = Math.trunc(amount);
+    if (newMonth !== undefined) {
+      let totalMonths = (newYear * 12) + (newMonth - 1) + monthsToAdd;
+      newYear = Math.floor(totalMonths / 12);
+      newMonth = (totalMonths % 12) + 1;
+      if (newMonth <= 0) {
+        newMonth += 12;
+        newYear--;
+      }
+    } else {
+      // Coerce months into years when only year precision
+      const yearsToAdd = convertAndTruncate(createTimeQuantity(amount, 'month'), 'year');
+      newYear += yearsToAdd;
+    }
+  } else if (normalizedUnit === 'day') {
+    const daysToAdd = Math.trunc(amount);
+    if (newDay !== undefined && newMonth !== undefined) {
+      // Proper calendar day arithmetic
+      let currentYear = newYear;
+      let currentMonth = newMonth;
+      let currentDay = newDay + daysToAdd;
+
+      while (currentDay > getDaysInMonth(currentYear, currentMonth)) {
+        currentDay -= getDaysInMonth(currentYear, currentMonth);
+        currentMonth++;
+        if (currentMonth > 12) {
+          currentMonth = 1;
+          currentYear++;
+        }
+      }
+
+      while (currentDay < 1) {
+        currentMonth--;
+        if (currentMonth < 1) {
+          currentMonth = 12;
+          currentYear--;
+        }
+        currentDay += getDaysInMonth(currentYear, currentMonth);
+      }
+
+      newYear = currentYear;
+      newMonth = currentMonth;
+      newDay = currentDay;
+    } else if (newMonth !== undefined) {
+      // Convert days to months when month precision but no day
+      const monthsToAdd = convertAndTruncate(createTimeQuantity(amount, 'day'), 'month');
+      let totalMonths = (newYear * 12) + (newMonth - 1) + monthsToAdd;
+      newYear = Math.floor(totalMonths / 12);
+      newMonth = (totalMonths % 12) + 1;
+      if (newMonth <= 0) {
+        newMonth += 12;
+        newYear--;
+      }
+    } else {
+      // Convert days to years when only year precision
+      const yearsToAdd = convertAndTruncate(createTimeQuantity(amount, 'day'), 'year');
+      newYear += yearsToAdd;
+    }
+  }
+
+  // Clamp day for validity when we have a day and month
+  newDay = clampDay(newYear, newMonth, newDay);
+
+  return { year: newYear, month: newMonth, day: newDay };
+}
+
+// Intentionally left unimplemented for now (tests drive implementation)
+export function addClockParts(
+  hour: number | undefined,
+  minute: number | undefined,
+  second: number | undefined,
+  millisecond: number | undefined,
+  unit: ClockUnit,
+  amount: number,
+  preservePrecision: boolean = true
+): ClockPartsResult {
+  const HOUR_MS = MINUTES_PER_HOUR * SECONDS_PER_MINUTE * MILLISECONDS_PER_SECOND;
+  const MINUTE_MS = SECONDS_PER_MINUTE * MILLISECONDS_PER_SECOND;
+  const SECOND_MS = MILLISECONDS_PER_SECOND;
+  const DAY_MS = HOURS_PER_DAY * HOUR_MS;
+
+  // Build original total milliseconds from time-of-day
+  let totalMs = (hour ?? 0) * HOUR_MS;
+  if (minute !== undefined) totalMs += minute * MINUTE_MS;
+  if (second !== undefined) totalMs += second * SECOND_MS;
+  if (millisecond !== undefined) totalMs += millisecond;
+
+  // Compute quantity in milliseconds honoring truncation rules
+  let deltaMs = 0;
+  if (unit === 'hour') {
+    deltaMs = Math.trunc(amount) * HOUR_MS;
+  } else if (unit === 'minute') {
+    // precision-preserving: we'll add minutes as milliseconds, but reconstruction preserves precision
+    deltaMs = Math.trunc(amount) * MINUTE_MS;
+  } else if (unit === 'second') {
+    deltaMs = amount * SECOND_MS; // fractions become milliseconds
+  } else if (unit === 'millisecond') {
+    deltaMs = amount;
+  }
+
+  const newTotal = totalMs + deltaMs;
+  // Compute dayDelta via floor division and get a non-negative wrapped remainder
+  let dayDelta = Math.floor(newTotal / DAY_MS);
+  let wrapped = newTotal - dayDelta * DAY_MS;
+
+  // Reconstruct time parts with precision preservation
+  let newHour = Math.floor(wrapped / HOUR_MS);
+  wrapped %= HOUR_MS;
+
+  let newMinute: number | undefined = undefined;
+  let newSecond: number | undefined = undefined;
+  let newMillisecond: number | undefined = undefined;
+
+  if (minute !== undefined) {
+    newMinute = Math.floor(wrapped / MINUTE_MS);
+    wrapped %= MINUTE_MS;
+  }
+
+  if (second !== undefined) {
+    newSecond = Math.floor(wrapped / SECOND_MS);
+    wrapped %= SECOND_MS;
+  }
+
+  if (millisecond !== undefined) {
+    newMillisecond = Math.floor(wrapped);
+    wrapped = 0;
+  } else if (!preservePrecision && (second !== undefined || minute !== undefined)) {
+    // Only when explicitly allowed to introduce finer precision
+    newMillisecond = Math.floor(wrapped);
+    wrapped = 0;
+  }
+
+  return {
+    hour: newHour,
+    minute: newMinute,
+    second: newSecond,
+    millisecond: newMillisecond,
+    dayDelta
+  };
+}
 
 function normalizeToUTC(dt: FHIRDateTime): FHIRDateTime {
   if (dt.timezoneOffset === undefined || dt.timezoneOffset === 0) {

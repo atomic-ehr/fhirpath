@@ -8,6 +8,8 @@ import {
   add,
   subtract,
   toTemporalString,
+  addCalendarParts,
+  addClockParts,
 } from '../src/temporal';
 
 describe('Temporal Arithmetic - Following ADR-017', () => {
@@ -261,8 +263,122 @@ describe('Temporal Arithmetic - Following ADR-017', () => {
         expect(toTemporalString(result)).toBe('2020-01-16T01:30:00');
       });
     });
+
+    describe('Date clamping and leap-year behavior (DateTime)', () => {
+      it('@2020-01-31T10:30:00 + 1 month clamps to @2020-02-29T10:30:00 (leap year)', () => {
+        const dt = createDateTime(2020, 1, 31, 10, 30, 0);
+        const result = add(dt, createTimeQuantity(1, 'month'));
+        // Expect clamping to Feb 29 (leap year)
+        expect(toTemporalString(result)).toBe('2020-02-29T10:30:00');
+      });
+
+      it('@2021-01-31T10:30:00 + 1 month clamps to @2021-02-28T10:30:00 (non-leap year)', () => {
+        const dt = createDateTime(2021, 1, 31, 10, 30, 0);
+        const result = add(dt, createTimeQuantity(1, 'month'));
+        // Expect clamping to Feb 28 (non-leap year)
+        expect(toTemporalString(result)).toBe('2021-02-28T10:30:00');
+      });
+
+      it('@2020-03-31T10:30:00 - 1 month clamps to @2020-02-29T10:30:00 (leap year)', () => {
+        const dt = createDateTime(2020, 3, 31, 10, 30, 0);
+        const result = subtract(dt, createTimeQuantity(1, 'month'));
+        // Expect clamping to Feb 29 moving backward into leap Feb
+        expect(toTemporalString(result)).toBe('2020-02-29T10:30:00');
+      });
+    });
   });
 
+  describe('Helper functions - addCalendarParts and addClockParts (TDD stubs)', () => {
+    describe('addCalendarParts', () => {
+      it('clamps Jan 31 + 1 month to Feb 29 in leap year', () => {
+        const res = addCalendarParts(2020, 1, 31, 'month', 1);
+        expect(res.year).toBe(2020);
+        expect(res.month).toBe(2);
+        expect(res.day).toBe(29);
+      });
+
+      it('clamps Jan 31 + 1 month to Feb 28 in non-leap year', () => {
+        const res = addCalendarParts(2021, 1, 31, 'month', 1);
+        expect(res.year).toBe(2021);
+        expect(res.month).toBe(2);
+        expect(res.day).toBe(28);
+      });
+
+      it('Mar 31 - 1 month clamps to Feb 29 in leap year', () => {
+        const res = addCalendarParts(2020, 3, 31, 'month', -1);
+        expect(res.year).toBe(2020);
+        expect(res.month).toBe(2);
+        expect(res.day).toBe(29);
+      });
+
+      it('Week unit applies as 7 days with calendar rollover', () => {
+        const res = addCalendarParts(2020, 2, 26, 'week', 1);
+        expect(res.year).toBe(2020);
+        expect(res.month).toBe(3);
+        expect(res.day).toBe(4);
+      });
+    });
+
+    describe('addClockParts', () => {
+      it('23:30 + 90 minutes = 01:00 with dayDelta +1', () => {
+        const res = addClockParts(23, 30, 0, 0, 'minute', 90, true);
+        expect(res.dayDelta).toBe(1);
+        expect(res.hour).toBe(1);
+        expect(res.minute).toBe(0);
+        expect(res.second).toBe(0);
+        expect(res.millisecond).toBe(0);
+      });
+
+      it('00:30 - 45 minutes = 23:45 previous day (dayDelta -1)', () => {
+        const res = addClockParts(0, 30, 0, 0, 'minute', -45, true);
+        expect(res.dayDelta).toBe(-1);
+        expect(res.hour).toBe(23);
+        expect(res.minute).toBe(45);
+        expect(res.second).toBe(0);
+        expect(res.millisecond).toBe(0);
+      });
+
+      it('23:59:59 + 1 second = 00:00:00 with dayDelta +1', () => {
+        const res = addClockParts(23, 59, 59, 0, 'second', 1, true);
+        expect(res.dayDelta).toBe(1);
+        expect(res.hour).toBe(0);
+        expect(res.minute).toBe(0);
+        expect(res.second).toBe(0);
+        expect(res.millisecond).toBe(0);
+      });
+
+      it('fractional seconds 0.75 added to 10:30:00.500 = 10:30:01.250', () => {
+        const res = addClockParts(10, 30, 0, 500, 'second', 0.75, true);
+        expect(res.dayDelta).toBe(0);
+        expect(res.hour).toBe(10);
+        expect(res.minute).toBe(30);
+        expect(res.second).toBe(1);
+        expect(res.millisecond).toBe(250);
+      });
+
+      it('precision preservation: hour-only + 59 minutes keeps minute undefined and no dayDelta', () => {
+        const res = addClockParts(10, undefined, undefined, undefined, 'minute', 59, true);
+        expect(res.dayDelta).toBe(0);
+        expect(res.hour).toBe(10);
+        expect(res.minute).toBeUndefined();
+      });
+
+      it('precision preservation: hour-only + 60 minutes becomes +1 hour, minute stays undefined', () => {
+        const res = addClockParts(10, undefined, undefined, undefined, 'minute', 60, true);
+        expect(res.dayDelta).toBe(0);
+        expect(res.hour).toBe(11);
+        expect(res.minute).toBeUndefined();
+      });
+
+      it('leap day midnight + 86400 seconds → next day', () => {
+        const res = addClockParts(0, 0, 0, 0, 'second', 86400, true);
+        expect(res.dayDelta).toBe(1);
+        expect(res.hour).toBe(0);
+        expect(res.minute).toBe(0);
+        expect(res.second).toBe(0);
+      });
+    });
+  });
   describe('UCUM Unit Support', () => {
     it('@2020-01-01 + 1 a (annum/year) = @2021-01-01', () => {
       // 'a' is UCUM for year, but we don't support it for temporal arithmetic
