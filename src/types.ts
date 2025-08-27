@@ -134,6 +134,7 @@ export enum NodeType {
   TypeOrIdentifier = 'TypeOrIdentifier',
   Identifier = 'Identifier',
   Literal = 'Literal',
+  TemporalLiteral = 'TemporalLiteral',
   Function = 'Function',
   Variable = 'Variable',
   Index = 'Index',
@@ -238,6 +239,13 @@ export interface LiteralNode extends BaseASTNode {
   valueType: 'string' | 'number' | 'boolean' | 'date' | 'time' | 'datetime' | 'null';
 }
 
+export interface TemporalLiteralNode extends BaseASTNode {
+  type: NodeType.TemporalLiteral;
+  value: any; // The parsed temporal object
+  valueType: 'date' | 'time' | 'datetime';
+  rawValue: string; // The original string value (without @)
+}
+
 export interface BinaryNode extends BaseASTNode {
   type: NodeType.Binary;
   operator: string;
@@ -304,6 +312,7 @@ export type ASTNode =
   | IdentifierNode
   | TypeOrIdentifierNode
   | LiteralNode
+  | TemporalLiteralNode
   | BinaryNode
   | UnaryNode
   | FunctionNode

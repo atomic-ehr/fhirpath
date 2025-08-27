@@ -76,17 +76,17 @@ describe("FHIRPath Parser", () => {
     });
 
     it("should parse datetime literals", async () => {
-      const ast = parse("@2023-12-25T10:30:00Z") as LiteralNode;
-      expect(ast.type).toBe(NodeType.Literal);
-      expect(ast.value).toBe("2023-12-25T10:30:00Z");
-      expect(ast.valueType).toBe("datetime");
+      const ast = parse("@2023-12-25T10:30:00Z");
+      expect(ast.type).toBe(NodeType.TemporalLiteral);
+      expect((ast as any).rawValue).toBe("2023-12-25T10:30:00Z");
+      expect((ast as any).valueType).toBe("datetime");
     });
 
     it("should parse time literals", async () => {
-      const ast = parse("@T10:30:00") as LiteralNode;
-      expect(ast.type).toBe(NodeType.Literal);
-      expect(ast.value).toBe("T10:30:00");
-      expect(ast.valueType).toBe("time");
+      const ast = parse("@T10:30:00");
+      expect(ast.type).toBe(NodeType.TemporalLiteral);
+      expect((ast as any).rawValue).toBe("T10:30:00");
+      expect((ast as any).valueType).toBe("time");
     });
 
     // Removed test for {1, 2, 3} syntax as it's invalid per FHIRPath spec

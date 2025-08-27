@@ -101,10 +101,11 @@ export async function evaluate(
   return result.value.map(boxedValue => {
     const value = unbox(boxedValue);
     // Convert temporal values to string representation for output
-    if (value && typeof value === 'object' && 'type' in value && 
-        (value.type === 'Date' || value.type === 'DateTime' || value.type === 'Time') &&
-        'toString' in value && typeof value.toString === 'function') {
-      return value.toString();
+    if (value && typeof value === 'object' && 'kind' in value && 
+        (value.kind === 'FHIRDate' || value.kind === 'FHIRDateTime' || value.kind === 'FHIRTime')) {
+      // Import the toTemporalString function from temporal module
+      const { toTemporalString } = require('./temporal');
+      return toTemporalString(value);
     }
     return value;
   });

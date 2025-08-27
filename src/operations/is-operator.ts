@@ -62,22 +62,22 @@ export const evaluate: OperationEvaluator = async (input, context, left, right) 
     case 'Date':
       // Check if it's a FHIRDate instance or has Date type
       if (item && typeof item === 'object') {
-        const { FHIRDate } = require('../temporal');
-        return { value: [box(item instanceof FHIRDate || (item as any).type === 'Date', { type: 'Boolean', singleton: true })], context };
+        const { isFHIRDate } = require('../temporal');
+        return { value: [box(isFHIRDate(item) || (item as any).kind === 'FHIRDate', { type: 'Boolean', singleton: true })], context };
       }
       return { value: [box(false, { type: 'Boolean', singleton: true })], context };
     case 'DateTime':
       // Check if it's a FHIRDateTime instance or has DateTime type
       if (item && typeof item === 'object') {
-        const { FHIRDateTime } = require('../temporal');
-        return { value: [box(item instanceof FHIRDateTime || (item as any).type === 'DateTime', { type: 'Boolean', singleton: true })], context };
+        const { isFHIRDateTime } = require('../temporal');
+        return { value: [box(isFHIRDateTime(item) || (item as any).kind === 'FHIRDateTime', { type: 'Boolean', singleton: true })], context };
       }
       return { value: [box(false, { type: 'Boolean', singleton: true })], context };
     case 'Time':
       // Check if it's a FHIRTime instance or has Time type
       if (item && typeof item === 'object') {
-        const { FHIRTime } = require('../temporal');
-        return { value: [box(item instanceof FHIRTime || (item as any).type === 'Time', { type: 'Boolean', singleton: true })], context };
+        const { isFHIRTime } = require('../temporal');
+        return { value: [box(isFHIRTime(item) || (item as any).kind === 'FHIRTime', { type: 'Boolean', singleton: true })], context };
       }
       return { value: [box(false, { type: 'Boolean', singleton: true })], context };
     default:

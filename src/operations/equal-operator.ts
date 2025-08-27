@@ -54,13 +54,14 @@ export const evaluate: OperationEvaluator = async (input, context, left, right) 
     }
     
     // Check if both are temporal values (Date, DateTime, Time)
-    if (l && typeof l === 'object' && 'type' in l && 'equals' in l &&
-        r && typeof r === 'object' && 'type' in r && 'equals' in r) {
-      const temporalL = l as any; // Has type and equals method
+    if (l && typeof l === 'object' && 'kind' in l &&
+        r && typeof r === 'object' && 'kind' in r) {
+      const temporalL = l as any;
       const temporalR = r as any;
-      if (['Date', 'DateTime', 'Time'].includes(temporalL.type) &&
-          ['Date', 'DateTime', 'Time'].includes(temporalR.type)) {
-        const result = temporalL.equals(temporalR);
+      const kinds = ['FHIRDate', 'FHIRDateTime', 'FHIRTime'];
+      if (kinds.includes(temporalL.kind) && kinds.includes(temporalR.kind)) {
+        const { equals } = await import('../temporal');
+        const result = equals(temporalL, temporalR);
         // null means incomparable (returns empty), false means not equal, true means equal
         if (result === null) {
           return { value: [], context };
@@ -102,14 +103,15 @@ export const evaluate: OperationEvaluator = async (input, context, left, right) 
       if (comparison === null || comparison !== 0) {
         return { value: [box(false, { type: 'Boolean', singleton: true })], context };
       }
-    } else if (l && typeof l === 'object' && 'type' in l && 'equals' in l &&
-               r && typeof r === 'object' && 'type' in r && 'equals' in r) {
+    } else if (l && typeof l === 'object' && 'kind' in l &&
+               r && typeof r === 'object' && 'kind' in r) {
       // Check if both are temporal values
       const temporalL = l as any;
       const temporalR = r as any;
-      if (['Date', 'DateTime', 'Time'].includes(temporalL.type) &&
-          ['Date', 'DateTime', 'Time'].includes(temporalR.type)) {
-        const result = temporalL.equals(temporalR);
+      const kinds = ['FHIRDate', 'FHIRDateTime', 'FHIRTime'];
+      if (kinds.includes(temporalL.kind) && kinds.includes(temporalR.kind)) {
+        const { equals } = await import('../temporal');
+        const result = equals(temporalL, temporalR);
         // null means incomparable (returns empty for single comparison, false for collection)
         // false means not equal
         if (result !== true) {

@@ -25,13 +25,14 @@ export const evaluate: OperationEvaluator = async (input, context, left, right) 
   }
   
   // Check if both are temporal values (Date, DateTime, Time)
-  if (l && typeof l === 'object' && 'type' in l && 'compare' in l &&
-      r && typeof r === 'object' && 'type' in r && 'compare' in r) {
-    const temporalL = l as any; // Has type and compare method
+  if (l && typeof l === 'object' && 'kind' in l &&
+      r && typeof r === 'object' && 'kind' in r) {
+    const temporalL = l as any;
     const temporalR = r as any;
-    if (['Date', 'DateTime', 'Time'].includes(temporalL.type) &&
-        ['Date', 'DateTime', 'Time'].includes(temporalR.type)) {
-      const result = temporalL.compare(temporalR);
+    const kinds = ['FHIRDate', 'FHIRDateTime', 'FHIRTime'];
+    if (kinds.includes(temporalL.kind) && kinds.includes(temporalR.kind)) {
+      const { compare } = await import('../temporal');
+      const result = compare(temporalL, temporalR);
       // null means incomparable (different precisions), returns empty
       if (result === null) {
         return { value: [], context };

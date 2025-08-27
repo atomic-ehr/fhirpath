@@ -31,7 +31,7 @@ export const evaluate: OperationEvaluator = async (input, context, left, right) 
     const quantity = r as QuantityValue;
     
     // Import temporal utilities and create TimeQuantity
-    const { createTimeQuantity } = await import('../temporal');
+    const { createTimeQuantity, add } = await import('../temporal');
     
     // Calendar duration units (allowed for temporal arithmetic)
     const calendarUnits = ['year', 'years', 'month', 'months', 'week', 'weeks', 
@@ -70,54 +70,15 @@ export const evaluate: OperationEvaluator = async (input, context, left, right) 
     
     const timeQuantity = createTimeQuantity(quantity.value, mappedUnit as any);
     
-    let result;
+    // Use the functional add operation
+    const result = add(temporal as any, timeQuantity);
+    
     if (temporalType === 'Date') {
-      const { FHIRDate } = await import('../temporal');
-      if (!(temporal instanceof FHIRDate)) {
-        // Reconstruct the FHIRDate from the plain object
-        const dateObj = temporal as any;
-        const date = new FHIRDate(dateObj.year, dateObj.month, dateObj.day);
-        result = date.add(timeQuantity);
-      } else {
-        result = temporal.add(timeQuantity);
-      }
       return { value: [box(result, { type: 'Date', singleton: true })], context };
     } else if (temporalType === 'DateTime') {
-      const { FHIRDateTime } = await import('../temporal');
-      if (!(temporal instanceof FHIRDateTime)) {
-        // Reconstruct the FHIRDateTime from the plain object
-        const dateTimeObj = temporal as any;
-        const dateTime = new FHIRDateTime(
-          dateTimeObj.year,
-          dateTimeObj.month,
-          dateTimeObj.day,
-          dateTimeObj.hour,
-          dateTimeObj.minute,
-          dateTimeObj.second,
-          dateTimeObj.millisecond,
-          dateTimeObj.timezoneOffset
-        );
-        result = dateTime.add(timeQuantity);
-      } else {
-        result = temporal.add(timeQuantity);
-      }
       return { value: [box(result, { type: 'DateTime', singleton: true })], context };
     } else if (temporalType === 'Time') {
-      const { FHIRTime } = await import('../temporal');
       // Let the error propagate - adding calendar units to Time should throw
-      if (!(temporal instanceof FHIRTime)) {
-        // Reconstruct the FHIRTime from the plain object
-        const timeObj = temporal as any;
-        const time = new FHIRTime(
-          timeObj.hour, 
-          timeObj.minute, 
-          timeObj.second, 
-          timeObj.millisecond
-        );
-        result = time.add(timeQuantity);
-      } else {
-        result = temporal.add(timeQuantity);
-      }
       return { value: [box(result, { type: 'Time', singleton: true })], context };
     }
   }

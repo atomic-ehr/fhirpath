@@ -41,8 +41,20 @@ export const evaluate: OperationEvaluator = async (input, context, left, right) 
       return { value: [box(l === r, { type: 'Boolean', singleton: true })], context };
     }
     
+    // Temporal equivalence
+    if (l && typeof l === 'object' && 'kind' in l &&
+        r && typeof r === 'object' && 'kind' in r) {
+      const temporalL = l as any;
+      const temporalR = r as any;
+      const kinds = ['FHIRDate', 'FHIRDateTime', 'FHIRTime'];
+      if (kinds.includes(temporalL.kind) && kinds.includes(temporalR.kind)) {
+        const { equivalent } = await import('../temporal');
+        const result = equivalent(temporalL, temporalR);
+        return { value: [box(result, { type: 'Boolean', singleton: true })], context };
+      }
+    }
+    
     // For complex types and other cases, use equality for now
-    // TODO: Implement full equivalence logic for Date/DateTime/Time and complex types
     return { value: [box(l === r, { type: 'Boolean', singleton: true })], context };
   }
   

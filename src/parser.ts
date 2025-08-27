@@ -20,6 +20,7 @@ import type {
   IdentifierNode,
   TypeOrIdentifierNode,
   LiteralNode,
+  TemporalLiteralNode,
   BinaryNode,
   UnaryNode,
   FunctionNode,
@@ -47,6 +48,7 @@ export {
   type IdentifierNode,
   type TypeOrIdentifierNode,
   type LiteralNode,
+  type TemporalLiteralNode,
   type BinaryNode,
   type UnaryNode,
   type FunctionNode,
@@ -470,19 +472,19 @@ export class Parser {
     if (token.type === TokenType.DATE) {
       this.advance();
       const value = token.value.substring(1); // Remove @
-      return this.createLiteralNode(value, 'date', token);
+      return this.createTemporalLiteralNode(value, 'date', token);
     }
 
     if (token.type === TokenType.DATETIME) {
       this.advance();
       const value = token.value.substring(1); // Remove @
-      return this.createLiteralNode(value, 'datetime', token);
+      return this.createTemporalLiteralNode(value, 'datetime', token);
     }
 
     if (token.type === TokenType.TIME) {
       this.advance();
       const value = token.value.substring(1); // Remove @
-      return this.createLiteralNode(value, 'time', token);
+      return this.createTemporalLiteralNode(value, 'time', token);
     }
 
     if (token.type === TokenType.SPECIAL_IDENTIFIER) {
@@ -776,6 +778,26 @@ export class Parser {
       type: NodeType.Literal,
       value,
       valueType,
+      range: this.getRangeFromToken(token)
+    };
+    
+    if (this.mode === 'lsp') {
+      this.enrichNodeForLSP(node, token);
+    }
+    
+    return node;
+  }
+
+  protected createTemporalLiteralNode(rawValue: string, valueType: TemporalLiteralNode['valueType'], token: Token): TemporalLiteralNode {
+    // Import and parse temporal value immediately
+    const { parseTemporalLiteral } = require('./temporal');
+    const temporalValue = parseTemporalLiteral('@' + rawValue);
+    
+    const node: TemporalLiteralNode = {
+      type: NodeType.TemporalLiteral,
+      value: temporalValue,
+      valueType,
+      rawValue,
       range: this.getRangeFromToken(token)
     };
     

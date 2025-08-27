@@ -1,5 +1,5 @@
-// FHIRPath Temporal Values Implementation
-// Following ADR-017: Temporal Values Implementation
+// FHIRPath Temporal Values - Functional Implementation
+// Following ADR-019: Refactor from Classes to Functions and Interfaces
 
 // ============================================================================
 // Precision System
@@ -7,10 +7,9 @@
 
 export interface PrecisionInfo {
   level: 'year' | 'month' | 'day' | 'hour' | 'minute' | 'second' | 'millisecond';
-  value: number; // FHIRPath precision value
+  value: number;
 }
 
-// FHIRPath precision values from spec
 export const PRECISION_VALUES = {
   year: 4,
   month: 6,
@@ -21,37 +20,13 @@ export const PRECISION_VALUES = {
   millisecond: 17,
 } as const;
 
-// For Date type (subset of full precision)
 export const DATE_PRECISIONS = ['year', 'month', 'day'] as const;
 export type DatePrecisionLevel = typeof DATE_PRECISIONS[number];
 
-// For Time type (subset of full precision)  
 export const TIME_PRECISIONS = ['hour', 'minute', 'second', 'millisecond'] as const;
 export type TimePrecisionLevel = typeof TIME_PRECISIONS[number];
 
-// For DateTime type (full set)
 export type DateTimePrecisionLevel = PrecisionInfo['level'];
-
-// ============================================================================
-// Base Interfaces
-// ============================================================================
-
-export interface TemporalValue {
-  readonly type: 'Date' | 'DateTime' | 'Time';
-  readonly precision: PrecisionInfo;
-  
-  // Core comparison operations
-  equals(other: TemporalValue): boolean | null;      // null for different precision
-  equivalent(other: TemporalValue): boolean;         // false for different precision
-  compare(other: TemporalValue): -1 | 0 | 1 | null; // null if incomparable
-  
-  // String representations
-  toString(): string;                                // Human-readable, precision preserved
-  toFHIRPathLiteral(): string;                      // With @ prefix
-  
-  // Precision utilities
-  getPrecisionValue(): number;
-}
 
 // ============================================================================
 // Time Quantity for Arithmetic
@@ -76,380 +51,28 @@ export function createTimeQuantity(value: number, unit: TimeUnit): TimeQuantity 
 }
 
 // ============================================================================
-// FHIRDate Implementation
+// Discriminated Union Types with Interfaces
 // ============================================================================
 
-export class FHIRDate implements TemporalValue {
-  readonly type = 'Date' as const;
-  readonly precision: PrecisionInfo;
+export interface FHIRDate {
+  readonly kind: 'FHIRDate';
   readonly year: number;
   readonly month?: number;
   readonly day?: number;
-  
-  constructor(year: number, month?: number, day?: number) {
-    this.year = year;
-    this.month = month;
-    this.day = day;
-    
-    // Validate constraints
-    if (day !== undefined && month === undefined) {
-      throw new Error('Month must be present if day is present');
-    }
-    
-    // Validate ranges
-    if (year < 1 || year > 9999) {
-      throw new Error('Year must be between 0001 and 9999');
-    }
-    if (month !== undefined && (month < 1 || month > 12)) {
-      throw new Error('Month must be between 1 and 12');
-    }
-    if (day !== undefined && (day < 1 || day > 31)) {
-      throw new Error('Day must be between 1 and 31');
-    }
-    
-    // Determine precision based on which components are present
-    let level: DatePrecisionLevel;
-    if (day !== undefined) {
-      level = 'day';
-    } else if (month !== undefined) {
-      level = 'month';
-    } else {
-      level = 'year';
-    }
-    
-    this.precision = {
-      level,
-      value: PRECISION_VALUES[level]
-    };
-  }
-  
-  equals(other: TemporalValue): boolean | null {
-    if (other.type !== 'Date') return false;
-    
-    const otherDate = other as FHIRDate;
-    
-    // Compare year (always present)
-    if (this.year !== otherDate.year) return false;
-    
-    // Check month precision
-    const thisHasMonth = this.month !== undefined;
-    const otherHasMonth = otherDate.month !== undefined;
-    
-    if (thisHasMonth && otherHasMonth) {
-      // Both have month, compare values
-      if (this.month !== otherDate.month) return false;
-    } else if (thisHasMonth !== otherHasMonth) {
-      // One has month, other doesn't - different precision
-      return null;
-    }
-    
-    // Check day precision
-    const thisHasDay = this.day !== undefined;
-    const otherHasDay = otherDate.day !== undefined;
-    
-    if (thisHasDay && otherHasDay) {
-      // Both have day, compare values
-      if (this.day !== otherDate.day) return false;
-    } else if (thisHasDay !== otherHasDay) {
-      // One has day, other doesn't - different precision
-      return null;
-    }
-    
-    return true;
-  }
-  
-  equivalent(other: TemporalValue): boolean {
-    if (other.type !== 'Date') return false;
-    if (this.precision.value !== other.precision.value) return false;
-    
-    const otherDate = other as FHIRDate;
-    return this.year === otherDate.year &&
-           this.month === otherDate.month &&
-           this.day === otherDate.day;
-  }
-  
-  compare(other: TemporalValue): -1 | 0 | 1 | null {
-    if (other.type !== 'Date') return null;
-    const otherDate = other as FHIRDate;
-    
-    // Compare year
-    if (this.year < otherDate.year) return -1;
-    if (this.year > otherDate.year) return 1;
-    
-    // Compare month if both have it
-    if (this.month !== undefined && otherDate.month !== undefined) {
-      if (this.month < otherDate.month) return -1;
-      if (this.month > otherDate.month) return 1;
-    } else if (this.month !== otherDate.month) {
-      return null; // Different precision at this level
-    }
-    
-    // Compare day if both have it
-    if (this.day !== undefined && otherDate.day !== undefined) {
-      if (this.day < otherDate.day) return -1;
-      if (this.day > otherDate.day) return 1;
-    } else if (this.day !== otherDate.day) {
-      return null; // Different precision at this level
-    }
-    
-    return 0;
-  }
-  
-  toString(): string {
-    // Format year with 4-digit padding for years 0001-0999
-    const yearStr = this.year >= 0 && this.year < 10000 ? 
-      String(this.year).padStart(4, '0') : 
-      String(this.year);
-    
-    if (this.precision.level === 'year') {
-      return yearStr;
-    } else if (this.precision.level === 'month') {
-      return `${yearStr}-${String(this.month).padStart(2, '0')}`;
-    } else {
-      return `${yearStr}-${String(this.month).padStart(2, '0')}-${String(this.day).padStart(2, '0')}`;
-    }
-  }
-  
-  toFHIRPathLiteral(): string {
-    return `@${this.toString()}`;
-  }
-  
-  getPrecisionValue(): number {
-    return this.precision.value;
-  }
-  
-  add(quantity: TimeQuantity): FHIRDate {
-    const { addToDate } = require('./temporal-arithmetic');
-    return addToDate(this, quantity);
-  }
-  
-  subtract(quantity: TimeQuantity): FHIRDate {
-    const { subtractFromDate } = require('./temporal-arithmetic');
-    return subtractFromDate(this, quantity);
-  }
-  
-  // Component extraction
-  yearOf(): number {
-    return this.year;
-  }
-  
-  monthOf(): number | null {
-    return this.month ?? null;
-  }
-  
-  dayOf(): number | null {
-    return this.day ?? null;
-  }
+  readonly precision: PrecisionInfo;
 }
 
-// ============================================================================
-// FHIRTime Implementation
-// ============================================================================
-
-export class FHIRTime implements TemporalValue {
-  readonly type = 'Time' as const;
-  readonly precision: PrecisionInfo;
+export interface FHIRTime {
+  readonly kind: 'FHIRTime';
   readonly hour: number;
   readonly minute?: number;
   readonly second?: number;
   readonly millisecond?: number;
-  
-  constructor(hour: number, minute?: number, second?: number, millisecond?: number) {
-    this.hour = hour;
-    this.minute = minute;
-    this.second = second;
-    this.millisecond = millisecond;
-    
-    // Validate constraints
-    if (second !== undefined && minute === undefined) {
-      throw new Error('Minute must be present if second is present');
-    }
-    if (millisecond !== undefined && second === undefined) {
-      throw new Error('Second must be present if millisecond is present');
-    }
-    
-    // Validate ranges
-    if (hour < 0 || hour > 23) {
-      throw new Error('Hour must be between 0 and 23');
-    }
-    if (minute !== undefined && (minute < 0 || minute > 59)) {
-      throw new Error('Minute must be between 0 and 59');
-    }
-    if (second !== undefined && (second < 0 || second > 59)) {
-      throw new Error('Second must be between 0 and 59');
-    }
-    if (millisecond !== undefined && (millisecond < 0 || millisecond > 999)) {
-      throw new Error('Millisecond must be between 0 and 999');
-    }
-    
-    // Determine precision
-    let level: TimePrecisionLevel;
-    if (millisecond !== undefined) {
-      level = 'millisecond';
-    } else if (second !== undefined) {
-      level = 'second';
-    } else if (minute !== undefined) {
-      level = 'minute';
-    } else {
-      level = 'hour';
-    }
-    
-    // Special case: Time precision values are different
-    const timePrecisionValues: Record<TimePrecisionLevel, number> = {
-      hour: 4,
-      minute: 6,
-      second: 9,  // Note: not 14 like DateTime
-      millisecond: 9  // Same as second for Time
-    };
-    
-    this.precision = {
-      level,
-      value: timePrecisionValues[level]
-    };
-  }
-  
-  equals(other: TemporalValue): boolean | null {
-    if (other.type !== 'Time') return false;
-    
-    const otherTime = other as FHIRTime;
-    
-    // Special handling for second/millisecond (same precision value)
-    const thisHasSubsecond = this.precision.level === 'second' || this.precision.level === 'millisecond';
-    const otherHasSubsecond = otherTime.precision.level === 'second' || otherTime.precision.level === 'millisecond';
-    
-    if (thisHasSubsecond !== otherHasSubsecond) return null;
-    if (!thisHasSubsecond && this.precision.value !== otherTime.precision.value) return null;
-    
-    // When comparing times with second/millisecond precision, treat undefined milliseconds as 0
-    const thisMs = this.millisecond ?? 0;
-    const otherMs = otherTime.millisecond ?? 0;
-    
-    return this.hour === otherTime.hour &&
-           this.minute === otherTime.minute &&
-           this.second === otherTime.second &&
-           thisMs === otherMs;
-  }
-  
-  equivalent(other: TemporalValue): boolean {
-    if (other.type !== 'Time') return false;
-    
-    const otherTime = other as FHIRTime;
-    
-    // Special handling for second/millisecond
-    const thisHasSubsecond = this.precision.level === 'second' || this.precision.level === 'millisecond';
-    const otherHasSubsecond = otherTime.precision.level === 'second' || otherTime.precision.level === 'millisecond';
-    
-    if (thisHasSubsecond !== otherHasSubsecond) return false;
-    if (!thisHasSubsecond && this.precision.value !== otherTime.precision.value) return false;
-    
-    // When comparing times with second/millisecond precision, treat undefined milliseconds as 0
-    const thisMs = this.millisecond ?? 0;
-    const otherMs = otherTime.millisecond ?? 0;
-    
-    return this.hour === otherTime.hour &&
-           this.minute === otherTime.minute &&
-           this.second === otherTime.second &&
-           thisMs === otherMs;
-  }
-  
-  compare(other: TemporalValue): -1 | 0 | 1 | null {
-    if (other.type !== 'Time') return null;
-    const otherTime = other as FHIRTime;
-    
-    // Compare hour
-    if (this.hour < otherTime.hour) return -1;
-    if (this.hour > otherTime.hour) return 1;
-    
-    // Compare minute if both have it
-    if (this.minute !== undefined && otherTime.minute !== undefined) {
-      if (this.minute < otherTime.minute) return -1;
-      if (this.minute > otherTime.minute) return 1;
-    } else if (this.minute !== otherTime.minute) {
-      return null;
-    }
-    
-    // Compare second if both have it
-    if (this.second !== undefined && otherTime.second !== undefined) {
-      if (this.second < otherTime.second) return -1;
-      if (this.second > otherTime.second) return 1;
-    } else if (this.second !== otherTime.second) {
-      return null;
-    }
-    
-    // Compare millisecond if both have second-level precision
-    // Treat undefined milliseconds as 0 when both have second/millisecond precision
-    if ((this.precision.level === 'second' || this.precision.level === 'millisecond') &&
-        (otherTime.precision.level === 'second' || otherTime.precision.level === 'millisecond')) {
-      const thisMs = this.millisecond ?? 0;
-      const otherMs = otherTime.millisecond ?? 0;
-      if (thisMs < otherMs) return -1;
-      if (thisMs > otherMs) return 1;
-    }
-    
-    return 0;
-  }
-  
-  toString(): string {
-    let result = String(this.hour).padStart(2, '0');
-    
-    if (this.minute !== undefined) {
-      result += ':' + String(this.minute).padStart(2, '0');
-      
-      if (this.second !== undefined) {
-        result += ':' + String(this.second).padStart(2, '0');
-        
-        if (this.millisecond !== undefined) {
-          result += '.' + String(this.millisecond).padStart(3, '0');
-        }
-      }
-    }
-    
-    return result;
-  }
-  
-  toFHIRPathLiteral(): string {
-    return `@T${this.toString()}`;
-  }
-  
-  getPrecisionValue(): number {
-    return this.precision.value;
-  }
-  
-  add(quantity: TimeQuantity): FHIRTime {
-    const { addToTime } = require('./temporal-arithmetic');
-    return addToTime(this, quantity);
-  }
-  
-  subtract(quantity: TimeQuantity): FHIRTime {
-    const { subtractFromTime } = require('./temporal-arithmetic');
-    return subtractFromTime(this, quantity);
-  }
-  
-  // Component extraction
-  hourOf(): number {
-    return this.hour;
-  }
-  
-  minuteOf(): number | null {
-    return this.minute ?? null;
-  }
-  
-  secondOf(): number | null {
-    return this.second ?? null;
-  }
-  
-  millisecondOf(): number | null {
-    return this.millisecond ?? null;
-  }
+  readonly precision: PrecisionInfo;
 }
 
-// ============================================================================
-// FHIRDateTime Implementation
-// ============================================================================
-
-export class FHIRDateTime implements TemporalValue {
-  readonly type = 'DateTime' as const;
-  readonly precision: PrecisionInfo;
+export interface FHIRDateTime {
+  readonly kind: 'FHIRDateTime';
   readonly year: number;
   readonly month?: number;
   readonly day?: number;
@@ -457,429 +80,30 @@ export class FHIRDateTime implements TemporalValue {
   readonly minute?: number;
   readonly second?: number;
   readonly millisecond?: number;
-  readonly timezoneOffset?: number; // Minutes from UTC, undefined = naive
-  
-  constructor(
-    year: number,
-    month?: number,
-    day?: number,
-    hour?: number,
-    minute?: number,
-    second?: number,
-    millisecond?: number,
-    timezoneOffset?: number
-  ) {
-    this.year = year;
-    this.month = month;
-    this.day = day;
-    this.hour = hour;
-    this.minute = minute;
-    this.second = second;
-    this.millisecond = millisecond;
-    this.timezoneOffset = timezoneOffset;
-    
-    // Validate constraints
-    if (day !== undefined && month === undefined) {
-      throw new Error('Month must be present if day is present');
-    }
-    if (hour !== undefined && day === undefined) {
-      throw new Error('Day must be present if hour is present');
-    }
-    if (minute !== undefined && hour === undefined) {
-      throw new Error('Hour must be present if minute is present');
-    }
-    if (second !== undefined && minute === undefined) {
-      throw new Error('Minute must be present if second is present');
-    }
-    if (millisecond !== undefined && second === undefined) {
-      throw new Error('Second must be present if millisecond is present');
-    }
-    
-    // Validate ranges
-    if (year < 1 || year > 9999) {
-      throw new Error('Year must be between 0001 and 9999');
-    }
-    if (month !== undefined && (month < 1 || month > 12)) {
-      throw new Error('Month must be between 1 and 12');
-    }
-    if (day !== undefined && (day < 1 || day > 31)) {
-      throw new Error('Day must be between 1 and 31');
-    }
-    if (hour !== undefined && (hour < 0 || hour > 23)) {
-      throw new Error('Hour must be between 0 and 23');
-    }
-    if (minute !== undefined && (minute < 0 || minute > 59)) {
-      throw new Error('Minute must be between 0 and 59');
-    }
-    if (second !== undefined && (second < 0 || second > 59)) {
-      throw new Error('Second must be between 0 and 59');
-    }
-    if (millisecond !== undefined && (millisecond < 0 || millisecond > 999)) {
-      throw new Error('Millisecond must be between 0 and 999');
-    }
-    
-    // Determine precision
-    let level: DateTimePrecisionLevel;
-    if (millisecond !== undefined) {
-      level = 'millisecond';
-    } else if (second !== undefined) {
-      level = 'second';
-    } else if (minute !== undefined) {
-      level = 'minute';
-    } else if (hour !== undefined) {
-      level = 'hour';
-    } else if (day !== undefined) {
-      level = 'day';
-    } else if (month !== undefined) {
-      level = 'month';
-    } else {
-      level = 'year';
-    }
-    
-    this.precision = {
-      level,
-      value: PRECISION_VALUES[level]
-    };
-  }
-  
-  equals(other: TemporalValue): boolean | null {
-    if (other.type !== 'DateTime') return false;
-    
-    const otherDateTime = other as FHIRDateTime;
-    
-    // Check timezone compatibility
-    const bothNaive = this.timezoneOffset === undefined && otherDateTime.timezoneOffset === undefined;
-    const bothAware = this.timezoneOffset !== undefined && otherDateTime.timezoneOffset !== undefined;
-    if (!bothNaive && !bothAware) return null;
-    
-    // For timezone-aware comparisons, convert to UTC if needed
-    const thisToCompare = bothAware && this.timezoneOffset !== otherDateTime.timezoneOffset ? this.toUTC() : this;
-    const otherToCompare = bothAware && this.timezoneOffset !== otherDateTime.timezoneOffset ? otherDateTime.toUTC() : otherDateTime;
-    
-    // Compare year (always present)
-    if (thisToCompare.year !== otherToCompare.year) return false;
-    
-    // Check month precision
-    const thisHasMonth = thisToCompare.month !== undefined;
-    const otherHasMonth = otherToCompare.month !== undefined;
-    
-    if (thisHasMonth && otherHasMonth) {
-      if (thisToCompare.month !== otherToCompare.month) return false;
-    } else if (thisHasMonth !== otherHasMonth) {
-      return null;
-    }
-    
-    // Check day precision
-    const thisHasDay = thisToCompare.day !== undefined;
-    const otherHasDay = otherToCompare.day !== undefined;
-    
-    if (thisHasDay && otherHasDay) {
-      if (thisToCompare.day !== otherToCompare.day) return false;
-    } else if (thisHasDay !== otherHasDay) {
-      return null;
-    }
-    
-    // Check hour precision
-    const thisHasHour = thisToCompare.hour !== undefined;
-    const otherHasHour = otherToCompare.hour !== undefined;
-    
-    if (thisHasHour && otherHasHour) {
-      if (thisToCompare.hour !== otherToCompare.hour) return false;
-    } else if (thisHasHour !== otherHasHour) {
-      return null;
-    }
-    
-    // Check minute precision
-    const thisHasMinute = thisToCompare.minute !== undefined;
-    const otherHasMinute = otherToCompare.minute !== undefined;
-    
-    if (thisHasMinute && otherHasMinute) {
-      if (thisToCompare.minute !== otherToCompare.minute) return false;
-    } else if (thisHasMinute !== otherHasMinute) {
-      return null;
-    }
-    
-    // Check second/millisecond precision (treated as one level per spec)
-    const thisHasSecond = thisToCompare.second !== undefined;
-    const otherHasSecond = otherToCompare.second !== undefined;
-    
-    if (thisHasSecond && otherHasSecond) {
-      // For seconds and milliseconds, use decimal comparison semantics
-      const thisMs = thisToCompare.millisecond ?? 0;
-      const otherMs = otherToCompare.millisecond ?? 0;
-      if (thisToCompare.second !== otherToCompare.second || thisMs !== otherMs) return false;
-    } else if (thisHasSecond !== otherHasSecond) {
-      return null;
-    }
-    
-    return true;
-  }
-  
-  equivalent(other: TemporalValue): boolean {
-    if (other.type !== 'DateTime') return false;
-    
-    const otherDateTime = other as FHIRDateTime;
-    
-    // Check timezone compatibility
-    const bothNaive = this.timezoneOffset === undefined && otherDateTime.timezoneOffset === undefined;
-    const bothAware = this.timezoneOffset !== undefined && otherDateTime.timezoneOffset !== undefined;
-    if (!bothNaive && !bothAware) return false;
-    
-    // Special handling for second/millisecond precision
-    const thisSecondLevel = this.precision.level === 'second' || this.precision.level === 'millisecond';
-    const otherSecondLevel = otherDateTime.precision.level === 'second' || otherDateTime.precision.level === 'millisecond';
-    
-    if (thisSecondLevel && otherSecondLevel) {
-      // Both have second-level precision, can compare
-    } else if (this.precision.value !== otherDateTime.precision.value) {
-      return false;
-    }
-    
-    // For timezone-aware comparisons, convert to UTC
-    if (bothAware && this.timezoneOffset !== otherDateTime.timezoneOffset) {
-      const thisUTC = this.toUTC();
-      const otherUTC = otherDateTime.toUTC();
-      return thisUTC.year === otherUTC.year &&
-             thisUTC.month === otherUTC.month &&
-             thisUTC.day === otherUTC.day &&
-             thisUTC.hour === otherUTC.hour &&
-             thisUTC.minute === otherUTC.minute &&
-             thisUTC.second === otherUTC.second &&
-             thisUTC.millisecond === otherUTC.millisecond;
-    }
-    
-    return this.year === otherDateTime.year &&
-           this.month === otherDateTime.month &&
-           this.day === otherDateTime.day &&
-           this.hour === otherDateTime.hour &&
-           this.minute === otherDateTime.minute &&
-           this.second === otherDateTime.second &&
-           this.millisecond === otherDateTime.millisecond &&
-           this.timezoneOffset === otherDateTime.timezoneOffset;
-  }
-  
-  compare(other: TemporalValue): -1 | 0 | 1 | null {
-    if (other.type !== 'DateTime') return null;
-    const otherDateTime = other as FHIRDateTime;
-    
-    // Check timezone compatibility
-    const bothNaive = this.timezoneOffset === undefined && otherDateTime.timezoneOffset === undefined;
-    const bothAware = this.timezoneOffset !== undefined && otherDateTime.timezoneOffset !== undefined;
-    if (!bothNaive && !bothAware) return null;
-    
-    // For timezone-aware comparisons, convert to UTC
-    let thisToCompare: FHIRDateTime = this;
-    let otherToCompare: FHIRDateTime = otherDateTime;
-    
-    if (bothAware && this.timezoneOffset !== otherDateTime.timezoneOffset) {
-      thisToCompare = this.toUTC();
-      otherToCompare = otherDateTime.toUTC();
-    }
-    
-    // Compare year
-    if (thisToCompare.year < otherToCompare.year) return -1;
-    if (thisToCompare.year > otherToCompare.year) return 1;
-    
-    // Compare month if both have it
-    if (thisToCompare.month !== undefined && otherToCompare.month !== undefined) {
-      if (thisToCompare.month < otherToCompare.month) return -1;
-      if (thisToCompare.month > otherToCompare.month) return 1;
-    } else if (thisToCompare.month !== otherToCompare.month) {
-      return null;
-    }
-    
-    // Compare day if both have it
-    if (thisToCompare.day !== undefined && otherToCompare.day !== undefined) {
-      if (thisToCompare.day < otherToCompare.day) return -1;
-      if (thisToCompare.day > otherToCompare.day) return 1;
-    } else if (thisToCompare.day !== otherToCompare.day) {
-      return null;
-    }
-    
-    // Compare hour if both have it
-    if (thisToCompare.hour !== undefined && otherToCompare.hour !== undefined) {
-      if (thisToCompare.hour < otherToCompare.hour) return -1;
-      if (thisToCompare.hour > otherToCompare.hour) return 1;
-    } else if (thisToCompare.hour !== otherToCompare.hour) {
-      return null;
-    }
-    
-    // Compare minute if both have it
-    if (thisToCompare.minute !== undefined && otherToCompare.minute !== undefined) {
-      if (thisToCompare.minute < otherToCompare.minute) return -1;
-      if (thisToCompare.minute > otherToCompare.minute) return 1;
-    } else if (thisToCompare.minute !== otherToCompare.minute) {
-      return null;
-    }
-    
-    // Compare second if both have it
-    if (thisToCompare.second !== undefined && otherToCompare.second !== undefined) {
-      if (thisToCompare.second < otherToCompare.second) return -1;
-      if (thisToCompare.second > otherToCompare.second) return 1;
-    } else if (thisToCompare.second !== otherToCompare.second) {
-      return null;
-    }
-    
-    // Compare millisecond if both have it
-    if (thisToCompare.millisecond !== undefined && otherToCompare.millisecond !== undefined) {
-      if (thisToCompare.millisecond < otherToCompare.millisecond) return -1;
-      if (thisToCompare.millisecond > otherToCompare.millisecond) return 1;
-    } else if (thisToCompare.millisecond !== otherToCompare.millisecond) {
-      return null;
-    }
-    
-    return 0;
-  }
-  
-  toString(): string {
-    // Format year with 4-digit padding for years 0001-0999
-    let result = this.year >= 0 && this.year < 10000 ? 
-      String(this.year).padStart(4, '0') : 
-      String(this.year);
-    
-    if (this.month !== undefined) {
-      result += '-' + String(this.month).padStart(2, '0');
-      
-      if (this.day !== undefined) {
-        result += '-' + String(this.day).padStart(2, '0');
-        
-        if (this.hour !== undefined) {
-          result += 'T' + String(this.hour).padStart(2, '0');
-          
-          if (this.minute !== undefined) {
-            result += ':' + String(this.minute).padStart(2, '0');
-            
-            if (this.second !== undefined) {
-              result += ':' + String(this.second).padStart(2, '0');
-              
-              if (this.millisecond !== undefined) {
-                result += '.' + String(this.millisecond).padStart(3, '0');
-              }
-            }
-          }
-          
-          // Add timezone if present
-          if (this.timezoneOffset !== undefined) {
-            if (this.timezoneOffset === 0) {
-              result += 'Z';
-            } else {
-              const sign = this.timezoneOffset > 0 ? '+' : '-';
-              const absOffset = Math.abs(this.timezoneOffset);
-              const hours = Math.floor(absOffset / 60);
-              const minutes = absOffset % 60;
-              result += sign + String(hours).padStart(2, '0') + ':' + String(minutes).padStart(2, '0');
-            }
-          }
-        }
-      }
-    }
-    
-    // Special case: partial DateTime with T suffix
-    if (this.hour === undefined && this.day === undefined) {
-      result += 'T';
-    }
-    
-    return result;
-  }
-  
-  toFHIRPathLiteral(): string {
-    return `@${this.toString()}`;
-  }
-  
-  getPrecisionValue(): number {
-    return this.precision.value;
-  }
-  
-  add(quantity: TimeQuantity): FHIRDateTime {
-    const { addToDateTime } = require('./temporal-arithmetic');
-    return addToDateTime(this, quantity);
-  }
-  
-  subtract(quantity: TimeQuantity): FHIRDateTime {
-    const { subtractFromDateTime } = require('./temporal-arithmetic');
-    return subtractFromDateTime(this, quantity);
-  }
-  
-  // Component extraction
-  yearOf(): number {
-    return this.year;
-  }
-  
-  monthOf(): number | null {
-    return this.month ?? null;
-  }
-  
-  dayOf(): number | null {
-    return this.day ?? null;
-  }
-  
-  hourOf(): number | null {
-    return this.hour ?? null;
-  }
-  
-  minuteOf(): number | null {
-    return this.minute ?? null;
-  }
-  
-  secondOf(): number | null {
-    return this.second ?? null;
-  }
-  
-  millisecondOf(): number | null {
-    return this.millisecond ?? null;
-  }
-  
-  timezoneOffsetOf(): number | null {
-    return this.timezoneOffset ?? null;
-  }
-  
-  // Conversions
-  dateOf(): FHIRDate {
-    return new FHIRDate(this.year, this.month, this.day);
-  }
-  
-  timeOf(): FHIRTime | null {
-    if (this.hour === undefined) return null;
-    return new FHIRTime(this.hour, this.minute, this.second, this.millisecond);
-  }
-  
-  // Convert to UTC for timezone-aware comparisons
-  toUTC(): FHIRDateTime {
-    if (this.timezoneOffset === undefined || this.timezoneOffset === 0) {
-      return this;
-    }
-    
-    // Only convert if we have time components
-    if (this.hour === undefined) {
-      return this;
-    }
-    
-    // Create a date object to handle the conversion
-    const jsDate = new Date(
-      this.year,
-      (this.month ?? 1) - 1,
-      this.day ?? 1,
-      this.hour ?? 0,
-      this.minute ?? 0,
-      this.second ?? 0,
-      this.millisecond ?? 0
-    );
-    
-    // Adjust for timezone offset (offset is in minutes)
-    jsDate.setMinutes(jsDate.getMinutes() - this.timezoneOffset);
-    
-    // Extract UTC components
-    return new FHIRDateTime(
-      jsDate.getUTCFullYear(),
-      this.month !== undefined ? jsDate.getUTCMonth() + 1 : undefined,
-      this.day !== undefined ? jsDate.getUTCDate() : undefined,
-      this.hour !== undefined ? jsDate.getUTCHours() : undefined,
-      this.minute !== undefined ? jsDate.getUTCMinutes() : undefined,
-      this.second !== undefined ? jsDate.getUTCSeconds() : undefined,
-      this.millisecond !== undefined ? jsDate.getUTCMilliseconds() : undefined,
-      0 // UTC timezone
-    );
-  }
+  readonly timezoneOffset?: number;
+  readonly precision: PrecisionInfo;
+}
+
+export type TemporalValue = FHIRDate | FHIRTime | FHIRDateTime;
+
+// ============================================================================
+// Type Guards
+// ============================================================================
+
+export function isFHIRDate(value: any): value is FHIRDate {
+  return value && typeof value === 'object' && value.kind === 'FHIRDate';
+}
+
+export function isFHIRTime(value: any): value is FHIRTime {
+  return value && typeof value === 'object' && value.kind === 'FHIRTime';
+}
+
+export function isFHIRDateTime(value: any): value is FHIRDateTime {
+  return value && typeof value === 'object' && value.kind === 'FHIRDateTime';
+}
+
+export function isTemporalValue(value: any): value is TemporalValue {
+  return isFHIRDate(value) || isFHIRTime(value) || isFHIRDateTime(value);
 }
 
 // ============================================================================
@@ -887,7 +111,96 @@ export class FHIRDateTime implements TemporalValue {
 // ============================================================================
 
 export function createDate(year: number, month?: number, day?: number): FHIRDate {
-  return new FHIRDate(year, month, day);
+  // Validation
+  if (day !== undefined && month === undefined) {
+    throw new Error('Month must be present if day is present');
+  }
+  
+  if (year < 1 || year > 9999) {
+    throw new Error('Year must be between 1 and 9999');
+  }
+  if (month !== undefined && (month < 1 || month > 12)) {
+    throw new Error('Month must be between 1 and 12');
+  }
+  if (day !== undefined && (day < 1 || day > 31)) {
+    throw new Error('Day must be between 1 and 31');
+  }
+  
+  // Determine precision
+  let level: DatePrecisionLevel;
+  if (day !== undefined) {
+    level = 'day';
+  } else if (month !== undefined) {
+    level = 'month';
+  } else {
+    level = 'year';
+  }
+  
+  return {
+    kind: 'FHIRDate',
+    year,
+    month,
+    day,
+    precision: {
+      level,
+      value: PRECISION_VALUES[level]
+    }
+  };
+}
+
+export function createTime(hour: number, minute?: number, second?: number, millisecond?: number): FHIRTime {
+  // Validation
+  if (second !== undefined && minute === undefined) {
+    throw new Error('Minute must be present if second is present');
+  }
+  if (millisecond !== undefined && second === undefined) {
+    throw new Error('Second must be present if millisecond is present');
+  }
+  
+  if (hour < 0 || hour > 23) {
+    throw new Error('Hour must be between 0 and 23');
+  }
+  if (minute !== undefined && (minute < 0 || minute > 59)) {
+    throw new Error('Minute must be between 0 and 59');
+  }
+  if (second !== undefined && (second < 0 || second > 59)) {
+    throw new Error('Second must be between 0 and 59');
+  }
+  if (millisecond !== undefined && (millisecond < 0 || millisecond > 999)) {
+    throw new Error('Millisecond must be between 0 and 999');
+  }
+  
+  // Determine precision
+  let level: TimePrecisionLevel;
+  if (millisecond !== undefined) {
+    level = 'millisecond';
+  } else if (second !== undefined) {
+    level = 'second';
+  } else if (minute !== undefined) {
+    level = 'minute';
+  } else {
+    level = 'hour';
+  }
+  
+  // Special case: Time precision values are different
+  const timePrecisionValues: Record<TimePrecisionLevel, number> = {
+    hour: 4,
+    minute: 6,
+    second: 8,
+    millisecond: 11
+  };
+  
+  return {
+    kind: 'FHIRTime',
+    hour,
+    minute,
+    second,
+    millisecond,
+    precision: {
+      level,
+      value: timePrecisionValues[level]
+    }
+  };
 }
 
 export function createDateTime(
@@ -900,145 +213,1280 @@ export function createDateTime(
   millisecond?: number,
   timezoneOffset?: number
 ): FHIRDateTime {
-  return new FHIRDateTime(year, month, day, hour, minute, second, millisecond, timezoneOffset);
-}
-
-export function createTime(
-  hour: number,
-  minute?: number,
-  second?: number,
-  millisecond?: number
-): FHIRTime {
-  return new FHIRTime(hour, minute, second, millisecond);
+  // Validation
+  if (day !== undefined && month === undefined) {
+    throw new Error('Month must be present if day is present');
+  }
+  if (hour !== undefined && day === undefined) {
+    throw new Error('Day must be present if hour is present');
+  }
+  if (minute !== undefined && hour === undefined) {
+    throw new Error('Hour must be present if minute is present');
+  }
+  if (second !== undefined && minute === undefined) {
+    throw new Error('Minute must be present if second is present');
+  }
+  if (millisecond !== undefined && second === undefined) {
+    throw new Error('Second must be present if millisecond is present');
+  }
+  
+  if (year < 1 || year > 9999) {
+    throw new Error('Year must be between 1 and 9999');
+  }
+  if (month !== undefined && (month < 1 || month > 12)) {
+    throw new Error('Month must be between 1 and 12');
+  }
+  if (day !== undefined && (day < 1 || day > 31)) {
+    throw new Error('Day must be between 1 and 31');
+  }
+  if (hour !== undefined && (hour < 0 || hour > 23)) {
+    throw new Error('Hour must be between 0 and 23');
+  }
+  if (minute !== undefined && (minute < 0 || minute > 59)) {
+    throw new Error('Minute must be between 0 and 59');
+  }
+  if (second !== undefined && (second < 0 || second > 59)) {
+    throw new Error('Second must be between 0 and 59');
+  }
+  if (millisecond !== undefined && (millisecond < 0 || millisecond > 999)) {
+    throw new Error('Millisecond must be between 0 and 999');
+  }
+  
+  // Determine precision
+  let level: DateTimePrecisionLevel;
+  if (millisecond !== undefined) {
+    level = 'millisecond';
+  } else if (second !== undefined) {
+    level = 'second';
+  } else if (minute !== undefined) {
+    level = 'minute';
+  } else if (hour !== undefined) {
+    level = 'hour';
+  } else if (day !== undefined) {
+    level = 'day';
+  } else if (month !== undefined) {
+    level = 'month';
+  } else {
+    level = 'year';
+  }
+  
+  return {
+    kind: 'FHIRDateTime',
+    year,
+    month,
+    day,
+    hour,
+    minute,
+    second,
+    millisecond,
+    timezoneOffset,
+    precision: {
+      level,
+      value: PRECISION_VALUES[level]
+    }
+  };
 }
 
 // ============================================================================
-// Parser (Phase 2 - Basic implementation)
+// Comparison Operations
 // ============================================================================
 
-export function parseTemporalLiteral(literal: string): FHIRDate | FHIRDateTime | FHIRTime {
+export function equals(a: TemporalValue, b: TemporalValue): boolean | null {
+  // Different types are never equal
+  if (a.kind !== b.kind) {
+    return false;
+  }
+  
+  if (isFHIRDate(a) && isFHIRDate(b)) {
+    // Compare year (always present)
+    if (a.year !== b.year) return false;
+    
+    // Compare month - if one has it and other doesn't, return null
+    if (a.month !== undefined || b.month !== undefined) {
+      if (a.month === undefined || b.month === undefined) return null;
+      if (a.month !== b.month) return false;
+    }
+    
+    // Compare day - if one has it and other doesn't, return null
+    if (a.day !== undefined || b.day !== undefined) {
+      if (a.day === undefined || b.day === undefined) return null;
+      if (a.day !== b.day) return false;
+    }
+    
+    return true;
+  }
+  
+  if (isFHIRTime(a) && isFHIRTime(b)) {
+    // Compare hour (always present)
+    if (a.hour !== b.hour) return false;
+    
+    // Compare minute
+    if (a.minute !== undefined || b.minute !== undefined) {
+      if (a.minute === undefined || b.minute === undefined) return null;
+      if (a.minute !== b.minute) return false;
+    }
+    
+    // Compare second/millisecond as a single precision per spec
+    if ((a.second !== undefined || a.millisecond !== undefined) || 
+        (b.second !== undefined || b.millisecond !== undefined)) {
+      const aHasSecondPrecision = a.second !== undefined || a.millisecond !== undefined;
+      const bHasSecondPrecision = b.second !== undefined || b.millisecond !== undefined;
+      
+      if (!aHasSecondPrecision || !bHasSecondPrecision) return null;
+      
+      // Compare as decimal seconds
+      const aSeconds = (a.second ?? 0) + (a.millisecond ?? 0) / 1000;
+      const bSeconds = (b.second ?? 0) + (b.millisecond ?? 0) / 1000;
+      if (Math.abs(aSeconds - bSeconds) > 0.0001) return false;
+    }
+    
+    return true;
+  }
+  
+  if (isFHIRDateTime(a) && isFHIRDateTime(b)) {
+    // For DateTime with timezones, must normalize or both be naive
+    if (a.timezoneOffset !== undefined && b.timezoneOffset !== undefined) {
+      // Both have timezones - need to normalize to UTC for comparison
+      const aUtc = normalizeToUTC(a);
+      const bUtc = normalizeToUTC(b);
+      
+      // Compare year
+      if (aUtc.year !== bUtc.year) return false;
+      
+      // Compare month
+      if (aUtc.month !== undefined || bUtc.month !== undefined) {
+        if (aUtc.month === undefined || bUtc.month === undefined) return null;
+        if (aUtc.month !== bUtc.month) return false;
+      }
+      
+      // Compare day
+      if (aUtc.day !== undefined || bUtc.day !== undefined) {
+        if (aUtc.day === undefined || bUtc.day === undefined) return null;
+        if (aUtc.day !== bUtc.day) return false;
+      }
+      
+      // Compare hour
+      if (aUtc.hour !== undefined || bUtc.hour !== undefined) {
+        if (aUtc.hour === undefined || bUtc.hour === undefined) return null;
+        if (aUtc.hour !== bUtc.hour) return false;
+      }
+      
+      // Compare minute
+      if (aUtc.minute !== undefined || bUtc.minute !== undefined) {
+        if (aUtc.minute === undefined || bUtc.minute === undefined) return null;
+        if (aUtc.minute !== bUtc.minute) return false;
+      }
+      
+      // Compare second/millisecond as single precision
+      if ((aUtc.second !== undefined || aUtc.millisecond !== undefined) || 
+          (bUtc.second !== undefined || bUtc.millisecond !== undefined)) {
+        const aHasSecondPrecision = aUtc.second !== undefined || aUtc.millisecond !== undefined;
+        const bHasSecondPrecision = bUtc.second !== undefined || bUtc.millisecond !== undefined;
+        
+        if (!aHasSecondPrecision || !bHasSecondPrecision) return null;
+        
+        const aSeconds = (aUtc.second ?? 0) + (aUtc.millisecond ?? 0) / 1000;
+        const bSeconds = (bUtc.second ?? 0) + (bUtc.millisecond ?? 0) / 1000;
+        if (Math.abs(aSeconds - bSeconds) > 0.0001) return false;
+      }
+      
+      return true;
+    } else if (a.timezoneOffset === undefined && b.timezoneOffset === undefined) {
+      // Both naive - direct comparison
+      // Compare year
+      if (a.year !== b.year) return false;
+      
+      // Compare month
+      if (a.month !== undefined || b.month !== undefined) {
+        if (a.month === undefined || b.month === undefined) return null;
+        if (a.month !== b.month) return false;
+      }
+      
+      // Compare day
+      if (a.day !== undefined || b.day !== undefined) {
+        if (a.day === undefined || b.day === undefined) return null;
+        if (a.day !== b.day) return false;
+      }
+      
+      // Compare hour
+      if (a.hour !== undefined || b.hour !== undefined) {
+        if (a.hour === undefined || b.hour === undefined) return null;
+        if (a.hour !== b.hour) return false;
+      }
+      
+      // Compare minute
+      if (a.minute !== undefined || b.minute !== undefined) {
+        if (a.minute === undefined || b.minute === undefined) return null;
+        if (a.minute !== b.minute) return false;
+      }
+      
+      // Compare second/millisecond as single precision
+      if ((a.second !== undefined || a.millisecond !== undefined) || 
+          (b.second !== undefined || b.millisecond !== undefined)) {
+        const aHasSecondPrecision = a.second !== undefined || a.millisecond !== undefined;
+        const bHasSecondPrecision = b.second !== undefined || b.millisecond !== undefined;
+        
+        if (!aHasSecondPrecision || !bHasSecondPrecision) return null;
+        
+        const aSeconds = (a.second ?? 0) + (a.millisecond ?? 0) / 1000;
+        const bSeconds = (b.second ?? 0) + (b.millisecond ?? 0) / 1000;
+        if (Math.abs(aSeconds - bSeconds) > 0.0001) return false;
+      }
+      
+      return true;
+    } else {
+      // One has timezone, one doesn't - can't determine equality
+      return null;
+    }
+  }
+  
+  return false;
+}
+
+export function equivalent(a: TemporalValue, b: TemporalValue): boolean {
+  // Different types are never equivalent
+  if (a.kind !== b.kind) {
+    return false;
+  }
+  
+  // Different precision is false for equivalent
+  if (a.precision.value !== b.precision.value) {
+    return false;
+  }
+  
+  // For same type and precision, use equals logic
+  const result = equals(a, b);
+  return result === true; // Convert null to false
+}
+
+export function compare(a: TemporalValue, b: TemporalValue): -1 | 0 | 1 | null {
+  // Different types can't be compared
+  if (a.kind !== b.kind) {
+    return null;
+  }
+  
+  if (isFHIRDate(a) && isFHIRDate(b)) {
+    // Compare year (always present)
+    if (a.year !== b.year) return a.year < b.year ? -1 : 1;
+    
+    // Compare month - if one has it and other doesn't, return null
+    if (a.month !== undefined || b.month !== undefined) {
+      if (a.month === undefined || b.month === undefined) return null;
+      if (a.month !== b.month) return a.month < b.month ? -1 : 1;
+    }
+    
+    // Compare day - if one has it and other doesn't, return null
+    if (a.day !== undefined || b.day !== undefined) {
+      if (a.day === undefined || b.day === undefined) return null;
+      if (a.day !== b.day) return a.day < b.day ? -1 : 1;
+    }
+    
+    return 0;
+  }
+  
+  if (isFHIRTime(a) && isFHIRTime(b)) {
+    // Compare hour (always present)
+    if (a.hour !== b.hour) return a.hour < b.hour ? -1 : 1;
+    
+    // Compare minute - if one has it and other doesn't, return null
+    if (a.minute !== undefined || b.minute !== undefined) {
+      if (a.minute === undefined || b.minute === undefined) return null;
+      if (a.minute !== b.minute) return a.minute < b.minute ? -1 : 1;
+    }
+    
+    // Compare second - if one has it and other doesn't, return null
+    if (a.second !== undefined || b.second !== undefined) {
+      if (a.second === undefined || b.second === undefined) return null;
+      if (a.second !== b.second) return a.second < b.second ? -1 : 1;
+    }
+    
+    // Compare millisecond - if one has it and other doesn't, return null
+    if (a.millisecond !== undefined || b.millisecond !== undefined) {
+      if (a.millisecond === undefined || b.millisecond === undefined) return null;
+      if (a.millisecond !== b.millisecond) return a.millisecond < b.millisecond ? -1 : 1;
+    }
+    
+    return 0;
+  }
+  
+  if (isFHIRDateTime(a) && isFHIRDateTime(b)) {
+    // Handle timezone comparison
+    if (a.timezoneOffset !== undefined && b.timezoneOffset !== undefined) {
+      // Both have timezones - normalize to UTC
+      const aUtc = normalizeToUTC(a);
+      const bUtc = normalizeToUTC(b);
+      
+      // Compare year (always present)
+      if (aUtc.year !== bUtc.year) return aUtc.year < bUtc.year ? -1 : 1;
+      
+      // Compare month
+      if (aUtc.month !== undefined || bUtc.month !== undefined) {
+        if (aUtc.month === undefined || bUtc.month === undefined) return null;
+        if (aUtc.month !== bUtc.month) return aUtc.month < bUtc.month ? -1 : 1;
+      }
+      
+      // Compare day
+      if (aUtc.day !== undefined || bUtc.day !== undefined) {
+        if (aUtc.day === undefined || bUtc.day === undefined) return null;
+        if (aUtc.day !== bUtc.day) return aUtc.day < bUtc.day ? -1 : 1;
+      }
+      
+      // Compare hour
+      if (aUtc.hour !== undefined || bUtc.hour !== undefined) {
+        if (aUtc.hour === undefined || bUtc.hour === undefined) return null;
+        if (aUtc.hour !== bUtc.hour) return aUtc.hour < bUtc.hour ? -1 : 1;
+      }
+      
+      // Compare minute
+      if (aUtc.minute !== undefined || bUtc.minute !== undefined) {
+        if (aUtc.minute === undefined || bUtc.minute === undefined) return null;
+        if (aUtc.minute !== bUtc.minute) return aUtc.minute < bUtc.minute ? -1 : 1;
+      }
+      
+      // Compare second
+      if (aUtc.second !== undefined || bUtc.second !== undefined) {
+        if (aUtc.second === undefined || bUtc.second === undefined) return null;
+        if (aUtc.second !== bUtc.second) return aUtc.second < bUtc.second ? -1 : 1;
+      }
+      
+      // Compare millisecond
+      if (aUtc.millisecond !== undefined || bUtc.millisecond !== undefined) {
+        if (aUtc.millisecond === undefined || bUtc.millisecond === undefined) return null;
+        if (aUtc.millisecond !== bUtc.millisecond) return aUtc.millisecond < bUtc.millisecond ? -1 : 1;
+      }
+      
+      return 0;
+    } else if (a.timezoneOffset === undefined && b.timezoneOffset === undefined) {
+      // Both naive - direct comparison
+      // Compare year (always present)
+      if (a.year !== b.year) return a.year < b.year ? -1 : 1;
+      
+      // Compare month
+      if (a.month !== undefined || b.month !== undefined) {
+        if (a.month === undefined || b.month === undefined) return null;
+        if (a.month !== b.month) return a.month < b.month ? -1 : 1;
+      }
+      
+      // Compare day
+      if (a.day !== undefined || b.day !== undefined) {
+        if (a.day === undefined || b.day === undefined) return null;
+        if (a.day !== b.day) return a.day < b.day ? -1 : 1;
+      }
+      
+      // Compare hour
+      if (a.hour !== undefined || b.hour !== undefined) {
+        if (a.hour === undefined || b.hour === undefined) return null;
+        if (a.hour !== b.hour) return a.hour < b.hour ? -1 : 1;
+      }
+      
+      // Compare minute
+      if (a.minute !== undefined || b.minute !== undefined) {
+        if (a.minute === undefined || b.minute === undefined) return null;
+        if (a.minute !== b.minute) return a.minute < b.minute ? -1 : 1;
+      }
+      
+      // Compare second
+      if (a.second !== undefined || b.second !== undefined) {
+        if (a.second === undefined || b.second === undefined) return null;
+        if (a.second !== b.second) return a.second < b.second ? -1 : 1;
+      }
+      
+      // Compare millisecond
+      if (a.millisecond !== undefined || b.millisecond !== undefined) {
+        if (a.millisecond === undefined || b.millisecond === undefined) return null;
+        if (a.millisecond !== b.millisecond) return a.millisecond < b.millisecond ? -1 : 1;
+      }
+      
+      return 0;
+    } else {
+      // Mixed timezone state - can't compare
+      return null;
+    }
+  }
+  
+  return null;
+}
+
+// ============================================================================
+// String Formatting
+// ============================================================================
+
+export function toTemporalString(value: TemporalValue): string {
+  if (isFHIRDate(value)) {
+    return formatDate(value);
+  }
+  if (isFHIRTime(value)) {
+    return formatTime(value);
+  }
+  if (isFHIRDateTime(value)) {
+    return formatDateTime(value);
+  }
+  return '';
+}
+
+export function toFHIRPathLiteral(value: TemporalValue): string {
+  if (isFHIRDate(value)) {
+    return `@${formatDate(value)}`;
+  }
+  if (isFHIRTime(value)) {
+    return `@T${formatTime(value)}`;
+  }
+  if (isFHIRDateTime(value)) {
+    return `@${formatDateTime(value)}`;
+  }
+  return '';
+}
+
+function formatDate(date: FHIRDate): string {
+  const yearStr = date.year >= 0 && date.year < 10000 ? 
+    String(date.year).padStart(4, '0') : 
+    String(date.year);
+  
+  if (date.precision.level === 'year') {
+    return yearStr;
+  } else if (date.precision.level === 'month') {
+    return `${yearStr}-${String(date.month).padStart(2, '0')}`;
+  } else {
+    return `${yearStr}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`;
+  }
+}
+
+function formatTime(time: FHIRTime): string {
+  let result = String(time.hour).padStart(2, '0');
+  
+  if (time.minute !== undefined) {
+    result += ':' + String(time.minute).padStart(2, '0');
+    
+    if (time.second !== undefined) {
+      result += ':' + String(time.second).padStart(2, '0');
+      
+      if (time.millisecond !== undefined) {
+        result += '.' + String(time.millisecond).padStart(3, '0');
+      }
+    }
+  }
+  
+  return result;
+}
+
+function formatDateTime(dt: FHIRDateTime): string {
+  const yearStr = dt.year >= 0 && dt.year < 10000 ? 
+    String(dt.year).padStart(4, '0') : 
+    String(dt.year);
+  
+  let result = yearStr;
+  
+  if (dt.month !== undefined) {
+    result += '-' + String(dt.month).padStart(2, '0');
+    
+    if (dt.day !== undefined) {
+      result += '-' + String(dt.day).padStart(2, '0');
+      
+      if (dt.hour !== undefined) {
+        result += 'T' + String(dt.hour).padStart(2, '0');
+        
+        if (dt.minute !== undefined) {
+          result += ':' + String(dt.minute).padStart(2, '0');
+          
+          if (dt.second !== undefined) {
+            result += ':' + String(dt.second).padStart(2, '0');
+            
+            if (dt.millisecond !== undefined) {
+              result += '.' + String(dt.millisecond).padStart(3, '0');
+            }
+          }
+        }
+        
+        // Add timezone
+        if (dt.timezoneOffset !== undefined) {
+          if (dt.timezoneOffset === 0) {
+            result += 'Z';
+          } else {
+            const sign = dt.timezoneOffset < 0 ? '-' : '+';
+            const absOffset = Math.abs(dt.timezoneOffset);
+            const hours = Math.floor(absOffset / 60);
+            const minutes = absOffset % 60;
+            result += sign + String(hours).padStart(2, '0') + ':' + String(minutes).padStart(2, '0');
+          }
+        }
+      }
+      // No T suffix when we have complete date (year-month-day) but no time
+    } else {
+      // Month precision with T suffix (partial date)
+      result += 'T';
+    }
+  } else {
+    // Year precision with T suffix (partial date)
+    result += 'T';
+  }
+  
+  return result;
+}
+
+// ============================================================================
+// Parsing
+// ============================================================================
+
+export function parseTemporalLiteral(literal: string): TemporalValue {
   if (!literal.startsWith('@')) {
     throw new Error('Temporal literal must start with @');
   }
   
   const value = literal.substring(1);
   
-  // Time literal
+  // Time literal: @T...
   if (value.startsWith('T')) {
-    const timePart = value.substring(1);
-    const parts = timePart.split(/[:.]/)
-    const hour = parseInt(parts[0] ?? '0', 10);
-    const minute = parts[1] ? parseInt(parts[1], 10) : undefined;
-    const second = parts[2] ? parseInt(parts[2], 10) : undefined;
-    const millisecond = parts[3] ? parseInt(parts[3], 10) : undefined;
-    
-    // Validate parsed values
-    if (isNaN(hour) || (minute !== undefined && isNaN(minute)) || 
-        (second !== undefined && isNaN(second)) || (millisecond !== undefined && isNaN(millisecond))) {
-      throw new Error(`Invalid time format: ${value}`);
-    }
-    
-    return new FHIRTime(hour, minute, second, millisecond);
+    return parseTimeLiteral(value.substring(1));
   }
   
-  // Date or DateTime literal
-  const hasT = value.includes('T');
+  // Check for DateTime vs Date
+  const hasTimeComponent = /T\d/.test(value);
   
-  if (!hasT && !value.endsWith('T')) {
-    // Pure Date
-    const parts = value.split('-');
-    const year = parseInt(parts[0] ?? '0', 10);
-    const month = parts[1] ? parseInt(parts[1], 10) : undefined;
-    const day = parts[2] ? parseInt(parts[2], 10) : undefined;
-    
-    // Validate parsed values
-    if (isNaN(year) || (month !== undefined && isNaN(month)) || (day !== undefined && isNaN(day))) {
-      throw new Error(`Invalid date format: ${value}`);
-    }
-    
-    return new FHIRDate(year, month, day);
+  if (hasTimeComponent) {
+    return parseDateTimeLiteral(value);
+  } else if (value.endsWith('T')) {
+    // DateTime with only date precision
+    return parseDateTimeLiteral(value.slice(0, -1));
   } else {
-    // DateTime
-    let datePart: string;
-    let timePart: string | undefined;
-    let tzPart: string | undefined;
-    
-    if (value.endsWith('T')) {
-      // Partial DateTime like @2014T
-      datePart = value.slice(0, -1);
-    } else {
-      const tIndex = value.indexOf('T');
-      datePart = value.substring(0, tIndex);
-      let remaining = value.substring(tIndex + 1);
-      
-      // Check for timezone
-      const tzMatch = remaining.match(/(Z|[+-]\d{2}:\d{2})$/);
-      if (tzMatch) {
-        tzPart = tzMatch[1]!;
-        timePart = remaining.substring(0, remaining.length - tzPart.length);
-      } else {
-        timePart = remaining;
-      }
-    }
-    
-    // Parse date components
-    const dateParts = datePart.split('-');
-    const year = parseInt(dateParts[0] ?? '0', 10);
-    const month = dateParts[1] ? parseInt(dateParts[1], 10) : undefined;
-    const day = dateParts[2] ? parseInt(dateParts[2], 10) : undefined;
-    
-    // Validate date components
-    if (isNaN(year) || (month !== undefined && isNaN(month)) || (day !== undefined && isNaN(day))) {
-      throw new Error(`Invalid datetime format: ${value}`);
-    }
-    
-    // Parse time components
-    let hour: number | undefined;
-    let minute: number | undefined;
-    let second: number | undefined;
-    let millisecond: number | undefined;
-    
-    if (timePart) {
-      const timeParts = timePart.split(/[:.]/)
-      hour = parseInt(timeParts[0] ?? '0', 10);
-      minute = timeParts[1] ? parseInt(timeParts[1], 10) : undefined;
-      second = timeParts[2] ? parseInt(timeParts[2], 10) : undefined;
-      millisecond = timeParts[3] ? parseInt(timeParts[3], 10) : undefined;
-      
-      // Validate time components
-      if ((hour !== undefined && isNaN(hour)) || (minute !== undefined && isNaN(minute)) || 
-          (second !== undefined && isNaN(second)) || (millisecond !== undefined && isNaN(millisecond))) {
-        throw new Error(`Invalid datetime format: ${value}`);
-      }
-    }
-    
-    // Parse timezone
-    let timezoneOffset: number | undefined;
-    if (tzPart) {
-      if (tzPart === 'Z') {
-        timezoneOffset = 0;
-      } else {
-        const sign = tzPart[0] === '+' ? 1 : -1;
-        const tzParts = tzPart.substring(1).split(':');
-        const hours = parseInt(tzParts[0] ?? '0', 10);
-        const minutes = parseInt(tzParts[1] ?? '0', 10);
-        timezoneOffset = sign * (hours * 60 + minutes);
-      }
-    }
-    
-    return new FHIRDateTime(year, month, day, hour, minute, second, millisecond, timezoneOffset);
+    // Date literal
+    return parseDateLiteral(value);
   }
 }
 
+function parseDateLiteral(value: string): FHIRDate {
+  const match = value.match(/^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$/);
+  if (!match) {
+    throw new Error(`Invalid date literal: @${value}`);
+  }
+  
+  const year = parseInt(match[1]!, 10);
+  const month = match[2] ? parseInt(match[2]!, 10) : undefined;
+  const day = match[3] ? parseInt(match[3]!, 10) : undefined;
+  
+  return createDate(year, month, day);
+}
+
+function parseTimeLiteral(value: string): FHIRTime {
+  const match = value.match(/^(\d{2})(?::(\d{2})(?::(\d{2})(?:\.(\d{3}))?)?)?$/);
+  if (!match) {
+    throw new Error(`Invalid time literal: @T${value}`);
+  }
+  
+  const hour = parseInt(match[1]!, 10);
+  const minute = match[2] ? parseInt(match[2]!, 10) : undefined;
+  const second = match[3] ? parseInt(match[3]!, 10) : undefined;
+  const millisecond = match[4] ? parseInt(match[4]!, 10) : undefined;
+  
+  return createTime(hour, minute, second, millisecond);
+}
+
+function parseDateTimeLiteral(value: string): FHIRDateTime {
+  // Remove trailing T if present (for date-only DateTime)
+  const cleanValue = value.endsWith('T') ? value.slice(0, -1) : value;
+  
+  // Split into date and time parts
+  const parts = cleanValue.split('T');
+  const datePart = parts[0];
+  const timePart = parts[1];
+  
+  // Parse date part
+  const dateMatch = datePart?.match(/^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$/);
+  if (!dateMatch) {
+    throw new Error(`Invalid datetime literal: @${value}`);
+  }
+  
+  const year = parseInt(dateMatch[1]!, 10);
+  const month = dateMatch[2] ? parseInt(dateMatch[2]!, 10) : undefined;
+  const day = dateMatch[3] ? parseInt(dateMatch[3]!, 10) : undefined;
+  
+  let hour: number | undefined;
+  let minute: number | undefined;
+  let second: number | undefined;
+  let millisecond: number | undefined;
+  let timezoneOffset: number | undefined;
+  
+  // Parse time part if present
+  if (timePart) {
+    // Extract timezone
+    let timeWithoutTz = timePart;
+    const tzMatch = timePart.match(/(Z|[+-]\d{2}:\d{2})$/);
+    
+    if (tzMatch) {
+      timeWithoutTz = timePart.substring(0, timePart.length - tzMatch[0].length);
+      const tz = tzMatch[0];
+      
+      if (tz === 'Z') {
+        timezoneOffset = 0;
+      } else {
+        const tzParts = tz.match(/([+-])(\d{2}):(\d{2})/);
+        if (tzParts) {
+          const sign = tzParts[1] === '+' ? 1 : -1;
+          const hours = parseInt(tzParts[2]!, 10);
+          const minutes = parseInt(tzParts[3]!, 10);
+          timezoneOffset = sign * (hours * 60 + minutes);
+        }
+      }
+    }
+    
+    // Parse time components
+    const timeMatch = timeWithoutTz.match(/^(\d{2})(?::(\d{2})(?::(\d{2})(?:\.(\d{3}))?)?)?$/);
+    if (timeMatch) {
+      hour = parseInt(timeMatch[1]!, 10);
+      minute = timeMatch[2] ? parseInt(timeMatch[2]!, 10) : undefined;
+      second = timeMatch[3] ? parseInt(timeMatch[3]!, 10) : undefined;
+      millisecond = timeMatch[4] ? parseInt(timeMatch[4]!, 10) : undefined;
+    }
+  }
+  
+  return createDateTime(year, month, day, hour, minute, second, millisecond, timezoneOffset);
+}
+
 // ============================================================================
-// Exports for backward compatibility (temporary)
+// Arithmetic Operations
 // ============================================================================
 
-export {
-  FHIRDate as Date,
-  FHIRDateTime as DateTime,
-  FHIRTime as Time
+const DAYS_PER_MONTH = 30;
+const DAYS_PER_YEAR = 365;
+const DAYS_PER_WEEK = 7;
+const HOURS_PER_DAY = 24;
+const MINUTES_PER_HOUR = 60;
+const SECONDS_PER_MINUTE = 60;
+const MILLISECONDS_PER_SECOND = 1000;
+
+function normalizeUnit(unit: string): string {
+  // Handle UCUM units
+  const ucumMap: Record<string, string> = {
+    // 'a' (annum) is not supported for temporal arithmetic - use 'year' keyword
+    'mo': 'month',    // month
+    'wk': 'week',     // week
+    'd': 'day',       // day
+    'h': 'hour',      // hour
+    'min': 'minute',  // minute
+    's': 'second',    // second
+    'ms': 'millisecond' // millisecond
+  };
+  
+  if (ucumMap[unit]) {
+    return ucumMap[unit];
+  }
+  
+  // Remove plurals for regular units
+  if (unit.endsWith('s') && unit !== 's' && unit !== 'ms') {
+    return unit.slice(0, -1);
+  }
+  
+  return unit;
+}
+
+function convertAndTruncate(quantity: TimeQuantity, targetUnit: string): number {
+  const normalizedQuantityUnit = normalizeUnit(quantity.unit);
+  
+  // Direct conversion for calendar units (year <-> month)
+  if (normalizedQuantityUnit === 'month' && targetUnit === 'year') {
+    return Math.trunc(quantity.value / 12);
+  }
+  if (normalizedQuantityUnit === 'year' && targetUnit === 'month') {
+    return Math.trunc(quantity.value * 12);
+  }
+  
+  let valueInDays = 0;
+  
+  // Convert to days first
+  switch (normalizedQuantityUnit) {
+    case 'year':
+      valueInDays = quantity.value * DAYS_PER_YEAR;
+      break;
+    case 'month':
+      valueInDays = quantity.value * DAYS_PER_MONTH;
+      break;
+    case 'week':
+      valueInDays = quantity.value * DAYS_PER_WEEK;
+      break;
+    case 'day':
+      valueInDays = quantity.value;
+      break;
+    case 'hour':
+      valueInDays = quantity.value / HOURS_PER_DAY;
+      break;
+    case 'minute':
+      valueInDays = quantity.value / (HOURS_PER_DAY * MINUTES_PER_HOUR);
+      break;
+    case 'second':
+      valueInDays = quantity.value / (HOURS_PER_DAY * MINUTES_PER_HOUR * SECONDS_PER_MINUTE);
+      break;
+    case 'millisecond':
+      valueInDays = quantity.value / (HOURS_PER_DAY * MINUTES_PER_HOUR * SECONDS_PER_MINUTE * MILLISECONDS_PER_SECOND);
+      break;
+  }
+  
+  // Convert from days to target unit - use Math.trunc for truncation towards zero
+  switch (targetUnit) {
+    case 'year':
+      return Math.trunc(valueInDays / DAYS_PER_YEAR);
+    case 'month':
+      return Math.trunc(valueInDays / DAYS_PER_MONTH);
+    case 'day':
+      return Math.trunc(valueInDays);
+    case 'hour':
+      return Math.trunc(valueInDays * HOURS_PER_DAY);
+    case 'minute':
+      return Math.trunc(valueInDays * HOURS_PER_DAY * MINUTES_PER_HOUR);
+    case 'second':
+      return Math.trunc(valueInDays * HOURS_PER_DAY * MINUTES_PER_HOUR * SECONDS_PER_MINUTE);
+    case 'millisecond':
+      return Math.trunc(valueInDays * HOURS_PER_DAY * MINUTES_PER_HOUR * SECONDS_PER_MINUTE * MILLISECONDS_PER_SECOND);
+    default:
+      return 0;
+  }
+}
+
+export function add(temporal: TemporalValue, quantity: TimeQuantity): TemporalValue {
+  if (isFHIRDate(temporal)) {
+    return addToDate(temporal, quantity);
+  }
+  if (isFHIRTime(temporal)) {
+    return addToTime(temporal, quantity);
+  }
+  if (isFHIRDateTime(temporal)) {
+    return addToDateTime(temporal, quantity);
+  }
+  return temporal;
+}
+
+export function subtract(temporal: TemporalValue, quantity: TimeQuantity): TemporalValue {
+  const negativeQuantity = createTimeQuantity(-quantity.value, quantity.unit);
+  return add(temporal, negativeQuantity);
+}
+
+// Helper to get the maximum day for a given month/year
+function getDaysInMonth(year: number, month: number): number {
+  if (month === 2) {
+    // February - check for leap year
+    const isLeapYear = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+    return isLeapYear ? 29 : 28;
+  } else if ([4, 6, 9, 11].includes(month)) {
+    return 30;
+  } else {
+    return 31;
+  }
+}
+
+// Helper to clamp a day to the valid range for a month
+function clampDay(year: number, month: number | undefined, day: number | undefined): number | undefined {
+  if (day === undefined || month === undefined) {
+    return day;
+  }
+  const maxDay = getDaysInMonth(year, month);
+  return Math.min(day, maxDay);
+}
+
+function addToDate(date: FHIRDate, quantity: TimeQuantity): FHIRDate {
+  // Check for unsupported UCUM units
+  if (quantity.unit === 'a') {
+    throw new Error("Cannot use variable-duration unit 'a' with Date - use calendar duration keywords instead");
+  }
+  
+  const normalizedUnit = normalizeUnit(quantity.unit);
+  
+  // Handle time units that can convert to days
+  if (normalizedUnit === 'hour') {
+    // For hours, ignore decimal portion and convert to days if possible
+    const hours = Math.trunc(quantity.value);
+    const days = Math.trunc(hours / 24);
+    if (days > 0) {
+      const dayQuantity = createTimeQuantity(days, 'day');
+      return addToDate(date, dayQuantity);
+    }
+    return date; // Less than 24 hours, no change
+  }
+  
+  // Only year/month/week/day units allowed for Date
+  // Other time units (minute/second/millisecond) are ignored - return original
+  if (!['year', 'month', 'week', 'day'].includes(normalizedUnit)) {
+    return date;
+  }
+  
+  let newYear = date.year;
+  let newMonth = date.month;
+  let newDay = date.day;
+  
+  if (normalizedUnit === 'year') {
+    const yearsToAdd = Math.trunc(quantity.value);
+    newYear += yearsToAdd;
+  } else if (normalizedUnit === 'month') {
+    const monthsToAdd = Math.trunc(quantity.value);
+    if (date.month !== undefined) {
+      let totalMonths = (date.year * 12) + (date.month - 1) + monthsToAdd;
+      newYear = Math.floor(totalMonths / 12);
+      newMonth = (totalMonths % 12) + 1;
+      if (newMonth <= 0) {
+        newMonth += 12;
+        newYear--;
+      }
+    } else {
+      // Convert months to years
+      const yearsToAdd = convertAndTruncate(quantity, 'year');
+      newYear += yearsToAdd;
+    }
+  } else if (normalizedUnit === 'week') {
+    // Convert weeks to days and handle as days
+    // For calendar units, truncate decimal values towards zero
+    const weeksToAdd = Math.trunc(quantity.value);
+    const daysQuantity = createTimeQuantity(weeksToAdd * 7, 'day');
+    return addToDate(date, daysQuantity);
+  } else if (normalizedUnit === 'day') {
+    if (date.day !== undefined && date.month !== undefined) {
+      // Proper day addition with calendar logic
+      const daysToAdd = Math.trunc(quantity.value);
+      let currentYear = newYear;
+      let currentMonth = newMonth!;
+      let currentDay = newDay! + daysToAdd;
+      
+      // Handle overflow (moving forward in time)
+      while (currentDay > getDaysInMonth(currentYear, currentMonth)) {
+        currentDay -= getDaysInMonth(currentYear, currentMonth);
+        currentMonth++;
+        if (currentMonth > 12) {
+          currentMonth = 1;
+          currentYear++;
+        }
+      }
+      
+      // Handle underflow (moving backward in time)
+      while (currentDay < 1) {
+        currentMonth--;
+        if (currentMonth < 1) {
+          currentMonth = 12;
+          currentYear--;
+        }
+        currentDay += getDaysInMonth(currentYear, currentMonth);
+      }
+      
+      newYear = currentYear;
+      newMonth = currentMonth;
+      newDay = currentDay;
+    } else if (date.month !== undefined) {
+      // Convert days to months
+      const monthsToAdd = convertAndTruncate(quantity, 'month');
+      let totalMonths = (date.year * 12) + (date.month - 1) + monthsToAdd;
+      newYear = Math.floor(totalMonths / 12);
+      newMonth = (totalMonths % 12) + 1;
+    } else {
+      // Convert days to years
+      const yearsToAdd = convertAndTruncate(quantity, 'year');
+      newYear += yearsToAdd;
+    }
+  }
+  
+  // Clamp the day if necessary (e.g., Jan 31 + 1 month = Feb 29/28)
+  newDay = clampDay(newYear, newMonth, newDay);
+  
+  return createDate(newYear, newMonth, newDay);
+}
+
+function addToTime(time: FHIRTime, quantity: TimeQuantity): FHIRTime {
+  // Check for unsupported UCUM units
+  if (quantity.unit === 'a') {
+    throw new Error("Cannot use variable-duration unit 'a' with Time - use calendar duration keywords instead");
+  }
+  
+  const normalizedUnit = normalizeUnit(quantity.unit);
+  
+  // Only time units allowed
+  if (!['hour', 'minute', 'second', 'millisecond'].includes(normalizedUnit)) {
+    throw new Error(`Cannot add ${quantity.unit} to Time`);
+  }
+  
+  // Convert everything to milliseconds
+  let totalMs = time.hour * MINUTES_PER_HOUR * SECONDS_PER_MINUTE * MILLISECONDS_PER_SECOND;
+  
+  if (time.minute !== undefined) {
+    totalMs += time.minute * SECONDS_PER_MINUTE * MILLISECONDS_PER_SECOND;
+  }
+  if (time.second !== undefined) {
+    totalMs += time.second * MILLISECONDS_PER_SECOND;
+  }
+  if (time.millisecond !== undefined) {
+    totalMs += time.millisecond;
+  }
+  
+  // Add the quantity in milliseconds
+  let quantityMs = 0;
+  switch (normalizedUnit) {
+    case 'hour':
+      // For precisions above seconds, ignore decimal portion per spec
+      quantityMs = Math.trunc(quantity.value) * MINUTES_PER_HOUR * SECONDS_PER_MINUTE * MILLISECONDS_PER_SECOND;
+      break;
+    case 'minute':
+      // For precisions above seconds, ignore decimal portion per spec
+      quantityMs = Math.trunc(quantity.value) * SECONDS_PER_MINUTE * MILLISECONDS_PER_SECOND;
+      break;
+    case 'second':
+      quantityMs = quantity.value * MILLISECONDS_PER_SECOND;
+      break;
+    case 'millisecond':
+      quantityMs = quantity.value;
+      break;
+  }
+  
+  totalMs += quantityMs;
+  
+  // Wrap around 24 hours
+  const dayMs = HOURS_PER_DAY * MINUTES_PER_HOUR * SECONDS_PER_MINUTE * MILLISECONDS_PER_SECOND;
+  totalMs = totalMs % dayMs;
+  if (totalMs < 0) {
+    totalMs += dayMs;
+  }
+  
+  // Convert back to components
+  const newHour = Math.floor(totalMs / (MINUTES_PER_HOUR * SECONDS_PER_MINUTE * MILLISECONDS_PER_SECOND));
+  totalMs %= MINUTES_PER_HOUR * SECONDS_PER_MINUTE * MILLISECONDS_PER_SECOND;
+  
+  let newMinute: number | undefined;
+  let newSecond: number | undefined;
+  let newMillisecond: number | undefined;
+  
+  if (time.minute !== undefined) {
+    newMinute = Math.floor(totalMs / (SECONDS_PER_MINUTE * MILLISECONDS_PER_SECOND));
+    totalMs %= SECONDS_PER_MINUTE * MILLISECONDS_PER_SECOND;
+  }
+  
+  if (time.second !== undefined) {
+    newSecond = Math.floor(totalMs / MILLISECONDS_PER_SECOND);
+    totalMs %= MILLISECONDS_PER_SECOND;
+    
+    // Include milliseconds if original had them OR if we have fractional seconds
+    if (time.millisecond !== undefined || totalMs > 0) {
+      newMillisecond = Math.floor(totalMs);
+    }
+  } else if (time.millisecond !== undefined) {
+    newMillisecond = Math.floor(totalMs);
+  }
+  
+  return createTime(newHour, newMinute, newSecond, newMillisecond);
+}
+
+function addToDateTime(dt: FHIRDateTime, quantity: TimeQuantity): FHIRDateTime {
+  // Check for unsupported UCUM units
+  if (quantity.unit === 'a') {
+    throw new Error("Cannot use variable-duration unit 'a' with DateTime - use calendar duration keywords instead");
+  }
+  
+  const normalizedUnit = normalizeUnit(quantity.unit);
+  
+  let newYear = dt.year;
+  let newMonth = dt.month;
+  let newDay = dt.day;
+  let newHour = dt.hour;
+  let newMinute = dt.minute;
+  let newSecond = dt.second;
+  let newMillisecond = dt.millisecond;
+  
+  // Calendar units
+  if (['year', 'month', 'day'].includes(normalizedUnit)) {
+    if (normalizedUnit === 'year') {
+      newYear += Math.floor(quantity.value);
+    } else if (normalizedUnit === 'month' && newMonth !== undefined) {
+      let totalMonths = (newYear * 12) + (newMonth - 1) + Math.floor(quantity.value);
+      newYear = Math.floor(totalMonths / 12);
+      newMonth = (totalMonths % 12) + 1;
+    } else if (normalizedUnit === 'day' && newDay !== undefined) {
+      // Simplified day arithmetic
+      newDay += Math.floor(quantity.value);
+      
+      while (newDay > 31 && newMonth !== undefined) {
+        newDay -= 30;
+        newMonth++;
+        if (newMonth > 12) {
+          newMonth = 1;
+          newYear++;
+        }
+      }
+      while (newDay < 1 && newMonth !== undefined) {
+        newDay += 30;
+        newMonth--;
+        if (newMonth < 1) {
+          newMonth = 12;
+          newYear--;
+        }
+      }
+    }
+  }
+  
+  // Time units
+  if (['hour', 'minute', 'second', 'millisecond'].includes(normalizedUnit)) {
+    if (normalizedUnit === 'hour' && newHour !== undefined) {
+      // For precisions above seconds, ignore decimal portion per spec
+      const hoursToAdd = Math.trunc(quantity.value);
+      newHour += hoursToAdd;
+      
+      // Handle day overflow
+      if (newDay !== undefined) {
+        const daysToAdd = Math.floor(newHour / 24);
+        newHour = newHour % 24;
+        if (newHour < 0) {
+          newHour += 24;
+          newDay--;
+        }
+        if (daysToAdd !== 0) {
+          // Use proper day addition
+          const dayQuantity = createTimeQuantity(daysToAdd, 'day');
+          const tempDate = createDate(newYear, newMonth, newDay);
+          const adjustedDate = addToDate(tempDate, dayQuantity);
+          newYear = adjustedDate.year;
+          newMonth = adjustedDate.month;
+          newDay = adjustedDate.day;
+        }
+      }
+    } else if (normalizedUnit === 'minute') {
+      // If we have hour precision but not minute, convert minutes to hours
+      if (newHour !== undefined && newMinute === undefined) {
+        const hoursToAdd = Math.floor(quantity.value / 60);
+        if (hoursToAdd !== 0) {
+          const hourQuantity = createTimeQuantity(hoursToAdd, 'hour');
+          return addToDateTime(dt, hourQuantity);
+        }
+        return dt; // Less than 60 minutes doesn't affect hour precision
+      } else if (newMinute !== undefined) {
+        const minutesToAdd = Math.floor(quantity.value);
+        let totalMinutes = newMinute + minutesToAdd;
+        
+        // Handle hour overflow
+        const hoursToAdd = Math.floor(totalMinutes / 60);
+        newMinute = totalMinutes % 60;
+        if (newMinute < 0) {
+          newMinute += 60;
+          newHour = (newHour ?? 0) - 1;
+        }
+        
+        if (hoursToAdd !== 0 && newHour !== undefined) {
+          // Add hours recursively
+          const hourQuantity = createTimeQuantity(hoursToAdd, 'hour');
+          const temp = createDateTime(newYear, newMonth, newDay, newHour, newMinute, newSecond, newMillisecond, dt.timezoneOffset);
+          const adjusted = addToDateTime(temp, hourQuantity);
+          newYear = adjusted.year;
+          newMonth = adjusted.month;
+          newDay = adjusted.day;
+          newHour = adjusted.hour;
+        }
+      }
+    } else if (normalizedUnit === 'second') {
+      // If we have minute precision but not second, convert seconds to minutes
+      if (newMinute !== undefined && newSecond === undefined) {
+        const minutesToAdd = Math.floor(quantity.value / 60);
+        if (minutesToAdd !== 0) {
+          const minuteQuantity = createTimeQuantity(minutesToAdd, 'minute');
+          return addToDateTime(dt, minuteQuantity);
+        }
+        return dt; // Less than 60 seconds doesn't affect minute precision
+      } else if (newSecond !== undefined) {
+      // Handle decimal seconds - fractional part becomes milliseconds
+      const wholeSeconds = Math.trunc(quantity.value);
+      const fractionalMs = Math.round((quantity.value - wholeSeconds) * 1000);
+      
+      let totalSeconds = newSecond + wholeSeconds;
+      
+      // Add fractional milliseconds if present
+      if (fractionalMs !== 0 && newMillisecond !== undefined) {
+        newMillisecond = (newMillisecond ?? 0) + fractionalMs;
+        // Handle millisecond overflow
+        const extraSeconds = Math.floor(newMillisecond / 1000);
+        newMillisecond = newMillisecond % 1000;
+        if (newMillisecond < 0) {
+          newMillisecond += 1000;
+          totalSeconds--;
+        }
+        totalSeconds += extraSeconds;
+      } else if (fractionalMs !== 0) {
+        // If we have fractional seconds but no millisecond precision, add them
+        newMillisecond = fractionalMs;
+      }
+      
+      // Handle minute overflow
+      const minutesToAdd = Math.floor(totalSeconds / 60);
+      newSecond = totalSeconds % 60;
+      if (newSecond < 0) {
+        newSecond += 60;
+        newMinute = (newMinute ?? 0) - 1;
+      }
+      
+      if (minutesToAdd !== 0 && newMinute !== undefined) {
+        // Add minutes recursively
+        const minuteQuantity = createTimeQuantity(minutesToAdd, 'minute');
+        const temp = createDateTime(newYear, newMonth, newDay, newHour, newMinute, newSecond, newMillisecond, dt.timezoneOffset);
+        const adjusted = addToDateTime(temp, minuteQuantity);
+        newYear = adjusted.year;
+        newMonth = adjusted.month;
+        newDay = adjusted.day;
+        newHour = adjusted.hour;
+        newMinute = adjusted.minute;
+      }
+      }
+    } else if (normalizedUnit === 'millisecond' && newMillisecond !== undefined) {
+      const millisecondsToAdd = Math.floor(quantity.value);
+      let totalMs = newMillisecond + millisecondsToAdd;
+      
+      // Handle second overflow
+      const secondsToAdd = Math.floor(totalMs / 1000);
+      newMillisecond = totalMs % 1000;
+      if (newMillisecond < 0) {
+        newMillisecond += 1000;
+        newSecond = (newSecond ?? 0) - 1;
+      }
+      
+      if (secondsToAdd !== 0 && newSecond !== undefined) {
+        // Add seconds recursively
+        const secondQuantity = createTimeQuantity(secondsToAdd, 'second');
+        const temp = createDateTime(newYear, newMonth, newDay, newHour, newMinute, newSecond, newMillisecond, dt.timezoneOffset);
+        const adjusted = addToDateTime(temp, secondQuantity);
+        newYear = adjusted.year;
+        newMonth = adjusted.month;
+        newDay = adjusted.day;
+        newHour = adjusted.hour;
+        newMinute = adjusted.minute;
+        newSecond = adjusted.second;
+      }
+    }
+  }
+  
+  return createDateTime(newYear, newMonth, newDay, newHour, newMinute, newSecond, newMillisecond, dt.timezoneOffset);
+}
+
+// ============================================================================
+// Component Extraction
+// ============================================================================
+
+export function yearOf(temporal: TemporalValue): number | null {
+  if (isFHIRDate(temporal) || isFHIRDateTime(temporal)) {
+    return temporal.year;
+  }
+  return null;
+}
+
+export function monthOf(temporal: TemporalValue): number | null {
+  if (isFHIRDate(temporal) || isFHIRDateTime(temporal)) {
+    return temporal.month ?? null;
+  }
+  return null;
+}
+
+export function dayOf(temporal: TemporalValue): number | null {
+  if (isFHIRDate(temporal) || isFHIRDateTime(temporal)) {
+    return temporal.day ?? null;
+  }
+  return null;
+}
+
+export function hourOf(temporal: TemporalValue): number | null {
+  if (isFHIRTime(temporal)) {
+    return temporal.hour;
+  }
+  if (isFHIRDateTime(temporal)) {
+    return temporal.hour ?? null;
+  }
+  return null;
+}
+
+export function minuteOf(temporal: TemporalValue): number | null {
+  if (isFHIRTime(temporal)) {
+    return temporal.minute ?? null;
+  }
+  if (isFHIRDateTime(temporal)) {
+    return temporal.minute ?? null;
+  }
+  return null;
+}
+
+export function secondOf(temporal: TemporalValue): number | null {
+  if (isFHIRTime(temporal)) {
+    return temporal.second ?? null;
+  }
+  if (isFHIRDateTime(temporal)) {
+    return temporal.second ?? null;
+  }
+  return null;
+}
+
+export function millisecondOf(temporal: TemporalValue): number | null {
+  if (isFHIRTime(temporal)) {
+    return temporal.millisecond ?? null;
+  }
+  if (isFHIRDateTime(temporal)) {
+    return temporal.millisecond ?? null;
+  }
+  return null;
+}
+
+// ============================================================================
+// Helper Functions
+// ============================================================================
+
+function normalizeToUTC(dt: FHIRDateTime): FHIRDateTime {
+  if (dt.timezoneOffset === undefined || dt.timezoneOffset === 0) {
+    return dt;
+  }
+  
+  // Convert to total minutes and adjust
+  let totalMinutes = (dt.hour ?? 0) * 60 + (dt.minute ?? 0) - dt.timezoneOffset;
+  
+  // Handle day boundary crossing
+  let dayAdjust = 0;
+  if (totalMinutes < 0) {
+    dayAdjust = -Math.ceil(Math.abs(totalMinutes) / (24 * 60));
+    totalMinutes += Math.abs(dayAdjust) * 24 * 60;
+  } else if (totalMinutes >= 24 * 60) {
+    dayAdjust = Math.floor(totalMinutes / (24 * 60));
+    totalMinutes %= 24 * 60;
+  }
+  
+  const newHour = Math.floor(totalMinutes / 60);
+  const newMinute = totalMinutes % 60;
+  
+  // Adjust day if needed
+  let newDay = dt.day;
+  let newMonth = dt.month;
+  let newYear = dt.year;
+  
+  if (dayAdjust !== 0 && newDay !== undefined && newMonth !== undefined) {
+    // Use proper calendar arithmetic for day adjustment
+    const tempDate = createDate(newYear, newMonth, newDay);
+    const dayQuantity = createTimeQuantity(dayAdjust, 'day');
+    const adjustedDate = addToDate(tempDate, dayQuantity);
+    newYear = adjustedDate.year;
+    newMonth = adjustedDate.month;
+    newDay = adjustedDate.day;
+  }
+  
+  return {
+    kind: 'FHIRDateTime',
+    year: newYear,
+    month: newMonth,
+    day: newDay,
+    hour: dt.hour !== undefined ? newHour : undefined,
+    minute: dt.minute !== undefined ? newMinute : undefined,
+    second: dt.second,
+    millisecond: dt.millisecond,
+    timezoneOffset: 0,
+    precision: dt.precision
+  };
+}
+
+// ============================================================================
+// Backwards Compatibility Exports (temporary during migration)
+// ============================================================================
+
+// Export classes that map to factory functions
+export const FHIRDate = {
+  new: createDate,
+  create: createDate
 };
 
-// Legacy interfaces (to be removed)
-export type { TemporalValue as TemporalPrecision };  // Temporary alias
+export const FHIRTime = {
+  new: createTime,
+  create: createTime
+};
+
+export const FHIRDateTime = {
+  new: createDateTime,
+  create: createDateTime
+};

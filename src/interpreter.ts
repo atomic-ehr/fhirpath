@@ -186,6 +186,7 @@ export class Interpreter {
     // Initialize node evaluators using object dispatch pattern
     this.nodeEvaluators = {
       [NodeType.Literal]: this.evaluateLiteral.bind(this),
+      [NodeType.TemporalLiteral]: this.evaluateTemporalLiteral.bind(this),
       [NodeType.Identifier]: this.evaluateIdentifier.bind(this),
       [NodeType.TypeOrIdentifier]: this.evaluateTypeOrIdentifier.bind(this),
       [NodeType.Binary]: this.evaluateBinary.bind(this),
@@ -263,6 +264,27 @@ export class Interpreter {
     return context;
   }
 
+  // TemporalLiteral node evaluator
+  private async evaluateTemporalLiteral(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): Promise<EvaluationResult> {
+    const temporal = node as import('./types').TemporalLiteralNode;
+    
+    // The value is already parsed in the parser
+    let typeInfo: import('./types').TypeInfo;
+    
+    if (temporal.valueType === 'date') {
+      typeInfo = { type: 'Date', singleton: true };
+    } else if (temporal.valueType === 'datetime') {
+      typeInfo = { type: 'DateTime', singleton: true };
+    } else {
+      typeInfo = { type: 'Time', singleton: true };
+    }
+    
+    return {
+      value: [box(temporal.value, typeInfo)],
+      context
+    };
+  }
+
   // Literal node evaluator
   private async evaluateLiteral(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): Promise<EvaluationResult> {
     const literal = node as LiteralNode;
@@ -271,7 +293,7 @@ export class Interpreter {
     let typeInfo: import('./types').TypeInfo | undefined;
     let value: any = literal.value;
     
-    // Handle temporal literals
+    // Handle temporal literals (backwards compatibility - should not reach here with new parser)
     if (literal.valueType === 'date' || literal.valueType === 'datetime' || literal.valueType === 'time') {
       // Import temporal parsing function
       const { parseTemporalLiteral } = await import('./temporal');

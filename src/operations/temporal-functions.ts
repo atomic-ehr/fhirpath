@@ -2,7 +2,7 @@
 import type { FunctionDefinition } from '../types';
 import type { FunctionEvaluator } from '../types';
 import { box } from '../boxing';
-import { FHIRDate, FHIRDateTime, FHIRTime } from '../temporal';
+import { createDate, createDateTime, createTime, isFHIRDate, isFHIRDateTime, isFHIRTime } from '../temporal';
 
 // ============================================================================
 // now() function - Returns current DateTime
@@ -10,7 +10,7 @@ import { FHIRDate, FHIRDateTime, FHIRTime } from '../temporal';
 
 export const nowEvaluator: FunctionEvaluator = async (input, context, args) => {
   const now = new Date();
-  const dateTime = new FHIRDateTime(
+  const dateTime = createDateTime(
     now.getFullYear(),
     now.getMonth() + 1,
     now.getDate(),
@@ -49,7 +49,7 @@ export const nowFunction: FunctionDefinition & { evaluate: typeof nowEvaluator }
 
 export const todayEvaluator: FunctionEvaluator = async (input, context, args) => {
   const today = new Date();
-  const date = new FHIRDate(
+  const date = createDate(
     today.getFullYear(),
     today.getMonth() + 1,
     today.getDate()
@@ -83,7 +83,7 @@ export const todayFunction: FunctionDefinition & { evaluate: typeof todayEvaluat
 
 export const timeOfDayEvaluator: FunctionEvaluator = async (input, context, args) => {
   const now = new Date();
-  const time = new FHIRTime(
+  const time = createTime(
     now.getHours(),
     now.getMinutes(),
     now.getSeconds(),
@@ -135,8 +135,9 @@ export const toDateEvaluator: FunctionEvaluator = async (input, context, args) =
   }
   
   // If it's a DateTime, extract the date portion
-  if (typeInfo?.type === 'DateTime' && item && typeof item === 'object' && 'dateOf' in item) {
-    const date = (item as FHIRDateTime).dateOf();
+  if (typeInfo?.type === 'DateTime' && item && typeof item === 'object') {
+    const dateTime = item as any;
+    const date = createDate(dateTime.year, dateTime.month, dateTime.day);
     return {
       value: [box(date, { type: 'Date', singleton: true })],
       context
@@ -146,9 +147,9 @@ export const toDateEvaluator: FunctionEvaluator = async (input, context, args) =
   // If it's a String, try to parse it
   if (typeof item === 'string') {
     try {
-      const { parseTemporalLiteral } = await import('../temporal');
+      const { parseTemporalLiteral, isFHIRDate } = await import('../temporal');
       const temporal = parseTemporalLiteral('@' + item);
-      if (temporal instanceof FHIRDate) {
+      if (isFHIRDate(temporal)) {
         return {
           value: [box(temporal, { type: 'Date', singleton: true })],
           context
@@ -204,8 +205,8 @@ export const toDateTimeEvaluator: FunctionEvaluator = async (input, context, arg
   
   // If it's a Date, convert to DateTime with time as 00:00:00
   if (typeInfo?.type === 'Date' && item && typeof item === 'object') {
-    const date = item as FHIRDate;
-    const dateTime = new FHIRDateTime(
+    const date = item as any;
+    const dateTime = createDateTime(
       date.year,
       date.month,
       date.day,
@@ -220,16 +221,16 @@ export const toDateTimeEvaluator: FunctionEvaluator = async (input, context, arg
   // If it's a String, try to parse it
   if (typeof item === 'string') {
     try {
-      const { parseTemporalLiteral, FHIRDate } = await import('../temporal');
+      const { parseTemporalLiteral, isFHIRDate, isFHIRDateTime } = await import('../temporal');
       const temporal = parseTemporalLiteral('@' + item);
-      if (temporal instanceof FHIRDateTime) {
+      if (isFHIRDateTime(temporal)) {
         return {
           value: [box(temporal, { type: 'DateTime', singleton: true })],
           context
         };
-      } else if (temporal instanceof FHIRDate) {
+      } else if (isFHIRDate(temporal)) {
         // Convert Date to DateTime (with time as 00:00:00)
-        const dateTime = new FHIRDateTime(
+        const dateTime = createDateTime(
           temporal.year,
           temporal.month,
           temporal.day,
@@ -289,9 +290,10 @@ export const toTimeEvaluator: FunctionEvaluator = async (input, context, args) =
   }
   
   // If it's a DateTime, extract the time portion
-  if (typeInfo?.type === 'DateTime' && item && typeof item === 'object' && 'timeOf' in item) {
-    const time = (item as FHIRDateTime).timeOf();
-    if (time) {
+  if (typeInfo?.type === 'DateTime' && item && typeof item === 'object') {
+    const dateTime = item as any;
+    if (dateTime.hour !== undefined) {
+      const time = createTime(dateTime.hour, dateTime.minute, dateTime.second, dateTime.millisecond);
       return {
         value: [box(time, { type: 'Time', singleton: true })],
         context
@@ -302,11 +304,11 @@ export const toTimeEvaluator: FunctionEvaluator = async (input, context, args) =
   // If it's a String, try to parse it
   if (typeof item === 'string') {
     try {
-      const { parseTemporalLiteral } = await import('../temporal');
+      const { parseTemporalLiteral, isFHIRTime } = await import('../temporal');
       // For time strings, prepend T if not present
       const timeString = item.startsWith('T') ? '@' + item : '@T' + item;
       const temporal = parseTemporalLiteral(timeString);
-      if (temporal instanceof FHIRTime) {
+      if (isFHIRTime(temporal)) {
         return {
           value: [box(temporal, { type: 'Time', singleton: true })],
           context
@@ -368,10 +370,10 @@ export const convertsToDateEvaluator: FunctionEvaluator = async (input, context,
   // Try to parse string
   if (typeof item === 'string') {
     try {
-      const { parseTemporalLiteral } = await import('../temporal');
+      const { parseTemporalLiteral, isFHIRDate } = await import('../temporal');
       const temporal = parseTemporalLiteral('@' + item);
       return {
-        value: [box(temporal instanceof FHIRDate, { type: 'Boolean', singleton: true })],
+        value: [box(isFHIRDate(temporal), { type: 'Boolean', singleton: true })],
         context
       };
     } catch {
@@ -428,10 +430,10 @@ export const convertsToDateTimeEvaluator: FunctionEvaluator = async (input, cont
   // Try to parse string
   if (typeof item === 'string') {
     try {
-      const { parseTemporalLiteral } = await import('../temporal');
+      const { parseTemporalLiteral, isFHIRDate, isFHIRDateTime } = await import('../temporal');
       const temporal = parseTemporalLiteral('@' + item);
       return {
-        value: [box(temporal instanceof FHIRDateTime || temporal instanceof FHIRDate, { type: 'Boolean', singleton: true })],
+        value: [box(isFHIRDateTime(temporal) || isFHIRDate(temporal), { type: 'Boolean', singleton: true })],
         context
       };
     } catch {
@@ -488,11 +490,11 @@ export const convertsToTimeEvaluator: FunctionEvaluator = async (input, context,
   // Try to parse string
   if (typeof item === 'string') {
     try {
-      const { parseTemporalLiteral } = await import('../temporal');
+      const { parseTemporalLiteral, isFHIRTime } = await import('../temporal');
       const timeString = item.startsWith('T') ? '@' + item : '@T' + item;
       const temporal = parseTemporalLiteral(timeString);
       return {
-        value: [box(temporal instanceof FHIRTime, { type: 'Boolean', singleton: true })],
+        value: [box(isFHIRTime(temporal), { type: 'Boolean', singleton: true })],
         context
       };
     } catch {

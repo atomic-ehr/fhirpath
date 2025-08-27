@@ -3,6 +3,7 @@ import type {
   BinaryNode, 
   IdentifierNode, 
   LiteralNode, 
+  TemporalLiteralNode,
   FunctionNode, 
   Diagnostic, 
   AnalysisResult, 
@@ -103,6 +104,9 @@ export class Analyzer {
         break;
       case NodeType.Literal:
         result = this.analyzeLiteral(node as LiteralNode, context);
+        break;
+      case NodeType.TemporalLiteral:
+        result = this.analyzeTemporalLiteral(node as TemporalLiteralNode, context);
         break;
       case NodeType.Index:
         result = await this.analyzeIndex(node as IndexNode, context);
@@ -904,6 +908,26 @@ export class Analyzer {
     
     return { type, diagnostics: [] };
   }
+  
+  private analyzeTemporalLiteral(node: TemporalLiteralNode, context: AnalysisContext): InternalAnalysisResult {
+    let type: TypeInfo;
+    
+    switch (node.valueType) {
+      case 'date':
+        type = { type: 'Date', singleton: true };
+        break;
+      case 'time':
+        type = { type: 'Time', singleton: true };
+        break;
+      case 'datetime':
+        type = { type: 'DateTime', singleton: true };
+        break;
+      default:
+        type = { type: 'Any', singleton: true };
+    }
+    
+    return { type, diagnostics: [] };
+  }
 
   /**
    * Analyzes unary operators.
@@ -1269,6 +1293,7 @@ export class Analyzer {
         this.validateVariable((node as VariableNode).name, node);
         break;
       case NodeType.Literal:
+      case NodeType.TemporalLiteral:
       case NodeType.TypeOrIdentifier:
       case NodeType.TypeReference:
         // These are always valid
@@ -1805,6 +1830,9 @@ export class Analyzer {
       case NodeType.Literal:
         return this.inferLiteralType(node as LiteralNode);
         
+      case NodeType.TemporalLiteral:
+        return this.inferTemporalLiteralType(node as TemporalLiteralNode);
+        
       case NodeType.Binary:
         return await this.inferBinaryType(node as BinaryNode, inputType);
         
@@ -1863,6 +1891,19 @@ export class Analyzer {
         return { type: 'Time', singleton: true };
       case 'null':
         return { type: 'Any', singleton: false }; // Empty collection
+      default:
+        return { type: 'Any', singleton: true };
+    }
+  }
+  
+  private inferTemporalLiteralType(node: TemporalLiteralNode): TypeInfo {
+    switch (node.valueType) {
+      case 'date':
+        return { type: 'Date', singleton: true };
+      case 'datetime':
+        return { type: 'DateTime', singleton: true };
+      case 'time':
+        return { type: 'Time', singleton: true };
       default:
         return { type: 'Any', singleton: true };
     }
