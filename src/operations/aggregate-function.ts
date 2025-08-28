@@ -1,4 +1,4 @@
-import type { FunctionDefinition, FunctionEvaluator } from '../types';
+import type { FunctionDefinition, FunctionEvaluator, TypeInfo } from '../types';
 import { Errors } from '../errors';
 import { RuntimeContextManager } from '../interpreter';
 import { box, unbox } from '../boxing';
@@ -86,5 +86,61 @@ export const aggregateFunction: FunctionDefinition & { evaluate: FunctionEvaluat
     }
     // No arguments at all
     return { type: 'Any', singleton: false };
+  },
+  async analyze(context, args) {
+    const diagnostics: any[] = [];
+    const itemType = { ...context.inputType, singleton: true };
+
+    // Determine $total type: from init (arg[1]) if provided; otherwise from aggregator result after first iteration (approximate with Any)
+    let totalType = { type: 'Any', singleton: false } as TypeInfo;
+
+    if (args.length >= 2 && args[1]) {
+      const initResult = await context
+        .withSystemVariable('$this', itemType)
+        .withSystemVariable('$index', { type: 'Integer', singleton: true })
+        .analyzeNode(args[1]!);
+      diagnostics.push(...initResult.diagnostics);
+      totalType = initResult.type;
+    }
+
+    // Analyze aggregator with $this (item) and $total (init or inferred seed)
+    if (args.length >= 1 && args[0]) {
+      // If we don't have init, seed $total with a heuristic:
+      // - If aggregator contains string operations, seed as String
+      // - Else seed as item type
+      const containsStringHints = (function hasStringHints(node: any): boolean {
+        if (!node) return false;
+        if (node.type === 'Literal' && typeof node.value === 'string') return true;
+        if (node.type === 'Function' && node.name?.type === 'Identifier' && node.name.name === 'toString') return true;
+        if (node.children) return node.children.some((c: any) => hasStringHints(c));
+        if (node.arguments) return (node.arguments as any[]).some(a => hasStringHints(a));
+        if (node.left && node.right) return hasStringHints(node.left) || hasStringHints(node.right);
+        if (node.expression) return hasStringHints(node.expression);
+        return false;
+      })(args[0]);
+
+      const seededTotal = (args.length < 2)
+        ? (containsStringHints ? { type: 'String', singleton: true } as TypeInfo : itemType)
+        : totalType;
+      let aggregatorCtx = context
+        .withSystemVariable('$this', itemType)
+        .withSystemVariable('$index', { type: 'Integer', singleton: true })
+        .withSystemVariable('$total', seededTotal);
+
+      const firstPass = await aggregatorCtx.analyzeNode(args[0]!);
+      diagnostics.push(...firstPass.diagnostics);
+
+      // If no init provided, refine $total type to aggregator result and re-analyze aggregator
+      if (args.length < 2) {
+        aggregatorCtx = aggregatorCtx.withSystemVariable('$total', firstPass.type);
+        const secondPass = await aggregatorCtx.analyzeNode(args[0]!);
+        diagnostics.push(...secondPass.diagnostics);
+        return { type: secondPass.type, diagnostics, context };
+      }
+
+      return { type: firstPass.type, diagnostics, context };
+    }
+
+    return { type: context.inputType, diagnostics, context };
   }
 };
