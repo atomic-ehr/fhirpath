@@ -23,6 +23,7 @@ import type {
 } from './types';
 import { NodeType, DiagnosticSeverity, AnalysisContext } from './types';
 import type { OperatorSignature, FunctionSignature } from './types';
+import type { FunctionDefinition } from './types';
 import { registry } from './registry';
 import { matchOperatorSignature, matchFunctionSignature, resolveResultType } from './analysis/type-compat';
 import { checkParamTypes, formatType, isEmptyCollection } from './analysis/utils';
@@ -256,29 +257,98 @@ export class Analyzer {
 
   /**
    * Analyzes function calls, delegating to function's analyze method if available.
-   */
+  */
   private async analyzeFunction(node: FunctionNode, context: AnalysisContext): Promise<InternalAnalysisResult> {
     const diagnostics: Diagnostic[] = [];
-    
-    // Get function name
-    const functionName = node.name.type === NodeType.Identifier 
-      ? (node.name as IdentifierNode).name 
-      : null;
-    
+
+    const functionName = this.getFunctionName(node);
     if (!functionName) {
       diagnostics.push(this.createError(node.name, 'Invalid function name'));
       return { type: { type: 'Any', singleton: false }, diagnostics };
     }
 
-    // Get function definition
     const funcDef = registry.getFunction(functionName);
     if (!funcDef) {
       diagnostics.push(this.createError(node, `Unknown function: ${functionName}`, ErrorCodes.UNKNOWN_FUNCTION));
       return { type: { type: 'Any', singleton: false }, diagnostics };
     }
 
-    // Check argument count if function has signatures
-    let hasArgumentError = false;
+    const arity = this.validateArity(funcDef, node, functionName);
+    diagnostics.push(...arity.diagnostics);
+
+    // Early union rules for ofType/is/as
+    diagnostics.push(...this.validateUnionTypeFilters(functionName, node, context));
+
+    // Custom analyze
+    if (funcDef.analyze) {
+      const result = funcDef.analyze(context, node.arguments);
+      const analysisResult = result instanceof Promise ? await result : result;
+      return {
+        ...analysisResult,
+        diagnostics: [...diagnostics, ...analysisResult.diagnostics]
+      };
+    }
+
+    // Default path: analyze args
+    const argAnalysis = await this.analyzeArguments(funcDef, node, context, functionName);
+    diagnostics.push(...argAnalysis.diagnostics);
+    if (this.stoppedAtCursor) {
+      return { type: { type: 'Any', singleton: false }, diagnostics };
+    }
+
+    // Signature matching and diagnostics
+    const signatureResult = this.matchAndDiagnoseSignature(
+      funcDef,
+      context.inputType,
+      argAnalysis.argTypes,
+      node,
+      functionName,
+      arity.hasError
+    );
+    diagnostics.push(...signatureResult.diagnostics);
+    if (signatureResult.earlyReturn) {
+      return { type: signatureResult.earlyReturn, diagnostics };
+    }
+
+    // Empty propagation
+    if (this.propagatesEmpty(funcDef, context.inputType, argAnalysis.argTypes)) {
+      return {
+        type: { type: 'Any', singleton: false, isEmpty: true },
+        diagnostics,
+        context
+      };
+    }
+
+    // Result inference
+    let resultType = await this.inferFunctionResultType(
+      funcDef,
+      node,
+      context,
+      argAnalysis.argTypes,
+      signatureResult.match
+    );
+
+    if (functionName === 'where') {
+      resultType = { ...resultType, singleton: false };
+    }
+
+    return { type: resultType, diagnostics, context };
+  }
+
+  private getFunctionName(node: FunctionNode): string | null {
+    if (node.name.type === NodeType.Identifier) {
+      return (node.name as IdentifierNode).name;
+    }
+    return null;
+  }
+
+  private validateArity(
+    funcDef: FunctionDefinition,
+    node: FunctionNode,
+    functionName: string
+  ): { diagnostics: Diagnostic[]; hasError: boolean } {
+    const diagnostics: Diagnostic[] = [];
+    let hasError = false;
     if (funcDef.signatures && funcDef.signatures.length > 0) {
       const signature = funcDef.signatures[0];
       if (signature) {
@@ -286,167 +356,161 @@ export class Analyzer {
         const requiredCount = params.filter(p => !p.optional).length;
         const maxCount = params.length;
         const actualCount = node.arguments.length;
-        
+
         if (actualCount < requiredCount) {
-          diagnostics.push(this.createError(
-            node, 
-            `${functionName} expects at least ${requiredCount} argument${requiredCount !== 1 ? 's' : ''}, got ${actualCount}`,
-            ErrorCodes.WRONG_ARGUMENT_COUNT
-          ));
-          hasArgumentError = true;
-        } else if (actualCount > maxCount) {
-          diagnostics.push(this.createError(
-            node,
-            `${functionName} expects at most ${maxCount} argument${maxCount !== 1 ? 's' : ''}, got ${actualCount}`,
-            ErrorCodes.WRONG_ARGUMENT_COUNT
-          ));
-          hasArgumentError = true;
-        }
-      }
-    }
-
-    // Special validation for type-related functions with union types - must happen before custom analyze
-    if (['ofType', 'is', 'as'].includes(functionName) && node.arguments.length > 0) {
-      const inputType = context.inputType;
-      
-      // Check if input is a union type
-      if (inputType.modelContext && 
-          typeof inputType.modelContext === 'object' &&
-          'isUnion' in inputType.modelContext && 
-          inputType.modelContext.isUnion &&
-          'choices' in inputType.modelContext &&
-          Array.isArray(inputType.modelContext.choices)) {
-        
-        // Extract target type from first argument
-        let targetType: string | undefined;
-        const typeArg = node.arguments[0]!;
-        
-        if (typeArg.type === NodeType.TypeOrIdentifier) {
-          targetType = (typeArg as TypeOrIdentifierNode).name;
-        }
-        
-        if (targetType) {
-          const validChoice = inputType.modelContext.choices.find((choice: any) => 
-            choice.type === targetType || choice.code === targetType
+          diagnostics.push(
+            this.createError(
+              node,
+              `${functionName} expects at least ${requiredCount} argument${requiredCount !== 1 ? 's' : ''}, got ${actualCount}`,
+              ErrorCodes.WRONG_ARGUMENT_COUNT
+            )
           );
-          
-          if (!validChoice) {
-            const availableTypes = inputType.modelContext.choices
-              .map((c: any) => c.type || c.code)
-              .filter((t: string) => t)
-              .join(', ');
-            
-            if (functionName === 'ofType') {
-              diagnostics.push({
-                severity: DiagnosticSeverity.Warning,
-                code: 'invalid-type-filter',
-                message: `Type '${targetType}' is not present in the union type. Available types: ${availableTypes}`,
-                range: typeArg.range || node.range
-              });
-            }
-          }
+          hasError = true;
+        } else if (actualCount > maxCount) {
+          diagnostics.push(
+            this.createError(
+              node,
+              `${functionName} expects at most ${maxCount} argument${maxCount !== 1 ? 's' : ''}, got ${actualCount}`,
+              ErrorCodes.WRONG_ARGUMENT_COUNT
+            )
+          );
+          hasError = true;
         }
       }
     }
-    
-    // If function has custom analyze method, use it
-    if (funcDef.analyze) {
-      const result = funcDef.analyze(context, node.arguments);
-      // Handle both async and sync analyze methods
-      const analysisResult = result instanceof Promise ? await result : result;
-      // Merge our diagnostics with the custom analyze result
-      return {
-        ...analysisResult,
-        diagnostics: [...diagnostics, ...analysisResult.diagnostics]
-      };
+    return { diagnostics, hasError };
+  }
+
+  private validateUnionTypeFilters(
+    functionName: string,
+    node: FunctionNode,
+    context: AnalysisContext
+  ): Diagnostic[] {
+    const diagnostics: Diagnostic[] = [];
+    if (!['ofType', 'is', 'as'].includes(functionName) || node.arguments.length === 0) {
+      return diagnostics;
+    }
+    const inputType = context.inputType;
+    const mc: any = inputType.modelContext;
+    const isUnion = !!(mc && typeof mc === 'object' && 'isUnion' in mc && mc.isUnion && Array.isArray(mc.choices));
+    if (!isUnion) {
+      return diagnostics;
+    }
+    const typeArg = node.arguments[0]!;
+    let targetType: string | undefined;
+    if (typeArg.type === NodeType.TypeOrIdentifier) {
+      targetType = (typeArg as TypeOrIdentifierNode).name;
+    }
+    if (!targetType) {
+      return diagnostics;
     }
 
-    // Default function analysis
-    // Analyze all arguments and collect their types
+    const validChoice = mc.choices.find((choice: any) => choice.type === targetType || choice.code === targetType);
+    if (!validChoice && functionName === 'ofType') {
+      const availableTypes = mc.choices
+        .map((c: any) => c.type || c.code)
+        .filter((t: string) => t)
+        .join(', ');
+      diagnostics.push({
+        severity: DiagnosticSeverity.Warning,
+        code: 'invalid-type-filter',
+        message: `Type '${targetType}' is not present in the union type. Available types: ${availableTypes}`,
+        range: typeArg.range || node.range
+      });
+    }
+    return diagnostics;
+  }
+
+  private async analyzeArguments(
+    funcDef: FunctionDefinition,
+    node: FunctionNode,
+    context: AnalysisContext,
+    functionName: string
+  ): Promise<{ argTypes: TypeInfo[]; diagnostics: Diagnostic[] }> {
+    const diagnostics: Diagnostic[] = [];
     const argTypes: TypeInfo[] = [];
     const signature = funcDef.signatures?.[0];
     const params = signature?.parameters || [];
-    
+
     for (let i = 0; i < node.arguments.length; i++) {
       const arg = node.arguments[i]!;
       const param = params[i];
-      
-      // For functions that expect type names (ofType, is, as), treat identifiers as type references
-      // For other expression parameters (like where, select, etc.), analyze them normally
-      const typeCheckingFunctions = ['ofType', 'is', 'as'];
-      const isTypeParameter = param?.expression && 
-                              typeCheckingFunctions.includes(functionName) &&
-                              (arg.type === NodeType.Identifier || arg.type === NodeType.TypeOrIdentifier);
-      
+      const isTypeParameter =
+        !!param?.expression && ['ofType', 'is', 'as'].includes(functionName) &&
+        (arg.type === NodeType.Identifier || arg.type === NodeType.TypeOrIdentifier);
+
       if (isTypeParameter) {
-        // This is a type reference, not a property access
         argTypes.push({ type: 'TypeReference' as TypeName, singleton: true });
-      } else if (param?.expression) {
-        // Expression parameters are analyzed with the function's input as context
-        // AND with $this set to the item type (singleton version of input)
-        // This matches how the interpreter uses withIterator for each item
+        continue;
+      }
+
+      if (param?.expression) {
         const itemType = { ...context.inputType, singleton: true };
         const exprContext = context
           .withSystemVariable('$this', itemType)
           .withSystemVariable('$index', { type: 'Integer', singleton: true });
-        
         const argResult = await this.analyzeNode(arg, exprContext);
         diagnostics.push(...argResult.diagnostics);
         argTypes.push(argResult.type);
-        
         if (this.stoppedAtCursor) {
-          return { type: { type: 'Any', singleton: false }, diagnostics };
+          break;
         }
-      } else {
-        // Normal parameters should be analyzed with $this as input
-        // (they're independent expressions evaluated from the root context)
-        const thisType = context.systemVariables.get('$this') || context.inputType;
-        const argContext = context.withInputType(thisType);
-        const argResult = await this.analyzeNode(arg, argContext);
-        diagnostics.push(...argResult.diagnostics);
-        argTypes.push(argResult.type);
-        
-        if (this.stoppedAtCursor) {
-          return { type: { type: 'Any', singleton: false }, diagnostics };
-        }
+        continue;
+      }
+
+      const thisType = context.systemVariables.get('$this') || context.inputType;
+      const argContext = context.withInputType(thisType);
+      const argResult = await this.analyzeNode(arg, argContext);
+      diagnostics.push(...argResult.diagnostics);
+      argTypes.push(argResult.type);
+      if (this.stoppedAtCursor) {
+        break;
       }
     }
 
-    // Check input type compatibility only if no argument errors
-    if (!hasArgumentError && funcDef.signatures && funcDef.signatures.length > 0) {
-      const matchingSignature = matchFunctionSignature(context.inputType, argTypes, funcDef) || null;
-      
-      if (!matchingSignature) {
-        // Check if input is empty and function propagates empty
-        const actualInput = context.inputType;
+    return { argTypes, diagnostics };
+  }
+
+  private matchAndDiagnoseSignature(
+    funcDef: FunctionDefinition,
+    actualInput: TypeInfo,
+    argTypes: TypeInfo[],
+    node: FunctionNode,
+    functionName: string,
+    hasArityError: boolean
+  ): { match: FunctionSignature | null; diagnostics: Diagnostic[]; earlyReturn?: TypeInfo } {
+    const diagnostics: Diagnostic[] = [];
+    let match: FunctionSignature | null = null;
+
+    if (!hasArityError && funcDef.signatures && funcDef.signatures.length > 0) {
+      match = matchFunctionSignature(actualInput, argTypes, funcDef) || null;
+
+      if (!match) {
         const inputIsEmpty = actualInput.isEmpty || (actualInput.type === 'Any' && !actualInput.singleton);
         if (inputIsEmpty && !funcDef.doesNotPropagateEmpty) {
-          // Empty input will propagate through.
-          // Still check non-empty arguments for better diagnostics (no empty warnings here).
           const sig = funcDef.signatures[0];
           if (sig) {
             diagnostics.push(
               ...checkParamTypes(sig, argTypes, node.arguments, {
-                // Mirror previous behavior: do not produce errors for empty args here.
                 warnOnSingletonOnly: false,
                 doesNotPropagateEmpty: !!funcDef.doesNotPropagateEmpty,
-                // Let empty args be warnings, not errors.
                 treatEmptyAsWarning: true,
                 errorCode: ErrorCodes.ARGUMENT_TYPE_MISMATCH,
               })
             );
           }
         } else {
-          // Try to find if there's a signature that matches the input but not the parameters
           let inputMatchingSignature: FunctionSignature | null = null;
           for (const sig of funcDef.signatures) {
             let inputMatches = true;
             if (sig.input) {
               const expectedInput = sig.input;
               const singletonMatch = !expectedInput.singleton || actualInput.singleton === true;
-              const typeMatch = expectedInput.type === 'Any' || actualInput.type === 'Any' || 
-                               expectedInput.type === actualInput.type ||
-                               (expectedInput.type === 'Decimal' && actualInput.type === 'Integer');
+              const typeMatch =
+                expectedInput.type === 'Any' ||
+                actualInput.type === 'Any' ||
+                expectedInput.type === actualInput.type ||
+                (expectedInput.type === 'Decimal' && actualInput.type === 'Integer');
               inputMatches = singletonMatch && typeMatch;
             }
             if (inputMatches) {
@@ -454,8 +518,7 @@ export class Analyzer {
               break;
             }
           }
-          
-          // If we found a signature that matches input but not parameters, report parameter errors
+
           if (inputMatchingSignature && inputMatchingSignature.parameters) {
             diagnostics.push(
               ...checkParamTypes(inputMatchingSignature, argTypes, node.arguments, {
@@ -465,121 +528,83 @@ export class Analyzer {
               })
             );
           } else {
-            // No signature matches the input type
             const actualTypeStr = actualInput.singleton ? actualInput.type : `${actualInput.type}[]`;
-            
-            // Check if it's a singleton issue
-            const hasSingletonSignature = funcDef.signatures.some(sig => 
-              sig.input?.singleton && sig.input.type === actualInput.type
-            );
-            
+            const hasSingletonSignature = funcDef.signatures.some(sig => sig.input?.singleton && sig.input.type === actualInput.type);
+            const permissive = ['anyFalse', 'anyTrue'];
             if (hasSingletonSignature && !actualInput.singleton) {
-              // It's specifically a singleton mismatch - use the more specific error code
-              diagnostics.push(this.createError(
-                node,
-                `${functionName} expects a singleton value, but received collection type ${actualTypeStr}`,
-                ErrorCodes.SINGLETON_REQUIRED
-              ));
-            } else {
-              // Some functions are permissive over non-boolean inputs (ignore non-boolean items)
-              const permissive = ['anyFalse', 'anyTrue'];
-              if (permissive.includes(functionName)) {
-                // Do not add input-type error; let runtime handle.
-                // Continue without adding a diagnostic here.
-                // Note: result typing is handled later via signatures or defaults.
-              } else {
-              // List expected types
+              diagnostics.push(
+                this.createError(
+                  node,
+                  `${functionName} expects a singleton value, but received collection type ${actualTypeStr}`,
+                  ErrorCodes.SINGLETON_REQUIRED
+                )
+              );
+            } else if (!permissive.includes(functionName)) {
               const expectedTypes = funcDef.signatures
-                .map(sig => sig.input ? 
-                  (sig.input.singleton ? sig.input.type : `${sig.input.type}[]`) : 
-                  'Any')
-                .filter((v, i, a) => a.indexOf(v) === i) // unique
+                .map(sig => (sig.input ? (sig.input.singleton ? sig.input.type : `${sig.input.type}[]`) : 'Any'))
+                .filter((v, i, a) => a.indexOf(v) === i)
                 .join(' or ');
-              const errorMessage = `Cannot apply ${functionName}() to ${actualTypeStr}. Function expects ${expectedTypes}.`;
-              
-              diagnostics.push(this.createError(
-                node,
-                errorMessage,
-                ErrorCodes.INVALID_OPERAND_TYPE
-              ));
-              }
+              diagnostics.push(
+                this.createError(
+                  node,
+                  `Cannot apply ${functionName}() to ${actualTypeStr}. Function expects ${expectedTypes}.`,
+                  ErrorCodes.INVALID_OPERAND_TYPE
+                )
+              );
             }
           }
         }
       } else {
-        // Check argument types against the matching signature
-        if (matchingSignature.parameters) {
+        if (match.parameters) {
           diagnostics.push(
-            ...checkParamTypes(matchingSignature, argTypes, node.arguments, {
+            ...checkParamTypes(match, argTypes, node.arguments, {
               warnOnSingletonOnly: true,
               doesNotPropagateEmpty: !!funcDef.doesNotPropagateEmpty,
               errorCode: ErrorCodes.ARGUMENT_TYPE_MISMATCH,
             })
           );
         } else {
-          // Some existence-like functions accept non-boolean input by ignoring non-boolean values
           const permissive = ['anyFalse', 'anyTrue'];
           if (permissive.includes(functionName)) {
-            // Do not error; let runtime semantics decide. Assume Boolean result.
-            return { type: { type: 'Boolean', singleton: true }, diagnostics };
+            return { match, diagnostics, earlyReturn: { type: 'Boolean', singleton: true } };
           }
         }
       }
     }
 
-    // Check for empty propagation
-    // If function propagates empty and input or any argument is empty, result is empty
-    if (!funcDef.doesNotPropagateEmpty) {
-      // Check if input is empty collection
-      const inputIsEmpty = context.inputType.isEmpty || 
-                          (context.inputType.type === 'Any' && !context.inputType.singleton);
-      
-      // Check if any argument is empty collection
-      const hasEmptyArgument = argTypes.some(argType => 
-        argType.isEmpty || (argType.type === 'Any' && !argType.singleton)
-      );
-      
-      if (inputIsEmpty || hasEmptyArgument) {
-        // Function propagates empty - result is empty collection
-        return {
-          type: { type: 'Any', singleton: false, isEmpty: true },
-          diagnostics,
-          context // Preserve context even when empty propagates
-        };
-      }
+    return { match, diagnostics };
+  }
+
+  private propagatesEmpty(
+    funcDef: FunctionDefinition,
+    inputType: TypeInfo,
+    argTypes: TypeInfo[]
+  ): boolean {
+    if (funcDef.doesNotPropagateEmpty) {
+      return false;
     }
-    
-    
-    // Determine result type - use custom inference if available
-    let resultType = context.inputType;
-    
-    // Check if function has custom type inference
+    const inputIsEmpty = inputType.isEmpty || (inputType.type === 'Any' && !inputType.singleton);
+    const hasEmptyArgument = argTypes.some(argType => argType.isEmpty || (argType.type === 'Any' && !argType.singleton));
+    return inputIsEmpty || hasEmptyArgument;
+  }
+
+  private async inferFunctionResultType(
+    funcDef: FunctionDefinition,
+    node: FunctionNode,
+    context: AnalysisContext,
+    argTypes: TypeInfo[],
+    matchingSignature: FunctionSignature | null
+  ): Promise<TypeInfo> {
     if (funcDef.inferResultType) {
-      resultType = await funcDef.inferResultType(this, node, context.inputType);
-    } else {
-      // Use signature-based type inference
-      let matchingSignature: FunctionSignature | null = null;
-      if (funcDef.signatures && funcDef.signatures.length > 0) {
-        matchingSignature = matchFunctionSignature(context.inputType, argTypes, funcDef) || funcDef.signatures[0] || null;
-        if (matchingSignature) {
-          resultType = resolveResultType(matchingSignature.result as any, {
-            input: context.inputType,
-            firstParam: argTypes[0],
-          });
-        }
-      }
+      return funcDef.inferResultType(this, node, context.inputType);
     }
-
-    // Special-case: where() preserves input type but as collection
-    if (functionName === 'where') {
-      resultType = { ...resultType, singleton: false };
+    if (matchingSignature) {
+      return resolveResultType(matchingSignature.result as any, {
+        input: context.inputType,
+        firstParam: argTypes[0],
+      });
     }
-
-    return {
-      type: resultType,
-      diagnostics,
-      context // Preserve context with user variables
-    };
+    return context.inputType;
   }
 
   /**
