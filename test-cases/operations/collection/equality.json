@@ -67,7 +67,7 @@
     },
     {
       "name": "Collections with duplicates different positions - not equal",
-      "expression": "(1 | 1 | 2) = (1 | 2 | 1)",
+      "expression": "1.combine(1).combine(2) = 1.combine(2).combine(1)",
       "input": [],
       "expected": [false],
       "tags": ["collection", "equality", "duplicates", "order-dependent"]
