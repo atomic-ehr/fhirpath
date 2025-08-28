@@ -146,7 +146,13 @@ export async function provideCompletions(
         break;
       
       case CursorContext.Operator:
-        completions = getOperatorCompletions(typeBeforeCursor);
+        // Fallback to provided inputType if analyzer did not provide typeBeforeCursor
+        completions = getOperatorCompletions(typeBeforeCursor || (inputType as any));
+        // Post-filter: when left side is a collection, exclude operators that require singleton left (e.g., 'in')
+        const leftType = (typeBeforeCursor || (inputType as any));
+        if (leftType && leftType.singleton === false) {
+          completions = completions.filter(c => c.label !== 'in');
+        }
         break;
       
       case CursorContext.Type:
@@ -221,7 +227,16 @@ function isFunctionApplicable(funcDef: any, typeInfo: TypeInfo): boolean {
  */
 function isOperatorApplicable(opDef: any, typeInfo: TypeInfo): boolean {
   if (!typeInfo || !typeInfo.type) return true;
-  return registry.isOperatorApplicableToType(opDef.symbol, typeInfo.type);
+  const isCollection = typeInfo.singleton === false;
+  // If left operand must be singleton for all signatures, do not suggest for collections
+  if (isCollection && opDef.signatures && opDef.signatures.length > 0) {
+    const allowsCollection = opDef.signatures.some((s: any) => s.left && s.left.singleton === false);
+    if (!allowsCollection) {
+      return false;
+    }
+  }
+  const typeForRegistry = isCollection ? `${typeInfo.type}[]` : typeInfo.type;
+  return registry.isOperatorApplicableToType(opDef.symbol, typeForRegistry);
 }
 
 /**
@@ -275,15 +290,15 @@ async function getIdentifierCompletions(
       const isApplicable = !typeBeforeCursor || isFunctionApplicable(funcDef, typeBeforeCursor);
       
       if (isApplicable) {
-        // Determine if function takes parameters
-        const hasParams = funcDef.signatures?.[0]?.parameters && funcDef.signatures[0].parameters.length > 0;
+        // Determine if any signature takes parameters
+        const hasParams = funcDef.signatures?.some(sig => (sig.parameters?.length ?? 0) > 0) ?? false;
         const funcDescription = funcDef.description || `FHIRPath ${name} function`;
         
         completions.push({
           label: name,
           kind: CompletionKind.Function,
           detail: funcDescription,
-          insertText: name + (hasParams ? '()' : '()')
+          insertText: name + (hasParams ? '()' : '')
         });
       }
     }
@@ -299,12 +314,12 @@ async function getIdentifierCompletions(
     for (const func of typeFunctions) {
       // Check if function is already added from general functions
       if (!completions.some(c => c.label === func.name)) {
-        const hasParams = func.signatures?.[0]?.parameters && func.signatures[0].parameters.length > 0;
+        const hasParams = func.signatures?.some(sig => (sig.parameters?.length ?? 0) > 0) ?? false;
         completions.push({
           label: func.name,
           kind: CompletionKind.Function,
           detail: func.description || `FHIRPath ${func.name} function`,
-          insertText: func.name + (hasParams ? '()' : '()')
+          insertText: func.name + (hasParams ? '()' : '')
         });
       }
     }
@@ -326,6 +341,13 @@ function getOperatorCompletions(typeBeforeCursor?: TypeInfo): CompletionItem[] {
   for (const opName of operatorNames) {
     const opDef = registry.getOperatorDefinition(opName);
     if (opDef) {
+      // If we clearly have a collection to the left and no signature allows a collection left operand, skip early
+      if (typeBeforeCursor && typeBeforeCursor.singleton === false && opDef.signatures && opDef.signatures.length > 0) {
+        const allowsCollection = opDef.signatures.some((s: any) => s.left && s.left.singleton === false);
+        if (!allowsCollection) {
+          continue;
+        }
+      }
       // Check if operator is applicable to the current type
       const isApplicable = !typeBeforeCursor || isOperatorApplicable(opDef, typeBeforeCursor);
       
@@ -407,21 +429,85 @@ async function getArgumentCompletions(
     argumentIndex: number;
   }
 ): Promise<CompletionItem[]> {
-  // Check if this function parameter expects a type reference
+  // Inspect all overloads to determine parameter kinds for this argument position
   if (functionCall?.definition && functionCall.argumentIndex >= 0) {
-    const signature = functionCall.definition.signatures[0];
-    const param = signature?.parameters[functionCall.argumentIndex];
-    
-    if (param?.typeReference) {
+    const argIndex = functionCall.argumentIndex;
+    let expectsTypeReference = false;
+    let expectsLambda = false;
+
+    for (const sig of functionCall.definition.signatures) {
+      const param = sig.parameters[argIndex];
+      if (!param) {
+        continue;
+      }
+      if (param.typeReference) {
+        expectsTypeReference = true;
+      }
+      if (param.expression) {
+        expectsLambda = true;
+      }
+    }
+
+    if (expectsTypeReference) {
       // This parameter expects a type name, provide type completions
       return getTypeCompletions(cursorNode, modelProvider);
     }
+
+    // If lambda is expected, suggest element properties from the item type below
+    // (continue to build completions; variables will also be added)
+    const completions: CompletionItem[] = [];
+
+    // Add user variables if available
+    if (variables) {
+      for (const varName of Object.keys(variables)) {
+        if (varName === '$this') {
+          completions.push({
+            label: '$this',
+            kind: CompletionKind.Variable,
+            detail: 'Current item in iteration'
+          });
+        } else if (varName === '$index') {
+          completions.push({
+            label: '$index',
+            kind: CompletionKind.Variable,
+            detail: 'Current index in iteration'
+          });
+        } else {
+          completions.push({
+            label: varName.startsWith('%') ? varName : '%' + varName,
+            kind: CompletionKind.Variable,
+            detail: 'User-defined variable'
+          });
+        }
+      }
+    }
+
+    if (expectsLambda && typeBeforeCursor && modelProvider) {
+      const itemType = { ...typeBeforeCursor, singleton: true };
+      const typeName = itemType.name || itemType.type;
+      if (typeName && typeName !== 'Any') {
+        const elements = await modelProvider.getElements(typeName);
+        if (elements.length > 0) {
+          for (const element of elements) {
+            completions.push({
+              label: element.name,
+              kind: CompletionKind.Property,
+              detail: element.type
+            });
+          }
+        }
+      }
+    }
+
+    // If overloads do not indicate typeRef or lambda, fall through to variables-only completions below
+    if (completions.length > 0) {
+      return completions;
+    }
   }
-  
   const completions: CompletionItem[] = [];
   const argNode = cursorNode as any;
-  
-  // Add user variables if available
+
+  // Default: suggest variables in scope
   if (variables) {
     for (const varName of Object.keys(variables)) {
       if (varName === '$this') {
@@ -445,34 +531,8 @@ async function getArgumentCompletions(
       }
     }
   }
-  
-  // Add elements if in lambda context
-  const functionName = functionCall?.definition.name;
-  // Check if the function accepts lambda expressions (could be determined from function signature in registry)
-  const lambdaFunctions = ['where', 'select', 'all', 'exists', 'any', 'repeat'];
-  if (functionName && lambdaFunctions.includes(functionName)) {
-    // In lambda function, provide elements of item type
-    if (typeBeforeCursor && modelProvider) {
-      const itemType = { ...typeBeforeCursor, singleton: true };
-      const typeName = itemType.name || itemType.type;
-      // Skip if type is 'Any' as it's not a real FHIR type
-      if (typeName && typeName !== 'Any') {
-        const elements = await modelProvider.getElements(typeName);
-        if (elements.length > 0) {
-          for (const element of elements) {
-            completions.push({
-              label: element.name,
-              kind: CompletionKind.Property,
-              detail: element.type
-            });
-          }
-        }
-      }
-    }
-  }
-  
+
   // No hardcoded constants - these should come from context or be typed by user
-  
   return completions;
 }
 
@@ -487,6 +547,15 @@ function getIndexCompletions(
   
   // Add user variables if available
   if (variables) {
+    // Add $this if it's in scope (for consistency with argument context)
+    if ('$this' in variables) {
+      completions.push({
+        label: '$this',
+        kind: CompletionKind.Variable,
+        detail: 'Current item'
+      });
+    }
+
     // Add $index if it's in scope (should be provided by context)
     if ('$index' in variables) {
       completions.push({

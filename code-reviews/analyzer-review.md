@@ -1,54 +1,43 @@
-**Analyzer (src/analyzer.ts) – Code Review**
+# Analyzer.ts Code Review
 
-- **Scope:** Static analysis of `src/analyzer.ts`
-- **Goal:** Identify two priority refactorings to reduce complexity and duplication while improving correctness and maintainability.
+## Priority Refactorings
 
-**Priority 1: Decompose analyzeFunction into cohesive helpers**
-- **Problem:** `analyzeFunction` mixes responsibilities: resolution, arity checks, special union-type validations (ofType/is/as), argument analysis with differing contexts, signature matching, empty-propagation, result inference, and ad‑hoc special cases (e.g., `where`). This inflates cognitive complexity and makes behavior hard to reason about and test.
-- **Symptoms (examples):**
-  - Argument analysis loop handles three branches (type reference vs expression vs normal) and multiple early returns for cursor mode.
-  - Duplicated checks for empty input/args and signature‑based validation.
-  - Interleaved diagnostics construction with control flow.
-- **Refactoring Plan:** Extract well‑named helpers and linearize control flow.
-  - `resolveFunctionDefinition(node): FunctionDefinition | Diagnostic[]`
-  - `validateArity(funcDef, node): Diagnostic[]`
-  - `analyzeArguments(funcDef, node, context): { argTypes: TypeInfo[], diags: Diagnostic[] }`
-  - `checkTypeSpecificRules(funcDef, node, context, argTypes): Diagnostic[]` (handles ofType/is/as pre‑analysis validation)
-  - `matchSignature(funcDef, inputType, argTypes): FunctionSignature | null`
-  - `diagnoseSignatureMismatch(funcDef, inputType, argTypes, node): Diagnostic[]`
-  - `propagatesEmpty(funcDef, inputType, argTypes): boolean` (uses utils, see Priority 2)
-  - `inferResultType(funcDef, node, context, argTypes, matchingSig): TypeInfo`
-  - Keep the top‑level method as a thin orchestration that calls the helpers in order and returns early on cursor stop/empty propagation.
-- **Benefits:**
-  - Lower cognitive complexity, easier to test each rule in isolation.
-  - Clearer error paths; simpler to add functions/signatures without regressions.
-  - Enables reuse from operation‑specific analyzers if needed.
-- **Acceptance Criteria:**
-  - `analyzeFunction` < ~60 LOC, primarily orchestration.
-  - New helpers covered by unit tests for: arity errors, empty propagation, signature mismatch, permissive boolean functions, and type‑reference params.
-  - No behavior regressions in existing tests (`bun run test`).
+1) Robust arity and overload handling for functions
+- Problem: `validateArity()` only checks the first signature and reports errors based on it. Many FHIRPath functions have multiple overloads (different required/optional counts). This yields false diagnostics when another signature would match. `analyzeArguments()` also reads parameter shapes (e.g., `expression`) from only the first signature, which can cause incorrect argument-context evaluation and cursor hints.
+- Impact: Incorrect error/warning messages for valid calls; degraded DX for completions and guidance; potential cascading mis-typing in later steps (signature mismatch → wrong result type inference).
+- Refactor:
+  - Replace current arity check with an overload-aware approach: compute all candidate signatures where `requiredCount ≤ actualCount ≤ maxCount`. Only emit a wrong-arity diagnostic if no signature matches on arity alone.
+  - Defer strict parameter diagnostics until after `matchFunctionSignature()`; when there’s no match, check the parameter types against the most compatible arity-matching signature to produce precise messages.
+  - Optionally, drive `analyzeArguments()` using the union of candidate signatures: for each argument index, if any candidate marks `expression` for that index, evaluate in expression-context; otherwise use `$this` context. This avoids misclassifying expression parameters due to looking only at the first signature.
+- Outline:
+  - Add helper `getArityCandidates(funcDef, actualCount): FunctionSignature[]`.
+  - In `analyzeFunction()`: compute candidates → analyze args → run `matchFunctionSignature()` across candidates → if none match, emit consolidated diagnostics (expected counts/types) and return `Any`.
+  - Keep result inference unchanged; it already uses `matchFunctionSignature()`.
+- Tests: Add cases for multi-arity functions (e.g., `substring`, `replaceMatches`, `iif`) verifying no spurious arity errors and correct result typing across overloads.
 
-**Priority 2: Centralize union/emptiness/type-check logic**
-- **Problem:** Repeated patterns for union‑type handling and emptiness checks cause inconsistency and drift.
-  - Union checks repeated in `analyzeFunction` (ofType/is/as), `analyzeMembershipTest`, and `analyzeTypeCast`.
-  - Emptiness detection is hand‑rolled (`type === 'Any' && !singleton` / `isEmpty`) despite `isEmptyCollection` utility being available.
-  - Diagnostics sometimes hand‑crafted; others use `Errors` factory → inconsistent codes/messages.
-- **Refactoring Plan:** Move common logic into `analysis/utils` and use consistently.
-  - Add `isUnionType(type: TypeInfo): boolean` and `getUnionChoices(type: TypeInfo): string[]`.
-  - Add `validateUnionChoice(type: TypeInfo, target: string, nodeRange, code): Diagnostic | null` to build a warning for invalid union member checks/casts.
-  - Replace all manual emptiness tests with `isEmptyCollection(type)`.
-  - Prefer `toDiagnostic(Errors.*)` for standardized diagnostics where applicable (e.g., unknown operator/function/property) to unify codes and phrasing.
-- **Touchpoints:**
-  - `analyzeFunction` (pre‑analysis for ofType/is/as), `analyzeMembershipTest`, `analyzeTypeCast`, `analyzeIdentifier` (unknown property warnings).
-- **Benefits:**
-  - Single source of truth for union semantics and “empty propagates” logic.
-  - Consistent diagnostics across analyzer paths; easier to evolve.
-- **Acceptance Criteria:**
-  - No direct `type === 'Any' && !singleton` checks remain; use `isEmptyCollection`.
-  - All union presence warnings use the shared helper; messages and codes are uniform.
-  - `NodeType` enum used consistently (avoid raw string literals like `'TypeOrIdentifier'`).
+2) Accurate result typing for the union operator (`|`)
+- Problem: `analyzeBinary()` returns the left operand’s type (with `singleton: false`) for `|`, ignoring the right operand. This loses information and can be wrong when sides differ. Examples: `Integer[] | Decimal[]` should be `Decimal[]`; `String[] | Integer[]` should degrade to `Any[]` for analysis; identical sides should keep their element type.
+- Impact: Downstream analyses (e.g., `ofType`, `is`, `as`, function argument checks) receive incomplete/incorrect types, producing misleading diagnostics and weaker tooling.
+- Refactor:
+  - In the `|` branch, analyze both sides (already done), then merge element types:
+    - If `left.type === right.type` → keep that element type.
+    - If `Integer`/`Decimal` mix → promote to `Decimal`.
+    - Else → use `Any`.
+  - Always return collection (`singleton: false`). Preserve `namespace/name` if both sides match; otherwise omit them.
+  - Keep context isolation as today (no variable leakage across branches).
+- Outline:
+  - Add `mergeCollectionElementTypes(a: TypeInfo, b: TypeInfo): TypeInfo` in `analysis/utils.ts` or within `Analyzer`.
+  - Use it to compute the union result type in `analyzeBinary()`.
+  - Consider tagging with `isEmpty` when both inputs are empty.
+- Tests: Add tests for homogeneous unions, integer/decimal promotion, and heterogeneous unions falling back to `Any[]`.
 
-**Quick Wins (Optional, post‑priority):**
-- Add a small `safeAnalyze(node, ctx)` wrapper that merges diagnostics and short‑circuits on `stoppedAtCursor`, removing repeated early returns.
-- Use a tiny formatter for type names (`formatType`) everywhere to avoid hand‑built strings.
+## Nice-to-Haves
+- DRY primitive checks: extract a shared `PRIMITIVE_TYPES` constant (used in `analyzeMembershipTest` and `analyzeTypeCast`).
+- Prefer `typeReference` over function-name heuristics for type-parameters in `analyzeArguments()`.
+- Replace `any` with `unknown` in `inferValueType()` per project guide; add narrowings.
+
+## Expected Benefits
+- Fewer false-positive diagnostics and better overload awareness.
+- More precise type flow through unions, improving follow-on checks and completions.
+- Cleaner, more maintainable analyzer logic with clearer responsibilities.
 
