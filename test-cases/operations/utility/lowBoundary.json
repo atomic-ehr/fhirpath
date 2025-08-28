@@ -1,0 +1,122 @@
+{
+  "description": "Tests for lowBoundary() function",
+  "tests": [
+    {
+      "name": "Date year-only with default precision",
+      "expression": "@2014.lowBoundary()",
+      "input": [{}],
+      "expected": ["@2014-01-01"]
+    },
+    {
+      "name": "Date year-only with month precision",
+      "expression": "@2014.lowBoundary(6)",
+      "input": [{}],
+      "expected": ["@2014-01"]
+    },
+    {
+      "name": "Date year-month with day precision",
+      "expression": "@2014-03.lowBoundary(8)",
+      "input": [{}],
+      "expected": ["@2014-03-01"]
+    },
+    {
+      "name": "DateTime with hour only, default precision",
+      "expression": "@2014-01-01T08.lowBoundary()",
+      "input": [{}],
+      "expected": ["@2014-01-01T08:00:00.000+14:00"]
+    },
+    {
+      "name": "DateTime with hour only, day precision",
+      "expression": "@2014-01-01T08.lowBoundary(8)",
+      "input": [{}],
+      "expected": ["@2014-01-01"]
+    },
+    {
+      "name": "DateTime with timezone, millisecond precision",
+      "expression": "@2014-01-01T08:05+08:00.lowBoundary(17)",
+      "input": [{}],
+      "expected": ["@2014-01-01T08:05:00.000+08:00"]
+    },
+    {
+      "name": "DateTime without timezone, millisecond precision",
+      "expression": "@2014-01-01T08.lowBoundary(17)",
+      "input": [{}],
+      "expected": ["@2014-01-01T08:00:00.000+14:00"]
+    },
+    {
+      "name": "Time with hour and minute",
+      "expression": "@T10:30.lowBoundary()",
+      "input": [{}],
+      "expected": ["@T10:30:00.000"]
+    },
+    {
+      "name": "Time with second precision",
+      "expression": "@T10:30.lowBoundary(7)",
+      "input": [{}],
+      "expected": ["@T10:30:00"]
+    },
+    {
+      "name": "Time with minute precision",
+      "expression": "@T10:30.lowBoundary(5)",
+      "input": [{}],
+      "expected": ["@T10:30"]
+    },
+    {
+      "name": "Invalid precision returns empty",
+      "expression": "@2014.lowBoundary(100)",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "Negative precision returns empty",
+      "expression": "@2014.lowBoundary(-1)",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "Empty input returns empty",
+      "expression": "{}.lowBoundary()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "Multiple items throws error",
+      "expression": "(@2014 | @2015).lowBoundary()",
+      "input": [{}],
+      "error": {
+        "message": "Cannot apply lowBoundary",
+        "phase": "analyze"
+      }
+    },
+    {
+      "name": "String input returns empty",
+      "expression": "'not a date'.lowBoundary()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "Integer input returns empty",
+      "expression": "42.lowBoundary()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "DateTime year only with month precision",
+      "expression": "@2014.lowBoundary(6)",
+      "input": [{}],
+      "expected": ["@2014-01"]
+    },
+    {
+      "name": "Complete date preserves value",
+      "expression": "@2014-03-15.lowBoundary(8)",
+      "input": [{}],
+      "expected": ["@2014-03-15"]
+    },
+    {
+      "name": "Complete time preserves value",
+      "expression": "@T10:30:45.123.lowBoundary(9)",
+      "input": [{}],
+      "expected": ["@T10:30:45.123"]
+    }
+  ]
+}

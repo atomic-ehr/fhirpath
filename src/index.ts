@@ -140,11 +140,16 @@ export async function evaluate(
   return result.value.map(boxedValue => {
     const value = unbox(boxedValue);
     // Convert temporal values to string representation for output
-    if (value && typeof value === 'object' && 'kind' in value && 
-        (value.kind === 'FHIRDate' || value.kind === 'FHIRDateTime' || value.kind === 'FHIRTime')) {
-      // Import the toTemporalString function from temporal module
-      const { toTemporalString } = require('./temporal');
-      return toTemporalString(value);
+    if (value && typeof value === 'object' && 'kind' in value) {
+      if (value.kind === 'FHIRDate' || value.kind === 'FHIRDateTime') {
+        // Import the toTemporalString function from temporal module
+        const { toTemporalString } = require('./temporal');
+        return '@' + toTemporalString(value);
+      } else if (value.kind === 'FHIRTime') {
+        // Time values need special handling to add the 'T' prefix
+        const { toTemporalString } = require('./temporal');
+        return '@T' + toTemporalString(value);
+      }
     }
     return value;
   });

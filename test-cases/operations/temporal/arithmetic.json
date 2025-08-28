@@ -5,127 +5,127 @@
     {
       "name": "Date + days",
       "expression": "@2020-01-15 + 7 days",
-      "expected": ["2020-01-22"],
+      "expected": ["@2020-01-22"],
       "tags": ["temporal", "arithmetic", "date", "addition"]
     },
     {
       "name": "Date + months",
       "expression": "@2020-01-15 + 2 months",
-      "expected": ["2020-03-15"],
+      "expected": ["@2020-03-15"],
       "tags": ["temporal", "arithmetic", "date", "addition"]
     },
     {
       "name": "Date + years",
       "expression": "@2020-01-15 + 3 years",
-      "expected": ["2023-01-15"],
+      "expected": ["@2023-01-15"],
       "tags": ["temporal", "arithmetic", "date", "addition"]
     },
     {
       "name": "Date - days",
       "expression": "@2020-01-15 - 5 days",
-      "expected": ["2020-01-10"],
+      "expected": ["@2020-01-10"],
       "tags": ["temporal", "arithmetic", "date", "subtraction"]
     },
     {
       "name": "Date year rollover forward",
       "expression": "@1973-12-25 + 7 days",
-      "expected": ["1974-01-01"],
+      "expected": ["@1974-01-01"],
       "tags": ["temporal", "arithmetic", "date", "rollover"]
     },
     {
       "name": "Date year rollover backward",
       "expression": "@2020-01-05 - 10 days",
-      "expected": ["2019-12-26"],
+      "expected": ["@2019-12-26"],
       "tags": ["temporal", "arithmetic", "date", "rollover"]
     },
     {
       "name": "Date month-end adjustment - leap year",
       "expression": "@2020-01-31 + 1 month",
-      "expected": ["2020-02-29"],
+      "expected": ["@2020-02-29"],
       "tags": ["temporal", "arithmetic", "date", "month-end", "leap-year"]
     },
     {
       "name": "Date month-end adjustment - non-leap year",
       "expression": "@2019-01-31 + 1 month",
-      "expected": ["2019-02-28"],
+      "expected": ["@2019-02-28"],
       "tags": ["temporal", "arithmetic", "date", "month-end"]
     },
     {
       "name": "DateTime + hours",
       "expression": "@2020-01-15T10:30:00 + 5 hours",
-      "expected": ["2020-01-15T15:30:00"],
+      "expected": ["@2020-01-15T15:30:00"],
       "tags": ["temporal", "arithmetic", "datetime", "addition"]
     },
     {
       "name": "DateTime + minutes",
       "expression": "@2020-01-15T10:30:00 + 90 minutes",
-      "expected": ["2020-01-15T12:00:00"],
+      "expected": ["@2020-01-15T12:00:00"],
       "tags": ["temporal", "arithmetic", "datetime", "addition"]
     },
     {
       "name": "DateTime + seconds",
       "expression": "@2020-01-15T10:30:45 + 75 seconds",
-      "expected": ["2020-01-15T10:32:00"],
+      "expected": ["@2020-01-15T10:32:00"],
       "tags": ["temporal", "arithmetic", "datetime", "addition"]
     },
     {
       "name": "DateTime + milliseconds",
       "expression": "@2020-01-15T10:30:45.500 + 1500 milliseconds",
-      "expected": ["2020-01-15T10:30:47.000"],
+      "expected": ["@2020-01-15T10:30:47.000"],
       "tags": ["temporal", "arithmetic", "datetime", "milliseconds"]
     },
     {
       "name": "DateTime day rollover",
       "expression": "@2020-01-15T22:00:00 + 5 hours",
-      "expected": ["2020-01-16T03:00:00"],
+      "expected": ["@2020-01-16T03:00:00"],
       "tags": ["temporal", "arithmetic", "datetime", "rollover"]
     },
     {
       "name": "DateTime with timezone + hours",
       "expression": "@2020-01-15T10:30:00Z + 3 hours",
-      "expected": ["2020-01-15T13:30:00Z"],
+      "expected": ["@2020-01-15T13:30:00Z"],
       "tags": ["temporal", "arithmetic", "datetime", "timezone"]
     },
     {
       "name": "Time + hours",
       "expression": "@T10:30:00 + 2 hours",
-      "expected": ["12:30:00"],
+      "expected": ["@T12:30:00"],
       "tags": ["temporal", "arithmetic", "time", "addition"]
     },
     {
       "name": "Time + minutes",
       "expression": "@T10:30 + 45 minutes",
-      "expected": ["11:15"],
+      "expected": ["@T11:15"],
       "tags": ["temporal", "arithmetic", "time", "addition"]
     },
     {
       "name": "Time - hours",
       "expression": "@T10:30:00 - 3 hours",
-      "expected": ["07:30:00"],
+      "expected": ["@T07:30:00"],
       "tags": ["temporal", "arithmetic", "time", "subtraction"]
     },
     {
       "name": "Time wraparound forward",
       "expression": "@T23:30:00 + 1 hour",
-      "expected": ["00:30:00"],
+      "expected": ["@T00:30:00"],
       "tags": ["temporal", "arithmetic", "time", "wraparound"]
     },
     {
       "name": "Time wraparound backward",
       "expression": "@T01:30:00 - 2 hours",
-      "expected": ["23:30:00"],
+      "expected": ["@T23:30:00"],
       "tags": ["temporal", "arithmetic", "time", "wraparound"]
     },
     {
       "name": "Precision preservation - year + months (coerced to 0)",
       "expression": "@2020T + 6 months",
-      "expected": ["2020T"],
+      "expected": ["@2020T"],
       "tags": ["temporal", "arithmetic", "precision", "coercion"]
     },
     {
       "name": "Precision preservation - month + days (coerced to 0)",
       "expression": "@2020-01T + 15 days",
-      "expected": ["2020-01T"],
+      "expected": ["@2020-01T"],
       "tags": ["temporal", "arithmetic", "precision", "coercion"]
     },
     {
@@ -143,199 +143,199 @@
     {
       "name": "Add 1 year to date",
       "expression": "@2018 + 1 year",
-      "expected": ["2019"],
+      "expected": ["@2019"],
       "tags": ["temporal", "arithmetic", "year"]
     },
     {
       "name": "Add 2 years to date",
       "expression": "@2018 + 2 years",
-      "expected": ["2020"],
+      "expected": ["@2020"],
       "tags": ["temporal", "arithmetic", "year"]
     },
     {
       "name": "Add 1 month to date",
       "expression": "@2018-02 + 1 month",
-      "expected": ["2018-03"],
+      "expected": ["@2018-03"],
       "tags": ["temporal", "arithmetic", "month"]
     },
     {
       "name": "Add 2 months to date",
       "expression": "@2018-02 + 2 months",
-      "expected": ["2018-04"],
+      "expected": ["@2018-04"],
       "tags": ["temporal", "arithmetic", "month"]
     },
     {
       "name": "Add 11 months - precision preserved",
       "expression": "@2016 + 11 months",
-      "expected": ["2016"],
+      "expected": ["@2016"],
       "tags": ["temporal", "arithmetic", "month", "precision"]
     },
     {
       "name": "Add 12 months - year changes",
       "expression": "@2016 + 12 months",
-      "expected": ["2017"],
+      "expected": ["@2017"],
       "tags": ["temporal", "arithmetic", "month"]
     },
     {
       "name": "Add 364 days - year precision preserved",
       "expression": "@2016 + 364 days",
-      "expected": ["2016"],
+      "expected": ["@2016"],
       "tags": ["temporal", "arithmetic", "day", "precision"]
     },
     {
       "name": "Add 365 days - year changes",
       "expression": "@2016 + 365 days",
-      "expected": ["2017"],
+      "expected": ["@2017"],
       "tags": ["temporal", "arithmetic", "day"]
     },
     {
       "name": "Add 29 days to January - month precision preserved",
       "expression": "@2016-01 + 29 days",
-      "expected": ["2016-01"],
+      "expected": ["@2016-01"],
       "tags": ["temporal", "arithmetic", "day", "precision"]
     },
     {
       "name": "Add 31 days to January - month changes",
       "expression": "@2016-01 + 31 days",
-      "expected": ["2016-02"],
+      "expected": ["@2016-02"],
       "tags": ["temporal", "arithmetic", "day"]
     },
     {
       "name": "Subtract 364 days - year preserved",
       "expression": "@2016 - 364 days",
-      "expected": ["2016"],
+      "expected": ["@2016"],
       "tags": ["temporal", "arithmetic", "subtraction", "precision"]
     },
     {
       "name": "Subtract 365 days - year changes",
       "expression": "@2016 - 365 days",
-      "expected": ["2015"],
+      "expected": ["@2015"],
       "tags": ["temporal", "arithmetic", "subtraction"]
     },
     {
       "name": "Add 1 hour to DateTime",
       "expression": "@2018-01-01T00 + 1 hour",
-      "expected": ["2018-01-01T01"],
+      "expected": ["@2018-01-01T01"],
       "tags": ["temporal", "arithmetic", "hour"]
     },
     {
       "name": "Add 90 minutes to DateTime",
       "expression": "@2018-01-01T00:00 + 90 minutes",
-      "expected": ["2018-01-01T01:30"],
+      "expected": ["@2018-01-01T01:30"],
       "tags": ["temporal", "arithmetic", "minute"]
     },
     {
       "name": "Add 3661 seconds to DateTime",
       "expression": "@2018-01-01T00:00:00 + 3661 seconds",
-      "expected": ["2018-01-01T01:01:01"],
+      "expected": ["@2018-01-01T01:01:01"],
       "tags": ["temporal", "arithmetic", "second"]
     },
     {
       "name": "Month-end adjustment - Jan 31 + 1 month (non-leap year)",
       "expression": "@2018-01-31 + 1 month",
-      "expected": ["2018-02-28"],
+      "expected": ["@2018-02-28"],
       "tags": ["temporal", "arithmetic", "monthEnd"]
     },
     {
       "name": "Month-end adjustment - Jan 31 + 1 month (leap year)",
       "expression": "@2020-01-31 + 1 month",
-      "expected": ["2020-02-29"],
+      "expected": ["@2020-02-29"],
       "tags": ["temporal", "arithmetic", "monthEnd", "leapYear"]
     },
     {
       "name": "Month-end adjustment - Mar 31 - 1 month",
       "expression": "@2018-03-31 - 1 month",
-      "expected": ["2018-02-28"],
+      "expected": ["@2018-02-28"],
       "tags": ["temporal", "arithmetic", "monthEnd", "subtraction"]
     },
     {
       "name": "Year transition - Dec + 1 month",
       "expression": "@2018-12 + 1 month",
-      "expected": ["2019-01"],
+      "expected": ["@2019-01"],
       "tags": ["temporal", "arithmetic", "yearTransition"]
     },
     {
       "name": "Year transition - Dec 31 + 1 day",
       "expression": "@2018-12-31 + 1 day",
-      "expected": ["2019-01-01"],
+      "expected": ["@2019-01-01"],
       "tags": ["temporal", "arithmetic", "yearTransition"]
     },
     {
       "name": "Year transition - Jan - 1 month",
       "expression": "@2019-01 - 1 month",
-      "expected": ["2018-12"],
+      "expected": ["@2018-12"],
       "tags": ["temporal", "arithmetic", "yearTransition", "subtraction"]
     },
     {
       "name": "Year transition - Jan 1 - 1 day",
       "expression": "@2019-01-01 - 1 day",
-      "expected": ["2018-12-31"],
+      "expected": ["@2018-12-31"],
       "tags": ["temporal", "arithmetic", "yearTransition", "subtraction"]
     },
     {
       "name": "DateTime with UTC timezone arithmetic",
       "expression": "@2018-01-01T00:00:00Z + 1 hour",
-      "expected": ["2018-01-01T01:00:00Z"],
+      "expected": ["@2018-01-01T01:00:00Z"],
       "tags": ["temporal", "arithmetic", "timezone", "UTC"]
     },
     {
       "name": "DateTime with offset timezone arithmetic",
       "expression": "@2018-01-01T00:00:00-05:00 + 1 hour",
-      "expected": ["2018-01-01T01:00:00-05:00"],
+      "expected": ["@2018-01-01T01:00:00-05:00"],
       "tags": ["temporal", "arithmetic", "timezone", "offset"]
     },
     {
       "name": "Precision preservation - year + 6 months",
       "expression": "@2018 + 6 months",
-      "expected": ["2018"],
+      "expected": ["@2018"],
       "tags": ["temporal", "arithmetic", "precision"]
     },
     {
       "name": "Precision preservation - year + 12 months",
       "expression": "@2018 + 12 months",
-      "expected": ["2019"],
+      "expected": ["@2019"],
       "tags": ["temporal", "arithmetic", "precision"]
     },
     {
       "name": "Precision preservation - month + 15 days",
       "expression": "@2018-01 + 15 days",
-      "expected": ["2018-01"],
+      "expected": ["@2018-01"],
       "tags": ["temporal", "arithmetic", "precision"]
     },
     {
       "name": "Precision preservation - month + 31 days",
       "expression": "@2018-01 + 31 days",
-      "expected": ["2018-02"],
+      "expected": ["@2018-02"],
       "tags": ["temporal", "arithmetic", "precision"]
     },
     {
       "name": "Time + 2 hours",
       "expression": "@T10:00 + 2 hours",
-      "expected": ["12:00"],
+      "expected": ["@T12:00"],
       "tags": ["temporal", "arithmetic", "time"]
     },
     {
       "name": "Time + 45 minutes",
       "expression": "@T10:30 + 45 minutes",
-      "expected": ["11:15"],
+      "expected": ["@T11:15"],
       "tags": ["temporal", "arithmetic", "time"]
     },
     {
       "name": "Time wraparound forward",
       "expression": "@T23:00 + 2 hours",
-      "expected": ["01:00"],
+      "expected": ["@T01:00"],
       "tags": ["temporal", "arithmetic", "time", "wraparound"]
     },
     {
       "name": "Time wraparound backward",
       "expression": "@T01:00 - 2 hours",
-      "expected": ["23:00"],
+      "expected": ["@T23:00"],
       "tags": ["temporal", "arithmetic", "time", "wraparound"]
     },
     {
       "name": "Chained arithmetic operations",
       "expression": "@2018 + 1 year + 6 months",
-      "expected": ["2019"],
+      "expected": ["@2019"],
       "tags": ["temporal", "arithmetic", "chained", "precision"]
     },
     {
@@ -359,19 +359,19 @@
     {
       "name": "Leap year arithmetic - Feb 28 + 1 day",
       "expression": "@2020-02-28 + 1 day",
-      "expected": ["2020-02-29"],
+      "expected": ["@2020-02-29"],
       "tags": ["temporal", "leapYear", "arithmetic"]
     },
     {
       "name": "Leap year arithmetic - Mar 1 - 1 day",
       "expression": "@2020-03-01 - 1 day",
-      "expected": ["2020-02-29"],
+      "expected": ["@2020-02-29"],
       "tags": ["temporal", "leapYear", "arithmetic"]
     },
     {
       "name": "Non-leap year arithmetic - Feb 28 + 1 day",
       "expression": "@2019-02-28 + 1 day",
-      "expected": ["2019-03-01"],
+      "expected": ["@2019-03-01"],
       "tags": ["temporal", "arithmetic"]
     },
     {
@@ -395,19 +395,19 @@
     {
       "name": "Valid - day literal with UCUM unit 'd'",
       "expression": "@2016-01 + 29 'd'",
-      "expected": ["2016-01"],
+      "expected": ["@2016-01"],
       "tags": ["temporal", "arithmetic", "ucum", "day"]
     },
     {
       "name": "Valid - day literal with UCUM unit 'd' (30 days)",
       "expression": "@2016-01 + 30 'd'",
-      "expected": ["2016-02"],
+      "expected": ["@2016-02"],
       "tags": ["temporal", "arithmetic", "ucum", "day"]
     },
     {
       "name": "Add 30 days to January - month changes",
       "expression": "@2016-01 + 30 days",
-      "expected": ["2016-02"],
+      "expected": ["@2016-02"],
       "tags": ["temporal", "arithmetic", "day"]
     },
     {
@@ -419,25 +419,25 @@
     {
       "name": "Add 2 years to full date",
       "expression": "@2018-01-03 + 2 years",
-      "expected": ["2020-01-03"],
+      "expected": ["@2020-01-03"],
       "tags": ["temporal", "arithmetic", "date", "year"]
     },
     {
       "name": "Add 2 years to DateTime with timezone",
       "expression": "@2018-02-18T12:23:45-05:00 + 2 years",
-      "expected": ["2020-02-18T12:23:45-05:00"],
+      "expected": ["@2020-02-18T12:23:45-05:00"],
       "tags": ["temporal", "arithmetic", "datetime", "timezone"]
     },
     {
       "name": "Add 1 month to Feb 29 - leap year",
       "expression": "@2016-02-29 + 1 month",
-      "expected": ["2016-03-29"],
+      "expected": ["@2016-03-29"],
       "tags": ["temporal", "arithmetic", "leapYear", "monthEnd"]
     },
     {
       "name": "Add 1 year to Feb 29 - non-leap year adjustment",
       "expression": "@2016-02-29 + 1 year",
-      "expected": ["2017-02-28"],
+      "expected": ["@2017-02-28"],
       "tags": ["temporal", "arithmetic", "leapYear", "yearAdjustment"]
     },
     {
@@ -480,31 +480,31 @@
     {
       "name": "Month end adjustment - Jan 31 + 1 month + 1 day",
       "expression": "@2016-01-31 + 1 month + 1 day",
-      "expected": ["2016-03-01"],
+      "expected": ["@2016-03-01"],
       "tags": ["temporal", "arithmetic", "monthEnd", "chain"]
     },
     {
       "name": "Add 1 week to date",
       "expression": "@2016-02-28 + 1 week",
-      "expected": ["2016-03-06"],
+      "expected": ["@2016-03-06"],
       "tags": ["temporal", "arithmetic", "week"]
     },
     {
       "name": "Valid - week literal with UCUM unit 'wk'",
       "expression": "@2016-02-28 + 1 'wk'",
-      "expected": ["2016-03-06"],
+      "expected": ["@2016-03-06"],
       "tags": ["temporal", "arithmetic", "ucum", "week"]
     },
     {
       "name": "Add 2 days to Feb 28 (leap year)",
       "expression": "@2016-02-28 + 2 days",
-      "expected": ["2016-03-01"],
+      "expected": ["@2016-03-01"],
       "tags": ["temporal", "arithmetic", "leapYear"]
     },
     {
       "name": "Subtract 2 days from Feb 28",
       "expression": "@2016-02-28 - 2 days",
-      "expected": ["2016-02-26"],
+      "expected": ["@2016-02-26"],
       "tags": ["temporal", "arithmetic", "subtraction"]
     },
     {
@@ -624,31 +624,31 @@
     {
       "name": "Decimal year ignored for calendar precision",
       "expression": "@2016-02-29 + 1.5 year",
-      "expected": ["2017-02-28"],
+      "expected": ["@2017-02-28"],
       "tags": ["temporal", "arithmetic", "decimal", "precision"]
     },
     {
       "name": "Decimal weeks ignored for calendar precision",
       "expression": "@2016-02-28 + 1.5 weeks",
-      "expected": ["2016-03-06"],
+      "expected": ["@2016-03-06"],
       "tags": ["temporal", "arithmetic", "decimal", "weeks"]
     },
     {
       "name": "Decimal weeks subtraction",
       "expression": "@2016-02-28 - 1.5 weeks",
-      "expected": ["2016-02-21"],
+      "expected": ["@2016-02-21"],
       "tags": ["temporal", "arithmetic", "decimal", "weeks", "subtraction"]
     },
     {
       "name": "Valid - decimal weeks with UCUM unit 'wk'",
       "expression": "@2016-02-28 + 1.5 'wk'",
-      "expected": ["2016-03-06"],
+      "expected": ["@2016-03-06"],
       "tags": ["temporal", "arithmetic", "ucum", "week", "decimal"]
     },
     {
       "name": "Decimal days ignored for calendar precision",
       "expression": "@2016-02-28 + 1.5 day",
-      "expected": ["2016-02-29"],
+      "expected": ["@2016-02-29"],
       "tags": ["temporal", "arithmetic", "decimal", "days"]
     },
     {

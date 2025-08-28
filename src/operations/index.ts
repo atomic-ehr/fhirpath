@@ -116,6 +116,8 @@ export { minuteOfFunction } from './minuteOf-function';
 export { secondOfFunction } from './secondOf-function';
 export { millisecondOfFunction } from './millisecondOf-function';
 export { timezoneOffsetOfFunction } from './timezoneOffsetOf-function';
+export { lowBoundaryFunction } from './lowBoundary-function';
+export { highBoundaryFunction } from './highBoundary-function';
 
 // Aggregate functions
 export { aggregateFunction } from './aggregate-function';

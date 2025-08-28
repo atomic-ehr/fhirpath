@@ -5,13 +5,13 @@
     {
       "name": "toDate() from string",
       "expression": "'2020-01-15'.toDate()",
-      "expected": ["2020-01-15"],
+      "expected": ["@2020-01-15"],
       "tags": ["temporal", "function", "conversion", "toDate"]
     },
     {
       "name": "toDate() from DateTime",
       "expression": "@2020-01-15T10:30:00.toDate()",
-      "expected": ["2020-01-15"],
+      "expected": ["@2020-01-15"],
       "tags": ["temporal", "function", "conversion", "toDate"]
     },
     {
@@ -23,31 +23,31 @@
     {
       "name": "toDateTime() from string",
       "expression": "'2020-01-15T10:30:00Z'.toDateTime()",
-      "expected": ["2020-01-15T10:30:00Z"],
+      "expected": ["@2020-01-15T10:30:00Z"],
       "tags": ["temporal", "function", "conversion", "toDateTime"]
     },
     {
       "name": "toDateTime() from Date",
       "expression": "@2020-01-15.toDateTime()",
-      "expected": ["2020-01-15T00:00:00.000"],
+      "expected": ["@2020-01-15T00:00:00.000"],
       "tags": ["temporal", "function", "conversion", "toDateTime"]
     },
     {
       "name": "toTime() from string",
       "expression": "'14:30:00'.toTime()",
-      "expected": ["14:30:00"],
+      "expected": ["@T14:30:00"],
       "tags": ["temporal", "function", "conversion", "toTime"]
     },
     {
       "name": "toTime() from DateTime",
       "expression": "@2020-01-15T14:30:45.toTime()",
-      "expected": ["14:30:45"],
+      "expected": ["@T14:30:45"],
       "tags": ["temporal", "function", "conversion", "toTime"]
     },
     {
       "name": "toTime() from DateTime with milliseconds",
       "expression": "@2020-01-15T14:30:45.123.toTime()",
-      "expected": ["14:30:45.123"],
+      "expected": ["@T14:30:45.123"],
       "tags": ["temporal", "function", "conversion", "toTime"]
     },
     {
@@ -155,7 +155,7 @@
     {
       "name": "Chained conversion - string to Date to DateTime",
       "expression": "'2020-01-15'.toDate().first().toDateTime()",
-      "expected": ["2020-01-15T00:00:00.000"],
+      "expected": ["@2020-01-15T00:00:00.000"],
       "tags": ["temporal", "function", "conversion", "chained"]
     },
     {

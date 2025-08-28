@@ -5,31 +5,31 @@
       "name": "dateOf() on DateTime returns Date",
       "expression": "@2012-01-01T12:30:00.000-07:00.dateOf()",
       "input": [{}],
-      "expected": ["2012-01-01"]
+      "expected": ["@2012-01-01"]
     },
     {
       "name": "dateOf() on DateTime with partial precision",
       "expression": "@2012-01-01T12:30.dateOf()",
       "input": [{}],
-      "expected": ["2012-01-01"]
+      "expected": ["@2012-01-01"]
     },
     {
       "name": "dateOf() on Date returns same Date",
       "expression": "@2012-01-01.dateOf()",
       "input": [{}],
-      "expected": ["2012-01-01"]
+      "expected": ["@2012-01-01"]
     },
     {
       "name": "dateOf() on partial Date",
       "expression": "@2012-01.dateOf()",
       "input": [{}],
-      "expected": ["2012-01"]
+      "expected": ["@2012-01"]
     },
     {
       "name": "dateOf() on year-only Date",
       "expression": "@2012.dateOf()",
       "input": [{}],
-      "expected": ["2012"]
+      "expected": ["@2012"]
     },
     {
       "name": "dateOf() on empty returns empty",
@@ -62,13 +62,13 @@
       "name": "dateOf() preserves DateTime partial precision",
       "expression": "@2012-01-01T.dateOf()",
       "input": [{}],
-      "expected": ["2012-01-01"]
+      "expected": ["@2012-01-01"]
     },
     {
       "name": "dateOf() on DateTime with timezone",
       "expression": "@2012-01-01T12:30:00.000+05:30.dateOf()",
       "input": [{}],
-      "expected": ["2012-01-01"]
+      "expected": ["@2012-01-01"]
     },
     {
       "name": "dateOf() result is Date type",

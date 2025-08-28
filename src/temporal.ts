@@ -957,7 +957,7 @@ export function subtract(temporal: TemporalValue, quantity: TimeQuantity): Tempo
 }
 
 // Helper to get the maximum day for a given month/year
-function getDaysInMonth(year: number, month: number): number {
+export function getDaysInMonth(year: number, month: number): number {
   if (month === 2) {
     // February - check for leap year
     const isLeapYear = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
@@ -1461,3 +1461,263 @@ export const FHIRDateTime = {
   new: createDateTime,
   create: createDateTime
 };
+
+// ============================================================================
+// Boundary Functions
+// ============================================================================
+
+/**
+ * Calculate the low boundary for a Date value
+ */
+export function getDateLowBoundary(date: FHIRDate, precision?: number): FHIRDate | null {
+  // Validate precision
+  if (precision !== undefined) {
+    if (precision < 0 || precision > 8) {
+      return null;
+    }
+  } else {
+    // Default precision for Date is 8 (day)
+    precision = 8;
+  }
+  
+  // Build the boundary date based on precision
+  let year = date.year;
+  let month: number | undefined;
+  let day: number | undefined;
+  
+  if (precision >= 6) {
+    month = date.month ?? 1;
+  }
+  
+  if (precision >= 8) {
+    day = date.day ?? 1;
+  }
+  
+  return createDate(year, month, day);
+}
+
+/**
+ * Calculate the high boundary for a Date value
+ */
+export function getDateHighBoundary(date: FHIRDate, precision?: number): FHIRDate | null {
+  // Validate precision
+  if (precision !== undefined) {
+    if (precision < 0 || precision > 8) {
+      return null;
+    }
+  } else {
+    // Default precision for Date is 8 (day)
+    precision = 8;
+  }
+  
+  // Build the boundary date based on precision
+  let year = date.year;
+  let month: number | undefined;
+  let day: number | undefined;
+  
+  if (precision >= 6) {
+    month = date.month ?? 12;
+  }
+  
+  if (precision >= 8) {
+    if (date.day !== undefined) {
+      day = date.day;
+    } else {
+      // Need to calculate last day of month
+      const actualMonth = month ?? 12;
+      day = getDaysInMonth(year, actualMonth);
+    }
+  }
+  
+  return createDate(year, month, day);
+}
+
+/**
+ * Calculate the low boundary for a DateTime value
+ */
+export function getDateTimeLowBoundary(dateTime: FHIRDateTime, precision?: number): FHIRDateTime | null {
+  // Validate precision
+  if (precision !== undefined) {
+    if (precision < 0 || precision > 17) {
+      return null;
+    }
+  } else {
+    // Default precision for DateTime is 17 (millisecond)
+    precision = 17;
+  }
+  
+  // Build the boundary datetime based on precision
+  let year = dateTime.year;
+  let month: number | undefined;
+  let day: number | undefined;
+  let hour: number | undefined;
+  let minute: number | undefined;
+  let second: number | undefined;
+  let millisecond: number | undefined;
+  let timezoneOffset: number | undefined = dateTime.timezoneOffset;
+  
+  if (precision >= 6) {
+    month = dateTime.month ?? 1;
+  }
+  
+  if (precision >= 8) {
+    day = dateTime.day ?? 1;
+  }
+  
+  if (precision >= 10) {
+    hour = dateTime.hour ?? 0;
+  }
+  
+  if (precision >= 12) {
+    minute = dateTime.minute ?? 0;
+  }
+  
+  if (precision >= 14) {
+    second = dateTime.second ?? 0;
+  }
+  
+  if (precision >= 17) {
+    millisecond = dateTime.millisecond ?? 0;
+    
+    // If no timezone was specified and we're at millisecond precision,
+    // use the maximum positive offset (+14:00 = 840 minutes)
+    if (timezoneOffset === undefined && dateTime.hour !== undefined) {
+      timezoneOffset = 840; // +14:00
+    }
+  }
+  
+  return createDateTime(year, month, day, hour, minute, second, millisecond, timezoneOffset);
+}
+
+/**
+ * Calculate the high boundary for a DateTime value
+ */
+export function getDateTimeHighBoundary(dateTime: FHIRDateTime, precision?: number): FHIRDateTime | null {
+  // Validate precision
+  if (precision !== undefined) {
+    if (precision < 0 || precision > 17) {
+      return null;
+    }
+  } else {
+    // Default precision for DateTime is 17 (millisecond)
+    precision = 17;
+  }
+  
+  // Build the boundary datetime based on precision
+  let year = dateTime.year;
+  let month: number | undefined;
+  let day: number | undefined;
+  let hour: number | undefined;
+  let minute: number | undefined;
+  let second: number | undefined;
+  let millisecond: number | undefined;
+  let timezoneOffset: number | undefined = dateTime.timezoneOffset;
+  
+  if (precision >= 6) {
+    month = dateTime.month ?? 12;
+  }
+  
+  if (precision >= 8) {
+    if (dateTime.day !== undefined) {
+      day = dateTime.day;
+    } else {
+      // Need to calculate last day of month
+      const actualMonth = month ?? 12;
+      day = getDaysInMonth(year, actualMonth);
+    }
+  }
+  
+  if (precision >= 10) {
+    hour = dateTime.hour ?? 23;
+  }
+  
+  if (precision >= 12) {
+    minute = dateTime.minute ?? 59;
+  }
+  
+  if (precision >= 14) {
+    second = dateTime.second ?? 59;
+  }
+  
+  if (precision >= 17) {
+    millisecond = dateTime.millisecond ?? 999;
+    
+    // If no timezone was specified and we're at millisecond precision,
+    // use the maximum negative offset (-12:00 = -720 minutes)
+    if (timezoneOffset === undefined && dateTime.hour !== undefined) {
+      timezoneOffset = -720; // -12:00
+    }
+  }
+  
+  return createDateTime(year, month, day, hour, minute, second, millisecond, timezoneOffset);
+}
+
+/**
+ * Calculate the low boundary for a Time value
+ */
+export function getTimeLowBoundary(time: FHIRTime, precision?: number): FHIRTime | null {
+  // Validate precision
+  if (precision !== undefined) {
+    if (precision < 0 || precision > 9) {
+      return null;
+    }
+  } else {
+    // Default precision for Time is 9 (millisecond)
+    precision = 9;
+  }
+  
+  // Build the boundary time based on precision
+  let hour = time.hour;
+  let minute: number | undefined;
+  let second: number | undefined;
+  let millisecond: number | undefined;
+  
+  if (precision >= 5) {
+    minute = time.minute ?? 0;
+  }
+  
+  if (precision >= 7) {
+    second = time.second ?? 0;
+  }
+  
+  if (precision >= 9) {
+    millisecond = time.millisecond ?? 0;
+  }
+  
+  return createTime(hour, minute, second, millisecond);
+}
+
+/**
+ * Calculate the high boundary for a Time value
+ */
+export function getTimeHighBoundary(time: FHIRTime, precision?: number): FHIRTime | null {
+  // Validate precision
+  if (precision !== undefined) {
+    if (precision < 0 || precision > 9) {
+      return null;
+    }
+  } else {
+    // Default precision for Time is 9 (millisecond)
+    precision = 9;
+  }
+  
+  // Build the boundary time based on precision
+  let hour = time.hour;
+  let minute: number | undefined;
+  let second: number | undefined;
+  let millisecond: number | undefined;
+  
+  if (precision >= 5) {
+    minute = time.minute ?? 59;
+  }
+  
+  if (precision >= 7) {
+    second = time.second ?? 59;
+  }
+  
+  if (precision >= 9) {
+    millisecond = time.millisecond ?? 999;
+  }
+  
+  return createTime(hour, minute, second, millisecond);
+}
