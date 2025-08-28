@@ -154,35 +154,17 @@
     },
     {
       "name": "collection inequality - with duplicates",
-      "expression": "(1 | 1 | 2) != (1 | 1 | 2)",
+      "expression": "(1).combine((1)).combine((2)) != (1).combine((1)).combine((2))",
       "input": [],
-      "expected": [
-        false
-      ],
-      "tags": [
-        "operator",
-        "comparison",
-        "inequality",
-        "collection",
-        "duplicates",
-        "operator:!="
-      ]
+      "expected": [ false ],
+      "tags": ["operator", "comparison", "inequality", "collection", "duplicates", "operator:!="]
     },
     {
       "name": "collection inequality - duplicates different positions",
-      "expression": "(1 | 1 | 2) != (1 | 2 | 1)",
+      "expression": "(1).combine((1)).combine((2)) != (1).combine((2)).combine((1))",
       "input": [],
-      "expected": [
-        true
-      ],
-      "tags": [
-        "operator",
-        "comparison",
-        "inequality",
-        "collection",
-        "duplicates",
-        "operator:!="
-      ]
+      "expected": [ true ],
+      "tags": ["operator", "comparison", "inequality", "collection", "duplicates", "operator:!="]
     }
   ]
 }

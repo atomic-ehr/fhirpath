@@ -16,7 +16,8 @@
     },
     {
       "name": "combine - multiple duplicates",
-      "expression": "(1 | 2 | 2).combine((2 | 3 | 3))",
+      "expression": "values.combine(((2).combine((3)).combine((3))))",
+      "input": [{"values": [1, 2, 2]}],
       "expected": [1, 2, 2, 2, 3, 3],
       "tags": ["function", "collection", "combine", "function:combine", "duplicates"]
     },

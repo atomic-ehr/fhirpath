@@ -52,7 +52,8 @@
     },
     {
       "description": "join - mixed content (numbers converted to strings)",
-      "expression": "('Item' | 1 | 'Item' | 2).join('-')",
+      "expression": "values.join('-')",
+      "input": [{"values": ["Item", 1, "Item", 2]}],
       "expected": ["Item-1-Item-2"],
       "tags": ["string", "join", "conversion"]
     },

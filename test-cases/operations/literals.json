@@ -135,19 +135,11 @@
       ]
     },
     {
-      "name": "collection literal - booleans",
+      "name": "collection literal - booleans (dedup)",
       "expression": "(true | false | true)",
       "input": [],
-      "expected": [
-        true,
-        false,
-        true
-      ],
-      "tags": [
-        "basic",
-        "literal",
-        "collection"
-      ]
+      "expected": [ true, false ],
+      "tags": ["basic", "literal", "collection"]
     }
   ]
 }

@@ -583,16 +583,12 @@ export class Interpreter {
       const rightResult = await this.evaluate(binary.right, input, context); // Use original context, not leftResult.context
       
       // Merge the results
-      const unionEvaluator = this.operationEvaluators.get('union');
+      const unionEvaluator = this.operationEvaluators.get('|');
       if (unionEvaluator) {
         return await unionEvaluator(input, context, leftResult.value, rightResult.value);
       }
-      
-      // Fallback if union evaluator not found
-      return {
-        value: [...leftResult.value, ...rightResult.value],
-        context  // Original context preserved
-      };
+      // If union evaluator not found, surface a clear error
+      throw Errors.noEvaluatorFound('binary operator', '|');
     }
 
     // Get operation evaluator
@@ -693,48 +689,74 @@ export class Interpreter {
       // No function found in registry
       throw Errors.unknownFunction(funcName);
     }
-    
-    // Handle empty propagation centrally
-    // Only propagate empty for functions that DO propagate empty (default behavior)
+    // Helper: pick a matching signature based on argument count
+    const pickSignature = () => {
+      if (!functionDef?.signatures || functionDef.signatures.length === 0) {
+        return undefined as import('./types').FunctionSignature | undefined;
+      }
+      const argsCount = func.arguments.length;
+      for (const sig of functionDef.signatures) {
+        const total = sig.parameters.length;
+        const required = sig.parameters.filter(p => !p.optional).length;
+        if (argsCount >= required && argsCount <= total) {
+          return sig;
+        }
+      }
+      // Fallback to first signature
+      return functionDef.signatures[0];
+    };
+
+    const signature = pickSignature();
+
+    // Memoized evaluator to avoid duplicate evaluation of arguments
+    // Only memoize when both input and context references are identical to this call's input/context.
+    const originalInputRef = input;
+    const originalContextRef = context;
+    const cache = new WeakMap<ASTNode, Promise<EvaluationResult>>();
+    const memoEval = async (n: ASTNode, inVals: any[], ctx: RuntimeContext) => {
+      if (inVals === originalInputRef && ctx === originalContextRef) {
+        const cached = cache.get(n);
+        if (cached) {
+          return cached;
+        }
+        const promise = this.evaluate(n, inVals, ctx);
+        cache.set(n, promise);
+        return promise;
+      }
+      // Different input or context – do not reuse cached result
+      return this.evaluate(n, inVals, ctx);
+    };
+
+    // Handle empty propagation centrally (default: propagate)
     if (functionDef && !functionDef.doesNotPropagateEmpty) {
-      // Check if input is empty
+      // If input is empty, propagate empty immediately
       if (input.length === 0) {
         return { value: [], context };
       }
-      
-      // Special case: substring doesn't propagate empty for its length parameter
-      const skipEmptyCheckForParam = funcName === 'substring' ? 1 : -1;
-      
-      // Check if any arguments evaluate to empty
-      // We need to evaluate arguments that aren't expression parameters
+
+      // Evaluate non-expression, non-typeReference arguments once for emptiness
       for (let i = 0; i < func.arguments.length; i++) {
-        // Skip the length parameter for substring (index 1)
-        if (i === skipEmptyCheckForParam) {
-          continue;
-        }
-        
         const arg = func.arguments[i];
-        const param = functionDef.signatures?.[0]?.parameters?.[i];
-        
-        // Skip expression parameters (they're not evaluated for emptiness)
-        if (param?.expression) {
+        const param = signature?.parameters[i];
+        if (!arg || !param) {
           continue;
         }
-        
-        // Evaluate the argument
-        const argResult = await this.evaluate(arg!, input, context);
-        
-        // If argument is empty, propagate empty
-        if (argResult.value.length === 0) {
+        // Skip expression or typeReference params (not evaluated here)
+        if (param.expression || param.typeReference) {
+          continue;
+        }
+        // Evaluate with memoization
+        const argResult = await memoEval(arg, input, context);
+        // If argument is empty and it's a required parameter, propagate empty
+        const isRequired = !param.optional;
+        if (isRequired && argResult.value.length === 0) {
           return { value: [], context };
         }
       }
     }
-    // Functions that don't propagate empty (count, empty, exists, etc.) 
-    // will continue to their evaluator even with empty input
-    
-    // Call the function evaluator
-    return await functionEvaluator(input, context, func.arguments, this.evaluate.bind(this));
+
+    // Call the function evaluator with memoized evaluator
+    return await functionEvaluator(input, context, func.arguments, memoEval);
   }
 
   // Index evaluator

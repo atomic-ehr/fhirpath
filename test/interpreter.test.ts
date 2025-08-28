@@ -228,6 +228,14 @@ describe('FHIRPath Interpreter', () => {
     it('should combine collections', async () => {
       expect(await evaluate('(1 | 2) | (3 | 4)')).toEqual([1, 2, 3, 4]);
     });
+
+    it('should eliminate duplicates across operands', async () => {
+      expect(await evaluate('(1 | 2) | (2 | 3)')).toEqual([1, 2, 3]);
+    });
+
+    it('should eliminate duplicates in chained unions', async () => {
+      expect(await evaluate('1 | 1 | 2 | 2 | 3')).toEqual([1, 2, 3]);
+    });
   });
 
   describe('Complex expressions', () => {

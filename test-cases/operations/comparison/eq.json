@@ -305,35 +305,17 @@
     },
     {
       "name": "collection equality - with duplicates",
-      "expression": "(1 | 1 | 2) = (1 | 1 | 2)",
+      "expression": "(1).combine((1)).combine((2)) = (1).combine((1)).combine((2))",
       "input": [],
-      "expected": [
-        true
-      ],
-      "tags": [
-        "operator",
-        "comparison",
-        "equality",
-        "collection",
-        "duplicates",
-        "operator:="
-      ]
+      "expected": [ true ],
+      "tags": ["operator", "comparison", "equality", "collection", "duplicates", "operator:="]
     },
     {
       "name": "collection equality - duplicates different positions",
-      "expression": "(1 | 1 | 2) = (1 | 2 | 1)",
+      "expression": "(1).combine((1)).combine((2)) = (1).combine((2)).combine((1))",
       "input": [],
-      "expected": [
-        false
-      ],
-      "tags": [
-        "operator",
-        "comparison",
-        "equality",
-        "collection",
-        "duplicates",
-        "operator:="
-      ]
+      "expected": [ false ],
+      "tags": ["operator", "comparison", "equality", "collection", "duplicates", "operator:="]
     },
     {
       "name": "collection equality - mixed types same order",

@@ -93,9 +93,9 @@ describe('Collection Equality Operations', () => {
     });
 
     it('should handle duplicate items in collections', async () => {
-      expect(await evaluate('(1 | 1 | 2) = (1 | 1 | 2)')).toEqual([true]);
-      expect(await evaluate('(1 | 1 | 2) = (1 | 2 | 1)')).toEqual([false]);
-      expect(await evaluate('(1 | 2 | 2) = (1 | 2 | 2)')).toEqual([true]);
+      expect(await evaluate('(1).combine((1)).combine((2)) = (1).combine((1)).combine((2))')).toEqual([true]);
+      expect(await evaluate('(1).combine((1)).combine((2)) = (1).combine((2)).combine((1))')).toEqual([false]);
+      expect(await evaluate('(1).combine((2)).combine((2)) = (1).combine((2)).combine((2))')).toEqual([true]);
     });
 
     it('should handle collections created by distinct()', async () => {

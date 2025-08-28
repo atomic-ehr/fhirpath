@@ -167,18 +167,14 @@
     },
     {
       "name": "isDistinct - boolean values with duplicate",
-      "expression": "(true | false | true).isDistinct()",
-      "input": null,
-      "expected": [
-        false
+      "expression": "values.isDistinct()",
+      "input": [
+        {
+          "values": [ true, false, true ]
+        }
       ],
-      "tags": [
-        "function",
-        "aggregate",
-        "isDistinct",
-        "function:isDistinct",
-        "boolean"
-      ]
+      "expected": [ false ],
+      "tags": ["function", "aggregate", "isDistinct", "function:isDistinct", "boolean"]
     },
     {
       "name": "isDistinct - direct empty collection",

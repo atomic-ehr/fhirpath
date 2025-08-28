@@ -2,44 +2,33 @@ import type { OperatorDefinition } from '../types';
 import { PRECEDENCE } from '../types';
 import type { OperationEvaluator } from '../types';
 import { box, unbox } from '../boxing';
+import { evaluate as equalsEvaluate } from './equal-operator';
 
 // Note: The union operator is special and is typically handled directly in the interpreter
 // because it needs to preserve the original context for both operands
 export const evaluate: OperationEvaluator = async (input, context, left, right) => {
-  // Union merges collections and eliminates duplicates using equals (=) operator
+  // '|' deduplicates using equals (=) semantics
   const result: any[] = [];
-  const seen = new Set<any>();
-  
-  // Add items from left collection
+  const isDup = async (candidate: any): Promise<boolean> => {
+    for (const existing of result) {
+      const eq = await equalsEvaluate(input, context, [existing], [candidate]);
+      const v = eq.value[0];
+      if (v && typeof v.value === 'boolean' && v.value === true) {
+        return true;
+      }
+    }
+    return false;
+  };
   for (const item of left) {
-    let isDuplicate = false;
-    for (const existing of result) {
-      // Use equals operator semantics for duplicate detection
-      if (existing === item) {
-        isDuplicate = true;
-        break;
-      }
-    }
-    if (!isDuplicate) {
+    if (!(await isDup(item))) {
       result.push(item);
     }
   }
-  
-  // Add items from right collection if not already present
   for (const item of right) {
-    let isDuplicate = false;
-    for (const existing of result) {
-      // Use equals operator semantics for duplicate detection
-      if (existing === item) {
-        isDuplicate = true;
-        break;
-      }
-    }
-    if (!isDuplicate) {
+    if (!(await isDup(item))) {
       result.push(item);
     }
   }
-  
   return { value: result, context };
 };
 
@@ -49,7 +38,7 @@ export const unionOperator: OperatorDefinition & { evaluate: OperationEvaluator 
   category: ['collection'],
   precedence: PRECEDENCE.PIPE,
   associativity: 'left',
-  description: 'Merges two collections into a single collection, eliminating any duplicate values using the equals (=) operator. There is no expectation of order in the resulting collection',
+  description: 'Merges two collections into a single collection, eliminating duplicates using equals (=) semantics. Order is not guaranteed.',
   examples: [
     'name.given | name.family',
     'Patient.identifier | Patient.contact.identifier',

@@ -34,7 +34,8 @@
     },
     {
       "name": "exclude - preserves duplicates",
-      "expression": "(1 | 2 | 2 | 3 | 3).exclude(2)",
+      "expression": "values.exclude(2)",
+      "input": [{"values": [1, 2, 2, 3, 3]}],
       "expected": [1, 3, 3],
       "tags": ["function", "collection", "exclude", "function:exclude", "duplicates"]
     },
@@ -52,7 +53,8 @@
     },
     {
       "name": "exclude - boolean values",
-      "expression": "(true | false | true | false).exclude(false)",
+      "expression": "values.exclude(false)",
+      "input": [{"values": [true, false, true, false]}],
       "expected": [true, true],
       "tags": ["function", "collection", "exclude", "function:exclude", "boolean"]
     },
