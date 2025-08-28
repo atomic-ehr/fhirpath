@@ -646,7 +646,7 @@ export class Parser {
     const tokenStr = token.value || TokenType[token.type];
     const range = this.getRangeFromToken(token);
     const error = Errors.unexpectedToken(tokenStr, range);
-    return this.handleError(error.message, token);
+    return this.handleAstError(error.message, token);
   }
   
   protected parseInvocation(): ASTNode {
@@ -691,7 +691,7 @@ export class Parser {
     const tokenStr = token.value || TokenType[token.type];
     const range = this.getRangeFromToken(token);
     const error = Errors.expectedIdentifier('.', tokenStr, range);
-    return this.handleError(error.message, token);
+    return this.handleAstError(error.message, token);
   }
   
   protected parseArgumentList(): ASTNode[] {
@@ -734,7 +734,7 @@ export class Parser {
     // Any other token is an error - braces can only contain empty collections
     const unexpectedToken = this.peek();
     const message = `Unexpected token '${unexpectedToken.value}', expected '}'. Braces can only be used for empty collections. Use parentheses and pipe operators for non-empty collections: (1 | 2 | 3)`;
-    return this.handleError(message, unexpectedToken) as any;
+    return this.handleAstError(message, unexpectedToken) as any;
   }
   
   protected parseTypeName(): string {
@@ -743,8 +743,12 @@ export class Parser {
       const tokenStr = token.value || TokenType[token.type];
       const range = this.getRangeFromToken(token);
       const error = Errors.expectedTypeName(tokenStr, range);
-      this.handleError(error.message, token);
-      return ''; // For TypeScript, though handleError should throw/return error node
+      if (this.mode === 'lsp' && this.options.errorRecovery) {
+        this.reportError(error.message, token);
+        return '';
+      }
+      this.throwSyntax(error.message, token);
+      return '';
     }
     return this.parseIdentifierValue(token.value);
   }
@@ -817,22 +821,48 @@ export class Parser {
   }
   
   protected consume(type: TokenType, message: string): Token {
-    if (this.check(type)) return this.advance();
-    
-    // Be lenient when cursor is present and we're at EOF
-    if (this.options.cursorPosition !== undefined && this.isAtEnd()) {
-      // Return a synthetic token to allow parsing to continue
-      return {
+    if (this.check(type)) {
+      return this.advance();
+    }
+    // If we are in recovery mode (LSP + errorRecovery), report and return a synthetic token
+    if (this.mode === 'lsp' && this.options.errorRecovery) {
+      const tok = this.peek();
+      this.reportError(message, tok);
+      // Create a zero-width synthetic token of the expected type at the current position
+      const pos = this.isAtEnd() ? this.input.length : tok.start;
+      const synthetic: Token = {
         type,
         value: '',
-        start: this.input.length,
-        end: this.input.length
+        start: pos,
+        end: pos,
+        line: tok?.line ?? 0,
+        column: tok?.column ?? 0,
+        range: {
+          start: { line: 0, character: pos, offset: pos },
+          end: { line: 0, character: pos, offset: pos }
+        }
       } as Token;
+      return synthetic;
     }
-    
-    const token = this.peek();
-    // Pass the message directly to handleError
-    return this.handleError(message, token) as any;
+    // Be lenient when cursor is provided and we're at EOF (legacy behavior for simple mode cursor tests)
+    if (this.options.cursorPosition !== undefined && this.isAtEnd()) {
+      const pos = this.input.length;
+      const synthetic: Token = {
+        type,
+        value: '',
+        start: pos,
+        end: pos,
+        line: 0,
+        column: 0,
+        range: {
+          start: { line: 0, character: pos, offset: pos },
+          end: { line: 0, character: pos, offset: pos }
+        }
+      } as Token;
+      return synthetic;
+    }
+    // Simple mode: throw
+    this.throwSyntax(message, this.peek());
   }
 
   // Implement node creation methods
@@ -1075,32 +1105,31 @@ export class Parser {
     return node;
   }
 
-  protected handleError(message: string, token?: Token): never {
+  // AST-level error handler: returns an ErrorNode in recovery, throws in simple mode
+  protected handleAstError(message: string, token?: Token): ErrorNode {
     if (this.mode === 'lsp' && this.options.errorRecovery) {
-      // In LSP mode with error recovery, add error and try to recover
-      this.addError(message, token);
-      
-      // Try to synchronize
+      this.reportError(message, token);
+      // Attempt to synchronize so the parse can continue
       this.synchronize();
-      
-      // Return error node (cast to never to satisfy type system)
-      return this.createErrorNode(message, token) as never;
+      return this.createErrorNode(message, token);
     }
-    
-    // In simple mode, throw error
+    this.throwSyntax(message, token);
+  }
+
+  // Record an error (LSP path)
+  private reportError(message: string, token?: Token): void {
+    this.addError(message, token);
+  }
+
+  // Throw a syntax error (simple mode path)
+  private throwSyntax(message: string, token?: Token): never {
     const range = token ? this.getRangeFromToken(token) : undefined;
-    
-    // Choose the appropriate error based on the message
     if (message.includes('Unexpected token:')) {
       const tokenMatch = message.match(/Unexpected token: (.+)/);
       const tokenValue = tokenMatch?.[1] ?? 'unknown';
       throw Errors.unexpectedToken(tokenValue, range);
-    } else if (message.includes('Expected')) {
-      // This covers "Expected ')'" and similar cases
-      throw Errors.invalidSyntax(message, range);
-    } else {
-      throw Errors.invalidSyntax(message, range);
     }
+    throw Errors.invalidSyntax(message, range);
   }
   
   // LSP mode helper methods
