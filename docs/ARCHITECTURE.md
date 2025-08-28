@@ -91,6 +91,13 @@ Context management features:
 - **Variable Scoping**: Manages $, %, and user-defined variables
 - **Iterator Context**: Handles $this and $index in iterations
 
+Invocation semantics:
+- **Sequential `.`**: Evaluates left, then uses its result as input for right.
+- **Union `|`**: Evaluates both sides against the same input/context with isolated variable scopes, then merges.
+- **Logical short-circuit**: `and`, `or`, `implies` may skip right evaluation when left decides the result (per FHIRPath three-valued logic).
+- **Empty propagation**: Default propagation for operators/functions unless `doesNotPropagateEmpty` is set in the registry metadata.
+- **Memoized args**: Function argument evaluation is memoized per (input, context) to avoid duplicate work when an argument is referenced multiple times.
+
 ### 5. Operation Registry
 
 #### Registry ([src/registry.ts](../src/registry.ts):25-200)
