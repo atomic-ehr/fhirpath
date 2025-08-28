@@ -25,6 +25,7 @@ import { NodeType, DiagnosticSeverity, AnalysisContext } from './types';
 import type { OperatorSignature, FunctionSignature } from './types';
 import { registry } from './registry';
 import { matchOperatorSignature, matchFunctionSignature, resolveResultType } from './analysis/type-compat';
+import { checkParamTypes, formatType, isEmptyCollection } from './analysis/utils';
 import { Errors, toDiagnostic, ErrorCodes } from './errors';
 import { isCursorNode, CursorContext } from './cursor-nodes';
 import type { AnyCursorNode } from './cursor-nodes';
@@ -420,38 +421,20 @@ export class Analyzer {
         const actualInput = context.inputType;
         const inputIsEmpty = actualInput.isEmpty || (actualInput.type === 'Any' && !actualInput.singleton);
         if (inputIsEmpty && !funcDef.doesNotPropagateEmpty) {
-          // Empty input will propagate through
-          // But still check if arguments have type errors for better diagnostics
-          // Use the first signature to check parameter types
+          // Empty input will propagate through.
+          // Still check non-empty arguments for better diagnostics (no empty warnings here).
           const sig = funcDef.signatures[0];
-          if (sig && sig.parameters) {
-            for (let i = 0; i < argTypes.length; i++) {
-              const param = sig.parameters[i];
-              const argType = argTypes[i];
-              if (param && argType && !param.expression) {
-                // Skip empty arguments - they will propagate empty
-                const isEmptyArg = argType.isEmpty || (argType.type === 'Any' && !argType.singleton);
-                if (isEmptyArg) {
-                  continue; // Empty arguments propagate, no error needed
-                }
-                
-                const expectedType = param.type;
-                const typeMatch = expectedType.type === 'Any' || argType.type === 'Any' ||
-                                 expectedType.type === argType.type ||
-                                 (expectedType.type === 'Decimal' && argType.type === 'Integer');
-                const singletonMatch = !expectedType.singleton || argType.singleton;
-                
-                if (!typeMatch || !singletonMatch) {
-                  const argTypeStr = argType.singleton ? argType.type : `${argType.type}[]`;
-                  const expectedTypeStr = expectedType.singleton ? expectedType.type : `${expectedType.type}[]`;
-                  diagnostics.push(this.createError(
-                    node.arguments[i]!,
-                    `Argument ${i + 1} of ${functionName}(): expected ${expectedTypeStr}, got ${argTypeStr}`,
-                    ErrorCodes.ARGUMENT_TYPE_MISMATCH
-                  ));
-                }
-              }
-            }
+          if (sig) {
+            diagnostics.push(
+              ...checkParamTypes(sig, argTypes, node.arguments, {
+                // Mirror previous behavior: do not produce errors for empty args here.
+                warnOnSingletonOnly: false,
+                doesNotPropagateEmpty: !!funcDef.doesNotPropagateEmpty,
+                // Let empty args be warnings, not errors.
+                treatEmptyAsWarning: true,
+                errorCode: ErrorCodes.ARGUMENT_TYPE_MISMATCH,
+              })
+            );
           }
         } else {
           // Try to find if there's a signature that matches the input but not the parameters
@@ -474,41 +457,13 @@ export class Analyzer {
           
           // If we found a signature that matches input but not parameters, report parameter errors
           if (inputMatchingSignature && inputMatchingSignature.parameters) {
-            // Check which parameter doesn't match
-            for (let i = 0; i < argTypes.length; i++) {
-              const param = inputMatchingSignature.parameters[i];
-              const argType = argTypes[i];
-              if (param && argType && !param.expression) {
-                const isEmptyArg = argType.isEmpty || (argType.type === 'Any' && !argType.singleton);
-                if (!isEmptyArg || funcDef.doesNotPropagateEmpty) {
-                  const expectedType = param.type;
-                  const typeMatch = expectedType.type === 'Any' || argType.type === 'Any' ||
-                                   expectedType.type === argType.type ||
-                                   (expectedType.type === 'Decimal' && argType.type === 'Integer');
-                  const singletonMatch = !expectedType.singleton || argType.singleton;
-                  
-                  if (!typeMatch || !singletonMatch) {
-                    const argTypeStr = argType.singleton ? argType.type : `${argType.type}[]`;
-                    const expectedTypeStr = expectedType.singleton ? expectedType.type : `${expectedType.type}[]`;
-                    // Use warning for singleton mismatches (collection where singleton expected)
-                    // These are checked at runtime in FHIRPath
-                    const isOnlySingletonMismatch = typeMatch && !singletonMatch;
-                    diagnostics.push(isOnlySingletonMismatch ? 
-                      this.createWarning(
-                        node.arguments[i]!,
-                        `Argument ${i + 1} of ${functionName}(): expected ${expectedTypeStr}, got ${argTypeStr}`,
-                        ErrorCodes.ARGUMENT_TYPE_MISMATCH
-                      ) :
-                      this.createError(
-                        node.arguments[i]!,
-                        `Argument ${i + 1} of ${functionName}(): expected ${expectedTypeStr}, got ${argTypeStr}`,
-                        ErrorCodes.ARGUMENT_TYPE_MISMATCH
-                      )
-                    );
-                  }
-                }
-              }
-            }
+            diagnostics.push(
+              ...checkParamTypes(inputMatchingSignature, argTypes, node.arguments, {
+                warnOnSingletonOnly: true,
+                doesNotPropagateEmpty: !!funcDef.doesNotPropagateEmpty,
+                errorCode: ErrorCodes.ARGUMENT_TYPE_MISMATCH,
+              })
+            );
           } else {
             // No signature matches the input type
             const actualTypeStr = actualInput.singleton ? actualInput.type : `${actualInput.type}[]`;
@@ -554,56 +509,13 @@ export class Analyzer {
       } else {
         // Check argument types against the matching signature
         if (matchingSignature.parameters) {
-          for (let i = 0; i < argTypes.length; i++) {
-            const param = matchingSignature.parameters[i];
-            if (param) {
-              const argType = argTypes[i];
-              if (argType) {
-                // Skip type validation for expression parameters (they will be evaluated at runtime)
-                // Only validate type for non-expression parameters
-                if (!param.expression) {
-                  // Check type compatibility
-                  const expectedType = param.type;
-                  const typeMatch = expectedType.type === 'Any' || argType.type === 'Any' ||
-                                   expectedType.type === argType.type ||
-                                   (expectedType.type === 'Decimal' && argType.type === 'Integer');
-                  const singletonMatch = !expectedType.singleton || argType.singleton;
-                  
-                  if (!typeMatch || !singletonMatch) {
-                  const argTypeStr = argType.singleton ? argType.type : `${argType.type}[]`;
-                  const expectedTypeStr = expectedType.singleton ? expectedType.type : `${expectedType.type}[]`;
-                  
-                  // Check if this is an empty collection - if so, generate warning instead of error
-                  const isEmptyCollection = argType.isEmpty || 
-                                          (argType.type === 'Any' && !argType.singleton);
-                  
-                  if (isEmptyCollection && !funcDef.doesNotPropagateEmpty) {
-                    // Empty collection will propagate - generate warning
-                    diagnostics.push(this.createWarning(
-                      node.arguments[i]!,
-                      `Argument ${i + 1} of ${functionName}(): expected ${expectedTypeStr}, got empty collection. Result will be empty.`
-                    ));
-                  } else {
-                    // Type mismatch - check if it's only a singleton issue
-                    const isOnlySingletonMismatch = typeMatch && !singletonMatch;
-                    diagnostics.push(isOnlySingletonMismatch ?
-                      this.createWarning(
-                        node.arguments[i]!,
-                        `Argument ${i + 1} of ${functionName}(): expected ${expectedTypeStr}, got ${argTypeStr}`,
-                        ErrorCodes.ARGUMENT_TYPE_MISMATCH
-                      ) :
-                      this.createError(
-                        node.arguments[i]!,
-                        `Argument ${i + 1} of ${functionName}(): expected ${expectedTypeStr}, got ${argTypeStr}`,
-                        ErrorCodes.ARGUMENT_TYPE_MISMATCH
-                      )
-                    );
-                  }
-                  }
-                }
-              }
-            }
-          }
+          diagnostics.push(
+            ...checkParamTypes(matchingSignature, argTypes, node.arguments, {
+              warnOnSingletonOnly: true,
+              doesNotPropagateEmpty: !!funcDef.doesNotPropagateEmpty,
+              errorCode: ErrorCodes.ARGUMENT_TYPE_MISMATCH,
+            })
+          );
         } else {
           // Some existence-like functions accept non-boolean input by ignoring non-boolean values
           const permissive = ['anyFalse', 'anyTrue'];
