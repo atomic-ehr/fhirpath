@@ -36,7 +36,8 @@ import type {
   ParseResult,
   ParseError
 } from './types';
-import { Errors, FHIRPathError, toDiagnostic } from './errors';
+import { Errors } from './errors';
+import { parseTemporalLiteral } from './temporal';
 
 // Re-export types for backward compatibility
 export {
@@ -83,13 +84,18 @@ export class Parser {
   protected current = 0;
   private mode: 'simple' | 'lsp';
   private options: ParserOptions;
+  private preserveTriviaEffective = false;
   private errors?: ParseError[];
   private nodeIdCounter?: number;
   private nodeIndex?: Map<string, ASTNode>;
   private nodesByType?: Map<NodeType | 'Error' | 'CursorNode', ASTNode[]>;
   private identifierIndex?: Map<string, ASTNode[]>;
-  private currentParent?: ASTNode | null;
   private input: string;
+  // Trivia and token indexes for LSP mode with trivia preservation
+  private leadingTriviaByTokenStart?: Map<number, TriviaInfo[]>;
+  private trailingTriviaByTokenEnd?: Map<number, TriviaInfo[]>;
+  private tokenByStart?: Map<number, Token>;
+  private tokenByEnd?: Map<number, Token>;
   
   // Synchronization tokens for error recovery
   private readonly synchronizationTokens = new Set([
@@ -106,15 +112,16 @@ export class Parser {
       trackPosition: true,
       preserveTrivia: mode === 'lsp' ? true : (options.preserveTrivia ?? false)
     };
+    this.preserveTriviaEffective = !!lexerOptions.preserveTrivia;
     
     this.lexer = new Lexer(input, lexerOptions);
     this.tokens = this.lexer.tokenize();
     
-    // Filter out trivia tokens if they exist (tokens on hidden channel)
-    if (lexerOptions.preserveTrivia) {
-      this.tokens = this.tokens.filter(token => 
-        token.channel === undefined || token.channel === Channel.DEFAULT
-      );
+    // If preserving trivia, capture leading/trailing trivia spans before filtering
+    if (this.preserveTriviaEffective) {
+      this.computeTriviaSpans(this.tokens);
+      // Then filter hidden-channel tokens out for parsing
+      this.tokens = this.tokens.filter(token => token.channel === undefined || token.channel === Channel.DEFAULT);
     }
     
     // Inject cursor token if cursor position is provided
@@ -133,16 +140,57 @@ export class Parser {
       this.nodeIndex = new Map();
       this.nodesByType = new Map();
       this.identifierIndex = new Map();
-      this.currentParent = null;
+      // no parent tracking needed; creators wire parent/children explicitly
     }
   }
   
-  private checkCursor(): AnyCursorNode | null {
-    if (this.peek().type === TokenType.CURSOR) {
-      return null; // Will be handled contextually
+  private computeTriviaSpans(allTokens: Token[]): void {
+    this.leadingTriviaByTokenStart = new Map();
+    this.trailingTriviaByTokenEnd = new Map();
+    this.tokenByStart = new Map();
+    this.tokenByEnd = new Map();
+    
+    let acc: TriviaInfo[] = [];
+    let lastDefault: Token | undefined;
+    
+    const toTrivia = (token: Token): TriviaInfo | null => {
+      const range = token.range || {
+        start: { line: 0, character: 0, offset: token.start },
+        end: { line: 0, character: 0, offset: token.end }
+      };
+      if (token.type === TokenType.WHITESPACE) {
+        return { type: 'whitespace', value: token.value, range };
+      }
+      if (token.type === TokenType.LINE_COMMENT) {
+        return { type: 'lineComment', value: token.value, range };
+      }
+      if (token.type === TokenType.BLOCK_COMMENT) {
+        return { type: 'comment', value: token.value, range };
+      }
+      return null;
+    };
+    
+    for (const tok of allTokens) {
+      const isHidden = tok.channel === Channel.HIDDEN;
+      if (isHidden) {
+        const trivia = toTrivia(tok);
+        if (trivia) acc.push(trivia);
+        continue;
+      }
+      const accCopy = acc.length ? acc.slice() : [];
+      if (lastDefault) {
+        this.trailingTriviaByTokenEnd!.set(lastDefault.end, accCopy);
+      }
+      this.leadingTriviaByTokenStart!.set(tok.start, accCopy);
+      this.tokenByStart!.set(tok.start, tok);
+      this.tokenByEnd!.set(tok.end, tok);
+      acc = [];
+      lastDefault = tok;
     }
-    return null;
+    // Trailing trivia after the last default token is ignored for now
   }
+
+  // removed unused checkCursor(); cursor handling is contextual in parse methods
   
   private injectCursorToken(tokens: Token[], cursorPosition: number): Token[] {
     // Find the position to inject the cursor token
@@ -287,6 +335,11 @@ export class Parser {
       }
     }
     
+    // Populate trivia on all nodes after AST is built
+    if (this.preserveTriviaEffective) {
+      this.populateTrivia(ast);
+    }
+
     const result: ParseResult = {
       ast,
       errors: this.errors!,
@@ -308,6 +361,54 @@ export class Parser {
     }
     
     return result;
+  }
+
+  private populateTrivia(node: ASTNode): void {
+    if (!this.preserveTriviaEffective) return;
+    const startOffset = node.range.start.offset ?? -1;
+    const endOffset = node.range.end.offset ?? -1;
+    node.leadingTrivia = this.leadingTriviaByTokenStart?.get(startOffset) ?? [];
+    node.trailingTrivia = this.trailingTriviaByTokenEnd?.get(endOffset) ?? [];
+    if ('children' in node && Array.isArray((node as any).children)) {
+      for (const child of (node as any).children as ASTNode[]) {
+        this.populateTrivia(child);
+      }
+    }
+    // Handle nodes without children arrays explicitly
+    switch (node.type) {
+      case NodeType.Binary:
+        this.populateTrivia((node as BinaryNode).left);
+        this.populateTrivia((node as BinaryNode).right);
+        break;
+      case NodeType.Unary:
+        this.populateTrivia((node as UnaryNode).operand);
+        break;
+      case NodeType.Function: {
+        const fn = node as FunctionNode;
+        this.populateTrivia(fn.name);
+        for (const arg of fn.arguments) this.populateTrivia(arg);
+        break;
+      }
+      case NodeType.Index: {
+        const idx = node as IndexNode;
+        this.populateTrivia(idx.expression);
+        this.populateTrivia(idx.index);
+        break;
+      }
+      case NodeType.MembershipTest:
+        this.populateTrivia((node as MembershipTestNode).expression);
+        break;
+      case NodeType.TypeCast:
+        this.populateTrivia((node as TypeCastNode).expression);
+        break;
+      case NodeType.Collection: {
+        const coll = node as CollectionNode;
+        for (const el of coll.elements) this.populateTrivia(el);
+        break;
+      }
+      default:
+        break;
+    }
   }
   
   // Shared expression parsing with precedence climbing
@@ -680,33 +781,7 @@ export class Parser {
     return (node as any).type === NodeType.Identifier || (node as any).type === NodeType.TypeOrIdentifier;
   }
   
-  // Helper method to check if a token is a binary operator
-  protected isBinaryOperatorToken(token: Token): boolean {
-    if (token.type === TokenType.OPERATOR || token.type === TokenType.DOT) {
-      return registry.isBinaryOperator(token.value);
-    }
-    if (token.type === TokenType.IDENTIFIER) {
-      return registry.isKeywordOperator(token.value);
-    }
-    return false;
-  }
-  
-  protected isKeywordAllowedAsMember(token: Token): boolean {
-    // Keywords that can be used as member names
-    if (token.type !== TokenType.IDENTIFIER) return false;
-    
-    const keywordsAllowed = [
-      'contains', 'and', 'or', 'xor', 'implies', 
-      'as', 'is', 'div', 'mod', 'in', 'true', 'false'
-    ];
-    
-    return keywordsAllowed.includes(token.value.toLowerCase());
-  }
-  
-  protected isKeywordAllowedAsIdentifier(token: Token): boolean {
-    // Keywords that can be used as identifiers in certain contexts
-    return this.isKeywordAllowedAsMember(token);
-  }
+  // removed unused: isBinaryOperatorToken, isKeywordAllowedAsMember, isKeywordAllowedAsIdentifier
   
   // Helper methods
   protected peek(): Token {
@@ -774,7 +849,7 @@ export class Parser {
     
     // Add LSP features if in LSP mode
     if (this.mode === 'lsp') {
-      this.enrichNodeForLSP(node, token);
+      this.enrichNodeForLSP(node);
       
       // Index identifier
       const identifiers = this.identifierIndex!.get(name) || [];
@@ -794,15 +869,14 @@ export class Parser {
     };
     
     if (this.mode === 'lsp') {
-      this.enrichNodeForLSP(node, token);
+      this.enrichNodeForLSP(node);
     }
     
     return node;
   }
 
   protected createTemporalLiteralNode(rawValue: string, valueType: TemporalLiteralNode['valueType'], token: Token): TemporalLiteralNode {
-    // Import and parse temporal value immediately
-    const { parseTemporalLiteral } = require('./temporal');
+    // Parse temporal value immediately
     const temporalValue = parseTemporalLiteral('@' + rawValue);
     
     const node: TemporalLiteralNode = {
@@ -814,7 +888,7 @@ export class Parser {
     };
     
     if (this.mode === 'lsp') {
-      this.enrichNodeForLSP(node, token);
+      this.enrichNodeForLSP(node);
     }
     
     return node;
@@ -830,10 +904,7 @@ export class Parser {
     };
     
     if (this.mode === 'lsp') {
-      // For binary nodes, we need to find the actual start and end tokens
-      const startToken = this.tokens.find(t => t.start === left.range.start.offset) || token;
-      const endToken = this.tokens.find(t => t.end === right.range.end.offset) || token;
-      this.enrichNodeForLSP(node, startToken, endToken);
+      this.enrichNodeForLSP(node);
       
       // Set up parent-child relationships
       if (node.id) {
@@ -856,8 +927,7 @@ export class Parser {
     };
     
     if (this.mode === 'lsp') {
-      const endToken = this.tokens.find(t => t.end === operand.range.end.offset) || token;
-      this.enrichNodeForLSP(node, token, endToken);
+      this.enrichNodeForLSP(node);
       
       if (node.id) {
         operand.parent = node;
@@ -878,9 +948,7 @@ export class Parser {
     };
     
     if (this.mode === 'lsp') {
-      const startTok = this.tokens.find(t => t.start === name.range.start.offset) || startToken;
-      const endToken = this.tokens.find(t => t.end === endNode.range.end.offset) || startToken;
-      this.enrichNodeForLSP(node, startTok, endToken);
+      this.enrichNodeForLSP(node);
       
       if (node.id) {
         name.parent = node;
@@ -900,7 +968,7 @@ export class Parser {
     };
     
     if (this.mode === 'lsp') {
-      this.enrichNodeForLSP(node, token);
+      this.enrichNodeForLSP(node);
     }
     
     return node;
@@ -915,9 +983,7 @@ export class Parser {
     };
     
     if (this.mode === 'lsp') {
-      const startTok = this.tokens.find(t => t.start === expression.range.start.offset) || startToken;
-      const endToken = this.tokens.find(t => t.end === index.range.end.offset) || startToken;
-      this.enrichNodeForLSP(node, startTok, endToken);
+      this.enrichNodeForLSP(node);
       
       if (node.id) {
         expression.parent = node;
@@ -931,18 +997,17 @@ export class Parser {
 
 
   protected createMembershipTestNode(expression: ASTNode, targetType: string, startToken: Token): MembershipTestNode {
-    // The range should extend from expression to the end of the type name
+    // The range should extend from expression start to the end of the type name
     const endToken = this.previous(); // Should be the type identifier
     const node: MembershipTestNode = {
       type: NodeType.MembershipTest,
       expression,
       targetType,
-      range: this.getRangeFromTokens(startToken, endToken)
+      range: { start: expression.range.start, end: this.getRangeFromToken(endToken).end }
     };
     
     if (this.mode === 'lsp') {
-      const startTok = this.tokens.find(t => t.start === expression.range.start.offset) || startToken;
-      this.enrichNodeForLSP(node, startTok, endToken);
+      this.enrichNodeForLSP(node);
       
       if (node.id) {
         expression.parent = node;
@@ -954,18 +1019,17 @@ export class Parser {
   }
 
   protected createTypeCastNode(expression: ASTNode, targetType: string, startToken: Token): TypeCastNode {
-    // The range should extend from expression to the end of the type name
+    // The range should extend from expression start to the end of the type name
     const endToken = this.previous(); // Should be the type identifier
     const node: TypeCastNode = {
       type: NodeType.TypeCast,
       expression,
       targetType,
-      range: this.getRangeFromTokens(startToken, endToken)
+      range: { start: expression.range.start, end: this.getRangeFromToken(endToken).end }
     };
     
     if (this.mode === 'lsp') {
-      const startTok = this.tokens.find(t => t.start === expression.range.start.offset) || startToken;
-      this.enrichNodeForLSP(node, startTok, endToken);
+      this.enrichNodeForLSP(node);
       
       if (node.id) {
         expression.parent = node;
@@ -985,7 +1049,7 @@ export class Parser {
     };
     
     if (this.mode === 'lsp') {
-      this.enrichNodeForLSP(node, startToken, endToken);
+      this.enrichNodeForLSP(node);
       
       if (node.id) {
         elements.forEach(elem => { elem.parent = node; });
@@ -1005,7 +1069,7 @@ export class Parser {
     };
     
     if (this.mode === 'lsp') {
-      this.enrichNodeForLSP(node, startToken, endToken);
+      this.enrichNodeForLSP(node);
     }
     
     return node;
@@ -1040,28 +1104,21 @@ export class Parser {
   }
   
   // LSP mode helper methods
-  private enrichNodeForLSP(node: ASTNode, startToken: Token, endToken?: Token): void {
+  private enrichNodeForLSP(node: ASTNode): void {
     if (this.mode !== 'lsp') return;
-    
     // Add unique ID
     node.id = `node_${this.nodeIdCounter!++}`;
-    
-    // Add raw source text
-    const start = startToken.start;
-    const end = endToken ? endToken.end : startToken.end;
+    // Add raw source text from node range
+    const start = node.range.start.offset ?? 0;
+    const end = node.range.end.offset ?? start;
     node.raw = this.input.substring(start, end);
-    
-    // Add trivia if preserving
-    if (this.options.preserveTrivia) {
-      node.leadingTrivia = [];  // TODO: Implement trivia collection
-      node.trailingTrivia = [];
+    // Add trivia if preserving (using precomputed spans at token boundaries)
+    if (this.preserveTriviaEffective) {
+      const startOffset = node.range.start.offset ?? -1;
+      const endOffset = node.range.end.offset ?? -1;
+      node.leadingTrivia = this.leadingTriviaByTokenStart?.get(startOffset) ?? [];
+      node.trailingTrivia = this.trailingTriviaByTokenEnd?.get(endOffset) ?? [];
     }
-    
-    // Set parent relationship
-    if (this.currentParent) {
-      node.parent = this.currentParent;
-    }
-    
     // Index node
     this.nodeIndex!.set(node.id, node);
     const nodesByType = this.nodesByType!.get(node.type) || [];
@@ -1082,7 +1139,7 @@ export class Parser {
     };
     
     if (this.mode === 'lsp') {
-      this.enrichNodeForLSP(node, token || this.peek());
+      this.enrichNodeForLSP(node);
     }
     
     return node;

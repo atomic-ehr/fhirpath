@@ -112,6 +112,7 @@ const result = evaluate("Patient.name.where(use = 'official').given", {
   - Template literals for complex string concatenation
   - Use `Number()` for parsing, check for `NaN`
   - Never use `parseInt()`/`parseFloat()` except for non-base-10
+  - Never use `require()` - use `import`!!!
 
 * Use `bun run <filename.ts>` to run files
 * When you create or update typescript file, run `bun tsc --noEmit` to check for errors and fix them.
@@ -178,7 +179,7 @@ Use the TypeScript MCP tools for TypeScript-specific operations like finding sym
   - `--vars, -v` - JSON object with variables
   - `--singleton` - Input is a singleton (single value)
   - `--ast` - Show AST structure
-  
+
   Examples:
   - `bun tools/analyzer.ts "5 + 3"` - Analyze simple expression
   - `bun tools/analyzer.ts "name.given" --type Patient` - Analyze with typed input
@@ -196,7 +197,7 @@ Use the TypeScript MCP tools for TypeScript-specific operations like finding sym
   - `--ast` - Show only the AST
   - `--traces` - Show only traces
   - `--timing` - Show only timing information
-  
+
   Examples:
   - `bun tools/inspect.ts "5 + 3"` - Simple expression
   - `bun tools/inspect.ts "name.trace('names').given.trace('given names')" '{"name": [{"given": ["John"]}]}'` - With traces
@@ -233,7 +234,7 @@ Use the TypeScript MCP tools for TypeScript-specific operations like finding sym
   - `test-file` - Path to JSON test file (relative to test-cases/)
   - `test-name` - Optional: specific test name to run (if not provided, runs all tests)
   - `mode` - Optional: 'interpreter' | 'compiler' | 'both' (default: 'both')
-  
+
   Commands:
   - `--list` - List all tests in a specific file
   - `--pending` - Show all pending tests (globally or for a specific file)
@@ -243,7 +244,7 @@ Use the TypeScript MCP tools for TypeScript-specific operations like finding sym
   - `--failing` - Show all failing tests with detailed information and debug commands
   - `--failing-commands` - Output only the commands to run failing tests (useful for scripting)
   - `--watch` - Watch for changes in failing tests and re-run them automatically
-  
+
   Examples:
   - `bun tools/testcase.ts operators/arithmetic.json` - Run all tests in a file
   - `bun tools/testcase.ts operators/arithmetic.json "addition - integers"` - Run a specific test
@@ -257,7 +258,7 @@ Use the TypeScript MCP tools for TypeScript-specific operations like finding sym
   - `bun tools/testcase.ts --failing` - Show all failing tests with commands to debug them
   - `bun tools/testcase.ts --failing-commands` - Get just the commands for failing tests
   - `bun tools/testcase.ts --pending` - Show all pending tests across all test files
-  
+
   Scripting Examples:
   ```bash
   # Run all failing tests one by one
@@ -265,10 +266,10 @@ Use the TypeScript MCP tools for TypeScript-specific operations like finding sym
     echo "Running: $cmd"
     $cmd
   done
-  
+
   # Save failing test commands to a file
   bun tools/testcase.ts --failing-commands > failing-tests.sh
-  
+
   # Run failing tests for a specific tag
   bun tools/testcase.ts --tag arithmetic | grep "Run:" | cut -d' ' -f2- | bash
   ```
@@ -281,7 +282,7 @@ Use the TypeScript MCP tools for TypeScript-specific operations like finding sym
   - `--content, -c` - Show full content of matching sections
   - `--limit, -l <n>` - Limit results to top N matches (default: 10)
   - `--all, -a` - Show all matching results (no limit)
-  
+
   Examples:
   - `bun tools/spec.ts "where"` - Search for sections about 'where'
   - `bun tools/spec.ts "where function" -c` - Search and show content
@@ -308,17 +309,17 @@ Use the TypeScript MCP tools for TypeScript-specific operations like finding sym
   - `-s, --summarize` - Generate a summary of responses (default: true)
   - `--no-summarize` - Disable summary generation
   - `-h, --help` - Show help message
-  
+
   Environment Variables:
   - `XAI_API_KEY` - API key for X.AI (Grok)
   - `OPENAI_API_KEY` - API key for OpenAI
   - `ANTHROPIC_API_KEY` - API key for Anthropic (Claude)
-  
+
   Examples:
   - `bun tools/research.ts "What are the key differences between interpreted and compiled languages?"`
   - `bun tools/research.ts "Explain quantum computing" -m gpt-4 -m claude`
   - `bun tools/research.ts "Compare React and Vue frameworks" --no-summarize`
-  
+
   This tool:
   - Queries multiple AI models simultaneously with the same prompt
   - Saves individual responses to `llm/<date>-<prompt-slug>/` directory
@@ -330,26 +331,26 @@ Use the TypeScript MCP tools for TypeScript-specific operations like finding sym
   ```bash
   bun tools/fhirpathjs-tests.ts [options] [test-file|pattern]
   ```
-  
+
   **Note**: This is an auxiliary test suite from the fhirpath.js project, used as a reference for compatibility testing. Our primary test cases are in `./test-cases/`. We do not aim for 100% compliance with fhirpath.js - this tool helps identify areas where our implementation differs and whether those differences are intentional.
-  
+
   Arguments:
   - `test-file` - Specific test file to run (e.g., `simple.yaml`)
   - `pattern` - Pattern to match test files (e.g., `"5.*.yaml"`)
-  
+
   Options:
   - `--list` - List all available test files
   - `--verbose` - Show detailed output including passed tests
   - `--filter <expr>` - Filter tests by expression or description
   - `--summary` - Show only summary (default for all tests)
-  
+
   Examples:
   - `bun tools/fhirpathjs-tests.ts simple.yaml` - Run a specific test file
   - `bun tools/fhirpathjs-tests.ts --list` - List available test files
   - `bun tools/fhirpathjs-tests.ts "5.*.yaml"` - Run all section 5 tests
   - `bun tools/fhirpathjs-tests.ts simple.yaml --filter "name"` - Run only tests containing "name"
   - `bun tools/fhirpathjs-tests.ts "*.yaml"` - Run all test files
-  
+
   Test Convention:
   - Tests are loaded from `fhirpath.js/test/cases/` (git submodule)
   - Each YAML file may contain a `subject` field with the test resource
@@ -357,21 +358,16 @@ Use the TypeScript MCP tools for TypeScript-specific operations like finding sym
     - Pattern: `fhirpath.js/test/resources/{model}/{resourceType}-{id}.json`
     - Example: `Patient` with id `example` → `patient-example.json`
   - Uses our FHIRModelProvider for R4/R5/STU3/DSTU2 model context
-  
+
   Current Status (as of last run):
   - Overall pass rate: ~62% (1,668/2,675 tests)
   - FHIR R4 tests: ~56% passing
   - FHIR R5 tests: ~56% passing
   - Simple navigation: ~79% passing
   - Boolean logic: ~93% passing
-  
+
   Known Differences:
   - Some functions like `getValue()`, `hasValue()` are fhirpath.js extensions
   - Quantity literal format differences (we parse to objects, they keep as strings)
   - Unicode escape handling differences
   - Some edge cases in type conversion and coercion
-
-
-
-
-
