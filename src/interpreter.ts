@@ -16,7 +16,7 @@ import type {
 import { NodeType } from './types';
 import { Registry } from './registry';
 import * as operations from './operations';
-import type { EvaluationResult, FunctionEvaluator, NodeEvaluator, OperationEvaluator, RuntimeContext } from './types';
+import type { EvaluationResult, FunctionEvaluator, NodeEvaluator, OperationEvaluator, RuntimeContext, TypeInfo } from './types';
 import { createQuantity } from './quantity-value';
 import { box, unbox, ensureBoxed, type FHIRPathValue } from './boxing';
 import { Errors } from './errors';
@@ -327,87 +327,139 @@ export class Interpreter {
     };
   }
 
+  // Helper: Handle extension elements
+  private handleExtension(
+    boxedItem: FHIRPathValue, 
+    nodeTypeInfo?: TypeInfo
+  ): FHIRPathValue[] {
+    const results: FHIRPathValue[] = [];
+    if (boxedItem.primitiveElement?.extension) {
+      for (const ext of boxedItem.primitiveElement.extension) {
+        results.push(box(ext, nodeTypeInfo || { type: 'Any', singleton: false }));
+      }
+    }
+    return results;
+  }
+
+  // Helper: Handle FHIR choice types (e.g., value[x])
+  private async handleChoiceTypes(
+    item: object,
+    name: string,
+    context: RuntimeContext
+  ): Promise<FHIRPathValue[]> {
+    const results: FHIRPathValue[] = [];
+    const choiceHits = await detectChoiceValues(item as Record<string, unknown>, name, context.modelProvider);
+    for (const hit of choiceHits) {
+      results.push(box(hit.value, hit.typeInfo, hit.primitiveElement));
+    }
+    return results;
+  }
+
+  // Helper: Handle union type choices
+  private handleUnionChoices(
+    item: object,
+    nodeTypeInfo?: TypeInfo
+  ): FHIRPathValue[] {
+    const results: FHIRPathValue[] = [];
+    if (
+      nodeTypeInfo?.modelContext &&
+      typeof nodeTypeInfo.modelContext === 'object' &&
+      'isUnion' in nodeTypeInfo.modelContext &&
+      (nodeTypeInfo.modelContext as any).isUnion &&
+      'choices' in nodeTypeInfo.modelContext &&
+      Array.isArray((nodeTypeInfo.modelContext as any).choices)
+    ) {
+      for (const choice of (nodeTypeInfo.modelContext as any).choices) {
+        const choiceName = choice.choiceName;
+        if (choiceName && choiceName in (item as any)) {
+          const value = (item as any)[choiceName];
+          const primitiveElement = getPrimitiveElement(item as Record<string, unknown>, choiceName);
+          const choiceTypeInfo = { type: choice.type, singleton: !Array.isArray(value), modelContext: choice } as any;
+          if (Array.isArray(value)) {
+            for (const v of value) {
+              results.push(box(v, { ...choiceTypeInfo, singleton: true }, primitiveElement));
+            }
+          } else if (value !== null && value !== undefined) {
+            results.push(box(value, choiceTypeInfo, primitiveElement));
+          }
+        }
+      }
+    }
+    return results;
+  }
+
+  // Helper: Handle standard property access
+  private async handleStandardProperty(
+    item: object,
+    name: string,
+    nodeTypeInfo: TypeInfo | undefined,
+    context: RuntimeContext
+  ): Promise<FHIRPathValue[]> {
+    const results: FHIRPathValue[] = [];
+    if (name in (item as any)) {
+      const value = (item as any)[name];
+      const primitiveElement = getPrimitiveElement(item as Record<string, unknown>, name);
+
+      if (Array.isArray(value)) {
+        const elementTypeInfo = nodeTypeInfo ? { ...nodeTypeInfo, singleton: true } : undefined;
+        for (const v of value) {
+          if (
+            v && typeof v === 'object' && 'resourceType' in (v as any) && typeof (v as any).resourceType === 'string' &&
+            (!elementTypeInfo || elementTypeInfo.type === 'Any' || (elementTypeInfo as any).type === 'Resource')
+          ) {
+            results.push(await reboxResource(v, true, context.modelProvider));
+          } else {
+            const val = await maybeParseTemporal(v, elementTypeInfo, context.modelProvider);
+            results.push(box(val, elementTypeInfo, primitiveElement));
+          }
+        }
+      } else if (value !== null && value !== undefined) {
+        if (
+          value && typeof value === 'object' && 'resourceType' in (value as any) && typeof (value as any).resourceType === 'string' &&
+          (!nodeTypeInfo || nodeTypeInfo.type === 'Any' || (nodeTypeInfo as any).type === 'Resource')
+        ) {
+          results.push(await reboxResource(value, true, context.modelProvider));
+        } else {
+          const val = await maybeParseTemporal(value, nodeTypeInfo, context.modelProvider);
+          results.push(box(val, nodeTypeInfo, primitiveElement));
+        }
+      }
+    }
+    return results;
+  }
+
   // Identifier node evaluator
   private async evaluateIdentifier(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): Promise<EvaluationResult> {
     const identifier = node as IdentifierNode;
     const name = identifier.name;
-
-    const results: FHIRPathValue[] = [];
     const nodeTypeInfo = node.typeInfo;
+    const results: FHIRPathValue[] = [];
 
     for (const boxedItem of input) {
       const item = unbox(boxedItem);
 
-      if (name === 'extension' && boxedItem.primitiveElement?.extension) {
-        for (const ext of boxedItem.primitiveElement.extension) {
-          results.push(box(ext, nodeTypeInfo || { type: 'Any', singleton: false }));
-        }
+      // 1. Handle extension special case
+      if (name === 'extension') {
+        results.push(...this.handleExtension(boxedItem, nodeTypeInfo));
         continue;
       }
 
+      // Process only objects
       if (item && typeof item === 'object') {
-        const choiceHits = await detectChoiceValues(item as Record<string, unknown>, name, context.modelProvider);
-        if (choiceHits.length > 0) {
-          for (const hit of choiceHits) {
-            results.push(box(hit.value, hit.typeInfo, hit.primitiveElement));
-          }
+        // 2. Handle FHIR choice types (e.g., value[x])
+        const choiceResults = await this.handleChoiceTypes(item, name, context);
+        if (choiceResults.length > 0) {
+          results.push(...choiceResults);
           continue;
         }
 
-        if (
-          nodeTypeInfo?.modelContext &&
-          typeof nodeTypeInfo.modelContext === 'object' &&
-          'isUnion' in nodeTypeInfo.modelContext &&
-          (nodeTypeInfo.modelContext as any).isUnion &&
-          'choices' in nodeTypeInfo.modelContext &&
-          Array.isArray((nodeTypeInfo.modelContext as any).choices)
-        ) {
-          for (const choice of (nodeTypeInfo.modelContext as any).choices) {
-            const choiceName = choice.choiceName;
-            if (choiceName && choiceName in (item as any)) {
-              const value = (item as any)[choiceName];
-              const primitiveElement = getPrimitiveElement(item as Record<string, unknown>, choiceName);
-              const choiceTypeInfo = { type: choice.type, singleton: !Array.isArray(value), modelContext: choice } as any;
-              if (Array.isArray(value)) {
-                for (const v of value) {
-                  results.push(box(v, { ...choiceTypeInfo, singleton: true }, primitiveElement));
-                }
-              } else if (value !== null && value !== undefined) {
-                results.push(box(value, choiceTypeInfo, primitiveElement));
-              }
-            }
-          }
-        }
+        // 3. Handle union type choices
+        const unionResults = this.handleUnionChoices(item, nodeTypeInfo);
+        results.push(...unionResults);
 
-        if (name in (item as any)) {
-          const value = (item as any)[name];
-          const primitiveElement = getPrimitiveElement(item as Record<string, unknown>, name);
-
-          if (Array.isArray(value)) {
-            const elementTypeInfo = nodeTypeInfo ? { ...nodeTypeInfo, singleton: true } : undefined;
-            for (const v of value) {
-              if (
-                v && typeof v === 'object' && 'resourceType' in (v as any) && typeof (v as any).resourceType === 'string' &&
-                (!elementTypeInfo || elementTypeInfo.type === 'Any' || (elementTypeInfo as any).type === 'Resource')
-              ) {
-                results.push(await reboxResource(v, true, context.modelProvider));
-              } else {
-                const val = await maybeParseTemporal(v, elementTypeInfo, context.modelProvider);
-                results.push(box(val, elementTypeInfo, primitiveElement));
-              }
-            }
-          } else if (value !== null && value !== undefined) {
-            if (
-              value && typeof value === 'object' && 'resourceType' in (value as any) && typeof (value as any).resourceType === 'string' &&
-              (!nodeTypeInfo || nodeTypeInfo.type === 'Any' || (nodeTypeInfo as any).type === 'Resource')
-            ) {
-              results.push(await reboxResource(value, !Array.isArray(value), context.modelProvider));
-            } else {
-              const val = await maybeParseTemporal(value, nodeTypeInfo, context.modelProvider);
-              results.push(box(val, nodeTypeInfo, primitiveElement));
-            }
-          }
-        }
+        // 4. Handle standard property access
+        const propertyResults = await this.handleStandardProperty(item, name, nodeTypeInfo, context);
+        results.push(...propertyResults);
       }
     }
 
