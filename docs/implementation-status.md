@@ -6,8 +6,8 @@ Generated: 2025-08-28T (manually updated)
 
 ### Functions
 - **Total Functions**: 80
-- **Implemented**: 61 (76%)
-- **Fully Tested**: 61 (100% of implemented)
+- **Implemented**: 63 (79%)
+- **Fully Tested**: 63 (100% of implemented)
 - **Partially Tested**: 0
 - **Untested**: 0
 
@@ -117,16 +117,16 @@ Generated: 2025-08-28T (manually updated)
 | children | ✅ | operations/children-function.ts | 5 files | Full | - |
 | descendants | ✅ | operations/descendants-function.ts | 1 file | Partial | - |
 
-### Utility Functions (16/18 implemented)
+### Utility Functions (18/18 implemented)
 
 | Function | Status | Implementation | Tests | Coverage | Notes |
 |----------|--------|----------------|-------|----------|-------|
 | dateOf | ✅ | operations/dateOf-function.ts | test-cases/operations/utility/dateOf.json | Full | Extracts date from DateTime |
 | dayOf | ✅ | operations/dayOf-function.ts | test-cases/operations/utility/dayOf.json | Full | Returns day (1-31) |
 | defineVariable | ✅ | operations/defineVariable-function.ts | 7 files | Full | - |
-| highBoundary | ❌ | - | - | - | Not implemented |
+| highBoundary | ✅ | operations/highBoundary-function.ts | test-cases/operations/utility/highBoundary.json | Full | Returns greatest value to specified precision |
 | hourOf | ✅ | operations/hourOf-function.ts | test-cases/operations/utility/hourOf.json | Full | Returns hour (0-23) |
-| lowBoundary | ❌ | - | - | - | Not implemented |
+| lowBoundary | ✅ | operations/lowBoundary-function.ts | test-cases/operations/utility/lowBoundary.json | Full | Returns least value to specified precision |
 | millisecondOf | ✅ | operations/millisecondOf-function.ts | test-cases/operations/utility/millisecondOf.json | Full | Returns milliseconds (0-999) |
 | minuteOf | ✅ | operations/minuteOf-function.ts | test-cases/operations/utility/minuteOf.json | Full | Returns minute (0-59) |
 | monthOf | ✅ | operations/monthOf-function.ts | test-cases/operations/utility/monthOf.json | Full | Returns month (1-12) |
