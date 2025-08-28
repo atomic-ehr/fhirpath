@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { Lexer, TokenType } from "../src/lexer";
+import { Lexer, TokenType, Channel } from "../src/lexer";
 import type { Token } from "../src/lexer";
 
 describe("New Simplified Lexer", () => {
@@ -10,6 +10,14 @@ describe("New Simplified Lexer", () => {
 
   function tokenValues(input: string): string[] {
     return tokenize(input).map((t) => t.value);
+  }
+
+  function tokenizeWith(
+    input: string,
+    options: { trackPosition?: boolean; preserveTrivia?: boolean } = {},
+  ): Token[] {
+    const lexer = new Lexer(input, options);
+    return lexer.tokenize();
   }
 
   function getToken(tokens: Token[], index: number): Token {
@@ -239,6 +247,19 @@ describe("New Simplified Lexer", () => {
         expect(getToken(tokens, 0).value).toBe(time);
       }
     });
+
+    it("should track full span of complex datetime literals including timezone", async () => {
+      const s = "@2023-12-25T10:30:45.123+05:30";
+      const tokens = tokenize(s);
+      const t = getToken(tokens, 0);
+      expect(t.type).toBe(TokenType.DATETIME);
+      expect(t.start).toBe(0);
+      expect(t.end).toBe(s.length);
+      expect(t.range?.start.line).toBe(0);
+      expect(t.range?.start.character).toBe(0);
+      expect(t.range?.end.line).toBe(0);
+      expect(t.range?.end.character).toBe(s.length);
+    });
   });
 
   describe("Environment Variables", () => {
@@ -385,6 +406,24 @@ describe("New Simplified Lexer", () => {
       const result = tokenTypesAndValues("a /* line1\nline2\nline3 */ + b");
       expect(result).toEqual(["ID:a", "OP:+", "ID:b", "EOF"]);
     });
+
+    it("should preserve trivia tokens and ranges when enabled", async () => {
+      const input = "a  /*x*/\n //y\n b";
+      const tokens = tokenizeWith(input, { preserveTrivia: true });
+      // Expect presence of whitespace and both comment token types
+      expect(tokens.some((t) => t.type === TokenType.WHITESPACE)).toBe(true);
+      const block = tokens.find((t) => t.type === TokenType.BLOCK_COMMENT)!;
+      const line = tokens.find((t) => t.type === TokenType.LINE_COMMENT)!;
+      expect(block).toBeTruthy();
+      expect(line).toBeTruthy();
+      expect(block.channel).toBe(Channel.HIDDEN);
+      expect(line.channel).toBe(Channel.HIDDEN);
+      expect(block.value).toBe("/*x*/");
+      expect(line.value).toBe("//y");
+      // Ranges: block on line 0, line comment ends on line 1 before newline
+      expect(block.range?.start.line).toBe(0);
+      expect(line.range?.end.line).toBe(1);
+    });
   });
 
   describe("Complex Expressions", () => {
@@ -482,6 +521,45 @@ describe("New Simplified Lexer", () => {
 
       expect(getToken(tokens, 0).line).toBe(0);
       expect(getToken(tokens, 0).column).toBe(0);
+    });
+
+    it("should populate LSP ranges with correct offsets", async () => {
+      const input = "a +\n b"; // indexes: 0:a 1:space 2:+ 3:\n 4:space 5:b
+      const tokens = tokenize(input);
+      const a = getToken(tokens, 0);
+      const plus = getToken(tokens, 1);
+      const b = getToken(tokens, 2);
+      // 'a'
+      expect(a.range?.start.line).toBe(0);
+      expect(a.range?.start.character).toBe(0);
+      expect(a.range?.end.line).toBe(0);
+      expect(a.range?.end.character).toBe(1);
+      // '+'
+      expect(plus.range?.start.line).toBe(0);
+      expect(plus.range?.start.character).toBe(2);
+      expect(plus.range?.end.line).toBe(0);
+      expect(plus.range?.end.character).toBe(3);
+      // 'b'
+      expect(b.range?.start.line).toBe(1);
+      expect(b.range?.start.character).toBe(1);
+      expect(b.range?.end.line).toBe(1);
+      expect(b.range?.end.character).toBe(2);
+    });
+
+    it("should handle CRLF and CR newlines in ranges and legacy line/column", async () => {
+      const crlf = tokenize("a\r\n+\r\nb");
+      expect(getToken(crlf, 0).line).toBe(1);
+      expect(getToken(crlf, 0).column).toBe(1);
+      expect(getToken(crlf, 0).range?.start.line).toBe(0);
+      expect(getToken(crlf, 1).range?.start.line).toBe(1);
+      expect(getToken(crlf, 2).range?.start.line).toBe(2);
+
+      const crOnly = tokenize("a\rb");
+      expect(getToken(crOnly, 0).line).toBe(1);
+      expect(getToken(crOnly, 1).line).toBe(2);
+      expect(getToken(crOnly, 1).column).toBe(1);
+      expect(getToken(crOnly, 1).range?.start.line).toBe(1);
+      expect(getToken(crOnly, 1).range?.start.character).toBe(0);
     });
   });
 
@@ -597,6 +675,35 @@ describe("New Simplified Lexer", () => {
     it("manual", async () => {
       const result = tokenize("Patient.name.given");
       expect(result).toBeDefined();
+    });
+  });
+
+  describe("QUANTITY", () => {
+    it("should tokenize UCUM quantity as a single QUANTITY token", async () => {
+      const input = "5 'mg'";
+      const tokens = tokenize(input);
+      expect(getToken(tokens, 0).type).toBe(TokenType.QUANTITY);
+      expect(getToken(tokens, 0).value).toBe("5 'mg'");
+      expect(getToken(tokens, 0).start).toBe(0);
+      expect(getToken(tokens, 0).end).toBe(input.length);
+    });
+
+    it("should support decimal and no-space UCUM quantities", async () => {
+      const t1 = tokenize("0.25 'g'");
+      expect(getToken(t1, 0).type).toBe(TokenType.QUANTITY);
+      expect(getToken(t1, 0).value).toBe("0.25 'g'");
+
+      const t2 = tokenize("5'mg'");
+      expect(getToken(t2, 0).type).toBe(TokenType.QUANTITY);
+      expect(getToken(t2, 0).value).toBe("5'mg'");
+    });
+
+    it("should set LSP range to full span of quantity", async () => {
+      const input = "0.5 'mL'";
+      const tok = getToken(tokenize(input), 0);
+      expect(tok.range?.start.line).toBe(0);
+      expect(tok.range?.start.character).toBe(0);
+      expect(tok.range?.end.character).toBe(input.length);
     });
   });
 });

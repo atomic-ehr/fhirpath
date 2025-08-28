@@ -427,6 +427,18 @@ export class Parser {
       return createCursorOperatorNode(token.start) as any;
     }
 
+    // Quantity literal emitted by lexer
+    if (token.type === TokenType.QUANTITY) {
+      this.current++;
+      const raw = token.value;
+      const quoteIdx = raw.indexOf("'");
+      const numberPart = quoteIdx >= 0 ? raw.slice(0, quoteIdx).trim() : raw;
+      const unitPart = quoteIdx >= 0 ? raw.slice(quoteIdx) : '';
+      const numberValue = Number(numberPart);
+      const unit = unitPart ? this.parseStringValue(unitPart) : '';
+      return this.createQuantityNode(numberValue, unit, token, token);
+    }
+
     if (token.type === TokenType.NUMBER) {
       this.current++; // inline advance()
       const numberValue = parseFloat(token.value);

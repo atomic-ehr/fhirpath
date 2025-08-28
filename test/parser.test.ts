@@ -99,6 +99,55 @@ describe("FHIRPath Parser", () => {
     });
   });
 
+  describe("Quantity Literals", () => {
+    it("should parse UCUM-style quantity: number + string unit", async () => {
+      const expr = "5 'mg'";
+      const ast = parse(expr) as any;
+      expect(ast.type).toBe(NodeType.Quantity);
+      expect(ast.value).toBe(5);
+      expect(ast.unit).toBe('mg');
+      // Range should cover full literal
+      expect(ast.range.start.offset).toBe(0);
+      expect(ast.range.end.offset).toBe(expr.length);
+    });
+
+    it("should parse decimal UCUM quantity", async () => {
+      const ast = parse("0.25 'g'") as any;
+      expect(ast.type).toBe(NodeType.Quantity);
+      expect(ast.value).toBe(0.25);
+      expect(ast.unit).toBe('g');
+    });
+
+    it("should allow no-space UCUM quantity", async () => {
+      const ast = parse("5'mg'") as any;
+      expect(ast.type).toBe(NodeType.Quantity);
+      expect(ast.value).toBe(5);
+      expect(ast.unit).toBe('mg');
+    });
+
+    it("should parse calendar duration quantities", async () => {
+      const q1 = parse("5 days") as any;
+      expect(q1.type).toBe(NodeType.Quantity);
+      expect(q1.value).toBe(5);
+      expect(q1.unit).toBe('days');
+
+      const q2 = parse("3 months") as any;
+      expect(q2.type).toBe(NodeType.Quantity);
+      expect(q2.value).toBe(3);
+      expect(q2.unit).toBe('months');
+
+      const q3 = parse("1 year") as any;
+      expect(q3.type).toBe(NodeType.Quantity);
+      expect(q3.value).toBe(1);
+      expect(q3.unit).toBe('year');
+
+      const q4 = parse("2 milliseconds") as any;
+      expect(q4.type).toBe(NodeType.Quantity);
+      expect(q4.value).toBe(2);
+      expect(q4.unit).toBe('milliseconds');
+    });
+  });
+
   describe("Identifiers", () => {
     it("should parse simple identifiers", async () => {
       const ast = parse("name") as IdentifierNode;

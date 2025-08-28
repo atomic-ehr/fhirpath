@@ -24,7 +24,6 @@ export enum TokenType {
   TIME = 5,
   QUANTITY = 6,     // Quantity literals like 5 'mg'
   DATE = 7,         // Date literals like @2020-01-01
-  TEMPORAL_LITERAL = 8,  // Generic temporal literal (used during parsing)
   
   // Operators (all symbol operators consolidated)
   OPERATOR = 10,    // +, -, *, /, <, >, <=, >=, =, !=, ~, !~, |, &
@@ -78,8 +77,6 @@ export class Lexer {
   private position: number = 0;
   private line: number = 1;     // Legacy: 1-based for backward compatibility
   private column: number = 1;   // Legacy: 1-based for backward compatibility
-  private lspLine: number = 0;     // LSP: zero-based
-  private lspCharacter: number = 0; // LSP: zero-based character within line
   private options: LexerOptions;
   private lineOffsets: number[] = [0]; // Start positions of each line
   
@@ -342,17 +339,7 @@ export class Lexer {
     this.advance();
     
     // Continue with alphanumeric or underscore
-    while (this.position < this.input.length) {
-      const charCode = this.input.charCodeAt(this.position);
-      if ((charCode >= 65 && charCode <= 90) || // A-Z
-          (charCode >= 97 && charCode <= 122) || // a-z
-          (charCode >= 48 && charCode <= 57) || // 0-9
-          charCode === 95) { // _
-        this.advance();
-      } else {
-        break;
-      }
-    }
+    this.scanIdentifierBody();
     
     const value = this.input.substring(start, this.position);
     return this.createToken(TokenType.IDENTIFIER, value, start, this.position, startLine, startColumn);
@@ -394,18 +381,8 @@ export class Lexer {
     
     this.advance(); // Skip $
     
-    // Read the identifier part
-    while (this.position < this.input.length) {
-      const charCode = this.input.charCodeAt(this.position);
-      if ((charCode >= 65 && charCode <= 90) || // A-Z
-          (charCode >= 97 && charCode <= 122) || // a-z
-          (charCode >= 48 && charCode <= 57) || // 0-9
-          charCode === 95) { // _
-        this.advance();
-      } else {
-        break;
-      }
-    }
+    // Read the identifier part (may be empty)
+    this.scanIdentifierBody();
     
     const value = this.input.substring(start, this.position);
     
@@ -474,24 +451,12 @@ export class Lexer {
     } else {
       // Simple identifier: %identifier
       const charCode = this.input.charCodeAt(this.position);
-      if (!((charCode >= 65 && charCode <= 90) || // A-Z
-            (charCode >= 97 && charCode <= 122) || // a-z
-            charCode === 95)) { // _
+      if (!this.isIdentifierHead(charCode)) {
         throw this.error('Invalid environment variable name');
       }
-      
-      // Read the identifier part
-      while (this.position < this.input.length) {
-        const charCode = this.input.charCodeAt(this.position);
-        if ((charCode >= 65 && charCode <= 90) || // A-Z
-            (charCode >= 97 && charCode <= 122) || // a-z
-            (charCode >= 48 && charCode <= 57) || // 0-9
-            charCode === 95) { // _
-          this.advance();
-        } else {
-          break;
-        }
-      }
+      // Consume head and the rest of identifier
+      this.advance();
+      this.scanIdentifierBody();
       
       const value = this.input.substring(start, this.position);
       return this.createToken(TokenType.ENVIRONMENT_VARIABLE, value, start, this.position, startLine, startColumn);
@@ -547,6 +512,33 @@ export class Lexer {
       }
     }
     
+    // Look ahead for a single-quoted unit to form a Quantity literal
+    // Pattern: <number>[ \t]?'<unit>' (no newline between number and unit)
+    const i = this.position;
+    let j = i;
+    // allow spaces/tabs only; do not cross lines
+    while (j < this.input.length) {
+      const ch = this.input[j]!;
+      if (ch === ' ' || ch === '\t') {
+        j++;
+        continue;
+      }
+      break;
+    }
+
+    if (j < this.input.length && this.input[j] === "'") {
+      // We will consume optional spaces and the quoted unit, then emit QUANTITY token
+      // Move actual position to i and advance to j
+      while (this.position < j) {
+        this.advance();
+      }
+      // Consume the quoted unit using existing string reader to honor escapes
+      const unitToken = this.readString("'");
+      // unitToken consumed; create QUANTITY spanning from number start to current position
+      const quantityValue = this.input.substring(start, this.position);
+      return this.createToken(TokenType.QUANTITY, quantityValue, start, this.position, startLine, startColumn);
+    }
+
     const value = this.input.substring(start, this.position);
     return this.createToken(TokenType.NUMBER, value, start, this.position, startLine, startColumn);
   }
@@ -751,8 +743,6 @@ export class Lexer {
         if (char === '\n') {
           this.line++;
           this.column = 1;
-          this.lspLine++;
-          this.lspCharacter = 0;
         } else if (char === '\r') {
           // Handle \r\n as single line ending
           if (this.position + 1 < this.input.length && this.input[this.position + 1] === '\n') {
@@ -761,12 +751,9 @@ export class Lexer {
             // Standalone \r
             this.line++;
             this.column = 1;
-            this.lspLine++;
-            this.lspCharacter = 0;
           }
         } else {
           this.column++;
-          this.lspCharacter++;
         }
       }
       this.position++;
@@ -790,6 +777,28 @@ export class Lexer {
   private isWhitespace(char: string): boolean {
     if (!char) return false;
     return char === ' ' || char === '\t' || char === '\n' || char === '\r';
+  }
+
+  // Identifier helpers (ASCII-based)
+  private isIdentifierHead(code: number): boolean {
+    return (code >= 65 && code <= 90) || // A-Z
+           (code >= 97 && code <= 122) || // a-z
+           code === 95; // _
+  }
+
+  private isIdentifierPart(code: number): boolean {
+    return this.isIdentifierHead(code) || (code >= 48 && code <= 57); // 0-9
+  }
+
+  private scanIdentifierBody(): void {
+    while (this.position < this.input.length) {
+      const code = this.input.charCodeAt(this.position);
+      if (this.isIdentifierPart(code)) {
+        this.advance();
+      } else {
+        break;
+      }
+    }
   }
   
   /**
