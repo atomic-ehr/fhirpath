@@ -404,8 +404,11 @@ export function equivalent(a: unknown, b: unknown): boolean | null {
   }
   
   // Temporal types use equality semantics
+  // But for equivalence, incomparable (null) means not equivalent (false)
   if (isTemporalValue(a) && isTemporalValue(b)) {
-    return temporalEquals(a, b);
+    const result = temporalEquals(a, b);
+    // If temporal values are incomparable (different precision), they're not equivalent
+    return result === null ? false : result;
   }
   
   // Boolean equivalence is same as equality
@@ -449,8 +452,15 @@ function stringEquivalent(a: string, b: string): boolean {
 }
 
 /**
- * Decimal equivalence ignoring trailing zeros
- * 2.0 ~ 2.00 ~ 2.000
+ * Decimal equivalence for FHIRPath
+ * 
+ * Per spec: "comparison is done on values rounded to the precision of the 
+ * least precise operand. Trailing zeroes after the decimal are ignored in 
+ * determining precision."
+ * 
+ * Since JavaScript loses literal precision (1.0 becomes 1), we deduce precision:
+ * - Numbers with no fractional part (1, 2.0 -> 2) have 0 decimal places
+ * - Numbers with fractional parts use their actual decimal places
  */
 function decimalEquivalent(a: number, b: number): boolean {
   // Handle special cases
@@ -462,9 +472,42 @@ function decimalEquivalent(a: number, b: number): boolean {
     return a === b;
   }
   
-  // Use epsilon for floating point comparison
-  // This handles cases like 2.0 ~ 2.00
-  return Math.abs(a - b) < Number.EPSILON;
+  // Deduce precision from the numeric values
+  const aPrecision = getDecimalPrecision(a);
+  const bPrecision = getDecimalPrecision(b);
+  
+  // Round both to the minimum precision
+  const minPrecision = Math.min(aPrecision, bPrecision);
+  
+  // Round both numbers to the minimum precision
+  const factor = Math.pow(10, minPrecision);
+  const aRounded = Math.round(a * factor) / factor;
+  const bRounded = Math.round(b * factor) / factor;
+  
+  return aRounded === bRounded;
+}
+
+/**
+ * Get the effective decimal precision of a number.
+ * Numbers with no fractional part (like 1.0 which becomes 1) have 0 precision.
+ * Numbers with fractional parts have precision based on significant decimal places.
+ */
+function getDecimalPrecision(n: number): number {
+  // If it's effectively an integer (no fractional part), precision is 0
+  if (Number.isInteger(n)) {
+    return 0;
+  }
+  
+  // Convert to string to count decimal places
+  // Use a reasonable maximum precision to avoid floating point artifacts
+  const str = n.toFixed(8).replace(/0+$/, '').replace(/\.$/, '');
+  const decimalIndex = str.indexOf('.');
+  
+  if (decimalIndex === -1) {
+    return 0;
+  }
+  
+  return str.length - decimalIndex - 1;
 }
 
 // Calendar to UCUM duration mappings for equivalence
@@ -561,6 +604,8 @@ function deepEquivalent(a: any, b: any): boolean {
 export function collectionsEquivalent(left: FHIRPathValue[], right: FHIRPathValue[]): boolean | null {
   // Empty collections are equivalent
   if (left.length === 0 && right.length === 0) return true;
+  
+  // One empty, one not - not equivalent
   if (left.length === 0 || right.length === 0) return false;
   
   // Different lengths = not equivalent

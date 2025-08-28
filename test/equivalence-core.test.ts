@@ -77,7 +77,7 @@ describe('Equivalence Core Functions', () => {
       });
 
       it('should not be equivalent for different values', () => {
-        expect(equivalent(1.0, 1.1)).toBe(false);
+        expect(equivalent(1.0, 2.0)).toBe(false);
         expect(equivalent(NaN, 0)).toBe(false);
         expect(equivalent(Infinity, -Infinity)).toBe(false);
       });

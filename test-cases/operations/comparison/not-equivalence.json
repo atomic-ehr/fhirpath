@@ -1,0 +1,127 @@
+{
+  "name": "Not-Equivalence Operator Tests",
+  "description": "Tests for !~ operator (ported from fhirpath.js)",
+  "tests": [
+    {
+      "name": "Empty collections are not not-equivalent",
+      "description": "collections for equivalence { } !~ { } will result in false",
+      "expression": "{} !~ {}",
+      "input": [],
+      "expected": [false],
+      "tags": ["not-equivalence", "empty", "collection"]
+    },
+    {
+      "name": "String not-equivalence - case insensitive with whitespace normalization",
+      "description": "strings must be the same while ignoring case and normalizing whitespace",
+      "expression": "'ab c' !~ 'Ab  C'",
+      "input": [],
+      "expected": [false],
+      "tags": ["not-equivalence", "string", "case-insensitive", "whitespace"]
+    },
+    {
+      "name": "String not-equivalence - different strings",
+      "expression": "'hello' !~ 'world'",
+      "input": [],
+      "expected": [true],
+      "tags": ["not-equivalence", "string"]
+    },
+    {
+      "name": "Decimal not-equivalence with trailing zeros",
+      "expression": "1.001 !~ 01.0012",
+      "input": [],
+      "expected": [false],
+      "tags": ["not-equivalence", "decimal", "trailing-zeros"]
+    },
+    {
+      "name": "Decimal not-equivalence - different values",
+      "expression": "1.1 !~ 1.2",
+      "input": [],
+      "expected": [true],
+      "tags": ["not-equivalence", "decimal"]
+    },
+    {
+      "name": "Integer not-equivalence - same values",
+      "expression": "2 !~ 2",
+      "input": [],
+      "expected": [false],
+      "tags": ["not-equivalence", "integer"]
+    },
+    {
+      "name": "Integer not-equivalence - different values",
+      "expression": "1 !~ 2",
+      "input": [],
+      "expected": [true],
+      "tags": ["not-equivalence", "integer"]
+    },
+    {
+      "name": "Boolean not-equivalence - true !~ true",
+      "expression": "true !~ true",
+      "input": [],
+      "expected": [false],
+      "tags": ["not-equivalence", "boolean"]
+    },
+    {
+      "name": "Boolean not-equivalence - false !~ false",
+      "expression": "false !~ false",
+      "input": [],
+      "expected": [false],
+      "tags": ["not-equivalence", "boolean"]
+    },
+    {
+      "name": "Boolean not-equivalence - true !~ false",
+      "expression": "true !~ false",
+      "input": [],
+      "expected": [true],
+      "tags": ["not-equivalence", "boolean"]
+    },
+    {
+      "name": "Collection not-equivalence - order independent same elements",
+      "expression": "(1 | 2 | 3) !~ (3 | 2 | 1)",
+      "input": [],
+      "expected": [false],
+      "tags": ["not-equivalence", "collection", "order-independent"]
+    },
+    {
+      "name": "Collection not-equivalence - different elements",
+      "expression": "(1 | 2 | 3) !~ (4 | 5 | 6)",
+      "input": [],
+      "expected": [true],
+      "tags": ["not-equivalence", "collection"]
+    },
+    {
+      "name": "Collection not-equivalence - different lengths",
+      "expression": "(1 | 2) !~ (1 | 2 | 3)",
+      "input": [],
+      "expected": [true],
+      "tags": ["not-equivalence", "collection", "length"]
+    },
+    {
+      "name": "Quantity not-equivalence - calendar to UCUM same",
+      "expression": "1 year !~ 1 'a'",
+      "input": [],
+      "expected": [false],
+      "tags": ["not-equivalence", "quantity", "calendar", "ucum"]
+    },
+    {
+      "name": "Quantity not-equivalence - calendar to UCUM different",
+      "expression": "1 year !~ 2 'a'",
+      "input": [],
+      "expected": [true],
+      "tags": ["not-equivalence", "quantity", "calendar", "ucum"]
+    },
+    {
+      "name": "Quantity not-equivalence - UCUM conversions same",
+      "expression": "1000 'mg' !~ 1 'g'",
+      "input": [],
+      "expected": [false],
+      "tags": ["not-equivalence", "quantity", "ucum", "conversion"]
+    },
+    {
+      "name": "Quantity not-equivalence - UCUM conversions different",
+      "expression": "1000 'mg' !~ 2 'g'",
+      "input": [],
+      "expected": [true],
+      "tags": ["not-equivalence", "quantity", "ucum", "conversion"]
+    }
+  ]
+}

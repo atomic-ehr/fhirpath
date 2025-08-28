@@ -1,0 +1,169 @@
+{
+  "name": "Equivalence Operator Tests",
+  "description": "Tests for ~ and !~ operators (ported from fhirpath.js)",
+  "tests": [
+    {
+      "name": "Empty collections are equivalent",
+      "description": "collections for equivalence { } ~ { } will result in true",
+      "expression": "{} ~ {}",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "empty", "collection"]
+    },
+    {
+      "name": "String equivalence - case insensitive with whitespace normalization",
+      "description": "strings must be the same while ignoring case and normalizing whitespace",
+      "expression": "'ab c' ~ 'Ab  C'",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "string", "case-insensitive", "whitespace"]
+    },
+    {
+      "name": "String equivalence - different strings",
+      "expression": "'hello' ~ 'world'",
+      "input": [],
+      "expected": [false],
+      "tags": ["equivalence", "string"]
+    },
+    {
+      "name": "Decimal equivalence with trailing zeros",
+      "expression": "1.001 ~ 01.0012",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "decimal", "trailing-zeros"]
+    },
+    {
+      "name": "Decimal - 1.100 ~ 1.1",
+      "expression": "1.100 ~ 1.1",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "decimal", "trailing-zeros"]
+    },
+    {
+      "name": "Decimal - 1.100 ~ 1.101 (rounded, ignoring trailing zeros)",
+      "expression": "1.100 ~ 1.101",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "decimal", "trailing-zeros", "rounding"]
+    },
+    {
+      "name": "Decimal - 1.1 ~ 1.0 (rounded, ignoring trailing zeros)",
+      "expression": "1.1 ~ 1.0",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "decimal", "trailing-zeros", "rounding"]
+    },
+    {
+      "name": "Decimal - 1.1 ~ 1.00",
+      "expression": "1.1 ~ 1.00",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "decimal", "trailing-zeros"]
+    },
+    {
+      "name": "Decimal - 1.10 ~ 1.00",
+      "expression": "1.10 ~ 1.00",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "decimal", "trailing-zeros", "rounding"]
+    },
+    {
+      "name": "Decimal - 11 ~ 10 (digits before decimal are not trailing zeros)",
+      "expression": "11 ~ 10",
+      "input": [],
+      "expected": [false],
+      "tags": ["equivalence", "decimal"]
+    },
+    {
+      "name": "Decimal - 12 ~ 11",
+      "expression": "12 ~ 11",
+      "input": [],
+      "expected": [false],
+      "tags": ["equivalence", "decimal"]
+    },
+    {
+      "name": "Decimal - 1.1 ~ 1.2",
+      "expression": "1.1 ~ 1.2",
+      "input": [],
+      "expected": [false],
+      "tags": ["equivalence", "decimal"]
+    },
+    {
+      "name": "Decimal - very small numbers 0.00000011 ~ 0.00000012",
+      "expression": "0.00000011 ~ 0.00000012",
+      "input": [],
+      "expected": [false],
+      "tags": ["equivalence", "decimal", "precision"]
+    },
+    {
+      "name": "Decimal - very small numbers 0.00000011 ~ 0.00000010",
+      "expression": "0.00000011 ~ 0.00000010",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "decimal", "precision", "rounding"]
+    },
+    {
+      "name": "Decimal - 0 ~ 0.00000010",
+      "expression": "0 ~ 0.00000010",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "decimal", "precision", "rounding"]
+    },
+    {
+      "name": "Decimal - 1 ~ 0.00000010",
+      "expression": "1 ~ 0.00000010",
+      "input": [],
+      "expected": [false],
+      "tags": ["equivalence", "decimal", "precision"]
+    },
+    {
+      "name": "Decimal - 0.010 ~ 0.00000010",
+      "expression": "0.010 ~ 0.00000010",
+      "input": [],
+      "expected": [false],
+      "tags": ["equivalence", "decimal", "precision"]
+    },
+    {
+      "name": "Boolean equivalence - true ~ true",
+      "expression": "true ~ true",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "boolean"]
+    },
+    {
+      "name": "Boolean equivalence - false ~ false",
+      "expression": "false ~ false",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "boolean"]
+    },
+    {
+      "name": "Boolean equivalence - true ~ false",
+      "expression": "true ~ false",
+      "input": [],
+      "expected": [false],
+      "tags": ["equivalence", "boolean"]
+    },
+    {
+      "name": "Collection equivalence - order independent",
+      "expression": "(1 | 2 | 3) ~ (3 | 2 | 1)",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "collection", "order-independent"]
+    },
+    {
+      "name": "Collection equivalence - duplicates matter",
+      "expression": "1.combine(1).combine(2) ~ 2.combine(1).combine(1)",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "collection", "duplicates", "order-independent"]
+    },
+    {
+      "name": "Collection equivalence - different duplicates",
+      "expression": "1.combine(1).combine(2) ~ 1.combine(2).combine(2)",
+      "input": [],
+      "expected": [false],
+      "tags": ["equivalence", "collection", "duplicates"]
+    }
+  ]
+}

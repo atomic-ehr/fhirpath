@@ -26,6 +26,7 @@ export const notEquivalentOperator: OperatorDefinition & { evaluate: OperationEv
   category: ['equality'],
   precedence: PRECEDENCE.EQUALITY,
   associativity: 'left',
+  doesNotPropagateEmpty: true,  // Empty collections are valid operands for not-equivalence
   description: 'The converse of the equivalent operator, returning true if equivalent returns false and false if equivalent returns true. In other words, A !~ B is short-hand for (A ~ B).not()',
   examples: [
     "'abc' !~ 'ABC'",

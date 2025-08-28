@@ -26,6 +26,7 @@ export const equivalentOperator: OperatorDefinition & { evaluate: OperationEvalu
   category: ['equality'],
   precedence: PRECEDENCE.EQUALITY,
   associativity: 'left',
+  doesNotPropagateEmpty: true,  // Empty collections are valid operands for equivalence
   description: 'Returns true if the collections are the same. For single items: strings are compared case-insensitive with normalized whitespace, decimals are rounded to least precision, dates with different precision return false. For collections: order-independent comparison. Empty ~ empty returns true (unlike =)',
   examples: [
     "'abc' ~ 'ABC'",

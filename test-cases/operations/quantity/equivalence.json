@@ -1,0 +1,142 @@
+{
+  "name": "Quantity Equivalence Tests",
+  "description": "Equivalence tests for quantities including calendar to UCUM mappings (ported from fhirpath.js)",
+  "tests": [
+    {
+      "name": "Calendar year to UCUM annum",
+      "expression": "1 year ~ 1 'a'",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "quantity", "calendar", "ucum"]
+    },
+    {
+      "name": "Calendar months to UCUM annum - NOTE: May fail",
+      "description": "12 months ~ 1 'a' - We don't convert between different calendar units",
+      "expression": "12 months ~ 1 'a'",
+      "input": [],
+      "expected": [false],
+      "tags": ["equivalence", "quantity", "calendar", "ucum", "conversion"]
+    },
+    {
+      "name": "Calendar month to UCUM month",
+      "expression": "1 month ~ 1 'mo'",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "quantity", "calendar", "ucum"]
+    },
+    {
+      "name": "Calendar days to UCUM month - NOTE: May fail",
+      "description": "30 days ~ 1 'mo' - We don't convert between different calendar units",
+      "expression": "30 days ~ 1 'mo'",
+      "input": [],
+      "expected": [false],
+      "tags": ["equivalence", "quantity", "calendar", "ucum", "conversion"]
+    },
+    {
+      "name": "Calendar week to UCUM week",
+      "expression": "1 week ~ 1 'wk'",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "quantity", "calendar", "ucum"]
+    },
+    {
+      "name": "Calendar day to UCUM day",
+      "expression": "1 day ~ 1 'd'",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "quantity", "calendar", "ucum"]
+    },
+    {
+      "name": "Calendar hour to UCUM hour",
+      "expression": "1 hour ~ 1 'h'",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "quantity", "calendar", "ucum"]
+    },
+    {
+      "name": "Calendar minute to UCUM minute",
+      "expression": "1 minute ~ 1 'min'",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "quantity", "calendar", "ucum"]
+    },
+    {
+      "name": "Calendar second to UCUM second",
+      "expression": "1 second ~ 1 's'",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "quantity", "calendar", "ucum"]
+    },
+    {
+      "name": "Calendar millisecond to UCUM millisecond",
+      "expression": "1 millisecond ~ 1 'ms'",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "quantity", "calendar", "ucum"]
+    },
+    {
+      "name": "Multiple calendar years",
+      "expression": "2 years ~ 2 'a'",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "quantity", "calendar", "ucum"]
+    },
+    {
+      "name": "Different calendar values",
+      "expression": "1 year ~ 2 'a'",
+      "input": [],
+      "expected": [false],
+      "tags": ["equivalence", "quantity", "calendar", "ucum"]
+    },
+    {
+      "name": "Calendar year not equivalent to days",
+      "description": "Calendar units don't convert to other time units",
+      "expression": "1 year ~ 365 'd'",
+      "input": [],
+      "expected": [false],
+      "tags": ["equivalence", "quantity", "calendar", "no-conversion"]
+    },
+    {
+      "name": "UCUM unit conversions - mg to g",
+      "expression": "1000 'mg' ~ 1 'g'",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "quantity", "ucum", "conversion"]
+    },
+    {
+      "name": "UCUM unit conversions - kg to g",
+      "expression": "1 'kg' ~ 1000 'g'",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "quantity", "ucum", "conversion"]
+    },
+    {
+      "name": "UCUM unit conversions - m to cm",
+      "expression": "1 'm' ~ 100 'cm'",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "quantity", "ucum", "conversion"]
+    },
+    {
+      "name": "Different UCUM dimensions",
+      "expression": "1 'kg' ~ 1 'm'",
+      "input": [],
+      "expected": [false],
+      "tags": ["equivalence", "quantity", "ucum", "dimensions"]
+    },
+    {
+      "name": "Dimensionless quantities",
+      "expression": "5 '1' ~ 5 '1'",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "quantity", "dimensionless"]
+    },
+    {
+      "name": "Different dimensionless values",
+      "expression": "5 '1' ~ 6 '1'",
+      "input": [],
+      "expected": [false],
+      "tags": ["equivalence", "quantity", "dimensionless"]
+    }
+  ]
+}

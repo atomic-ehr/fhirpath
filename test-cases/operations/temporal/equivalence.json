@@ -1,0 +1,145 @@
+{
+  "name": "Temporal Equivalence Tests",
+  "description": "Equivalence tests for Date, DateTime, and Time types (ported from fhirpath.js)",
+  "tests": [
+    {
+      "name": "DateTime equivalence - same DateTime",
+      "description": "DateTime literal compared with DateTime",
+      "expression": "@2018 ~ @2018",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "temporal", "datetime"]
+    },
+    {
+      "name": "DateTime equivalence - different DateTime",
+      "description": "DateTime literal compared with different DateTime",
+      "expression": "@2018 ~ @2017",
+      "input": [],
+      "expected": [false],
+      "tags": ["equivalence", "temporal", "datetime"]
+    },
+    {
+      "name": "DateTime equivalence - different precision",
+      "description": "DateTime literal compared with different precision DateTime",
+      "expression": "@2018 ~ @2018-02",
+      "input": [],
+      "expected": [false],
+      "tags": ["equivalence", "temporal", "datetime", "precision"]
+    },
+    {
+      "name": "DateTime month precision - same",
+      "expression": "@2018-02 ~ @2018-02",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "temporal", "datetime", "month-precision"]
+    },
+    {
+      "name": "DateTime month precision - different",
+      "expression": "@2018-01 ~ @2018-02",
+      "input": [],
+      "expected": [false],
+      "tags": ["equivalence", "temporal", "datetime", "month-precision"]
+    },
+    {
+      "name": "DateTime day precision - same",
+      "expression": "@2018-02-02 ~ @2018-02-02",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "temporal", "datetime", "day-precision"]
+    },
+    {
+      "name": "Time equivalence - same time",
+      "description": "Time literal compared with same time",
+      "expression": "@T18:04:23 ~ @T18:04:23",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "temporal", "time"]
+    },
+    {
+      "name": "Time equivalence - different time",
+      "description": "Time literal compared with different time",
+      "expression": "@T18:04:23 ~ @T18:04:24",
+      "input": [],
+      "expected": [false],
+      "tags": ["equivalence", "temporal", "time"]
+    },
+    {
+      "name": "Time hour precision - same",
+      "expression": "@T12:00 ~ @T12:00",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "temporal", "time", "hour-precision"]
+    },
+    {
+      "name": "Time minute precision - same",
+      "expression": "@T12:34 ~ @T12:34",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "temporal", "time", "minute-precision"]
+    },
+    {
+      "name": "Time second precision - same",
+      "expression": "@T12:34:45 ~ @T12:34:45",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "temporal", "time", "second-precision"]
+    },
+    {
+      "name": "Date equivalence - same date",
+      "expression": "@2018-03-15 ~ @2018-03-15",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "temporal", "date"]
+    },
+    {
+      "name": "Date equivalence - different date",
+      "expression": "@2018-03-15 ~ @2018-03-16",
+      "input": [],
+      "expected": [false],
+      "tags": ["equivalence", "temporal", "date"]
+    },
+    {
+      "name": "DateTime !~ same DateTime",
+      "expression": "@2018 !~ @2018",
+      "input": [],
+      "expected": [false],
+      "tags": ["equivalence", "temporal", "datetime", "not-equivalent"]
+    },
+    {
+      "name": "DateTime !~ different DateTime",
+      "expression": "@2018 !~ @2017",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "temporal", "datetime", "not-equivalent"]
+    },
+    {
+      "name": "DateTime !~ different precision (1)",
+      "description": "DateTime literal compared with different precision DateTime",
+      "expression": "@2018 !~ @2018-02",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "temporal", "datetime", "precision", "not-equivalent"]
+    },
+    {
+      "name": "DateTime !~ different precision (2)",
+      "expression": "@2019 !~ @2018-02",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "temporal", "datetime", "precision", "not-equivalent"]
+    },
+    {
+      "name": "Time !~ same time",
+      "expression": "@T18:04:23 !~ @T18:04:23",
+      "input": [],
+      "expected": [false],
+      "tags": ["equivalence", "temporal", "time", "not-equivalent"]
+    },
+    {
+      "name": "Time !~ different time",
+      "expression": "@T18:04:23 !~ @T18:04:24",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "temporal", "time", "not-equivalent"]
+    }
+  ]
+}

@@ -1,0 +1,119 @@
+{
+  "name": "Collection Equivalence Tests",
+  "description": "Tests for collection equivalence with order-independent comparison",
+  "tests": [
+    {
+      "name": "Empty collections equivalent",
+      "expression": "{} ~ {}",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "collection", "empty"]
+    },
+    {
+      "name": "Single empty collection",
+      "expression": "{} ~ (1).where(false)",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "collection", "empty"]
+    },
+    {
+      "name": "Order independent - numbers",
+      "expression": "(1 | 2 | 3) ~ (3 | 2 | 1)",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "collection", "order-independent", "numbers"]
+    },
+    {
+      "name": "Order independent - strings",
+      "expression": "('a' | 'b' | 'c') ~ ('c' | 'a' | 'b')",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "collection", "order-independent", "strings"]
+    },
+    {
+      "name": "Order independent with duplicates",
+      "expression": "1.combine(2).combine(1) ~ 1.combine(1).combine(2)",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "collection", "order-independent", "duplicates"]
+    },
+    {
+      "name": "Different duplicate counts",
+      "expression": "1.combine(1).combine(2) ~ 1.combine(2).combine(2)",
+      "input": [],
+      "expected": [false],
+      "tags": ["equivalence", "collection", "duplicates"]
+    },
+    {
+      "name": "Mixed types order independent",
+      "expression": "(1 | 'a' | true) ~ (true | 1 | 'a')",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "collection", "order-independent", "mixed-types"]
+    },
+    {
+      "name": "String equivalence in collections",
+      "expression": "('ABC' | 'def') ~ ('abc' | 'DEF')",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "collection", "strings", "case-insensitive"]
+    },
+    {
+      "name": "Decimal equivalence in collections",
+      "expression": "(1.0 | 2.00) ~ (1.000 | 2.0)",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "collection", "decimals", "trailing-zeros"]
+    },
+    {
+      "name": "Different length collections",
+      "expression": "(1 | 2) ~ (1 | 2 | 3)",
+      "input": [],
+      "expected": [false],
+      "tags": ["equivalence", "collection", "length"]
+    },
+    {
+      "name": "Empty vs non-empty",
+      "expression": "{} ~ (1)",
+      "input": [],
+      "expected": [false],
+      "tags": ["equivalence", "collection", "empty"]
+    },
+    {
+      "name": "Complex multiset equivalence",
+      "expression": "1.combine(1).combine(2).combine(2).combine(3) ~ 2.combine(1).combine(3).combine(1).combine(2)",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "collection", "multiset", "order-independent", "duplicates"]
+    },
+    {
+      "name": "Collection with whitespace strings",
+      "expression": "('a  b' | '  c  ') ~ ('A B' | 'c')",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "collection", "strings", "whitespace"]
+    },
+    {
+      "name": "Collection not-equivalence same order",
+      "expression": "(1 | 2 | 3) !~ (1 | 2 | 4)",
+      "input": [],
+      "expected": [true],
+      "tags": ["not-equivalence", "collection"]
+    },
+    {
+      "name": "Collection not-equivalence different order same elements",
+      "expression": "(1 | 2 | 3) !~ (3 | 2 | 1)",
+      "input": [],
+      "expected": [false],
+      "tags": ["not-equivalence", "collection", "order-independent"]
+    },
+    {
+      "name": "Nested collection equivalence",
+      "description": "Union operator deduplicates, so nested results should be flat",
+      "expression": "((1 | 2) | (2 | 3)) ~ (1 | 2 | 3)",
+      "input": [],
+      "expected": [true],
+      "tags": ["equivalence", "collection", "nested", "union"]
+    }
+  ]
+}
