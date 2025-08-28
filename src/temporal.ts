@@ -1392,9 +1392,18 @@ export function addClockParts(
   };
 }
 
+// Cache for UTC-normalized DateTimes to avoid repeated conversions
+const utcNormalizationCache = new WeakMap<FHIRDateTime, FHIRDateTime>();
+
 function normalizeToUTC(dt: FHIRDateTime): FHIRDateTime {
   if (dt.timezoneOffset === undefined || dt.timezoneOffset === 0) {
     return dt;
+  }
+  
+  // Check cache first
+  const cached = utcNormalizationCache.get(dt);
+  if (cached) {
+    return cached;
   }
   
   // Convert to total minutes and adjust
@@ -1428,7 +1437,7 @@ function normalizeToUTC(dt: FHIRDateTime): FHIRDateTime {
     newDay = adjustedDate.day;
   }
   
-  return {
+  const result: FHIRDateTime = {
     kind: 'FHIRDateTime',
     year: newYear,
     month: newMonth,
@@ -1440,6 +1449,11 @@ function normalizeToUTC(dt: FHIRDateTime): FHIRDateTime {
     timezoneOffset: 0,
     precision: dt.precision
   };
+  
+  // Store in cache for future lookups
+  utcNormalizationCache.set(dt, result);
+  
+  return result;
 }
 
 // ============================================================================

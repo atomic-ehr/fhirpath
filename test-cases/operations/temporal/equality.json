@@ -1,0 +1,248 @@
+{
+  "name": "Temporal Equality Tests",
+  "description": "Equality and inequality tests for Date, DateTime, and Time types (ported from fhirpath.js)",
+  "tests": [
+    {
+      "name": "DateTime year precision - equal",
+      "expression": "@2018 = @2018",
+      "input": [],
+      "expected": [true],
+      "tags": ["temporal", "datetime", "equality", "year-precision"]
+    },
+    {
+      "name": "DateTime year precision - not equal",
+      "expression": "@2018 = @2017",
+      "input": [],
+      "expected": [false],
+      "tags": ["temporal", "datetime", "equality", "year-precision"]
+    },
+    {
+      "name": "DateTime different precision - incomparable",
+      "expression": "@2018 = @2018-02",
+      "input": [],
+      "expected": [],
+      "tags": ["temporal", "datetime", "equality", "partial-precision"]
+    },
+    {
+      "name": "DateTime different precision different values",
+      "expression": "@2018 = @2019-02",
+      "input": [],
+      "expected": [false],
+      "tags": ["temporal", "datetime", "equality", "partial-precision"]
+    },
+    {
+      "name": "DateTime month precision - equal",
+      "expression": "@2018-02 = @2018-02",
+      "input": [],
+      "expected": [true],
+      "tags": ["temporal", "datetime", "equality", "month-precision"]
+    },
+    {
+      "name": "DateTime month precision - not equal",
+      "expression": "@2018-02 = @2018-03",
+      "input": [],
+      "expected": [false],
+      "tags": ["temporal", "datetime", "equality", "month-precision"]
+    },
+    {
+      "name": "DateTime day precision - equal",
+      "expression": "@2018-02-02 = @2018-02-02",
+      "input": [],
+      "expected": [true],
+      "tags": ["temporal", "datetime", "equality", "day-precision"]
+    },
+    {
+      "name": "DateTime day precision - not equal",
+      "expression": "@2018-02-02 = @2018-02-03",
+      "input": [],
+      "expected": [false],
+      "tags": ["temporal", "datetime", "equality", "day-precision"]
+    },
+    {
+      "name": "DateTime hour precision - equal",
+      "expression": "@2018-02-02T11 = @2018-02-02T11",
+      "input": [],
+      "expected": [true],
+      "tags": ["temporal", "datetime", "equality", "hour-precision"]
+    },
+    {
+      "name": "DateTime hour precision - not equal",
+      "expression": "@2018-02-02T11 = @2018-02-02T12",
+      "input": [],
+      "expected": [false],
+      "tags": ["temporal", "datetime", "equality", "hour-precision"]
+    },
+    {
+      "name": "DateTime different precision with same time - incomparable",
+      "expression": "@2018-02-02T11 = @2018-02-02T11:00",
+      "input": [],
+      "expected": [],
+      "tags": ["temporal", "datetime", "equality", "partial-precision"]
+    },
+    {
+      "name": "DateTime with timezone - equal",
+      "expression": "@2018-02-02T11+04:00 = @2018-02-02T11+04:00",
+      "input": [],
+      "expected": [true],
+      "tags": ["temporal", "datetime", "equality", "timezone"]
+    },
+    {
+      "name": "DateTime different timezone same instant - equal",
+      "expression": "@2018-02-02T22-04:00 = @2018-02-03T06+04:00",
+      "input": [],
+      "expected": [true],
+      "tags": ["temporal", "datetime", "equality", "timezone", "utc-normalization"]
+    },
+    {
+      "name": "DateTime different timezone different precision - incomparable",
+      "expression": "@2018-02-02T22-04:00 = @2018-02-03T06:03+04:00",
+      "input": [],
+      "expected": [],
+      "tags": ["temporal", "datetime", "equality", "timezone", "partial-precision"]
+    },
+    {
+      "name": "DateTime minute precision - equal",
+      "expression": "@2018-02-02T11:01 = @2018-02-02T11:01",
+      "input": [],
+      "expected": [true],
+      "tags": ["temporal", "datetime", "equality", "minute-precision"]
+    },
+    {
+      "name": "DateTime minute precision - not equal",
+      "expression": "@2018-02-02T11:01 = @2018-02-02T11:02",
+      "input": [],
+      "expected": [false],
+      "tags": ["temporal", "datetime", "equality", "minute-precision"]
+    },
+    {
+      "name": "DateTime second precision - equal",
+      "expression": "@2018-02-02T11:01:03 = @2018-02-02T11:01:03",
+      "input": [],
+      "expected": [true],
+      "tags": ["temporal", "datetime", "equality", "second-precision"]
+    },
+    {
+      "name": "DateTime second precision - not equal",
+      "expression": "@2018-02-02T11:01:03 = @2018-02-02T11:01:04",
+      "input": [],
+      "expected": [false],
+      "tags": ["temporal", "datetime", "equality", "second-precision"]
+    },
+    {
+      "name": "DateTime millisecond precision - equal",
+      "expression": "@2018-02-02T11:01:03.123 = @2018-02-02T11:01:03.123",
+      "input": [],
+      "expected": [true],
+      "tags": ["temporal", "datetime", "equality", "millisecond-precision"]
+    },
+    {
+      "name": "DateTime millisecond precision - not equal",
+      "expression": "@2018-02-02T11:01:03.123 = @2018-02-02T11:01:03.124",
+      "input": [],
+      "expected": [false],
+      "tags": ["temporal", "datetime", "equality", "millisecond-precision"]
+    },
+    {
+      "name": "DateTime different timezones - not equal",
+      "expression": "@2018-02-02T11:01:03.123+02:00 = @2018-02-02T11:01:03.123+04:00",
+      "input": [],
+      "expected": [false],
+      "tags": ["temporal", "datetime", "equality", "timezone"]
+    },
+    {
+      "name": "Time - equal",
+      "expression": "@T14:04:23 = @T14:04:23",
+      "input": [],
+      "expected": [true],
+      "tags": ["temporal", "time", "equality"]
+    },
+    {
+      "name": "Time - not equal",
+      "expression": "@T16:04:23 = @T18:04:24",
+      "input": [],
+      "expected": [false],
+      "tags": ["temporal", "time", "equality"]
+    },
+    {
+      "name": "Time different precision - incomparable",
+      "expression": "@T14:04:23 = @T14:04",
+      "input": [],
+      "expected": [],
+      "tags": ["temporal", "time", "equality", "partial-precision"]
+    },
+    {
+      "name": "Time different precision different values",
+      "expression": "@T14:05:23 = @T14:04",
+      "input": [],
+      "expected": [false],
+      "tags": ["temporal", "time", "equality", "partial-precision"]
+    },
+    {
+      "name": "DateTime != year precision - false when equal",
+      "expression": "@2018 != @2018",
+      "input": [],
+      "expected": [false],
+      "tags": ["temporal", "datetime", "inequality", "year-precision"]
+    },
+    {
+      "name": "DateTime != year precision - true when not equal",
+      "expression": "@2018 != @2017",
+      "input": [],
+      "expected": [true],
+      "tags": ["temporal", "datetime", "inequality", "year-precision"]
+    },
+    {
+      "name": "DateTime != different precision - incomparable",
+      "expression": "@2018 != @2018-02",
+      "input": [],
+      "expected": [],
+      "tags": ["temporal", "datetime", "inequality", "partial-precision"]
+    },
+    {
+      "name": "DateTime != different precision overlapping values",
+      "description": "Jan 2018 is within 2018, so they could be equal - returns incomparable",
+      "expression": "@2018 != @2018-01",
+      "input": [],
+      "expected": [],
+      "tags": ["temporal", "datetime", "inequality", "partial-precision", "incomparable"]
+    },
+    {
+      "name": "Time != equal times",
+      "expression": "@T18:04:23 != @T18:04:23",
+      "input": [],
+      "expected": [false],
+      "tags": ["temporal", "time", "inequality"]
+    },
+    {
+      "name": "Time != different times",
+      "expression": "@T18:04:23 != @T18:04:24",
+      "input": [],
+      "expected": [true],  
+      "tags": ["temporal", "time", "inequality"]
+    },
+    {
+      "name": "Temporal inequality bug test - DateTime with timezone",
+      "description": "Regression test for temporal inequality operator bug fix",
+      "expression": "@2018-02-02T11+04:00 != @2018-02-02T12+04:00",
+      "input": [],
+      "expected": [true],
+      "tags": ["temporal", "datetime", "inequality", "timezone", "regression-test"]
+    },
+    {
+      "name": "Temporal inequality bug test - Date values",
+      "description": "Regression test ensuring Date inequality works",
+      "expression": "@2018-03-15 != @2018-03-16",
+      "input": [],
+      "expected": [true],
+      "tags": ["temporal", "date", "inequality", "regression-test"]
+    },
+    {
+      "name": "Temporal inequality bug test - Time values",
+      "description": "Regression test ensuring Time inequality works",
+      "expression": "@T12:00:00 != @T13:00:00",
+      "input": [],
+      "expected": [true],
+      "tags": ["temporal", "time", "inequality", "regression-test"]
+    }
+  ]
+}

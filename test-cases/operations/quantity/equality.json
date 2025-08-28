@@ -1,0 +1,189 @@
+{
+  "name": "Quantity Equality Tests",
+  "description": "Equality tests for Quantity types. NOTE: Calendar durations (year, month, day, etc.) are treated as incomparable with different units or UCUM units, returning empty collection per FHIRPath spec for incomparable values. This avoids incorrect assumptions about calendar conversions (e.g., 1 month != always 30 days).",
+  "tests": [
+    {
+      "name": "Different quantity units for year",
+      "description": "Calendar 'year' vs UCUM 'a' are incomparable - returns empty",
+      "expression": "1 year != 1 'a'",
+      "input": [],
+      "expected": [],
+      "tags": ["quantity", "equality", "calendar-duration", "ucum", "incomparable"]
+    },
+    {
+      "name": "Calendar duration conversion - months to years",
+      "description": "Different calendar units are incomparable - returns empty (no implicit conversion)",
+      "expression": "12 months = 1 year",
+      "input": [],
+      "expected": [],
+      "tags": ["quantity", "equality", "calendar-duration", "incomparable"]
+    },
+    {
+      "name": "UCUM duration - months to years",
+      "expression": "12 'mo' = 1 'a'",
+      "input": [],
+      "expected": [true],
+      "tags": ["quantity", "equality", "ucum"]
+    },
+    {
+      "name": "Same calendar duration",
+      "expression": "1 year = 1 year",
+      "input": [],
+      "expected": [true],
+      "tags": ["quantity", "equality", "calendar-duration"]
+    },
+    {
+      "name": "Calendar month vs UCUM month",
+      "description": "Calendar 'month' vs UCUM 'mo' are incomparable - returns empty",
+      "expression": "1 month != 1 'mo'",
+      "input": [],
+      "expected": [],
+      "tags": ["quantity", "inequality", "calendar-duration", "ucum", "incomparable"]
+    },
+    {
+      "name": "Calendar month vs UCUM days - incomparable",
+      "expression": "1 month = 30 'd'",
+      "input": [],
+      "expected": [],
+      "tags": ["quantity", "equality", "calendar-duration", "ucum", "incomparable"]
+    },
+    {
+      "name": "Calendar month to days conversion",
+      "description": "Different calendar units (month vs days) are incomparable - returns empty",
+      "expression": "1 month = 30 days",
+      "input": [],
+      "expected": [],
+      "tags": ["quantity", "equality", "calendar-duration", "incomparable"]
+    },
+    {
+      "name": "Calendar week vs UCUM week - incomparable",
+      "expression": "1 week = 1 'wk'",
+      "input": [],
+      "expected": [],
+      "tags": ["quantity", "equality", "calendar-duration", "ucum", "incomparable"]
+    },
+    {
+      "name": "Calendar week to days conversion",
+      "description": "Different calendar units (week vs days) are incomparable - returns empty",
+      "expression": "1 week = 7 days",
+      "input": [],
+      "expected": [],
+      "tags": ["quantity", "equality", "calendar-duration", "incomparable"]
+    },
+    {
+      "name": "Calendar day vs UCUM day - incomparable",
+      "expression": "1 day = 1 'd'",
+      "input": [],
+      "expected": [],
+      "tags": ["quantity", "equality", "calendar-duration", "ucum", "incomparable"]
+    },
+    {
+      "name": "Calendar day to hours conversion",
+      "description": "Different calendar units (day vs hours) are incomparable - returns empty",
+      "expression": "1 day = 24 hours",
+      "input": [],
+      "expected": [],
+      "tags": ["quantity", "equality", "calendar-duration", "incomparable"]
+    },
+    {
+      "name": "Calendar day vs UCUM hours - incomparable",
+      "expression": "1 day = 24 'h'",
+      "input": [],
+      "expected": [],
+      "tags": ["quantity", "equality", "calendar-duration", "ucum", "incomparable"]
+    },
+    {
+      "name": "Calendar second vs UCUM second",
+      "description": "Calendar 'second' vs UCUM 's' are incomparable - returns empty",
+      "expression": "1 second = 1 's'",
+      "input": [],
+      "expected": [],
+      "tags": ["quantity", "equality", "calendar-duration", "ucum", "incomparable"]
+    },
+    {
+      "name": "Complex UCUM unit equality",
+      "description": "Complex UCUM units can be compared directly",
+      "expression": "10 'kg.m/s2' = 10 'kg.m/s2'",
+      "input": [],
+      "expected": [true],
+      "tags": ["quantity", "equality", "ucum", "complex-units"]
+    },
+    {
+      "name": "Simple UCUM quantities - equal",
+      "expression": "5 'kg' = 5 'kg'",
+      "input": [],
+      "expected": [true],
+      "tags": ["quantity", "equality", "ucum"]
+    },
+    {
+      "name": "Simple UCUM quantities - not equal",
+      "expression": "5 'kg' = 10 'kg'",
+      "input": [],
+      "expected": [false],
+      "tags": ["quantity", "equality", "ucum"]
+    },
+    {
+      "name": "UCUM unit conversion - grams to kilograms",
+      "expression": "1000 'g' = 1 'kg'",
+      "input": [],
+      "expected": [true],
+      "tags": ["quantity", "equality", "ucum", "unit-conversion"]
+    },
+    {
+      "name": "UCUM unit conversion - meters to centimeters",
+      "expression": "1 'm' = 100 'cm'",
+      "input": [],
+      "expected": [true],
+      "tags": ["quantity", "equality", "ucum", "unit-conversion"]
+    },
+    {
+      "name": "Incompatible units - mass vs length",
+      "expression": "5 'kg' = 5 'm'",
+      "input": [],
+      "expected": [],
+      "tags": ["quantity", "equality", "ucum", "incomparable"]
+    },
+    {
+      "name": "Dimensionless quantity equals number",
+      "expression": "5 '1' = 5",
+      "input": [],
+      "expected": [true],
+      "tags": ["quantity", "equality", "dimensionless"]
+    },
+    {
+      "name": "Number equals dimensionless quantity",
+      "expression": "5 = 5 '1'",
+      "input": [],
+      "expected": [true],
+      "tags": ["quantity", "equality", "dimensionless"]
+    },
+    {
+      "name": "Dimensioned quantity vs number - incomparable",
+      "expression": "5 'kg' = 5",
+      "input": [],
+      "expected": [],
+      "tags": ["quantity", "equality", "incomparable"]
+    },
+    {
+      "name": "Quantity inequality - same units",
+      "expression": "5 'kg' != 10 'kg'",
+      "input": [],
+      "expected": [true],
+      "tags": ["quantity", "inequality", "ucum"]
+    },
+    {
+      "name": "Quantity inequality - different but compatible units",
+      "expression": "1 'kg' != 1000 'g'",
+      "input": [],
+      "expected": [false],
+      "tags": ["quantity", "inequality", "ucum", "unit-conversion"]
+    },
+    {
+      "name": "Quantity inequality - incompatible units",
+      "expression": "5 'kg' != 5 'm'",
+      "input": [],
+      "expected": [],
+      "tags": ["quantity", "inequality", "ucum", "incomparable"]
+    }
+  ]
+}

@@ -1,0 +1,180 @@
+{
+  "name": "Collection Equality Tests",
+  "description": "Equality tests for collections including order dependency and multiple items (ported from fhirpath.js)",
+  "tests": [
+    {
+      "name": "Empty collection propagation - left empty",
+      "expression": "{} = 5",
+      "input": [],
+      "expected": [],
+      "tags": ["collection", "equality", "empty"]
+    },
+    {
+      "name": "Empty collection propagation - right empty",
+      "expression": "5 = {}",
+      "input": [],
+      "expected": [],
+      "tags": ["collection", "equality", "empty"]
+    },
+    {
+      "name": "Empty collection propagation - both empty",
+      "expression": "{} = {}",
+      "input": [],
+      "expected": [],
+      "tags": ["collection", "equality", "empty"]
+    },
+    {
+      "name": "Single item collections - equal",
+      "expression": "(5) = (5)",
+      "input": [],
+      "expected": [true],
+      "tags": ["collection", "equality", "single-item"]
+    },
+    {
+      "name": "Single item collections - not equal",
+      "expression": "(5) = (10)",
+      "input": [],
+      "expected": [false],
+      "tags": ["collection", "equality", "single-item"]
+    },
+    {
+      "name": "Multiple items same order - equal",
+      "expression": "(1 | 2 | 3) = (1 | 2 | 3)",
+      "input": [],
+      "expected": [true],
+      "tags": ["collection", "equality", "multiple-items", "order-dependent"]
+    },
+    {
+      "name": "Multiple items different order - not equal",
+      "expression": "(1 | 2 | 3) = (3 | 2 | 1)",
+      "input": [],
+      "expected": [false],
+      "tags": ["collection", "equality", "multiple-items", "order-dependent"]
+    },
+    {
+      "name": "Different number of items - not equal",
+      "expression": "(1 | 2) = (1 | 2 | 3)",
+      "input": [],
+      "expected": [false],
+      "tags": ["collection", "equality", "different-length"]
+    },
+    {
+      "name": "Collections with duplicates - equal",
+      "expression": "(1 | 1 | 2) = (1 | 1 | 2)",
+      "input": [],
+      "expected": [true],
+      "tags": ["collection", "equality", "duplicates"]
+    },
+    {
+      "name": "Collections with duplicates different positions - not equal",
+      "expression": "(1 | 1 | 2) = (1 | 2 | 1)",
+      "input": [],
+      "expected": [false],
+      "tags": ["collection", "equality", "duplicates", "order-dependent"]
+    },
+    {
+      "name": "String collections same order - equal",
+      "expression": "('a' | 'b' | 'c') = ('a' | 'b' | 'c')",
+      "input": [],
+      "expected": [true],
+      "tags": ["collection", "equality", "strings"]
+    },
+    {
+      "name": "String collections different order - not equal",
+      "expression": "('a' | 'b' | 'c') = ('c' | 'b' | 'a')",
+      "input": [],
+      "expected": [false],
+      "tags": ["collection", "equality", "strings", "order-dependent"]
+    },
+    {
+      "name": "Mixed type collections - equal",
+      "expression": "(1 | 'a' | true) = (1 | 'a' | true)",
+      "input": [],
+      "expected": [true],
+      "tags": ["collection", "equality", "mixed-types"]
+    },
+    {
+      "name": "Mixed type collections - not equal",
+      "expression": "(1 | 'a' | true) = (1 | 'a' | false)",
+      "input": [],
+      "expected": [false],
+      "tags": ["collection", "equality", "mixed-types"]
+    },
+    {
+      "name": "Collection inequality - same collections",
+      "expression": "(1 | 2 | 3) != (1 | 2 | 3)",
+      "input": [],
+      "expected": [false],
+      "tags": ["collection", "inequality"]
+    },
+    {
+      "name": "Collection inequality - different order",
+      "expression": "(1 | 2 | 3) != (3 | 2 | 1)",
+      "input": [],
+      "expected": [true],
+      "tags": ["collection", "inequality", "order-dependent"]
+    },
+    {
+      "name": "Collection inequality - different length",
+      "expression": "(1 | 2) != (1 | 2 | 3)",
+      "input": [],
+      "expected": [true],
+      "tags": ["collection", "inequality", "different-length"]
+    },
+    {
+      "name": "Collection inequality with empty - left empty",
+      "expression": "{} != (1 | 2)",
+      "input": [],
+      "expected": [],
+      "tags": ["collection", "inequality", "empty"]
+    },
+    {
+      "name": "Collection inequality with empty - right empty",
+      "expression": "(1 | 2) != {}",
+      "input": [],
+      "expected": [],
+      "tags": ["collection", "inequality", "empty"]
+    },
+    {
+      "name": "Collection inequality with empty - both empty",
+      "expression": "{} != {}",
+      "input": [],
+      "expected": [],
+      "tags": ["collection", "inequality", "empty"]
+    },
+    {
+      "name": "Nested collections through union - equal",
+      "expression": "((1 | 2) | (3 | 4)) = (1 | 2 | 3 | 4)",
+      "input": [],
+      "expected": [true],
+      "tags": ["collection", "equality", "union", "flattening"]
+    },
+    {
+      "name": "Complex object collections - equal",
+      "description": "Collections of complex objects with deep equality",
+      "expression": "items = items",
+      "input": {
+        "items": [
+          {"id": 1, "name": "Item1", "data": {"value": 10}},
+          {"id": 2, "name": "Item2", "data": {"value": 20}}
+        ]
+      },
+      "expected": [true],
+      "tags": ["collection", "equality", "complex-objects", "deep-equality"]
+    },
+    {
+      "name": "Complex object collections - not equal due to nested value",
+      "expression": "items1 = items2",
+      "input": {
+        "items1": [
+          {"id": 1, "name": "Item1", "data": {"value": 10}}
+        ],
+        "items2": [
+          {"id": 1, "name": "Item1", "data": {"value": 20}}
+        ]
+      },
+      "expected": [false],
+      "tags": ["collection", "equality", "complex-objects", "deep-equality"]
+    }
+  ]
+}
