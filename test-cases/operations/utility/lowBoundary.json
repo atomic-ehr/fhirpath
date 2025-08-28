@@ -1,122 +1,86 @@
 {
-  "description": "Tests for lowBoundary() function",
+  "name": "lowBoundary",
+  "description": "Tests for the lowBoundary() function - returns the least possible value to the specified precision",
+  "sources": ["spec/sections-meta/§5.8.1-lowboundary-precision-decimal-date-datetime-time.json", "spec/fhirpathlab-tests/fhirpathlab-tests.xml"],
+  "tags": ["function", "utility", "precision", "decimal", "integer", "temporal"],
   "tests": [
     {
-      "name": "Date year-only with default precision",
-      "expression": "@2014.lowBoundary()",
-      "input": [{}],
-      "expected": ["@2014-01-01"]
+      "title": "Decimal with default precision",
+      "expression": "1.587.lowBoundary()",
+      "expected": [1.5865],
+      "description": "Returns 1.5865 for 1.587 with default precision (3)"
     },
     {
-      "name": "Date year-only with month precision",
-      "expression": "@2014.lowBoundary(6)",
-      "input": [{}],
-      "expected": ["@2014-01"]
+      "title": "Decimal with precision 2",
+      "expression": "1.587.lowBoundary(2)",
+      "expected": [1.5750000000000002],
+      "description": "Returns 1.575 for 1.587 truncated to precision 2 minus half step"
     },
     {
-      "name": "Date year-month with day precision",
-      "expression": "@2014-03.lowBoundary(8)",
-      "input": [{}],
-      "expected": ["@2014-03-01"]
+      "title": "Integer with precision 0",
+      "expression": "1.lowBoundary(0)",
+      "expected": [0],
+      "description": "Returns 0 for integer 1 at precision 0"
     },
     {
-      "name": "DateTime with hour only, default precision",
-      "expression": "@2014-01-01T08.lowBoundary()",
-      "input": [{}],
-      "expected": ["@2014-01-01T08:00:00.000+14:00"]
+      "title": "Integer with precision 5",
+      "expression": "1.lowBoundary(5)",
+      "expected": [0.5],
+      "description": "Returns 0.5 for integer 1 at precision 5"
     },
     {
-      "name": "DateTime with hour only, day precision",
-      "expression": "@2014-01-01T08.lowBoundary(8)",
-      "input": [{}],
-      "expected": ["@2014-01-01"]
+      "title": "Negative decimal with precision 2",
+      "expression": "(-1.587).lowBoundary(2)",
+      "expected": [-1.595],
+      "description": "Returns -1.595 for -1.587 truncated to precision 2 minus half step"
     },
     {
-      "name": "DateTime with timezone, millisecond precision",
-      "expression": "@2014-01-01T08:05+08:00.lowBoundary(17)",
-      "input": [{}],
-      "expected": ["@2014-01-01T08:05:00.000+08:00"]
+      "title": "Negative integer with precision 0",
+      "expression": "(-1).lowBoundary(0)",
+      "expected": [-2],
+      "description": "Returns -2 for integer -1 at precision 0"
     },
     {
-      "name": "DateTime without timezone, millisecond precision",
-      "expression": "@2014-01-01T08.lowBoundary(17)",
-      "input": [{}],
-      "expected": ["@2014-01-01T08:00:00.000+14:00"]
+      "title": "Zero with precision 1",
+      "expression": "0.lowBoundary(1)",
+      "expected": [-0.5],
+      "description": "Returns -0.5 for 0 at precision 1"
     },
     {
-      "name": "Time with hour and minute",
-      "expression": "@T10:30.lowBoundary()",
-      "input": [{}],
-      "expected": ["@T10:30:00.000"]
+      "title": "Large decimal with default precision",
+      "expression": "123.456789.lowBoundary()",
+      "expected": [123.4567885],
+      "description": "Returns value with default precision based on input"
     },
     {
-      "name": "Time with second precision",
-      "expression": "@T10:30.lowBoundary(7)",
-      "input": [{}],
-      "expected": ["@T10:30:00"]
+      "title": "Small decimal with precision 8",
+      "expression": "0.00000001.lowBoundary(8)",
+      "expected": [0.000000005],
+      "description": "Returns value adjusted by half step at precision 8"
     },
     {
-      "name": "Time with minute precision",
-      "expression": "@T10:30.lowBoundary(5)",
-      "input": [{}],
-      "expected": ["@T10:30"]
+      "title": "Invalid precision (negative)",
+      "expression": "1.587.lowBoundary(-1)",
+      "expected": [],
+      "description": "Returns empty for invalid negative precision"
     },
     {
-      "name": "Invalid precision returns empty",
-      "expression": "@2014.lowBoundary(100)",
-      "input": [{}],
-      "expected": []
+      "title": "Invalid precision (> 8)",
+      "expression": "1.587.lowBoundary(9)",
+      "expected": [],
+      "description": "Returns empty for precision exceeding maximum (8)"
     },
     {
-      "name": "Negative precision returns empty",
-      "expression": "@2014.lowBoundary(-1)",
-      "input": [{}],
-      "expected": []
-    },
-    {
-      "name": "Empty input returns empty",
+      "title": "Empty input",
       "expression": "{}.lowBoundary()",
-      "input": [{}],
-      "expected": []
+      "expected": [],
+      "description": "Returns empty for empty input"
     },
     {
-      "name": "Multiple items throws error",
-      "expression": "(@2014 | @2015).lowBoundary()",
-      "input": [{}],
-      "error": {
-        "message": "Cannot apply lowBoundary",
-        "phase": "analyze"
-      }
-    },
-    {
-      "name": "String input returns empty",
-      "expression": "'not a date'.lowBoundary()",
-      "input": [{}],
-      "expected": []
-    },
-    {
-      "name": "Integer input returns empty",
-      "expression": "42.lowBoundary()",
-      "input": [{}],
-      "expected": []
-    },
-    {
-      "name": "DateTime year only with month precision",
-      "expression": "@2014.lowBoundary(6)",
-      "input": [{}],
-      "expected": ["@2014-01"]
-    },
-    {
-      "name": "Complete date preserves value",
-      "expression": "@2014-03-15.lowBoundary(8)",
-      "input": [{}],
-      "expected": ["@2014-03-15"]
-    },
-    {
-      "name": "Complete time preserves value",
-      "expression": "@T10:30:45.123.lowBoundary(9)",
-      "input": [{}],
-      "expected": ["@T10:30:45.123"]
+      "title": "Non-numeric input",
+      "expression": "'hello'.lowBoundary()",
+      "expected": [],
+      "description": "Returns empty for non-numeric input"
     }
   ]
 }

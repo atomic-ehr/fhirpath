@@ -5,6 +5,7 @@ import {
   isFHIRDate, isFHIRDateTime, isFHIRTime,
   getDateHighBoundary, getDateTimeHighBoundary, getTimeHighBoundary 
 } from '../temporal';
+import { getDecimalHighBoundary } from '../decimal-boundaries';
 import { Errors } from '../errors';
 
 export const highBoundaryEvaluator: FunctionEvaluator = async (input, context, args, evaluator) => {
@@ -75,10 +76,18 @@ export const highBoundaryEvaluator: FunctionEvaluator = async (input, context, a
     return { value: [box(result, { type: 'Time', singleton: true })], context };
   }
   
-  // For Decimal types (not implemented in this phase)
+  // For Decimal/Integer types
   if (typeof value === 'number') {
-    // TODO: Implement Decimal boundary logic - return empty for now per spec
-    return { value: [], context };
+    const result = getDecimalHighBoundary(value, precision);
+    if (result === null) {
+      return { value: [], context };
+    }
+    // Determine the result type based on whether it's an integer or decimal
+    const isInteger = Number.isInteger(result);
+    return { 
+      value: [box(result, { type: isInteger ? 'Integer' : 'Decimal', singleton: true })], 
+      context 
+    };
   }
   
   // Invalid type returns empty
@@ -92,7 +101,10 @@ export const highBoundaryFunction: FunctionDefinition & { evaluate: typeof highB
   examples: [
     '@2014.highBoundary(6)',
     '@2014-01-01T08.highBoundary(17)',
-    '@T10:30.highBoundary(9)'
+    '@T10:30.highBoundary(9)',
+    '1.587.highBoundary()',
+    '1.587.highBoundary(2)',
+    '1.highBoundary(0)'
   ],
   signatures: [
     {

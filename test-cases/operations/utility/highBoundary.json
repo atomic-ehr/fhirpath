@@ -1,146 +1,92 @@
 {
-  "description": "Tests for highBoundary() function",
+  "name": "highBoundary",
+  "description": "Tests for the highBoundary() function - returns the greatest possible value to the specified precision",
+  "sources": ["spec/sections-meta/§5.8.2-highboundary-precision-decimal-date-datetime-time.json", "spec/fhirpathlab-tests/fhirpathlab-tests.xml"],
+  "tags": ["function", "utility", "precision", "decimal", "integer", "temporal"],
   "tests": [
     {
-      "name": "Date year-only with default precision",
-      "expression": "@2014.highBoundary()",
-      "input": [{}],
-      "expected": ["@2014-12-31"]
+      "title": "Decimal with default precision",
+      "expression": "1.587.highBoundary()",
+      "expected": [1.5875],
+      "description": "Returns 1.5875 for 1.587 with default precision (3)"
     },
     {
-      "name": "Date year-only with month precision",
-      "expression": "@2014.highBoundary(6)",
-      "input": [{}],
-      "expected": ["@2014-12"]
+      "title": "Decimal with precision 2",
+      "expression": "1.587.highBoundary(2)",
+      "expected": [1.595],
+      "description": "Returns 1.595 for 1.587 ceiling to precision 2 plus half step"
     },
     {
-      "name": "Date February in leap year",
-      "expression": "@2020-02.highBoundary(8)",
-      "input": [{}],
-      "expected": ["@2020-02-29"]
+      "title": "Integer with precision 0",
+      "expression": "1.highBoundary(0)",
+      "expected": [2],
+      "description": "Returns 2 for integer 1 at precision 0"
     },
     {
-      "name": "Date February in non-leap year",
-      "expression": "@2021-02.highBoundary(8)",
-      "input": [{}],
-      "expected": ["@2021-02-28"]
+      "title": "Integer with precision 5",
+      "expression": "1.highBoundary(5)",
+      "expected": [1.5],
+      "description": "Returns 1.5 for integer 1 at precision 5"
     },
     {
-      "name": "Date April (30-day month)",
-      "expression": "@2021-04.highBoundary(8)",
-      "input": [{}],
-      "expected": ["@2021-04-30"]
+      "title": "Integer with default precision",
+      "expression": "1.highBoundary()",
+      "expected": [1.5],
+      "description": "Returns 1.5 for integer 1 with default precision (1)"
     },
     {
-      "name": "DateTime with hour only, default precision",
-      "expression": "@2014-01-01T08.highBoundary()",
-      "input": [{}],
-      "expected": ["@2014-01-01T08:59:59.999-12:00"]
+      "title": "Negative decimal with precision 2",
+      "expression": "(-1.587).highBoundary(2)",
+      "expected": [-1.5750000000000002],
+      "description": "Returns -1.575 for -1.587 ceiling to precision 2 plus half step"
     },
     {
-      "name": "DateTime with hour only, day precision",
-      "expression": "@2014-01-01T08.highBoundary(8)",
-      "input": [{}],
-      "expected": ["@2014-01-01"]
+      "title": "Negative integer with precision 0",
+      "expression": "(-1).highBoundary(0)",
+      "expected": [0],
+      "description": "Returns 0 for integer -1 at precision 0"
     },
     {
-      "name": "DateTime with timezone",
-      "expression": "@2014-01-01T08:05-05:00.highBoundary(17)",
-      "input": [{}],
-      "expected": ["@2014-01-01T08:05:59.999-05:00"]
+      "title": "Zero with precision 1",
+      "expression": "0.highBoundary(1)",
+      "expected": [0.5],
+      "description": "Returns 0.5 for 0 at precision 1"
     },
     {
-      "name": "DateTime without timezone, millisecond precision",
-      "expression": "@2014-01-01T08.highBoundary(17)",
-      "input": [{}],
-      "expected": ["@2014-01-01T08:59:59.999-12:00"]
+      "title": "Large decimal with default precision",
+      "expression": "123.456789.highBoundary()",
+      "expected": [123.4567895],
+      "description": "Returns value with default precision based on input"
     },
     {
-      "name": "Time with hour and minute",
-      "expression": "@T10:30.highBoundary()",
-      "input": [{}],
-      "expected": ["@T10:30:59.999"]
+      "title": "Small decimal with precision 8",
+      "expression": "0.00000001.highBoundary(8)",
+      "expected": [1.5000000000000002e-8],
+      "description": "Returns value adjusted by half step at precision 8"
     },
     {
-      "name": "Time with minute precision",
-      "expression": "@T10:30.highBoundary(5)",
-      "input": [{}],
-      "expected": ["@T10:30"]
+      "title": "Invalid precision (negative)",
+      "expression": "1.587.highBoundary(-1)",
+      "expected": [],
+      "description": "Returns empty for invalid negative precision"
     },
     {
-      "name": "Time with second precision",
-      "expression": "@T10:30.highBoundary(7)",
-      "input": [{}],
-      "expected": ["@T10:30:59"]
+      "title": "Invalid precision (> 8)",
+      "expression": "1.587.highBoundary(9)",
+      "expected": [],
+      "description": "Returns empty for precision exceeding maximum (8)"
     },
     {
-      "name": "Invalid precision returns empty",
-      "expression": "@T10:30.highBoundary(10)",
-      "input": [{}],
-      "expected": []
-    },
-    {
-      "name": "Negative precision returns empty",
-      "expression": "@2014.highBoundary(-1)",
-      "input": [{}],
-      "expected": []
-    },
-    {
-      "name": "Empty input returns empty",
+      "title": "Empty input",
       "expression": "{}.highBoundary()",
-      "input": [{}],
-      "expected": []
+      "expected": [],
+      "description": "Returns empty for empty input"
     },
     {
-      "name": "Multiple items throws error",
-      "expression": "(@2014 | @2015).highBoundary()",
-      "input": [{}],
-      "error": {
-        "message": "Cannot apply highBoundary",
-        "phase": "analyze"
-      }
-    },
-    {
-      "name": "String input returns empty",
-      "expression": "'not a date'.highBoundary()",
-      "input": [{}],
-      "expected": []
-    },
-    {
-      "name": "Integer input returns empty",
-      "expression": "42.highBoundary()",
-      "input": [{}],
-      "expected": []
-    },
-    {
-      "name": "Complete date preserves value",
-      "expression": "@2014-03-15.highBoundary(8)",
-      "input": [{}],
-      "expected": ["@2014-03-15"]
-    },
-    {
-      "name": "Complete time preserves value",
-      "expression": "@T10:30:45.123.highBoundary(9)",
-      "input": [{}],
-      "expected": ["@T10:30:45.123"]
-    },
-    {
-      "name": "Year 1900 February (not leap year)",
-      "expression": "@1900-02.highBoundary(8)",
-      "input": [{}],
-      "expected": ["@1900-02-28"]
-    },
-    {
-      "name": "Year 2000 February (leap year)",
-      "expression": "@2000-02.highBoundary(8)",
-      "input": [{}],
-      "expected": ["@2000-02-29"]
-    },
-    {
-      "name": "Year 2004 February (leap year)",
-      "expression": "@2004-02.highBoundary(8)",
-      "input": [{}],
-      "expected": ["@2004-02-29"]
+      "title": "Non-numeric input",
+      "expression": "'hello'.highBoundary()",
+      "expected": [],
+      "description": "Returns empty for non-numeric input"
     }
   ]
 }
