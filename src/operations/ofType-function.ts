@@ -92,9 +92,9 @@ export const ofTypeFunction: FunctionDefinition & { evaluate: FunctionEvaluator 
         return matchingType !== undefined;
       }
       
-      // Check if the box has type information
-      if (boxedItem.typeInfo) {
-        // If we have type info, use it for accurate filtering
+      // Check if the box has specific type information (not just "Any")
+      if (boxedItem.typeInfo && boxedItem.typeInfo.type !== 'Any') {
+        // If we have specific type info, use it for accurate filtering
         return boxedItem.typeInfo.type === targetTypeName;
       }
       

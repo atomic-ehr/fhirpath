@@ -16,8 +16,10 @@ export const evaluate: FunctionEvaluator = async (input, context, args, evaluato
   
   // Evaluate the argument expression
   // The argument should be evaluated in the root context, not the current input
-  // Use context.input which contains the root data
-  const otherResult = await evaluator(otherArg, context.input || [], context);
+  // Use the original context data
+  const rootInput = context.variables?.['%context'] || context.input || [];
+  const rootInputArray = Array.isArray(rootInput) ? rootInput : [rootInput];
+  const otherResult = await evaluator(otherArg, rootInputArray, context);
   const otherCollection = otherResult.value;
 
   // Merge the input and other collections into a single collection

@@ -404,10 +404,11 @@ export class Interpreter {
         const elementTypeInfo = nodeTypeInfo ? { ...nodeTypeInfo, singleton: true } : undefined;
         for (const v of value) {
           if (
-            v && typeof v === 'object' && 'resourceType' in (v as any) && typeof (v as any).resourceType === 'string' &&
-            (!elementTypeInfo || elementTypeInfo.type === 'Any' || (elementTypeInfo as any).type === 'Resource')
+            v && typeof v === 'object' && 'resourceType' in (v as any) && typeof (v as any).resourceType === 'string'
           ) {
-            results.push(await reboxResource(v, true, context.modelProvider));
+            // Always re-box FHIR resources to get proper type information from ModelProvider
+            const boxed = await reboxResource(v, true, context.modelProvider);
+            results.push(boxed);
           } else {
             const val = await maybeParseTemporal(v, elementTypeInfo, context.modelProvider);
             results.push(box(val, elementTypeInfo, primitiveElement));
@@ -415,10 +416,11 @@ export class Interpreter {
         }
       } else if (value !== null && value !== undefined) {
         if (
-          value && typeof value === 'object' && 'resourceType' in (value as any) && typeof (value as any).resourceType === 'string' &&
-          (!nodeTypeInfo || nodeTypeInfo.type === 'Any' || (nodeTypeInfo as any).type === 'Resource')
+          value && typeof value === 'object' && 'resourceType' in (value as any) && typeof (value as any).resourceType === 'string'
         ) {
-          results.push(await reboxResource(value, true, context.modelProvider));
+          // Always re-box FHIR resources to get proper type information from ModelProvider
+          const boxed = await reboxResource(value, true, context.modelProvider);
+          results.push(boxed);
         } else {
           const val = await maybeParseTemporal(value, nodeTypeInfo, context.modelProvider);
           results.push(box(val, nodeTypeInfo, primitiveElement));
