@@ -94,7 +94,7 @@
       "input": [{}],
       "error": {
         "type": "Error",
-        "message": "Lexer error: Invalid datetime format"
+        "message": "Lexer error.*Invalid datetime format"
       }
     },
     {

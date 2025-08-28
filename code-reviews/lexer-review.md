@@ -1,28 +1,48 @@
-**Lexer Review**
+**Lexer Code Review**
 
-- Summary: Lexer is functional and readable, but it exposes unused token kinds and carries duplicated position-tracking paths. Two focused refactors will reduce ambiguity, improve correctness for core literals, and simplify maintenance.
+- Scope: `src/lexer.ts`
+- Goal: identify two high‑impact refactorings to improve maintainability and correctness without changing public behavior.
 
-**Priority Refactorings**
+**Priority Refactoring 1: Unify quoted scanning (DRY up string/delimited/env parsing)**
 
-- Bold: Implement Quantity literals (`TokenType.QUANTITY`)
-  - Problem: `TokenType.QUANTITY` is defined but never produced; quantities like `5 'mg'` are part of FHIRPath and are used elsewhere in the project (see `quantity-value.ts`). Currently, such input lexes as `NUMBER`, `WHITESPACE`, `STRING`, leaving the parser to stitch them or fail inconsistently.
-  - Impact: Enables correct parsing of UCUM quantities and removes ambiguity around how the parser should recognize quantities. Aligns lexer with enum and downstream expectations.
-  - Scope: Extend `readNumber()` (or a new `readQuantity()`) to detect an immediate unit string after an optional single space: `[number] [ ]?['unit']` (single quotes per spec). Produce a single `QUANTITY` token with the raw span (from number start through closing quote). Leave interpretation of numeric precision and UCUM validation to later phases.
-  - Edge cases: Block when unit is not a single-quoted literal; do not consume if the `'` starts a different string expression. Ensure decimals (e.g., `5.0 'mg'`) and no-space form `5'mg'` parse. Avoid consuming method dots (e.g., `5.toString()`), mirroring the existing decimal guard.
-  - Acceptance: Inputs like `5 'mg'`, `0.25 'g'`, and `5'mg'` yield a single `QUANTITY` token; others remain unchanged. Add tests under `./test/lexer-quantity.test.ts` and JSON test-cases as applicable.
+- Problem: Quote/escape handling is duplicated in multiple places:
+  - `readString()` (lines ~560–606)
+  - `readDelimitedIdentifier()` (lines ~408–446)
+  - `readEnvironmentVariable()` backtick and single‑quote branches (lines ~430–497)
+  - Quantity unit scan in `readNumber()` calls `readString()` but advances via ad‑hoc loop first (lines ~506–545)
+- Risks today: Divergent escape handling, inconsistent error messages, harder to fix edge cases (unterminated, CR/LF handling, value slicing). Creates throwaway tokens for units in quantities.
+- Refactor:
+  - Introduce a single helper `scanQuoted(opts)` used by all call sites.
+    - Options: `quote: "'" | '"' | '`'`, `allowEscapes: boolean`, `includeDelimitersInValue: boolean`.
+    - Returns `{ start: number, end: number, raw: string }` (raw includes/excludes quotes based on option).
+  - Reimplement:
+    - `readString` → uses `scanQuoted({quote, allowEscapes: true, includeDelimitersInValue: true})`.
+    - `readDelimitedIdentifier` → uses backtick flavor with same helper.
+    - `readEnvironmentVariable` → `%` prefix + quoted branch uses helper; simple `%identifier` path unchanged.
+    - `readNumber` (Quantity) → call helper directly instead of creating a temporary STRING token; construct QUANTITY token from `start..end`.
+  - Keep token.value format unchanged (preserve delimiters for backward compatibility).
+- Benefits: Single source of truth for quoting/escaping, fewer branches, easier fixes, less chance of regressions in one path. Reduces ~100+ lines of duplicated logic.
 
-- Bold: Unify position tracking; remove unused LSP counters
-  - Problem: The lexer maintains both: (1) precomputed `lineOffsets` used by `offsetToPosition()` for ranges, and (2) incremental `lspLine`/`lspCharacter` counters updated in `advance()`—but the latter are never used. This duplication adds cognitive load and runtime overhead without benefit.
-  - Impact: Simplifies the code and avoids unnecessary updates on every character advance. Reduces confusion about the source of truth for positions.
-  - Approach: Keep the existing, efficient `lineOffsets` + `offsetToPosition()` path and remove `lspLine`/`lspCharacter` fields and their updates. Retain legacy 1-based `line`/`column` for token metadata if still required by callers. Optionally, standardize error reporting to consistently include `line`/`column`.
-  - Steps:
-    - Delete `lspLine`/`lspCharacter` fields and associated updates in `advance()`.
-    - Clarify comments in `createToken()` that LSP `range` is derived from offsets via `offsetToPosition()`.
-    - Add a helper for error creation that embeds `line`/`column` when available to improve diagnostics.
-  - Acceptance: No behavior change in token ranges; reduced code paths for position handling; improved error messages.
+**Priority Refactoring 2: Centralize operator lexing with a greedy matcher**
 
-**Notes / Follow-ups (non-blocking)**
+- Problem: `nextToken()` handles symbol operators via a long switch with repeated `advance()` and `createToken()` blocks (lines ~233–357). Multi‑char combos (`<=`, `>=`, `!=`, `!~`) are special‑cased, and `'!'` erroring is embedded here. This is brittle and makes adding/updating operators error‑prone.
+- Refactor:
+  - Add `readOperator()` that greedily matches the longest valid operator from a predefined set.
+    - Define `const OPERATORS = ['!=','!~','<=','>=','+','-','*','/','<','>','=','~','|','&']` sorted by length desc.
+    - Important: handle `//` and `/* ... */` comment detection before calling `readOperator()` when current char is `/` (to preserve existing comment behavior).
+    - Keep structural tokens (`. , ( ) [ ] { }`) out of this matcher; `.` remains `DOT`.
+    - On `'!'` with no valid continuation, throw the same error as today for consistency.
+  - Replace individual operator cases in `nextToken()` with a single branch calling `readOperator()` when current char is one of the operator starters.
+- Benefits: Clear, declarative operator coverage; easier to maintain and extend; consistent error paths; fewer branches inside `nextToken()`.
+- Notes: Add unit tests for edge cases around `'/'` (comments vs division), `'!'` vs `'!='`/`'!~'`, and boundary conditions adjacent to identifiers and numbers.
 
-- Bold: DRY identifier scanning: `readIdentifier()`, `$` identifiers, and `%identifier` duplicate the same character-class loops; extract a shared helper to reduce divergence and future bugs.
-- Bold: Remove or repurpose `TokenType.TEMPORAL_LITERAL`: it’s defined but not emitted. Either delete it or document/intend its use in parsing to unify date/time variants.
+**Non‑blocking observations**
+
+- Error messages could include line:column for faster debugging (e.g., `Lexer error at 12:5: ...`). Current messages sometimes include only absolute position.
+- Consider fast path: only build `lineOffsets` when `trackPosition` is true (already done) and possibly gate creation of `range` behind a separate option if not needed by consumers.
+
+**Regression Safety**
+
+- Preserve token `.value` semantics (e.g., keep quotes in STRING/ENV var/delimited identifier values) to avoid breaking parser/consumers.
+- Add focused tests for: quoted env vars, backtick identifiers with escapes, quantity literals with/without spaces, and all symbol operators.
 

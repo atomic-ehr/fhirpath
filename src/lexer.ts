@@ -159,25 +159,13 @@ export class Lexer {
     const start = this.position;
     const startLine = this.line;
     const startColumn = this.column;
-    const char = this.input[this.position];
+    const char = this.input[this.position]!;
     const charCode = this.input.charCodeAt(this.position);
     
     // Single character tokens
     switch (char) {
-      case '+':
-        this.advance();
-        return this.createToken(TokenType.OPERATOR, '+', start, this.position, startLine, startColumn);
-        
-      case '-':
-        this.advance();
-        return this.createToken(TokenType.OPERATOR, '-', start, this.position, startLine, startColumn);
-        
-      case '*':
-        this.advance();
-        return this.createToken(TokenType.OPERATOR, '*', start, this.position, startLine, startColumn);
-        
       case '/':
-        // Check for comments
+        // Handle comments first; otherwise treat as operator
         if (this.peek() === '/') {
           if (this.options.preserveTrivia) {
             const commentStart = this.position;
@@ -216,53 +204,9 @@ export class Lexer {
             return null;
           }
         }
-        this.advance();
-        return this.createToken(TokenType.OPERATOR, '/', start, this.position, startLine, startColumn);
-        
-      case '<':
-        this.advance();
-        if (this.current() === '=') {
-          this.advance();
-          return this.createToken(TokenType.OPERATOR, '<=', start, this.position, startLine, startColumn);
-        }
-        return this.createToken(TokenType.OPERATOR, '<', start, this.position, startLine, startColumn);
-        
-      case '>':
-        this.advance();
-        if (this.current() === '=') {
-          this.advance();
-          return this.createToken(TokenType.OPERATOR, '>=', start, this.position, startLine, startColumn);
-        }
-        return this.createToken(TokenType.OPERATOR, '>', start, this.position, startLine, startColumn);
-        
-      case '=':
-        this.advance();
-        return this.createToken(TokenType.OPERATOR, '=', start, this.position, startLine, startColumn);
-        
-      case '!':
-        this.advance();
-        if (this.current() === '=') {
-          this.advance();
-          return this.createToken(TokenType.OPERATOR, '!=', start, this.position, startLine, startColumn);
-        } else if (this.current() === '~') {
-          this.advance();
-          return this.createToken(TokenType.OPERATOR, '!~', start, this.position, startLine, startColumn);
-        }
-        // '!' alone is not a valid token in FHIRPath
-        throw this.error(`Unexpected character '!' at position ${start}`);
-        
-      case '~':
-        this.advance();
-        return this.createToken(TokenType.OPERATOR, '~', start, this.position, startLine, startColumn);
-        
-      case '|':
-        this.advance();
-        return this.createToken(TokenType.OPERATOR, '|', start, this.position, startLine, startColumn);
-        
-      case '&':
-        this.advance();
-        return this.createToken(TokenType.OPERATOR, '&', start, this.position, startLine, startColumn);
-        
+        // Fall through to operator matching after comment checks
+        return this.readOperator(start, startLine, startColumn);
+
       case '.':
         this.advance();
         return this.createToken(TokenType.DOT, '.', start, this.position, startLine, startColumn);
@@ -314,7 +258,12 @@ export class Lexer {
       case '$':
         return this.readSpecialIdentifier();
     }
-    
+
+    // Greedy operator matching for other operator starters
+    if (this.isOperatorStarter(char)) {
+      return this.readOperator(start, startLine, startColumn);
+    }
+
     // Numbers
     if (charCode >= 48 && charCode <= 57) { // 0-9
       return this.readNumber();
@@ -350,28 +299,10 @@ export class Lexer {
     const startLine = this.line;
     const startColumn = this.column;
     
-    this.advance(); // Skip opening `
-    
-    while (this.position < this.input.length) {
-      const char = this.current();
-      
-      if (char === '`') {
-        this.advance(); // Skip closing `
-        const value = this.input.substring(start, this.position);
-        return this.createToken(TokenType.IDENTIFIER, value, start, this.position, startLine, startColumn);
-      }
-      
-      if (char === '\\') {
-        this.advance(); // Skip escape character
-        if (this.position >= this.input.length) {
-          throw this.error('Unterminated delimited identifier');
-        }
-      }
-      
-      this.advance();
-    }
-    
-    throw this.error('Unterminated delimited identifier');
+    // Current must be opening backtick
+    this.scanQuoted('`', 'Unterminated delimited identifier');
+    const value = this.input.substring(start, this.position);
+    return this.createToken(TokenType.IDENTIFIER, value, start, this.position, startLine, startColumn);
   }
   
   private readSpecialIdentifier(): Token {
@@ -402,52 +333,14 @@ export class Lexer {
     
     if (char === '`') {
       // Delimited identifier: %`identifier`
-      this.advance(); // Skip opening `
-      
-      while (this.position < this.input.length) {
-        const ch = this.current();
-        
-        if (ch === '`') {
-          this.advance(); // Skip closing `
-          const value = this.input.substring(start, this.position);
-          return this.createToken(TokenType.ENVIRONMENT_VARIABLE, value, start, this.position, startLine, startColumn);
-        }
-        
-        if (ch === '\\') {
-          this.advance(); // Skip escape character
-          if (this.position >= this.input.length) {
-            throw this.error('Unterminated environment variable');
-          }
-        }
-        
-        this.advance();
-      }
-      
-      throw this.error('Unterminated environment variable');
+      this.scanQuoted('`', 'Unterminated environment variable');
+      const value = this.input.substring(start, this.position);
+      return this.createToken(TokenType.ENVIRONMENT_VARIABLE, value, start, this.position, startLine, startColumn);
     } else if (char === "'") {
       // String format (backwards compatibility): %'identifier'
-      this.advance(); // Skip opening '
-      
-      while (this.position < this.input.length) {
-        const ch = this.current();
-        
-        if (ch === "'") {
-          this.advance(); // Skip closing '
-          const value = this.input.substring(start, this.position);
-          return this.createToken(TokenType.ENVIRONMENT_VARIABLE, value, start, this.position, startLine, startColumn);
-        }
-        
-        if (ch === '\\') {
-          this.advance(); // Skip escape character
-          if (this.position >= this.input.length) {
-            throw this.error('Unterminated environment variable');
-          }
-        }
-        
-        this.advance();
-      }
-      
-      throw this.error('Unterminated environment variable');
+      this.scanQuoted("'", 'Unterminated environment variable');
+      const value = this.input.substring(start, this.position);
+      return this.createToken(TokenType.ENVIRONMENT_VARIABLE, value, start, this.position, startLine, startColumn);
     } else {
       // Simple identifier: %identifier
       const charCode = this.input.charCodeAt(this.position);
@@ -463,35 +356,13 @@ export class Lexer {
     }
   }
   
-  private readString(quote: string): Token {
+  private readString(quote: "'" | '"'): Token {
     const start = this.position;
     const startLine = this.line;
     const startColumn = this.column;
-    
-    this.advance(); // Skip opening quote
-    
-    while (this.position < this.input.length) {
-      const char = this.current();
-      
-      if (char === quote) {
-        this.advance(); // Skip closing quote
-        const value = this.input.substring(start, this.position);
-        return this.createToken(TokenType.STRING, value, start, this.position, startLine, startColumn);
-      }
-      
-      if (char === '\\') {
-        this.advance(); // Skip escape character
-        if (this.position >= this.input.length) {
-          throw this.error('Unterminated string');
-        }
-        // Skip the escaped character
-        this.advance();
-      } else {
-        this.advance();
-      }
-    }
-    
-    throw this.error('Unterminated string');
+    this.scanQuoted(quote, 'Unterminated string');
+    const value = this.input.substring(start, this.position);
+    return this.createToken(TokenType.STRING, value, start, this.position, startLine, startColumn);
   }
   
   private readNumber(): Token {
@@ -527,14 +398,12 @@ export class Lexer {
     }
 
     if (j < this.input.length && this.input[j] === "'") {
-      // We will consume optional spaces and the quoted unit, then emit QUANTITY token
-      // Move actual position to i and advance to j
+      // We will consume optional spaces/tabs and the quoted unit, then emit QUANTITY token
       while (this.position < j) {
         this.advance();
       }
-      // Consume the quoted unit using existing string reader to honor escapes
-      const unitToken = this.readString("'");
-      // unitToken consumed; create QUANTITY spanning from number start to current position
+      // Current is the opening quote; scan quoted unit including escapes
+      this.scanQuoted("'", 'Unterminated string');
       const quantityValue = this.input.substring(start, this.position);
       return this.createToken(TokenType.QUANTITY, quantityValue, start, this.position, startLine, startColumn);
     }
@@ -695,6 +564,82 @@ export class Lexer {
         }
       }
     }
+  }
+
+  // Operator utilities
+  private static readonly OPERATORS: readonly string[] = [
+    '!=', '!~', '<=', '>=',
+    '+', '-', '*', '/', '<', '>', '=', '~', '|', '&',
+  ];
+
+  private isOperatorStarter(ch: string): boolean {
+    switch (ch) {
+      case '+':
+      case '-':
+      case '*':
+      case '/':
+      case '<':
+      case '>':
+      case '=':
+      case '!':
+      case '~':
+      case '|':
+      case '&':
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  private readOperator(start: number, startLine: number, startColumn: number): Token {
+    // Try longest-first
+    for (const op of Lexer.OPERATORS) {
+      const end = start + op.length;
+      if (this.input.startsWith(op, start)) {
+        // Advance to end and emit
+        while (this.position < end) {
+          this.advance();
+        }
+        return this.createToken(TokenType.OPERATOR, op, start, this.position, startLine, startColumn);
+      }
+    }
+    // Special-case: lone '!'
+    if (this.input[start] === '!') {
+      // consume '!' to keep position consistent with old behavior before throwing?
+      // Old code threw without consuming, but tests only assert message content.
+      // Preserve position by not advancing.
+      throw this.error(`Unexpected character '!' at position ${start}`);
+    }
+    // Fallback: treat as unexpected
+    const ch = this.input[start] ?? '';
+    throw this.error(`Unexpected character '${ch}' at position ${start}`);
+  }
+
+  // Generic quoted scanner used by strings, delimited identifiers, env vars, and quantity units
+  private scanQuoted(quote: "'" | '"' | '`', unterminatedMessage: string): void {
+    if (this.current() !== quote) {
+      throw this.error('Internal error: scanQuoted called at non-quote');
+    }
+    // Skip opening quote
+    this.advance();
+    while (this.position < this.input.length) {
+      const ch = this.current();
+      if (ch === quote) {
+        this.advance(); // Skip closing quote
+        return;
+      }
+      if (ch === '\\') {
+        this.advance();
+        if (this.position >= this.input.length) {
+          throw this.error(unterminatedMessage);
+        }
+        // Skip escaped character
+        this.advance();
+        continue;
+      }
+      this.advance();
+    }
+    throw this.error(unterminatedMessage);
   }
   
   private skipWhitespace(): void {
@@ -860,6 +805,12 @@ export class Lexer {
   }
   
   private error(message: string): Error {
+    if (this.options.trackPosition) {
+      const pos = this.offsetToPosition(this.position);
+      const line = pos.line + 1; // present as 1-based
+      const col = pos.character + 1; // present as 1-based
+      return new Error(`Lexer error at ${line}:${col}: ${message}`);
+    }
     return new Error(`Lexer error: ${message}`);
   }
   

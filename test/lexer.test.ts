@@ -294,6 +294,12 @@ describe("New Simplified Lexer", () => {
       expect(getToken(tokens, 0).value).toBe("%`with\\`backtick`");
     });
 
+    it("should handle escaped quotes in string-style environment variables", async () => {
+      const tokens = tokenize("%'foo\\'bar'");
+      expect(getToken(tokens, 0).type).toBe(TokenType.ENVIRONMENT_VARIABLE);
+      expect(getToken(tokens, 0).value).toBe("%'foo\\'bar'");
+    });
+
     it("should throw error for invalid environment variable names", async () => {
       expect(() => tokenize("%")).toThrow("Invalid environment variable name");
       expect(() => tokenize("% ")).toThrow("Invalid environment variable name");
@@ -596,6 +602,14 @@ describe("New Simplified Lexer", () => {
     it("should handle single exclamation mark", async () => {
       expect(() => tokenize("a ! b")).toThrow("Unexpected character '!'");
     });
+
+    it("should not combine '!' with separated '='", async () => {
+      expect(() => tokenize("a ! = b")).toThrow("Unexpected character '!'");
+    });
+
+    it("should error on '!' at end of input", async () => {
+      expect(() => tokenize("a !")).toThrow("Unexpected character '!'");
+    });
   });
 
   describe("Real-world Examples", () => {
@@ -704,6 +718,13 @@ describe("New Simplified Lexer", () => {
       expect(tok.range?.start.line).toBe(0);
       expect(tok.range?.start.character).toBe(0);
       expect(tok.range?.end.character).toBe(input.length);
+    });
+
+    it("should support escaped quotes inside UCUM unit", async () => {
+      const input = "5 'm\\'g'";
+      const tok = getToken(tokenize(input), 0);
+      expect(tok.type).toBe(TokenType.QUANTITY);
+      expect(tok.value).toBe("5 'm\\'g'");
     });
   });
 });
