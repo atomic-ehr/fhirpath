@@ -1,6 +1,6 @@
 import type { FunctionDefinition } from '../types';
 import { Errors } from '../errors';
-import { RuntimeContextManager } from '../interpreter';
+import { RuntimeContextManager } from '../runtime-context';
 import { type FunctionEvaluator } from '../types';
 import { box, unbox } from '../boxing';
 

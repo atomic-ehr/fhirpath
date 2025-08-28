@@ -1,5 +1,6 @@
 import { Parser } from './parser';
-import { Interpreter, RuntimeContextManager } from './interpreter';
+import { Interpreter } from './interpreter';
+import { RuntimeContextManager } from './runtime-context';
 import { Analyzer } from './analyzer';
 import type { AnalysisResult } from './types';
 import { box, unbox } from './boxing';

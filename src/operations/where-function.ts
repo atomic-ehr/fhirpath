@@ -1,5 +1,5 @@
 import type { FunctionDefinition, ASTNode } from '../types';
-import { RuntimeContextManager } from '../interpreter';
+import { RuntimeContextManager } from '../runtime-context';
 import { type FunctionEvaluator } from '../types';
 import { unbox } from '../boxing';
 

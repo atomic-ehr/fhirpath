@@ -2,7 +2,7 @@ import type { FunctionDefinition, AnalysisContext, InternalAnalysisResult } from
 import { Errors, ErrorCodes } from '../errors';
 import type { FunctionEvaluator } from '../types';
 import { box, unbox } from '../boxing';
-import { RuntimeContextManager } from '../interpreter';
+import { RuntimeContextManager } from '../runtime-context';
 import { NodeType } from '../parser';
 import { DiagnosticSeverity } from '../types';
 

@@ -83,7 +83,7 @@ Evaluates FHIRPath expressions against data:
 
 Key components:
 - `evaluate()` ([interpreter.ts:150](../src/interpreter.ts#L150)): Main evaluation method
-- `RuntimeContextManager` ([interpreter.ts:26](../src/interpreter.ts#L26)): Efficient prototype-based context
+- `RuntimeContextManager` ([src/runtime-context.ts](../src/runtime-context.ts)): Efficient prototype-based context
 - `visitNode()` ([interpreter.ts:200](../src/interpreter.ts#L200)): Node evaluation dispatcher
 
 Context management features:

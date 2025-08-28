@@ -3,7 +3,8 @@ import type { FHIRPathValue } from './boxing';
 import { NodeType, DiagnosticSeverity } from './types';
 import { parse } from './parser';
 import { Analyzer } from './analyzer';
-import { Interpreter, RuntimeContextManager } from './interpreter';
+import { Interpreter } from './interpreter';
+import { RuntimeContextManager } from './runtime-context';
 import type { RuntimeContext } from './types';
 
 export interface ASTMetadata {
