@@ -1,0 +1,128 @@
+{
+  "description": "Tests for dayOf() function",
+  "tests": [
+    {
+      "name": "dayOf() on DateTime returns day",
+      "expression": "@2014-01-05T10:30:00.000.dayOf()",
+      "input": [{}],
+      "expected": [5]
+    },
+    {
+      "name": "dayOf() on Date returns day",
+      "expression": "@2014-01-05.dayOf()",
+      "input": [{}],
+      "expected": [5]
+    },
+    {
+      "name": "dayOf() on first day of month",
+      "expression": "@2014-01-01.dayOf()",
+      "input": [{}],
+      "expected": [1]
+    },
+    {
+      "name": "dayOf() on last day of month",
+      "expression": "@2014-01-31.dayOf()",
+      "input": [{}],
+      "expected": [31]
+    },
+    {
+      "name": "dayOf() on last day of February (non-leap year)",
+      "expression": "@2023-02-28.dayOf()",
+      "input": [{}],
+      "expected": [28]
+    },
+    {
+      "name": "dayOf() on last day of February (leap year)",
+      "expression": "@2020-02-29.dayOf()",
+      "input": [{}],
+      "expected": [29]
+    },
+    {
+      "name": "dayOf() on last day of short month",
+      "expression": "@2024-04-30.dayOf()",
+      "input": [{}],
+      "expected": [30]
+    },
+    {
+      "name": "dayOf() on DateTime with timezone",
+      "expression": "@2014-03-15T10:30:00.000-07:00.dayOf()",
+      "input": [{}],
+      "expected": [15]
+    },
+    {
+      "name": "dayOf() on year-only Date returns empty",
+      "expression": "@2012.dayOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "dayOf() on year-month Date returns empty",
+      "expression": "@2012-01.dayOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "dayOf() on empty returns empty",
+      "expression": "{}.dayOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "dayOf() on Time returns empty",
+      "expression": "@T10:30:00.dayOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "dayOf() on String returns empty",
+      "expression": "'not a date'.dayOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "dayOf() on Integer returns empty",
+      "expression": "42.dayOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "dayOf() on multiple items throws error",
+      "expression": "(1 | 2).dayOf()",
+      "input": [{}],
+      "error": {
+        "type": "Error",
+        "code": "FP3006"
+      }
+    },
+    {
+      "name": "dayOf() result is Integer type",
+      "expression": "@2014-01-05.dayOf().is(Integer)",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "dayOf() can be used in comparisons",
+      "expression": "@2024-06-15.dayOf() > 10",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "dayOf() can be used in arithmetic",
+      "expression": "@2024-06-15.dayOf() + 10",
+      "input": [{}],
+      "expected": [25]
+    },
+    {
+      "name": "dayOf() range validation test",
+      "expression": "@2024-01-15.dayOf() >= 1 and @2024-01-31.dayOf() <= 31",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "dayOf() on mid-month date",
+      "expression": "@2024-07-15.dayOf()",
+      "input": [{}],
+      "expected": [15]
+    }
+  ]
+}

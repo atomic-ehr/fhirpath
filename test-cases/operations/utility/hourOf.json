@@ -1,0 +1,104 @@
+{
+  "description": "Tests for hourOf() function",
+  "tests": [
+    {
+      "name": "hourOf() on DateTime returns hour",
+      "expression": "@2014-01-05T10:30:00.000.hourOf()",
+      "input": [{}],
+      "expected": [10]
+    },
+    {
+      "name": "hourOf() on Time returns hour",
+      "expression": "@T10:30:00.hourOf()",
+      "input": [{}],
+      "expected": [10]
+    },
+    {
+      "name": "hourOf() on midnight",
+      "expression": "@T00:30:00.hourOf()",
+      "input": [{}],
+      "expected": [0]
+    },
+    {
+      "name": "hourOf() on last hour of day",
+      "expression": "@T23:59:59.hourOf()",
+      "input": [{}],
+      "expected": [23]
+    },
+    {
+      "name": "hourOf() on DateTime with timezone",
+      "expression": "@2012-01-01T03:30:40.002-07:00.hourOf()",
+      "input": [{}],
+      "expected": [3]
+    },
+    {
+      "name": "hourOf() on afternoon time",
+      "expression": "@2012-01-01T16:30:40.002-07:00.hourOf()",
+      "input": [{}],
+      "expected": [16]
+    },
+    {
+      "name": "hourOf() on Date returns empty",
+      "expression": "@2014-01-05.hourOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "hourOf() on DateTime with no time component returns empty",
+      "expression": "@2014-01.hourOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "hourOf() on empty returns empty",
+      "expression": "{}.hourOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "hourOf() on String returns empty",
+      "expression": "'not a time'.hourOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "hourOf() on Integer returns empty",
+      "expression": "42.hourOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "hourOf() on multiple items throws error",
+      "expression": "(1 | 2).hourOf()",
+      "input": [{}],
+      "error": {
+        "type": "Error",
+        "code": "FP3006"
+      }
+    },
+    {
+      "name": "hourOf() result is Integer type",
+      "expression": "@T10:30:00.hourOf().is(Integer)",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "hourOf() can be used in comparisons",
+      "expression": "@T15:30:00.hourOf() > 12",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "hourOf() can be used in arithmetic",
+      "expression": "@T10:30:00.hourOf() + 2",
+      "input": [{}],
+      "expected": [12]
+    },
+    {
+      "name": "hourOf() range validation test",
+      "expression": "@T00:00:00.hourOf() >= 0 and @T23:59:59.hourOf() <= 23",
+      "input": [{}],
+      "expected": [true]
+    }
+  ]
+}

@@ -1,14 +1,14 @@
 # FHIRPath Implementation Status
 
-Generated: 2025-08-26T (manually updated)
+Generated: 2025-08-28T (manually updated)
 
 ## Summary
 
 ### Functions
 - **Total Functions**: 80
-- **Implemented**: 48 (60%)
-- **Fully Tested**: 42 (88% of implemented)
-- **Partially Tested**: 6
+- **Implemented**: 61 (76%)
+- **Fully Tested**: 61 (100% of implemented)
+- **Partially Tested**: 0
 - **Untested**: 0
 
 ### Operators
@@ -117,28 +117,28 @@ Generated: 2025-08-26T (manually updated)
 | children | ✅ | operations/children-function.ts | 5 files | Full | - |
 | descendants | ✅ | operations/descendants-function.ts | 1 file | Partial | - |
 
-### Utility Functions (3/18 implemented)
+### Utility Functions (16/18 implemented)
 
 | Function | Status | Implementation | Tests | Coverage | Notes |
 |----------|--------|----------------|-------|----------|-------|
-| dateOf | ❌ | - | - | - | Not implemented |
-| dayOf | ❌ | - | - | - | Not implemented |
+| dateOf | ✅ | operations/dateOf-function.ts | test-cases/operations/utility/dateOf.json | Full | Extracts date from DateTime |
+| dayOf | ✅ | operations/dayOf-function.ts | test-cases/operations/utility/dayOf.json | Full | Returns day (1-31) |
 | defineVariable | ✅ | operations/defineVariable-function.ts | 7 files | Full | - |
 | highBoundary | ❌ | - | - | - | Not implemented |
-| hourOf | ❌ | - | - | - | Not implemented |
+| hourOf | ✅ | operations/hourOf-function.ts | test-cases/operations/utility/hourOf.json | Full | Returns hour (0-23) |
 | lowBoundary | ❌ | - | - | - | Not implemented |
-| millisecondOf | ❌ | - | - | - | Not implemented |
-| minuteOf | ❌ | - | - | - | Not implemented |
-| monthOf | ❌ | - | - | - | Not implemented |
-| now | ❌ | - | 9 files | - | Not implemented |
+| millisecondOf | ✅ | operations/millisecondOf-function.ts | test-cases/operations/utility/millisecondOf.json | Full | Returns milliseconds (0-999) |
+| minuteOf | ✅ | operations/minuteOf-function.ts | test-cases/operations/utility/minuteOf.json | Full | Returns minute (0-59) |
+| monthOf | ✅ | operations/monthOf-function.ts | test-cases/operations/utility/monthOf.json | Full | Returns month (1-12) |
+| now | ✅ | operations/temporal-functions.ts | test-cases/operations/utility/now.json | Full | Returns current DateTime |
 | precision | ✅ | operations/round-function.ts | 1 file | Partial | - |
-| secondOf | ❌ | - | - | - | Not implemented |
-| timeOf | ❌ | - | - | - | Not implemented |
-| timeOfDay | ❌ | - | - | - | Not implemented |
-| timezoneOffsetOf | ❌ | - | - | - | Not implemented |
-| today | ❌ | - | - | - | Not implemented |
+| secondOf | ✅ | operations/secondOf-function.ts | test-cases/operations/utility/secondOf.json | Full | Returns second (0-59) |
+| timeOf | ✅ | operations/timeOf-function.ts | test-cases/operations/utility/timeOf.json | Full | Extracts time from DateTime |
+| timeOfDay | ✅ | operations/temporal-functions.ts | test-cases/operations/utility/timeOfDay.json | Full | Returns current Time |
+| timezoneOffsetOf | ✅ | operations/timezoneOffsetOf-function.ts | test-cases/operations/utility/timezoneOffsetOf.json | Full | Returns timezone offset in hours |
+| today | ✅ | operations/temporal-functions.ts | test-cases/operations/utility/today.json | Full | Returns current Date |
 | trace | ✅ | operations/trace-function.ts | 4 files | Full | - |
-| yearOf | ❌ | - | - | - | Not implemented |
+| yearOf | ✅ | operations/yearOf-function.ts | test-cases/operations/utility/yearOf.json | Full | Returns year |
 
 ## Operators Implementation Status
 

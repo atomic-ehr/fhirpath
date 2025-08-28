@@ -106,6 +106,16 @@ export { toBooleanFunction } from './toBoolean-function';
 
 // Utility functions
 export { traceFunction } from './trace-function';
+export { dateOfFunction } from './dateOf-function';
+export { timeOfFunction } from './timeOf-function';
+export { yearOfFunction } from './yearOf-function';
+export { monthOfFunction } from './monthOf-function';
+export { dayOfFunction } from './dayOf-function';
+export { hourOfFunction } from './hourOf-function';
+export { minuteOfFunction } from './minuteOf-function';
+export { secondOfFunction } from './secondOf-function';
+export { millisecondOfFunction } from './millisecondOf-function';
+export { timezoneOffsetOfFunction } from './timezoneOffsetOf-function';
 
 // Aggregate functions
 export { aggregateFunction } from './aggregate-function';

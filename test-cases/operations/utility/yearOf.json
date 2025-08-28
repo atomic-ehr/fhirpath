@@ -1,0 +1,113 @@
+{
+  "description": "Tests for yearOf() function",
+  "tests": [
+    {
+      "name": "yearOf() on DateTime returns year",
+      "expression": "@2014-01-05T10:30:00.000.yearOf()",
+      "input": [{}],
+      "expected": [2014]
+    },
+    {
+      "name": "yearOf() on Date returns year",
+      "expression": "@2014-01-05.yearOf()",
+      "input": [{}],
+      "expected": [2014]
+    },
+    {
+      "name": "yearOf() on year-only Date",
+      "expression": "@2014.yearOf()",
+      "input": [{}],
+      "expected": [2014]
+    },
+    {
+      "name": "yearOf() on DateTime with timezone",
+      "expression": "@2014-01-05T10:30:00.000-07:00.yearOf()",
+      "input": [{}],
+      "expected": [2014]
+    },
+    {
+      "name": "yearOf() on ancient date",
+      "expression": "@0001-01-01.yearOf()",
+      "input": [{}],
+      "expected": [1]
+    },
+    {
+      "name": "yearOf() on future date",
+      "expression": "@2999-12-31.yearOf()",
+      "input": [{}],
+      "expected": [2999]
+    },
+    {
+      "name": "yearOf() on leap year date",
+      "expression": "@2020-02-29.yearOf()",
+      "input": [{}],
+      "expected": [2020]
+    },
+    {
+      "name": "yearOf() on empty returns empty",
+      "expression": "{}.yearOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "yearOf() on Time returns empty",
+      "expression": "@T10:30:00.yearOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "yearOf() on String returns empty",
+      "expression": "'not a date'.yearOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "yearOf() on Integer returns empty",
+      "expression": "42.yearOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "yearOf() on multiple items throws error",
+      "expression": "(1 | 2).yearOf()",
+      "input": [{}],
+      "error": {
+        "type": "Error",
+        "code": "FP3006"
+      }
+    },
+    {
+      "name": "yearOf() result is Integer type",
+      "expression": "@2014-01-05.yearOf().is(Integer)",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "yearOf() preserves year from partial Date",
+      "expression": "@2014-01.yearOf()",
+      "input": [{}],
+      "expected": [2014]
+    },
+    {
+      "name": "yearOf() on DateTime without year throws parse error",
+      "expression": "@--01-05.yearOf()",
+      "input": [{}],
+      "error": {
+        "type": "Error",
+        "message": "Lexer error: Invalid datetime format"
+      }
+    },
+    {
+      "name": "yearOf() can be used in comparisons",
+      "expression": "@2024-01-01.yearOf() > 2020",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "yearOf() can be used in arithmetic",
+      "expression": "@2024-06-15.yearOf() + 1",
+      "input": [{}],
+      "expected": [2025]
+    }
+  ]
+}

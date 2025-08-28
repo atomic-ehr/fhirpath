@@ -1,0 +1,89 @@
+{
+  "description": "Tests for today() function",
+  "tests": [
+    {
+      "name": "today() is deterministic within expression",
+      "expression": "today() = today()",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "today() returns singleton",
+      "expression": "today().count()",
+      "input": [{}],
+      "expected": [1]
+    },
+    {
+      "name": "today() can be compared",
+      "expression": "today() > @2020-01-01",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "today() with arithmetic - add days",
+      "expression": "today() + 1 day > today()",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "today() with arithmetic - subtract days",
+      "expression": "today() - 1 day < today()",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "today() with arithmetic - add months",
+      "expression": "today() + 1 month >= today()",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "today() with arithmetic - add years",
+      "expression": "today() + 1 year > today()",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "today() is Date type",
+      "expression": "today().is(Date)",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "today() has no time component",
+      "expression": "today().timeOf().empty()",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "today() equals now().dateOf()",
+      "expression": "today() = now().dateOf()",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "today() can be used in comparisons",
+      "expression": "today() <= now().dateOf()",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "today() can extract year",
+      "expression": "today().yearOf() >= 2024",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "today() can extract month",
+      "expression": "today().monthOf() >= 1 and today().monthOf() <= 12",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "today() can extract day",
+      "expression": "today().dayOf() >= 1 and today().dayOf() <= 31",
+      "input": [{}],
+      "expected": [true]
+    }
+  ]
+}

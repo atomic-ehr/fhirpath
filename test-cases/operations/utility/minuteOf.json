@@ -1,0 +1,104 @@
+{
+  "description": "Tests for minuteOf() function",
+  "tests": [
+    {
+      "name": "minuteOf() on DateTime returns minute",
+      "expression": "@2014-01-05T10:30:00.000.minuteOf()",
+      "input": [{}],
+      "expected": [30]
+    },
+    {
+      "name": "minuteOf() on Time returns minute",
+      "expression": "@T10:45:00.minuteOf()",
+      "input": [{}],
+      "expected": [45]
+    },
+    {
+      "name": "minuteOf() on Time with zero minutes",
+      "expression": "@T10:00:00.minuteOf()",
+      "input": [{}],
+      "expected": [0]
+    },
+    {
+      "name": "minuteOf() on last minute of hour",
+      "expression": "@T23:59:59.minuteOf()",
+      "input": [{}],
+      "expected": [59]
+    },
+    {
+      "name": "minuteOf() on DateTime with timezone",
+      "expression": "@2012-01-01T12:30:40.002-07:00.minuteOf()",
+      "input": [{}],
+      "expected": [30]
+    },
+    {
+      "name": "minuteOf() on Time without seconds",
+      "expression": "@T10:15.minuteOf()",
+      "input": [{}],
+      "expected": [15]
+    },
+    {
+      "name": "minuteOf() on Date returns empty",
+      "expression": "@2014-01-05.minuteOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "minuteOf() on DateTime with only hour returns empty",
+      "expression": "@2014-01-05T10.minuteOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "minuteOf() on empty returns empty",
+      "expression": "{}.minuteOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "minuteOf() on String returns empty",
+      "expression": "'not a time'.minuteOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "minuteOf() on Integer returns empty",
+      "expression": "42.minuteOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "minuteOf() on multiple items throws error",
+      "expression": "(1 | 2).minuteOf()",
+      "input": [{}],
+      "error": {
+        "type": "Error",
+        "code": "FP3006"
+      }
+    },
+    {
+      "name": "minuteOf() result is Integer type",
+      "expression": "@T10:30:00.minuteOf().is(Integer)",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "minuteOf() can be used in comparisons",
+      "expression": "@T10:45:00.minuteOf() > 30",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "minuteOf() can be used in arithmetic",
+      "expression": "@T10:30:00.minuteOf() + 15",
+      "input": [{}],
+      "expected": [45]
+    },
+    {
+      "name": "minuteOf() range validation test",
+      "expression": "@T10:00:00.minuteOf() >= 0 and @T10:59:59.minuteOf() <= 59",
+      "input": [{}],
+      "expected": [true]
+    }
+  ]
+}

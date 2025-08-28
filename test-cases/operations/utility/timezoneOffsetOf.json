@@ -1,0 +1,116 @@
+{
+  "description": "Tests for timezoneOffsetOf() function",
+  "tests": [
+    {
+      "name": "timezoneOffsetOf() on DateTime with negative offset",
+      "expression": "@2012-01-01T12:30:00.000-07:00.timezoneOffsetOf()",
+      "input": [{}],
+      "expected": [-7.0]
+    },
+    {
+      "name": "timezoneOffsetOf() on DateTime with positive offset",
+      "expression": "@2012-01-01T12:30:00.000+05:30.timezoneOffsetOf()",
+      "input": [{}],
+      "expected": [5.5]
+    },
+    {
+      "name": "timezoneOffsetOf() on DateTime with zero offset",
+      "expression": "@2012-01-01T12:30:00.000+00:00.timezoneOffsetOf()",
+      "input": [{}],
+      "expected": [0.0]
+    },
+    {
+      "name": "timezoneOffsetOf() on DateTime with Z (Zulu) timezone",
+      "expression": "@2012-01-01T12:30:00.000Z.timezoneOffsetOf()",
+      "input": [{}],
+      "expected": [0.0]
+    },
+    {
+      "name": "timezoneOffsetOf() on DateTime with negative fractional offset",
+      "expression": "@2012-01-01T12:30:00.000-03:30.timezoneOffsetOf()",
+      "input": [{}],
+      "expected": [-3.5]
+    },
+    {
+      "name": "timezoneOffsetOf() on DateTime with max positive offset",
+      "expression": "@2012-01-01T12:30:00.000+14:00.timezoneOffsetOf()",
+      "input": [{}],
+      "expected": [14.0]
+    },
+    {
+      "name": "timezoneOffsetOf() on DateTime with max negative offset",
+      "expression": "@2012-01-01T12:30:00.000-12:00.timezoneOffsetOf()",
+      "input": [{}],
+      "expected": [-12.0]
+    },
+    {
+      "name": "timezoneOffsetOf() on DateTime with 15 minute offset",
+      "expression": "@2012-01-01T12:30:00.000+05:45.timezoneOffsetOf()",
+      "input": [{}],
+      "expected": [5.75]
+    },
+    {
+      "name": "timezoneOffsetOf() on DateTime without timezone returns empty",
+      "expression": "@2012-01-01T12:30:00.000.timezoneOffsetOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "timezoneOffsetOf() on Date returns empty",
+      "expression": "@2014-01-05.timezoneOffsetOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "timezoneOffsetOf() on Time returns empty",
+      "expression": "@T10:30:00.timezoneOffsetOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "timezoneOffsetOf() on empty returns empty",
+      "expression": "{}.timezoneOffsetOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "timezoneOffsetOf() on String returns empty",
+      "expression": "'not a datetime'.timezoneOffsetOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "timezoneOffsetOf() on Integer returns empty",
+      "expression": "42.timezoneOffsetOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "timezoneOffsetOf() on multiple items throws error",
+      "expression": "(1 | 2).timezoneOffsetOf()",
+      "input": [{}],
+      "error": {
+        "type": "Error",
+        "code": "FP3006"
+      }
+    },
+    {
+      "name": "timezoneOffsetOf() result is Decimal type",
+      "expression": "@2012-01-01T12:30:00.000-07:00.timezoneOffsetOf().is(Decimal)",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "timezoneOffsetOf() can be used in comparisons",
+      "expression": "@2012-01-01T12:30:00.000-08:00.timezoneOffsetOf() < 0",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "timezoneOffsetOf() can be used in arithmetic",
+      "expression": "@2012-01-01T12:30:00.000-07:00.timezoneOffsetOf() + 1.5",
+      "input": [{}],
+      "expected": [-5.5]
+    }
+  ]
+}

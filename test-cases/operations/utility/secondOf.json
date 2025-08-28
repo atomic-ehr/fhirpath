@@ -1,0 +1,116 @@
+{
+  "description": "Tests for secondOf() function",
+  "tests": [
+    {
+      "name": "secondOf() on DateTime returns second",
+      "expression": "@2014-01-05T10:30:45.000.secondOf()",
+      "input": [{}],
+      "expected": [45]
+    },
+    {
+      "name": "secondOf() on Time returns second",
+      "expression": "@T10:30:45.secondOf()",
+      "input": [{}],
+      "expected": [45]
+    },
+    {
+      "name": "secondOf() on Time with zero seconds",
+      "expression": "@T10:30:00.secondOf()",
+      "input": [{}],
+      "expected": [0]
+    },
+    {
+      "name": "secondOf() on last second of minute",
+      "expression": "@T23:59:59.secondOf()",
+      "input": [{}],
+      "expected": [59]
+    },
+    {
+      "name": "secondOf() on DateTime with timezone",
+      "expression": "@2012-01-01T12:30:40.002-07:00.secondOf()",
+      "input": [{}],
+      "expected": [40]
+    },
+    {
+      "name": "secondOf() on Time without milliseconds",
+      "expression": "@T10:15:30.secondOf()",
+      "input": [{}],
+      "expected": [30]
+    },
+    {
+      "name": "secondOf() on Time with milliseconds",
+      "expression": "@T10:15:30.500.secondOf()",
+      "input": [{}],
+      "expected": [30]
+    },
+    {
+      "name": "secondOf() on Date returns empty",
+      "expression": "@2014-01-05.secondOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "secondOf() on DateTime with only hour and minute returns empty",
+      "expression": "@2014-01-05T10:30.secondOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "secondOf() on Time with only hour and minute returns empty",
+      "expression": "@T10:30.secondOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "secondOf() on empty returns empty",
+      "expression": "{}.secondOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "secondOf() on String returns empty",
+      "expression": "'not a time'.secondOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "secondOf() on Integer returns empty",
+      "expression": "42.secondOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "secondOf() on multiple items throws error",
+      "expression": "(1 | 2).secondOf()",
+      "input": [{}],
+      "error": {
+        "type": "Error",
+        "code": "FP3006"
+      }
+    },
+    {
+      "name": "secondOf() result is Integer type",
+      "expression": "@T10:30:45.secondOf().is(Integer)",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "secondOf() can be used in comparisons",
+      "expression": "@T10:30:45.secondOf() > 30",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "secondOf() can be used in arithmetic",
+      "expression": "@T10:30:30.secondOf() + 15",
+      "input": [{}],
+      "expected": [45]
+    },
+    {
+      "name": "secondOf() range validation test",
+      "expression": "@T10:30:00.secondOf() >= 0 and @T10:30:59.secondOf() <= 59",
+      "input": [{}],
+      "expected": [true]
+    }
+  ]
+}

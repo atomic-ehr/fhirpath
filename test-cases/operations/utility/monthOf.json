@@ -1,0 +1,116 @@
+{
+  "description": "Tests for monthOf() function",
+  "tests": [
+    {
+      "name": "monthOf() on DateTime returns month",
+      "expression": "@2014-01-05T10:30:00.000.monthOf()",
+      "input": [{}],
+      "expected": [1]
+    },
+    {
+      "name": "monthOf() on Date returns month",
+      "expression": "@2014-01-05.monthOf()",
+      "input": [{}],
+      "expected": [1]
+    },
+    {
+      "name": "monthOf() on year-month Date",
+      "expression": "@2014-01.monthOf()",
+      "input": [{}],
+      "expected": [1]
+    },
+    {
+      "name": "monthOf() on year-only Date returns empty",
+      "expression": "@2012.monthOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "monthOf() on December date",
+      "expression": "@2014-12-31.monthOf()",
+      "input": [{}],
+      "expected": [12]
+    },
+    {
+      "name": "monthOf() on February date",
+      "expression": "@2020-02-29.monthOf()",
+      "input": [{}],
+      "expected": [2]
+    },
+    {
+      "name": "monthOf() on June date",
+      "expression": "@2024-06-15.monthOf()",
+      "input": [{}],
+      "expected": [6]
+    },
+    {
+      "name": "monthOf() on DateTime with timezone",
+      "expression": "@2014-03-05T10:30:00.000-07:00.monthOf()",
+      "input": [{}],
+      "expected": [3]
+    },
+    {
+      "name": "monthOf() on empty returns empty",
+      "expression": "{}.monthOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "monthOf() on Time returns empty",
+      "expression": "@T10:30:00.monthOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "monthOf() on String returns empty",
+      "expression": "'not a date'.monthOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "monthOf() on Integer returns empty",
+      "expression": "42.monthOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "monthOf() on multiple items throws error",
+      "expression": "(1 | 2).monthOf()",
+      "input": [{}],
+      "error": {
+        "type": "Error",
+        "code": "FP3006"
+      }
+    },
+    {
+      "name": "monthOf() result is Integer type",
+      "expression": "@2014-01-05.monthOf().is(Integer)",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "monthOf() can be used in comparisons",
+      "expression": "@2024-06-15.monthOf() > 3",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "monthOf() can be used in arithmetic",
+      "expression": "@2024-06-15.monthOf() + 6",
+      "input": [{}],
+      "expected": [12]
+    },
+    {
+      "name": "monthOf() range validation test",
+      "expression": "@2024-01-01.monthOf() >= 1 and @2024-12-31.monthOf() <= 12",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "monthOf() preserves month from partial DateTime",
+      "expression": "@2014-08-15T.monthOf()",
+      "input": [{}],
+      "expected": [8]
+    }
+  ]
+}

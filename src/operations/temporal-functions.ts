@@ -9,6 +9,17 @@ import { createDate, createDateTime, createTime, isFHIRDate, isFHIRDateTime, isF
 // ============================================================================
 
 export const nowEvaluator: FunctionEvaluator = async (input, context, args) => {
+  // Always use cached value if available (set at expression evaluation start)
+  const CACHE_KEY = '__fhirpath_now_cache__';
+  
+  if (context.variables[CACHE_KEY]) {
+    return {
+      value: [context.variables[CACHE_KEY]],
+      context
+    };
+  }
+  
+  // Fallback: create new value if not cached (shouldn't happen in normal evaluation)
   const now = new Date();
   const dateTime = createDateTime(
     now.getFullYear(),
@@ -48,6 +59,17 @@ export const nowFunction: FunctionDefinition & { evaluate: typeof nowEvaluator }
 // ============================================================================
 
 export const todayEvaluator: FunctionEvaluator = async (input, context, args) => {
+  // Always use cached value if available (set at expression evaluation start)
+  const CACHE_KEY = '__fhirpath_today_cache__';
+  
+  if (context.variables[CACHE_KEY]) {
+    return {
+      value: [context.variables[CACHE_KEY]],
+      context
+    };
+  }
+  
+  // Fallback: create new value if not cached (shouldn't happen in normal evaluation)
   const today = new Date();
   const date = createDate(
     today.getFullYear(),
@@ -82,6 +104,17 @@ export const todayFunction: FunctionDefinition & { evaluate: typeof todayEvaluat
 // ============================================================================
 
 export const timeOfDayEvaluator: FunctionEvaluator = async (input, context, args) => {
+  // Always use cached value if available (set at expression evaluation start)
+  const CACHE_KEY = '__fhirpath_timeOfDay_cache__';
+  
+  if (context.variables[CACHE_KEY]) {
+    return {
+      value: [context.variables[CACHE_KEY]],
+      context
+    };
+  }
+  
+  // Fallback: create new value if not cached (shouldn't happen in normal evaluation)
   const now = new Date();
   const time = createTime(
     now.getHours(),

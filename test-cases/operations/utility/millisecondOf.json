@@ -1,0 +1,110 @@
+{
+  "description": "Tests for millisecondOf() function",
+  "tests": [
+    {
+      "name": "millisecondOf() on DateTime returns millisecond",
+      "expression": "@2014-01-05T10:30:45.123.millisecondOf()",
+      "input": [{}],
+      "expected": [123]
+    },
+    {
+      "name": "millisecondOf() on Time returns millisecond",
+      "expression": "@T10:30:45.500.millisecondOf()",
+      "input": [{}],
+      "expected": [500]
+    },
+    {
+      "name": "millisecondOf() on Time with zero milliseconds",
+      "expression": "@T10:30:00.000.millisecondOf()",
+      "input": [{}],
+      "expected": [0]
+    },
+    {
+      "name": "millisecondOf() on DateTime with single digit millisecond",
+      "expression": "@2012-01-01T12:30:00.002-07:00.millisecondOf()",
+      "input": [{}],
+      "expected": [2]
+    },
+    {
+      "name": "millisecondOf() on Time with max milliseconds",
+      "expression": "@T10:30:45.999.millisecondOf()",
+      "input": [{}],
+      "expected": [999]
+    },
+    {
+      "name": "millisecondOf() on Date returns empty",
+      "expression": "@2014-01-05.millisecondOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "millisecondOf() on DateTime without milliseconds returns empty",
+      "expression": "@2014-01-05T10:30:45.millisecondOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "millisecondOf() on Time without milliseconds returns empty",
+      "expression": "@T10:30:45.millisecondOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "millisecondOf() on DateTime with only seconds returns empty",
+      "expression": "@2014-01-05T10:30:45.millisecondOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "millisecondOf() on empty returns empty",
+      "expression": "{}.millisecondOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "millisecondOf() on String returns empty",
+      "expression": "'not a time'.millisecondOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "millisecondOf() on Integer returns empty",
+      "expression": "42.millisecondOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "millisecondOf() on multiple items throws error",
+      "expression": "(1 | 2).millisecondOf()",
+      "input": [{}],
+      "error": {
+        "type": "Error",
+        "code": "FP3006"
+      }
+    },
+    {
+      "name": "millisecondOf() result is Integer type",
+      "expression": "@T10:30:45.500.millisecondOf().is(Integer)",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "millisecondOf() can be used in comparisons",
+      "expression": "@T10:30:45.750.millisecondOf() > 500",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "millisecondOf() can be used in arithmetic",
+      "expression": "@T10:30:45.100.millisecondOf() + 250",
+      "input": [{}],
+      "expected": [350]
+    },
+    {
+      "name": "millisecondOf() range validation test",
+      "expression": "@T10:30:45.000.millisecondOf() >= 0 and @T10:30:45.999.millisecondOf() <= 999",
+      "input": [{}],
+      "expected": [true]
+    }
+  ]
+}

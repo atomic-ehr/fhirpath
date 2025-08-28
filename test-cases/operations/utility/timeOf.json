@@ -1,0 +1,92 @@
+{
+  "description": "Tests for timeOf() function",
+  "tests": [
+    {
+      "name": "timeOf() on DateTime returns Time",
+      "expression": "@2012-01-01T12:30:00.000-07:00.timeOf()",
+      "input": [{}],
+      "expected": ["12:30:00.000"]
+    },
+    {
+      "name": "timeOf() on DateTime with partial time precision",
+      "expression": "@2012-01-01T12:30.timeOf()",
+      "input": [{}],
+      "expected": ["12:30"]
+    },
+    {
+      "name": "timeOf() on DateTime with hour only",
+      "expression": "@2012-01-01T12.timeOf()",
+      "input": [{}],
+      "expected": ["12"]
+    },
+    {
+      "name": "timeOf() on DateTime without timezone",
+      "expression": "@2012-01-01T12:30:00.000.timeOf()",
+      "input": [{}],
+      "expected": ["12:30:00.000"]
+    },
+    {
+      "name": "timeOf() on Date returns empty",
+      "expression": "@2012-01-01.timeOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "timeOf() on Time returns empty",
+      "expression": "@T12:30:00.timeOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "timeOf() on empty returns empty",
+      "expression": "{}.timeOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "timeOf() on multiple items throws error",
+      "expression": "(1 | 2).timeOf()",
+      "input": [{}],
+      "error": {
+        "type": "Error",
+        "code": "FP3006"
+      }
+    },
+    {
+      "name": "timeOf() on non-DateTime returns empty",
+      "expression": "'not a datetime'.timeOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "timeOf() on Integer returns empty",
+      "expression": "42.timeOf()",
+      "input": [{}],
+      "expected": []
+    },
+    {
+      "name": "timeOf() preserves time precision - seconds",
+      "expression": "@2012-01-01T12:30:45.timeOf()",
+      "input": [{}],
+      "expected": ["12:30:45"]
+    },
+    {
+      "name": "timeOf() preserves time precision - milliseconds",
+      "expression": "@2012-01-01T12:30:45.123.timeOf()",
+      "input": [{}],
+      "expected": ["12:30:45.123"]
+    },
+    {
+      "name": "timeOf() result is Time type",
+      "expression": "@2012-01-01T12:30:00.timeOf().is(Time)",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "timeOf() on DateTime with just date returns empty",
+      "expression": "@2012-01-01T.timeOf()",
+      "input": [{}],
+      "expected": []
+    }
+  ]
+}

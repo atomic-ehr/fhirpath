@@ -83,6 +83,45 @@ export async function evaluate(
   // Set $this to the boxed input (required for expressions like $this.where(...))
   context = RuntimeContextManager.setVariable(context, '$this', boxedInput);
   
+  // Pre-cache temporal values for deterministic evaluation
+  // These will be used by now(), today(), and timeOfDay() functions
+  // IMPORTANT: All temporal functions must use the same timestamp
+  const now = new Date();
+  const { createDateTime, createDate, createTime } = await import('./temporal');
+  
+  // Cache now() value - this is the primary source
+  const dateTime = createDateTime(
+    now.getFullYear(),
+    now.getMonth() + 1,
+    now.getDate(),
+    now.getHours(),
+    now.getMinutes(),
+    now.getSeconds(),
+    now.getMilliseconds(),
+    -now.getTimezoneOffset()
+  );
+  context = RuntimeContextManager.setVariable(context, '__fhirpath_now_cache__', 
+    box(dateTime, { type: 'DateTime', singleton: true }));
+  
+  // Cache today() value - derived from the same dateTime
+  const date = createDate(
+    dateTime.year,
+    dateTime.month,
+    dateTime.day
+  );
+  context = RuntimeContextManager.setVariable(context, '__fhirpath_today_cache__',
+    box(date, { type: 'Date', singleton: true }));
+  
+  // Cache timeOfDay() value - derived from the same dateTime
+  const time = createTime(
+    dateTime.hour!,  // We know hour exists because we created it above
+    dateTime.minute,
+    dateTime.second,
+    dateTime.millisecond
+  );
+  context = RuntimeContextManager.setVariable(context, '__fhirpath_timeOfDay_cache__',
+    box(time, { type: 'Time', singleton: true }));
+  
   // Add model provider to context if available
   if (options.modelProvider) {
     context.modelProvider = options.modelProvider;

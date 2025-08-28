@@ -1,0 +1,95 @@
+{
+  "description": "Tests for timeOfDay() function",
+  "tests": [
+    {
+      "name": "timeOfDay() is deterministic within expression",
+      "expression": "timeOfDay() = timeOfDay()",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "timeOfDay() returns singleton",
+      "expression": "timeOfDay().count()",
+      "input": [{}],
+      "expected": [1]
+    },
+    {
+      "name": "timeOfDay() is Time type",
+      "expression": "timeOfDay().is(Time)",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "timeOfDay() can be compared",
+      "expression": "timeOfDay() >= @T00:00:00",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "timeOfDay() is less than or equal to end of day",
+      "expression": "timeOfDay() <= @T23:59:59.999",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "timeOfDay() with arithmetic - add hours",
+      "expression": "timeOfDay() + 1 hour >= timeOfDay()",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "timeOfDay() with arithmetic - subtract hours",
+      "expression": "timeOfDay() - 1 hour <= timeOfDay()",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "timeOfDay() with arithmetic - add minutes",
+      "expression": "timeOfDay() + 30 minutes >= timeOfDay()",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "timeOfDay() with arithmetic - add seconds",
+      "expression": "timeOfDay() + 30 seconds >= timeOfDay()",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "timeOfDay() equals now().timeOf()",
+      "expression": "timeOfDay() = now().timeOf()",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "timeOfDay() has no date component",
+      "expression": "timeOfDay().dateOf().empty()",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "timeOfDay() can extract hour",
+      "expression": "timeOfDay().hourOf() >= 0 and timeOfDay().hourOf() <= 23",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "timeOfDay() can extract minute",
+      "expression": "timeOfDay().minuteOf() >= 0 and timeOfDay().minuteOf() <= 59",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "timeOfDay() can extract second",
+      "expression": "timeOfDay().secondOf() >= 0 and timeOfDay().secondOf() <= 59",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "timeOfDay() can extract milliseconds",
+      "expression": "timeOfDay().millisecondOf() >= 0 and timeOfDay().millisecondOf() <= 999",
+      "input": [{}],
+      "expected": [true]
+    }
+  ]
+}

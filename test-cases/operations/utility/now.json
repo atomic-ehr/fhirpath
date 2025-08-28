@@ -1,0 +1,53 @@
+{
+  "description": "Tests for now() function",
+  "tests": [
+    {
+      "name": "now() is deterministic within expression",
+      "expression": "now() = now()",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "now() returns singleton",
+      "expression": "now().count()",
+      "input": [{}],
+      "expected": [1]
+    },
+    {
+      "name": "now() can be compared",
+      "expression": "now() > @2020-01-01T00:00:00Z",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "now() with arithmetic - add days",
+      "expression": "now() + 1 day > now()",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "now() with arithmetic - subtract days",
+      "expression": "now() - 1 day < now()",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "now() can extract date",
+      "expression": "now().dateOf().is(Date)",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "now() can extract time",
+      "expression": "now().timeOf().is(Time)",
+      "input": [{}],
+      "expected": [true]
+    },
+    {
+      "name": "now() is DateTime type",
+      "expression": "now().is(DateTime)",
+      "input": [{}],
+      "expected": [true]
+    }
+  ]
+}
