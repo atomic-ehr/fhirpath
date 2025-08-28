@@ -1,4 +1,4 @@
-import type { ASTNode, Diagnostic, FunctionSignature, TypeInfo } from '../types';
+import type { ASTNode, Diagnostic, FunctionSignature, TypeInfo, Range } from '../types';
 import { DiagnosticSeverity } from '../types';
 
 /** Formats a TypeInfo into a user-facing string (e.g., Integer, Decimal[]). */
@@ -16,6 +16,53 @@ export function isEmptyCollection(t: TypeInfo | undefined): boolean {
     return false;
   }
   return t.isEmpty === true || (t.type === 'Any' && t.singleton === false);
+}
+
+/** Returns true if the type carries a union modelContext with choices. */
+export function isUnionType(type: TypeInfo | undefined): boolean {
+  const mc: any = type?.modelContext;
+  return !!(mc && typeof mc === 'object' && 'isUnion' in mc && mc.isUnion && Array.isArray(mc.choices));
+}
+
+/** Returns union choice identifiers (type or code) if union; otherwise empty list. */
+export function getUnionChoices(type: TypeInfo | undefined): string[] {
+  const mc: any = type?.modelContext;
+  if (!mc || !Array.isArray(mc.choices)) {
+    return [];
+  }
+  return mc.choices
+    .map((c: any) => c?.type ?? c?.code)
+    .filter((t: unknown): t is string => typeof t === 'string' && t.length > 0);
+}
+
+/**
+ * If target is not present in the union choices, returns a Warning diagnostic with given code.
+ * Otherwise returns null.
+ */
+export function validateUnionChoice(
+  type: TypeInfo,
+  targetType: string | undefined,
+  range: Range,
+  code: string,
+  messagePrefix: string
+): Diagnostic | null {
+  if (!targetType || !isUnionType(type)) {
+    return null;
+  }
+  const choices = getUnionChoices(type);
+  if (choices.length === 0) {
+    return null;
+  }
+  if (choices.includes(targetType)) {
+    return null;
+  }
+  return {
+    severity: DiagnosticSeverity.Warning,
+    code,
+    message: `${messagePrefix} '${targetType}' is not present in the union type. Available types: ${choices.join(', ')}`,
+    range,
+    source: 'fhirpath',
+  };
 }
 
 /**

@@ -26,7 +26,7 @@ import type { OperatorSignature, FunctionSignature } from './types';
 import type { FunctionDefinition } from './types';
 import { registry } from './registry';
 import { matchOperatorSignature, matchFunctionSignature, resolveResultType } from './analysis/type-compat';
-import { checkParamTypes, formatType, isEmptyCollection } from './analysis/utils';
+import { checkParamTypes, formatType, isEmptyCollection, isUnionType, getUnionChoices, validateUnionChoice } from './analysis/utils';
 import { Errors, toDiagnostic, ErrorCodes } from './errors';
 import { isCursorNode, CursorContext } from './cursor-nodes';
 import type { AnyCursorNode } from './cursor-nodes';
@@ -207,7 +207,7 @@ export class Analyzer {
     // Get operator definition for type checking
     const operatorDef = registry.getOperatorDefinition(node.operator);
     if (!operatorDef) {
-      diagnostics.push(this.createError(node, `Unknown operator: ${node.operator}`, ErrorCodes.UNKNOWN_OPERATOR));
+      diagnostics.push(toDiagnostic(Errors.unknownOperator(node.operator, node.range)));
       return {
         type: { type: 'Any', singleton: false },
         diagnostics
@@ -269,7 +269,7 @@ export class Analyzer {
 
     const funcDef = registry.getFunction(functionName);
     if (!funcDef) {
-      diagnostics.push(this.createError(node, `Unknown function: ${functionName}`, ErrorCodes.UNKNOWN_FUNCTION));
+      diagnostics.push(toDiagnostic(Errors.unknownFunction(functionName, node.range)));
       return { type: { type: 'Any', singleton: false }, diagnostics };
     }
 
@@ -391,9 +391,7 @@ export class Analyzer {
       return diagnostics;
     }
     const inputType = context.inputType;
-    const mc: any = inputType.modelContext;
-    const isUnion = !!(mc && typeof mc === 'object' && 'isUnion' in mc && mc.isUnion && Array.isArray(mc.choices));
-    if (!isUnion) {
+    if (!isUnionType(inputType)) {
       return diagnostics;
     }
     const typeArg = node.arguments[0]!;
@@ -404,20 +402,8 @@ export class Analyzer {
     if (!targetType) {
       return diagnostics;
     }
-
-    const validChoice = mc.choices.find((choice: any) => choice.type === targetType || choice.code === targetType);
-    if (!validChoice && functionName === 'ofType') {
-      const availableTypes = mc.choices
-        .map((c: any) => c.type || c.code)
-        .filter((t: string) => t)
-        .join(', ');
-      diagnostics.push({
-        severity: DiagnosticSeverity.Warning,
-        code: 'invalid-type-filter',
-        message: `Type '${targetType}' is not present in the union type. Available types: ${availableTypes}`,
-        range: typeArg.range || node.range
-      });
-    }
+    const diag = validateUnionChoice(inputType, targetType, typeArg.range || node.range, 'invalid-type-filter', 'Type');
+    if (diag && functionName === 'ofType') diagnostics.push(diag);
     return diagnostics;
   }
 
@@ -486,7 +472,7 @@ export class Analyzer {
       match = matchFunctionSignature(actualInput, argTypes, funcDef) || null;
 
       if (!match) {
-        const inputIsEmpty = actualInput.isEmpty || (actualInput.type === 'Any' && !actualInput.singleton);
+        const inputIsEmpty = isEmptyCollection(actualInput);
         if (inputIsEmpty && !funcDef.doesNotPropagateEmpty) {
           const sig = funcDef.signatures[0];
           if (sig) {
@@ -583,8 +569,8 @@ export class Analyzer {
     if (funcDef.doesNotPropagateEmpty) {
       return false;
     }
-    const inputIsEmpty = inputType.isEmpty || (inputType.type === 'Any' && !inputType.singleton);
-    const hasEmptyArgument = argTypes.some(argType => argType.isEmpty || (argType.type === 'Any' && !argType.singleton));
+    const inputIsEmpty = isEmptyCollection(inputType);
+    const hasEmptyArgument = argTypes.some(argType => isEmptyCollection(argType));
     return inputIsEmpty || hasEmptyArgument;
   }
 
@@ -678,8 +664,8 @@ export class Analyzer {
       }
       
       // For TypeOrIdentifier nodes with uppercase names, check if it's a type name
-      // This handles cases like "Patient.children()" where Patient is a type, not a property
-      if (node.type === 'TypeOrIdentifier' && /^[A-Z]/.test(name)) {
+      // This handles cases like 'Patient.children()' where Patient is a type, not a property
+      if (node.type === NodeType.TypeOrIdentifier && /^[A-Z]/.test(name)) {
         const typeInfo = await context.modelProvider.getType(name);
         if (typeInfo) {
           return {
@@ -695,11 +681,8 @@ export class Analyzer {
       const mc: any = context.inputType.modelContext;
       const isUnion = !!(mc && typeof mc === 'object' && 'isUnion' in mc && mc.isUnion);
       if (context.inputType.namespace && context.inputType.name && context.inputType.modelContext && !isUnion) {
-        diagnostics.push(this.createWarning(
-          node,
-          `Unknown property '${name}' on type '${context.inputType.namespace}.${context.inputType.name}'`,
-          ErrorCodes.UNKNOWN_PROPERTY
-        ));
+        const typeStr = `${context.inputType.namespace}.${context.inputType.name}`;
+        diagnostics.push(toDiagnostic(Errors.unknownProperty(name, typeStr, node.range), DiagnosticSeverity.Warning));
         return {
           type: { type: 'Any', singleton: false },
           diagnostics,
@@ -878,28 +861,14 @@ export class Analyzer {
     }
     
     // Check if testing against a union type
-    if (exprResult.type.modelContext && 
-        typeof exprResult.type.modelContext === 'object' &&
-        'isUnion' in exprResult.type.modelContext && 
-        exprResult.type.modelContext.isUnion &&
-        'choices' in exprResult.type.modelContext &&
-        Array.isArray(exprResult.type.modelContext.choices)) {
-      
+    if (isUnionType(exprResult.type)) {
       const targetType = node.targetType;
-      const validChoice = exprResult.type.modelContext.choices.find((choice: any) => 
-        choice.type === targetType || choice.code === targetType
-      );
-      
-      if (!validChoice) {
-        const availableTypes = exprResult.type.modelContext.choices
-          .map((c: any) => c.type || c.code)
-          .filter((t: string) => t)
-          .join(', ');
-        
+      const choices = getUnionChoices(exprResult.type);
+      if (choices.length > 0 && !choices.includes(targetType)) {
         diagnostics.push({
           severity: DiagnosticSeverity.Warning,
           code: 'invalid-type-test',
-          message: `Type test 'is ${targetType}' will always be false - type not present in union. Available types: ${availableTypes}`,
+          message: `Type test 'is ${targetType}' will always be false - type not present in union. Available types: ${choices.join(', ')}`,
           range: node.range
         });
       }
@@ -925,28 +894,14 @@ export class Analyzer {
     }
     
     // Check if casting from a union type
-    if (exprResult.type.modelContext && 
-        typeof exprResult.type.modelContext === 'object' &&
-        'isUnion' in exprResult.type.modelContext && 
-        exprResult.type.modelContext.isUnion &&
-        'choices' in exprResult.type.modelContext &&
-        Array.isArray(exprResult.type.modelContext.choices)) {
-      
+    if (isUnionType(exprResult.type)) {
       const targetTypeName = node.targetType;
-      const validChoice = exprResult.type.modelContext.choices.find((choice: any) => 
-        choice.type === targetTypeName || choice.code === targetTypeName
-      );
-      
-      if (!validChoice) {
-        const availableTypes = exprResult.type.modelContext.choices
-          .map((c: any) => c.type || c.code)
-          .filter((t: string) => t)
-          .join(', ');
-        
+      const choices = getUnionChoices(exprResult.type);
+      if (choices.length > 0 && !choices.includes(targetTypeName)) {
         diagnostics.push({
           severity: DiagnosticSeverity.Warning,
           code: 'invalid-type-cast',
-          message: `Type cast 'as ${targetTypeName}' may fail - type not present in union. Available types: ${availableTypes}`,
+          message: `Type cast 'as ${targetTypeName}' may fail - type not present in union. Available types: ${choices.join(', ')}`,
           range: node.range
         });
       }
