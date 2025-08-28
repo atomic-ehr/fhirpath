@@ -20,6 +20,7 @@ import type { EvaluationResult, FunctionEvaluator, NodeEvaluator, OperationEvalu
 import { createQuantity } from './quantity-value';
 import { box, unbox, ensureBoxed, type FHIRPathValue } from './boxing';
 import { Errors } from './errors';
+import { detectChoiceValues, getPrimitiveElement, maybeParseTemporal, reboxResource } from './navigator';
 
 /**
  * Runtime context manager that provides efficient prototype-based context operations
@@ -330,98 +331,43 @@ export class Interpreter {
   private async evaluateIdentifier(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): Promise<EvaluationResult> {
     const identifier = node as IdentifierNode;
     const name = identifier.name;
-    
-    
 
-    // Navigate property on each boxed item in input
     const results: FHIRPathValue[] = [];
-    
-    // Get the type info from the node (set by analyzer)
     const nodeTypeInfo = node.typeInfo;
-    
+
     for (const boxedItem of input) {
       const item = unbox(boxedItem);
-      
-      // Special handling for primitive extension navigation
+
       if (name === 'extension' && boxedItem.primitiveElement?.extension) {
-        // Navigation from a primitive value to its extensions
         for (const ext of boxedItem.primitiveElement.extension) {
           results.push(box(ext, nodeTypeInfo || { type: 'Any', singleton: false }));
         }
         continue;
       }
-      
+
       if (item && typeof item === 'object') {
-        // First, check if this might be a FHIR choice type by looking for choice properties
-        // FHIR choice types use the pattern: base name + Type suffix (e.g., valueQuantity, valueCodeableConcept)
-        let foundChoiceValue = false;
-        
-        // Check for FHIR choice type pattern
-        if (context.modelProvider) {
-          // Try common FHIR choice patterns
-          const possibleChoiceProperties = Object.keys(item).filter(key => 
-            key.startsWith(name) && key !== name && key.length > name.length
-          );
-          
-          if (possibleChoiceProperties.length > 0) {
-            // This looks like a choice type - return all matching values
-            for (const choiceProp of possibleChoiceProperties) {
-              const value = item[choiceProp];
-              const primitiveElementName = `_${choiceProp}`;
-              const primitiveElement = (primitiveElementName in item) ? item[primitiveElementName] : undefined;
-              
-              // Try to determine the type from the property name suffix
-              let choiceType = 'Any';
-              const suffix = choiceProp.substring(name.length);
-              if (suffix) {
-                // Remove leading uppercase letter and make it the type
-                choiceType = suffix;
-              }
-              
-              if (Array.isArray(value)) {
-                for (const v of value) {
-                  // For FHIR resources, use their resourceType
-                  if (v && typeof v === 'object' && 'resourceType' in v) {
-                    const typeInfo = await context.modelProvider!.getType(v.resourceType);
-                    results.push(box(v, typeInfo || { type: v.resourceType as any, singleton: true }, primitiveElement));
-                  } else {
-                    results.push(box(v, { type: choiceType as any, singleton: true }, primitiveElement));
-                  }
-                }
-              } else if (value !== null && value !== undefined) {
-                // For FHIR resources, use their resourceType
-                if (value && typeof value === 'object' && 'resourceType' in value) {
-                  const typeInfo = await context.modelProvider!.getType(value.resourceType);
-                  results.push(box(value, typeInfo || { type: value.resourceType as any, singleton: true }, primitiveElement));
-                } else {
-                  results.push(box(value, { type: choiceType as any, singleton: !Array.isArray(value) }, primitiveElement));
-                }
-              }
-              foundChoiceValue = true;
-            }
+        const choiceHits = await detectChoiceValues(item as Record<string, unknown>, name, context.modelProvider);
+        if (choiceHits.length > 0) {
+          for (const hit of choiceHits) {
+            results.push(box(hit.value, hit.typeInfo, hit.primitiveElement));
           }
+          continue;
         }
-        
-        // Check if this is a choice type navigation from analyzer
-        if (!foundChoiceValue && nodeTypeInfo?.modelContext && typeof nodeTypeInfo.modelContext === 'object' &&
-            'isUnion' in nodeTypeInfo.modelContext && 
-            nodeTypeInfo.modelContext.isUnion && 'choices' in nodeTypeInfo.modelContext &&
-            Array.isArray(nodeTypeInfo.modelContext.choices)) {
-          // For choice types, look for any of the choice properties
-          for (const choice of nodeTypeInfo.modelContext.choices) {
+
+        if (
+          nodeTypeInfo?.modelContext &&
+          typeof nodeTypeInfo.modelContext === 'object' &&
+          'isUnion' in nodeTypeInfo.modelContext &&
+          (nodeTypeInfo.modelContext as any).isUnion &&
+          'choices' in nodeTypeInfo.modelContext &&
+          Array.isArray((nodeTypeInfo.modelContext as any).choices)
+        ) {
+          for (const choice of (nodeTypeInfo.modelContext as any).choices) {
             const choiceName = choice.choiceName;
-            if (choiceName && choiceName in item) {
-              const value = item[choiceName];
-              const primitiveElementName = `_${choiceName}`;
-              const primitiveElement = (primitiveElementName in item) ? item[primitiveElementName] : undefined;
-              
-              // Box with the specific choice type
-              const choiceTypeInfo = {
-                type: choice.type,
-                singleton: !Array.isArray(value),
-                modelContext: choice
-              };
-              
+            if (choiceName && choiceName in (item as any)) {
+              const value = (item as any)[choiceName];
+              const primitiveElement = getPrimitiveElement(item as Record<string, unknown>, choiceName);
+              const choiceTypeInfo = { type: choice.type, singleton: !Array.isArray(value), modelContext: choice } as any;
               if (Array.isArray(value)) {
                 for (const v of value) {
                   results.push(box(v, { ...choiceTypeInfo, singleton: true }, primitiveElement));
@@ -429,104 +375,43 @@ export class Interpreter {
               } else if (value !== null && value !== undefined) {
                 results.push(box(value, choiceTypeInfo, primitiveElement));
               }
-              foundChoiceValue = true;
             }
           }
         }
-        
-        if (!foundChoiceValue && name in item) {
-          // Regular property navigation
-          const value = item[name];
-          const primitiveElementName = `_${name}`;
-          const primitiveElement = (primitiveElementName in item) ? item[primitiveElementName] : undefined;
-          
+
+        if (name in (item as any)) {
+          const value = (item as any)[name];
+          const primitiveElement = getPrimitiveElement(item as Record<string, unknown>, name);
+
           if (Array.isArray(value)) {
-            // Box each array element with type info
-            // For arrays, make the type singleton since each element is a single value
             const elementTypeInfo = nodeTypeInfo ? { ...nodeTypeInfo, singleton: true } : undefined;
             for (const v of value) {
-              // Special handling for FHIR resources - use their resourceType
-              // Do this when the property could be polymorphic (type is 'Any' or 'Resource')
-              if (v && typeof v === 'object' && 'resourceType' in v && typeof v.resourceType === 'string' &&
-                  (!elementTypeInfo || elementTypeInfo.type === 'Any' || (elementTypeInfo as any).type === 'Resource')) {
-                // Get full type info from model provider if available
-                let resourceTypeInfo;
-                if (context.modelProvider) {
-                  resourceTypeInfo = await context.modelProvider.getType(v.resourceType);
-                  if (resourceTypeInfo) {
-                    // Make it singleton since it's a single element in the array
-                    resourceTypeInfo = { ...resourceTypeInfo, singleton: true };
-                  }
-                }
-                if (!resourceTypeInfo) {
-                  // Fallback to basic type info
-                  resourceTypeInfo = {
-                    type: v.resourceType as import('./types').TypeName,
-                    singleton: true
-                  };
-                }
-                results.push(box(v, resourceTypeInfo, primitiveElement));
+              if (
+                v && typeof v === 'object' && 'resourceType' in (v as any) && typeof (v as any).resourceType === 'string' &&
+                (!elementTypeInfo || elementTypeInfo.type === 'Any' || (elementTypeInfo as any).type === 'Resource')
+              ) {
+                results.push(await reboxResource(v, true, context.modelProvider));
               } else {
-                // Convert string dates to Date/DateTime/Time objects when type info indicates it
-                // Only do this when we have a model provider providing the type info
-                let valueToBox = v;
-                if (context.modelProvider && elementTypeInfo && typeof v === 'string') {
-                  if (elementTypeInfo.type === 'Date' || elementTypeInfo.type === 'DateTime' || elementTypeInfo.type === 'Time') {
-                    const { parseTemporalLiteral } = await import('./temporal');
-                    // Add @ prefix since parseTemporalLiteral expects it
-                    valueToBox = parseTemporalLiteral('@' + v);
-                  }
-                }
-                results.push(box(valueToBox, elementTypeInfo, primitiveElement));
+                const val = await maybeParseTemporal(v, elementTypeInfo, context.modelProvider);
+                results.push(box(val, elementTypeInfo, primitiveElement));
               }
             }
           } else if (value !== null && value !== undefined) {
-            // Special handling for FHIR resources - use their resourceType
-            // Do this when the property could be polymorphic (type is 'Any' or 'Resource')
-            if (value && typeof value === 'object' && 'resourceType' in value && typeof value.resourceType === 'string' &&
-                (!nodeTypeInfo || nodeTypeInfo.type === 'Any' || (nodeTypeInfo as any).type === 'Resource')) {
-              // Get full type info from model provider if available
-              let resourceTypeInfo;
-              if (context.modelProvider) {
-                resourceTypeInfo = await context.modelProvider.getType(value.resourceType);
-                if (resourceTypeInfo) {
-                  // Preserve singleton status
-                  resourceTypeInfo = { ...resourceTypeInfo, singleton: !Array.isArray(value) };
-                }
-              }
-              if (!resourceTypeInfo) {
-                // Fallback to basic type info
-                resourceTypeInfo = {
-                  type: value.resourceType as import('./types').TypeName,
-                  singleton: !Array.isArray(value)
-                };
-              }
-              results.push(box(value, resourceTypeInfo, primitiveElement));
+            if (
+              value && typeof value === 'object' && 'resourceType' in (value as any) && typeof (value as any).resourceType === 'string' &&
+              (!nodeTypeInfo || nodeTypeInfo.type === 'Any' || (nodeTypeInfo as any).type === 'Resource')
+            ) {
+              results.push(await reboxResource(value, !Array.isArray(value), context.modelProvider));
             } else {
-              // Convert string dates to Date/DateTime/Time objects when type info indicates it
-              // Only do this when we have a model provider providing the type info
-              let valueToBox = value;
-              if (context.modelProvider && nodeTypeInfo && typeof value === 'string') {
-                if (nodeTypeInfo.type === 'Date' || nodeTypeInfo.type === 'DateTime' || nodeTypeInfo.type === 'Time') {
-                  const { parseTemporalLiteral } = await import('./temporal');
-                  // Add @ prefix since parseTemporalLiteral expects it
-                  valueToBox = parseTemporalLiteral('@' + value);
-                }
-              }
-              // Box single value with primitive element if available
-              results.push(box(valueToBox, nodeTypeInfo, primitiveElement));
+              const val = await maybeParseTemporal(value, nodeTypeInfo, context.modelProvider);
+              results.push(box(val, nodeTypeInfo, primitiveElement));
             }
           }
         }
       }
     }
 
-    
-    
-    return {
-      value: results,
-      context
-    };
+    return { value: results, context };
   }
 
   // TypeOrIdentifier node evaluator (handles Patient, Observation, etc.)
@@ -579,8 +464,11 @@ export class Interpreter {
     if (operator === '|') {
       // Each side of union should have its own variable scope
       // Variables defined on left side should not be visible on right side
-      const leftResult = await this.evaluate(binary.left, input, context);
-      const rightResult = await this.evaluate(binary.right, input, context); // Use original context, not leftResult.context
+      // Evaluate both sides in parallel since both use the same input/context
+      const [leftResult, rightResult] = await Promise.all([
+        this.evaluate(binary.left, input, context),
+        this.evaluate(binary.right, input, context)
+      ]);
       
       // Merge the results
       const unionEvaluator = this.operationEvaluators.get('|');
@@ -594,22 +482,19 @@ export class Interpreter {
     // Get operation evaluator
     const evaluator = this.operationEvaluators.get(operator);
     if (evaluator) {
-      // Most operators evaluate arguments in parallel with same input/context
-      const leftResult = await this.evaluate(binary.left, input, context);
-      const rightResult = await this.evaluate(binary.right, input, context);
+      // Evaluate operands in parallel using same input/context
+      const [leftResult, rightResult] = await Promise.all([
+        this.evaluate(binary.left, input, context),
+        this.evaluate(binary.right, input, context)
+      ]);
       
       // Handle empty propagation for operators
-      // Check if operator has doesNotPropagateEmpty flag
+      // Rely exclusively on registry metadata
       const operatorDef = this.registry.getOperatorDefinition(operator);
       if (operatorDef && !operatorDef.doesNotPropagateEmpty) {
         // Check if either operand is empty
         if (leftResult.value.length === 0 || rightResult.value.length === 0) {
-          // Operators like union (|) don't propagate empty - they're collection operators
-          // The combine operator (&) also doesn't propagate empty
-          const collectionOperators = ['|'];
-          if (!collectionOperators.includes(operator)) {
-            return { value: [], context };
-          }
+          return { value: [], context };
         }
       }
       
