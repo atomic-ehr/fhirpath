@@ -1,0 +1,243 @@
+{
+  "description": "Tests for the repeat() function",
+  "spec": "https://hl7.org/fhirpath/#repeatprojection-expression-collection",
+  "notes": "The repeat function repeatedly applies an expression until no new items are returned",
+  "tests": [
+    {
+      "name": "simple repeat on object property",
+      "expression": "Functions.repeat(repeatingAttr).count()",
+      "input": {
+        "resourceType": "Functions",
+        "repeatingAttr": {
+          "repeatingAttr": {
+            "a": 1
+          },
+          "a": 2
+        }
+      },
+      "expected": [2],
+      "notes": "Should find all nested repeatingAttr properties"
+    },
+    {
+      "name": "repeat with property access",
+      "expression": "Functions.repeat(repeatingAttr).a",
+      "input": {
+        "resourceType": "Functions",
+        "repeatingAttr": {
+          "repeatingAttr": {
+            "a": 1
+          },
+          "a": 2
+        }
+      },
+      "expected": [2, 1],
+      "notes": "Should return all 'a' values from repeated elements"
+    },
+    {
+      "name": "repeat on collection",
+      "expression": "Functions.coll1.colltrue.repeat(attr)",
+      "input": {
+        "resourceType": "Functions",
+        "coll1": [
+          {
+            "colltrue": [
+              {"attr": true},
+              {"attr": true},
+              {"attr": true}
+            ]
+          }
+        ]
+      },
+      "expected": [true],
+      "notes": "Should handle collections correctly"
+    },
+    {
+      "name": "repeat on non-existent property",
+      "expression": "Functions.coll1.repeat(nothing)",
+      "input": {
+        "resourceType": "Functions",
+        "coll1": [{"other": "value"}]
+      },
+      "expected": [],
+      "notes": "Should return empty when property doesn't exist"
+    },
+    {
+      "name": "prevent infinite loop with constant",
+      "expression": "Functions.coll1.colltrue.repeat(true)",
+      "input": {
+        "resourceType": "Functions",
+        "coll1": [
+          {
+            "colltrue": [
+              {"attr": true}
+            ]
+          }
+        ]
+      },
+      "expected": [true],
+      "notes": "Should not infinitely loop on constant expressions"
+    },
+    {
+      "name": "prevent infinite loop with string literal",
+      "expression": "(1 | 2).repeat('item')",
+      "input": null,
+      "expected": ["item"],
+      "notes": "Should evaluate expression once and stop"
+    },
+    {
+      "name": "repeat with year-to-month conversion",
+      "expression": "(1 year).combine(12 months).repeat($this)",
+      "input": null,
+      "expected": [{"value": 1, "unit": "year"}, {"value": 12, "unit": "months"}],
+      "notes": "Year and months are not considered equal in current implementation"
+    },
+    {
+      "name": "repeat with quantity equality",
+      "expression": "(3 'min').combine(180 seconds).repeat($this)",
+      "input": null,
+      "expected": [{"value": 3, "unit": "min"}, {"value": 180, "unit": "seconds"}],
+      "notes": "Minutes and seconds are not considered equal in current implementation"
+    },
+    {
+      "name": "Questionnaire repeat with nested items",
+      "expression": "Questionnaire.repeat(item).linkId",
+      "input": {
+        "resourceType": "Questionnaire",
+        "id": "3141",
+        "item": [
+          {
+            "linkId": "1",
+            "type": "group",
+            "item": [
+              {
+                "linkId": "1.1",
+                "type": "choice",
+                "item": [
+                  {
+                    "linkId": "1.1.1",
+                    "type": "group",
+                    "item": [
+                      {
+                        "linkId": "1.1.1.1",
+                        "type": "choice",
+                        "item": [
+                          {
+                            "linkId": "1.1.1.1.1",
+                            "type": "choice"
+                          },
+                          {
+                            "linkId": "1.1.1.1.2",
+                            "type": "choice"
+                          }
+                        ]
+                      },
+                      {
+                        "linkId": "1.1.1.2",
+                        "type": "choice"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "linkId": "2",
+            "type": "group",
+            "item": [
+              {
+                "linkId": "2.1",
+                "type": "group",
+                "item": [
+                  {
+                    "linkId": "2.1.2",
+                    "type": "choice"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "expected": ["1", "2", "1.1", "2.1", "1.1.1", "2.1.2", "1.1.1.1", "1.1.1.2", "1.1.1.1.1", "1.1.1.1.2"],
+      "notes": "Should traverse all nested items in tree structure"
+    },
+    {
+      "name": "empty input collection",
+      "expression": "Functions.attrempty.repeat(attr)",
+      "input": {
+        "resourceType": "Functions",
+        "attrempty": []
+      },
+      "expected": [],
+      "notes": "Empty input should produce empty output"
+    },
+    {
+      "name": "repeat with null elements in collection",
+      "expression": "Patient.name.given.repeat(id)",
+      "input": {
+        "resourceType": "Patient",
+        "name": [
+          {
+            "given": [
+              {
+                "id": "Jacomus1Id",
+                "value": null
+              },
+              "Peter",
+              "James",
+              {
+                "id": "Jacomus2Id",
+                "value": null
+              }
+            ]
+          }
+        ]
+      },
+      "expected": ["Jacomus1Id", "Jacomus2Id"],
+      "notes": "Should handle null values correctly"
+    },
+    {
+      "name": "ValueSet expansion repeat",
+      "expression": "ValueSet.expansion.repeat(contains)",
+      "input": {
+        "resourceType": "ValueSet",
+        "expansion": {
+          "contains": [
+            {
+              "code": "A",
+              "contains": [
+                {
+                  "code": "A1",
+                  "contains": [
+                    {"code": "A1a"},
+                    {"code": "A1b"}
+                  ]
+                },
+                {
+                  "code": "A2"
+                }
+              ]
+            },
+            {
+              "code": "B",
+              "contains": [
+                {"code": "B1"}
+              ]
+            }
+          ]
+        }
+      },
+      "expected": [
+        {"code": "A", "contains": [{"code": "A1", "contains": [{"code": "A1a"}, {"code": "A1b"}]}, {"code": "A2"}]},
+        {"code": "B", "contains": [{"code": "B1"}]},
+        {"code": "A1", "contains": [{"code": "A1a"}, {"code": "A1b"}]},
+        {"code": "A2"},
+        {"code": "B1"},
+        {"code": "A1a"},
+        {"code": "A1b"}
+      ],
+      "notes": "Should traverse nested contains hierarchy"
+    }
+  ]
+}

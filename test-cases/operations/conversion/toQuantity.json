@@ -1,0 +1,178 @@
+{
+  "description": "Tests for the toQuantity() function",
+  "spec": "https://hl7.org/fhirpath/#toquantityunit-string-quantity",
+  "notes": "The toQuantity function converts values to Quantity type",
+  "tests": [
+    {
+      "name": "integer to quantity",
+      "expression": "1.toQuantity() = 1 '1'",
+      "input": null,
+      "expected": [true],
+      "notes": "Integer converts to quantity with default unit '1'"
+    },
+    {
+      "name": "decimal to quantity",
+      "expression": "1.0.toQuantity() = 1.0 '1'",
+      "input": null,
+      "expected": [true],
+      "notes": "Decimal converts to quantity with default unit '1'"
+    },
+    {
+      "name": "boolean true to quantity",
+      "expression": "true.toQuantity() = 1.0 '1'",
+      "input": null,
+      "expected": [true],
+      "notes": "Boolean true converts to 1.0 '1'"
+    },
+    {
+      "name": "boolean false to quantity",
+      "expression": "false.toQuantity() = 0.0 '1'",
+      "input": null,
+      "expected": [true],
+      "notes": "Boolean false converts to 0.0 '1'"
+    },
+    {
+      "name": "string integer to quantity",
+      "expression": "'1'.toQuantity() = 1 '1'",
+      "input": null,
+      "expected": [true],
+      "notes": "String '1' converts to quantity"
+    },
+    {
+      "name": "string decimal to quantity",
+      "expression": "'1.0'.toQuantity() = 1.0 '1'",
+      "input": null,
+      "expected": [true],
+      "notes": "String '1.0' converts to quantity"
+    },
+    {
+      "name": "string with negative number",
+      "expression": "'-5.5'.toQuantity() = -5.5 '1'",
+      "input": null,
+      "expected": [true],
+      "notes": "Negative numbers in strings are supported"
+    },
+    {
+      "name": "string with positive sign",
+      "expression": "'+10'.toQuantity() = 10 '1'",
+      "input": null,
+      "expected": [true],
+      "notes": "Positive sign in strings is supported"
+    },
+    {
+      "name": "calendar duration - day",
+      "expression": "'1 day'.toQuantity() = 1 'd'",
+      "input": null,
+      "expected": [true],
+      "notes": "Calendar duration 'day' maps to 'd'"
+    },
+    {
+      "name": "calendar duration - days",
+      "expression": "'4 days'.toQuantity() = 4 'd'",
+      "input": null,
+      "expected": [true],
+      "notes": "Calendar duration 'days' maps to 'd'"
+    },
+    {
+      "name": "calendar duration - week with quotes",
+      "expression": "'1 \\'wk\\''.toQuantity() = 1 'wk'",
+      "input": null,
+      "expected": [true],
+      "notes": "UCUM unit in quotes"
+    },
+    {
+      "name": "calendar duration - year",
+      "expression": "'1 year'.toQuantity() = 1 'year'",
+      "input": null,
+      "expected": [true],
+      "notes": "Year remains as 'year'"
+    },
+    {
+      "name": "calendar duration - month",
+      "expression": "'1 month'.toQuantity() = 1 'month'",
+      "input": null,
+      "expected": [true],
+      "notes": "Month remains as 'month'"
+    },
+    {
+      "name": "complex UCUM unit",
+      "expression": "'10 \\'mg[Hg]\\''.toQuantity()",
+      "input": null,
+      "expected": [{"value": 10, "unit": "mg[Hg]"}],
+      "notes": "Complex UCUM units are preserved"
+    },
+    {
+      "name": "quantity passthrough",
+      "expression": "(5 'kg').toQuantity() = 5 'kg'",
+      "input": null,
+      "expected": [true],
+      "notes": "Quantity values pass through unchanged"
+    },
+    {
+      "name": "invalid string format",
+      "expression": "'some string'.toQuantity()",
+      "input": null,
+      "expected": [],
+      "notes": "Invalid format returns empty"
+    },
+    {
+      "name": "invalid decimal string",
+      "expression": "'1.a'.toQuantity()",
+      "input": null,
+      "expected": [],
+      "notes": "Invalid number format returns empty"
+    },
+    {
+      "name": "empty input",
+      "expression": "{}.toQuantity()",
+      "input": null,
+      "expected": [],
+      "notes": "Empty input returns empty"
+    },
+    {
+      "name": "null value",
+      "expression": "Functions.attrnull.toQuantity()",
+      "input": {
+        "resourceType": "Functions",
+        "attrnull": null
+      },
+      "expected": [],
+      "notes": "Null returns empty"
+    },
+    {
+      "name": "multiple items error",
+      "expression": "(1 | 2).toQuantity()",
+      "input": null,
+      "error": true,
+      "notes": "Multiple items should throw error"
+    },
+    {
+      "name": "unit conversion - cm to mm",
+      "expression": "'1 \\'cm\\''.toQuantity('mm').value = 10",
+      "input": null,
+      "expected": [true],
+      "notes": "UCUM unit conversion"
+    },
+    {
+      "name": "unit conversion - week to days",
+      "expression": "'1 \\'wk\\''.toQuantity('d') = 7 'd'",
+      "input": null,
+      "expected": [true],
+      "notes": "Week to days conversion"
+    },
+    {
+      "name": "unit conversion - invalid",
+      "expression": "'1 \\'cm\\''.toQuantity('g')",
+      "input": null,
+      "expected": [],
+      "notes": "Invalid conversion returns empty"
+    },
+    {
+      "name": "unit conversion - nonexistent unit",
+      "expression": "'1 \\'wk\\''.toQuantity('nonexistent-unit')",
+      "input": null,
+      "expected": [],
+      "notes": "Nonexistent target unit returns empty"
+    }
+  ]
+}

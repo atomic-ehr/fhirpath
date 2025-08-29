@@ -45,6 +45,7 @@ export { dotOperator } from './dot-operator';
 // Functions
 export { whereFunction } from './where-function';
 export { selectFunction } from './select-function';
+export { repeatFunction } from './repeat-function';
 export { firstFunction } from './first-function';
 export { lastFunction } from './last-function';
 export { childrenFunction } from './children-function';
@@ -108,6 +109,8 @@ export { toIntegerFunction } from './toInteger-function';
 export { toDecimalFunction } from './toDecimal-function';
 export { toStringFunction } from './toString-function';
 export { toBooleanFunction } from './toBoolean-function';
+export { toQuantityFunction } from './toQuantity-function';
+export { toLongFunction } from './toLong-function';
 export { convertsToBooleanFunction } from './convertsToBoolean-function';
 export { convertsToIntegerFunction } from './convertsToInteger-function';
 export { convertsToDecimalFunction } from './convertsToDecimal-function';

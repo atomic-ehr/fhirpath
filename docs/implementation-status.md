@@ -6,8 +6,8 @@ Generated: 2025-08-28T (manually updated)
 
 ### Functions
 - **Total Functions**: 80
-- **Implemented**: 77 (96%)
-- **Fully Tested**: 77 (100% of implemented)
+- **Implemented**: 80 (100%)
+- **Fully Tested**: 80 (100% of implemented)
 - **Partially Tested**: 0
 - **Untested**: 0
 
@@ -37,12 +37,12 @@ Generated: 2025-08-28T (manually updated)
 | subsetOf | ✅ | operations/subsetOf-function.ts | 2 files | Full | - |
 | supersetOf | ✅ | operations/supersetOf-function.ts | 2 files | Full | - |
 
-### Filtering and Projection Functions (3/4 implemented)
+### Filtering and Projection Functions (4/4 implemented)
 
 | Function | Status | Implementation | Tests | Coverage | Notes |
 |----------|--------|----------------|-------|----------|-------|
 | ofType | ✅ | operations/ofType-function.ts | 10 files | Full | - |
-| repeat | ❌ | - | - | - | Not implemented |
+| repeat | ✅ | operations/repeat-function.ts | test-cases/operations/filtering/repeat.json | Full | Traverses tree structures |
 | select | ✅ | operations/select-function.ts | 28 files | Full | - |
 | where | ✅ | operations/where-function.ts | 34 files | Full | - |
 
@@ -67,7 +67,7 @@ Generated: 2025-08-28T (manually updated)
 | combine | ✅ | operations/combine-function.ts | 4 files | Full | - |
 | union | ✅ | operations/union-function.ts | 10 files | Full | - |
 
-### Conversion Functions (17/19 implemented)
+### Conversion Functions (19/19 implemented)
 
 | Function | Status | Implementation | Tests | Coverage | Notes |
 |----------|--------|----------------|-------|----------|-------|
@@ -86,8 +86,8 @@ Generated: 2025-08-28T (manually updated)
 | toDateTime | ✅ | operations/temporal-functions.ts | 2 files | Full | - |
 | toDecimal | ✅ | operations/toDecimal-function.ts | 2 files | Full | - |
 | toInteger | ✅ | operations/toInteger-function.ts | 4 files | Full | - |
-| toLong | ❌ | - | - | - | Not implemented |
-| toQuantity | ❌ | - | - | - | Not implemented |
+| toLong | ✅ | operations/toLong-function.ts | test-cases/operations/conversion/toLong.json | Full | 64-bit Long conversion (STU) |
+| toQuantity | ✅ | operations/toQuantity-function.ts | test-cases/operations/conversion/toQuantity.json | Full | Supports UCUM unit conversion |
 | toString | ✅ | operations/toString-function.ts | 7 files | Full | - |
 | toTime | ✅ | operations/temporal-functions.ts | 2 files | Full | - |
 
@@ -177,23 +177,9 @@ Generated: 2025-08-28T (manually updated)
 
 ## Priority Lists
 
-### High Priority - Not Implemented Functions
+### All Functions Implemented! 🎉
 
-#### Conversion Functions
-- convertsToBoolean
-- convertsToInteger
-- toLong
-- convertsToLong
-- convertsToDecimal
-- convertsToString
-- toDate
-- convertsToDate
-- toDateTime
-- convertsToDateTime
-- toTime
-- convertsToTime
-- toQuantity
-- convertsToQuantity
+All 80 FHIRPath functions are now implemented and tested.
 
 ### Implemented but Untested
 

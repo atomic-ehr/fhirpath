@@ -1,0 +1,150 @@
+{
+  "description": "Tests for the toLong() function",
+  "spec": "https://hl7.org/fhirpath/#tolong-long",
+  "notes": "The toLong function converts values to 64-bit Long integer type (STU feature)",
+  "tests": [
+    {
+      "name": "integer to long",
+      "expression": "1.toLong() = 1",
+      "input": null,
+      "expected": [true],
+      "notes": "Integer passes through as Long"
+    },
+    {
+      "name": "string integer to long",
+      "expression": "'123'.toLong() = 123",
+      "input": null,
+      "expected": [true],
+      "notes": "String integer converts to Long"
+    },
+    {
+      "name": "negative string to long",
+      "expression": "'-456'.toLong() = -456",
+      "input": null,
+      "expected": [true],
+      "notes": "Negative string integer converts to Long"
+    },
+    {
+      "name": "string with positive sign",
+      "expression": "'+789'.toLong() = 789",
+      "input": null,
+      "expected": [true],
+      "notes": "Positive sign is handled"
+    },
+    {
+      "name": "boolean true to long",
+      "expression": "true.toLong() = 1",
+      "input": null,
+      "expected": [true],
+      "notes": "Boolean true converts to 1"
+    },
+    {
+      "name": "boolean false to long",
+      "expression": "false.toLong() = 0",
+      "input": null,
+      "expected": [true],
+      "notes": "Boolean false converts to 0"
+    },
+    {
+      "name": "max 64-bit value",
+      "expression": "'9223372036854775807'.toLong() = 9223372036854775807",
+      "input": null,
+      "expected": [true],
+      "notes": "Maximum 64-bit Long value"
+    },
+    {
+      "name": "min 64-bit value",
+      "expression": "'-9223372036854775808'.toLong() = -9223372036854775808",
+      "input": null,
+      "expected": [true],
+      "notes": "Minimum 64-bit Long value"
+    },
+    {
+      "name": "overflow positive",
+      "expression": "'9223372036854775808'.toLong()",
+      "input": null,
+      "expected": [],
+      "notes": "Value exceeding max 64-bit returns empty"
+    },
+    {
+      "name": "overflow negative",
+      "expression": "'-9223372036854775809'.toLong()",
+      "input": null,
+      "expected": [],
+      "notes": "Value exceeding min 64-bit returns empty"
+    },
+    {
+      "name": "decimal value returns empty",
+      "expression": "1.5.toLong()",
+      "input": null,
+      "expected": [],
+      "notes": "Decimal values cannot convert to Long"
+    },
+    {
+      "name": "decimal string returns empty",
+      "expression": "'1.5'.toLong()",
+      "input": null,
+      "expected": [],
+      "notes": "Decimal strings cannot convert to Long"
+    },
+    {
+      "name": "non-numeric string returns empty",
+      "expression": "'abc'.toLong()",
+      "input": null,
+      "expected": [],
+      "notes": "Non-numeric strings return empty"
+    },
+    {
+      "name": "string with spaces returns empty",
+      "expression": "' 123 '.toLong()",
+      "input": null,
+      "expected": [],
+      "notes": "Strings with spaces don't match pattern"
+    },
+    {
+      "name": "empty input",
+      "expression": "{}.toLong()",
+      "input": null,
+      "expected": [],
+      "notes": "Empty input returns empty"
+    },
+    {
+      "name": "null value",
+      "expression": "Functions.attrnull.toLong()",
+      "input": {
+        "resourceType": "Functions",
+        "attrnull": null
+      },
+      "expected": [],
+      "notes": "Null returns empty"
+    },
+    {
+      "name": "multiple items error",
+      "expression": "(1 | 2).toLong()",
+      "input": null,
+      "error": true,
+      "notes": "Multiple items should throw error"
+    },
+    {
+      "name": "zero value",
+      "expression": "0.toLong() = 0",
+      "input": null,
+      "expected": [true],
+      "notes": "Zero converts correctly"
+    },
+    {
+      "name": "string zero",
+      "expression": "'0'.toLong() = 0",
+      "input": null,
+      "expected": [true],
+      "notes": "String zero converts correctly"
+    },
+    {
+      "name": "large safe integer",
+      "expression": "9007199254740991.toLong() = 9007199254740991",
+      "input": null,
+      "expected": [true],
+      "notes": "JavaScript MAX_SAFE_INTEGER converts correctly"
+    }
+  ]
+}
