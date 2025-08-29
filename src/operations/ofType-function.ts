@@ -3,7 +3,6 @@ import { Errors } from '../errors';
 import type { FHIRPathValue } from '../boxing';
 import { unbox } from '../boxing';
 import { isIdentifierNode, isFunctionNode } from '../types';
-import { NodeType } from '../types';
 
 export const ofTypeFunction: FunctionDefinition & { evaluate: FunctionEvaluator } = {
   name: 'ofType',
@@ -38,10 +37,6 @@ export const ofTypeFunction: FunctionDefinition & { evaluate: FunctionEvaluator 
     let targetTypeName: string;
     if (isIdentifierNode(typeArg)) {
       targetTypeName = typeArg.name;
-    } else if (typeArg.type === NodeType.TypeOrIdentifier) {
-      targetTypeName = (typeArg as any).name;
-    } else if (typeArg.type === NodeType.TypeReference) {
-      targetTypeName = (typeArg as any).name;
     } else if (isFunctionNode(typeArg) && isIdentifierNode(typeArg.name)) {
       // Handle cases like ofType(Patient())
       targetTypeName = typeArg.name.name;

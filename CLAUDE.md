@@ -12,7 +12,7 @@ This is a TypeScript implementation of FHIRPath - a path-based navigation and ex
 
 ### Core Architecture
 
-- **Parser** (`parser.ts`, `parser-base.ts`): Converts FHIRPath expressions to AST using precedence climbing
+- **Parser** (`parser.ts`): Converts FHIRPath expressions to AST using precedence climbing
 - **Lexer** (`lexer.ts`): Tokenizes input strings, recognizing operators, literals, identifiers
 - **Interpreter** (`interpreter.ts`): Evaluates AST nodes using visitor pattern
 - **Registry** (`registry.ts`): Manages operator/function definitions with precedence and type signatures
@@ -37,6 +37,7 @@ const result = evaluate("Patient.name.where(use = 'official').given", {
 ```
 
 * ./spec is official spec of FHIRPath
+* ./spec/FHIRPath.g4 - official FHIRPath grammar
 * ./adr is a folder for Architecture Decision Records. (read ./adr/README.md for more details)
 * ./concepts is a wiki like knowledge base for the project.
 * ./tasks is a folder for task management (read ./tasks/README.md for more details)

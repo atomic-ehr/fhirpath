@@ -21,13 +21,13 @@ describe('Parser trivia capture (leading/trailing)', () => {
     const right = ast.right;
 
     // Trailing whitespace before '.' attaches to left identifier
-    expect(left.type).toBe(NodeType.TypeOrIdentifier);
+    expect(left.type).toBe(NodeType.Identifier);
     expect(Array.isArray(left.trailingTrivia)).toBe(true);
     expect(left.trailingTrivia?.[0]?.type).toBe('whitespace');
     expect(left.trailingTrivia?.[0]?.value).toBe('  ');
 
     // Leading whitespace after '.' attaches to right identifier
-    expect(right.type === NodeType.Identifier || right.type === NodeType.TypeOrIdentifier).toBe(true);
+    expect(right.type === NodeType.Identifier).toBe(true);
     expect(Array.isArray(right.leadingTrivia)).toBe(true);
     expect(right.leadingTrivia?.[0]?.type).toBe('whitespace');
     expect(right.leadingTrivia?.[0]?.value).toBe('  ');
@@ -54,4 +54,3 @@ describe('Parser trivia capture (leading/trailing)', () => {
     expect(leading.some(t => t.type === 'whitespace' && t.value.includes('\n'))).toBe(true);
   });
 });
-

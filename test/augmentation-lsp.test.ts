@@ -53,7 +53,7 @@ describe('LSP augmentation via parse() in LSP mode', () => {
     const fn = (ast as any).right;
     expect(fn.type).toBe(NodeType.Function);
     const nameNode = fn.name;
-    expect(nameNode.type === NodeType.Identifier || nameNode.type === NodeType.TypeOrIdentifier).toBe(true);
+    expect(nameNode.type === NodeType.Identifier).toBe(true);
     expect(nameNode.name).toBe('ofType');
 
     // Its first argument should be a cursor type node after transformation

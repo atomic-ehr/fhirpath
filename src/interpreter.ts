@@ -8,7 +8,6 @@ import type {
   VariableNode,
   CollectionNode,
   IndexNode,
-  TypeOrIdentifierNode,
   MembershipTestNode,
   TypeCastNode,
   QuantityNode
@@ -47,7 +46,6 @@ export class Interpreter {
       [NodeType.Literal]: this.evaluateLiteral.bind(this),
       [NodeType.TemporalLiteral]: this.evaluateTemporalLiteral.bind(this),
       [NodeType.Identifier]: this.evaluateIdentifier.bind(this),
-      [NodeType.TypeOrIdentifier]: this.evaluateTypeOrIdentifier.bind(this),
       [NodeType.Binary]: this.evaluateBinary.bind(this),
       [NodeType.Unary]: this.evaluateUnary.bind(this),
       [NodeType.Function]: this.evaluateFunction.bind(this),
@@ -342,39 +340,30 @@ export class Interpreter {
       }
     }
 
-    return { value: results, context };
-  }
-
-  // TypeOrIdentifier node evaluator (handles Patient, Observation, etc.)
-  private async evaluateTypeOrIdentifier(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): Promise<EvaluationResult> {
-    const typeOrId = node as TypeOrIdentifierNode;
-    const name = typeOrId.name;
-
-    // First try as type filter
-    const filtered: FHIRPathValue[] = [];
-    for (const boxedItem of input) {
-      const item = unbox(boxedItem);
-      if (item && typeof item === 'object' && item.resourceType === name) {
-        // Re-box with proper type info if we have a model provider
-        if (context.modelProvider) {
-          const typeInfo = await context.modelProvider.getType(name);
-          if (typeInfo) {
-            filtered.push(box(item, { ...typeInfo, singleton: true }));
+    // If no properties matched, try type-filter fallback on resources
+    if (results.length === 0) {
+      const filtered: FHIRPathValue[] = [];
+      for (const boxedItem of input) {
+        const item = unbox(boxedItem);
+        if (item && typeof item === 'object' && (item as any).resourceType === name) {
+          if (context.modelProvider) {
+            const typeInfo = await context.modelProvider.getType(name);
+            if (typeInfo) {
+              filtered.push(box(item, { ...typeInfo, singleton: true }));
+            } else {
+              filtered.push(boxedItem);
+            }
           } else {
             filtered.push(boxedItem);
           }
-        } else {
-          filtered.push(boxedItem);
         }
+      }
+      if (filtered.length > 0) {
+        return { value: filtered, context };
       }
     }
 
-    if (filtered.length > 0) {
-      return { value: filtered, context };
-    }
-
-    // Otherwise treat as identifier
-    return await this.evaluateIdentifier(node, input, context);
+    return { value: results, context };
   }
 
   // Binary operator evaluator

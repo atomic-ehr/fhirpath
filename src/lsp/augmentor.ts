@@ -51,7 +51,7 @@ export function augment(ast: ASTNode, opts: AugmentationOptions): AugmentationRe
     const bucket = indexes.nodesByType.get(node.type) || [];
     bucket.push(node);
     indexes.nodesByType.set(node.type, bucket);
-    if ((node as any).type === NodeType.Identifier || (node as any).type === NodeType.TypeOrIdentifier) {
+    if ((node as any).type === NodeType.Identifier) {
       const name = (node as any).name as string;
       const arr = indexes.identifiers.get(name) || [];
       arr.push(node);
@@ -135,14 +135,14 @@ export function augment(ast: ASTNode, opts: AugmentationOptions): AugmentationRe
                   if (isCursorNode(binaryArg.right)) {
                     const cursorNode = binaryArg.right as AnyCursorNode;
                     let partialText: string | undefined;
-                    if (binaryArg.left.type === NodeType.TypeOrIdentifier || binaryArg.left.type === NodeType.Identifier) {
+                    if (binaryArg.left.type === NodeType.Identifier) {
                       partialText = (binaryArg.left as any).name;
                     }
                     return createCursorTypeNode(cursorNode.position, 'ofType', partialText) as any;
                   }
                 }
                 // New: identifier immediately before cursor inside ofType
-                if ((arg.type === NodeType.TypeOrIdentifier || arg.type === NodeType.Identifier) && (arg as any).range?.end?.offset === cursorPos) {
+                if ((arg.type === NodeType.Identifier) && (arg as any).range?.end?.offset === cursorPos) {
                   const name = (arg as any).name as string | undefined;
                   return createCursorTypeNode(cursorPos, 'ofType', name) as any;
                 }
@@ -169,14 +169,14 @@ export function augment(ast: ASTNode, opts: AugmentationOptions): AugmentationRe
                 if (isCursorNode(binaryArg.right)) {
                   const cursorNode = binaryArg.right as AnyCursorNode;
                   let partialText: string | undefined;
-                  if (binaryArg.left.type === NodeType.TypeOrIdentifier || binaryArg.left.type === NodeType.Identifier) {
+                  if (binaryArg.left.type === NodeType.Identifier) {
                     partialText = (binaryArg.left as any).name;
                   }
                   return createCursorTypeNode(cursorNode.position, 'ofType', partialText) as any;
                 }
               }
               // New: identifier immediately before cursor inside ofType
-              if ((arg.type === NodeType.TypeOrIdentifier || arg.type === NodeType.Identifier) && (arg as any).range?.end?.offset === cursorPos) {
+              if ((arg.type === NodeType.Identifier) && (arg as any).range?.end?.offset === cursorPos) {
                 const name = (arg as any).name as string | undefined;
                 return createCursorTypeNode(cursorPos, 'ofType', name) as any;
               }

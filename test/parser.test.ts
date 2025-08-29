@@ -7,7 +7,6 @@ import type {
   UnaryNode,
   CollectionNode,
   IdentifierNode,
-  TypeOrIdentifierNode,
   FunctionNode,
   IndexNode,
   VariableNode,
@@ -155,9 +154,9 @@ describe("FHIRPath Parser", () => {
       expect(ast.name).toBe("name");
     });
 
-    it("should parse identifiers starting with uppercase as TypeOrIdentifier", async () => {
-      const ast = parse("Patient") as TypeOrIdentifierNode;
-      expect(ast.type).toBe(NodeType.TypeOrIdentifier);
+    it("should parse identifiers regardless of casing", async () => {
+      const ast = parse("Patient") as IdentifierNode;
+      expect(ast.type).toBe(NodeType.Identifier);
       expect(ast.name).toBe("Patient");
     });
 
@@ -392,7 +391,9 @@ describe("FHIRPath Parser", () => {
       const ast = parse("Patient.name") as BinaryNode;
       expect(ast.type).toBe(NodeType.Binary);
       expect(ast.operator).toBe(".");
-      expect((ast.left as TypeOrIdentifierNode).name).toBe("Patient");
+      const left = (ast.left as BinaryNode | IdentifierNode);
+      const leftId = (left as IdentifierNode).name ?? ((left as BinaryNode).left as IdentifierNode).name;
+      expect(leftId).toBe("Patient");
       expect((ast.right as IdentifierNode).name).toBe("name");
     });
 
@@ -409,7 +410,9 @@ describe("FHIRPath Parser", () => {
       const ast = parse("Patient.%resource") as BinaryNode;
       expect(ast.type).toBe(NodeType.Binary);
       expect(ast.operator).toBe(".");
-      expect((ast.left as TypeOrIdentifierNode).name).toBe("Patient");
+      const left2 = (ast.left as BinaryNode | IdentifierNode);
+      const leftId2 = (left2 as IdentifierNode).name ?? ((left2 as BinaryNode).left as IdentifierNode).name;
+      expect(leftId2).toBe("Patient");
       expect((ast.right as VariableNode).type).toBe(NodeType.Variable);
       expect((ast.right as VariableNode).name).toBe("%resource");
     });

@@ -1,6 +1,6 @@
 import { TokenType } from '../lexer';
 import { NodeType } from '../types';
-import type { ASTNode, IdentifierNode, TypeOrIdentifierNode, BinaryNode, UnaryNode, FunctionNode, IndexNode, MembershipTestNode, TypeCastNode } from '../types';
+import type { ASTNode, IdentifierNode, BinaryNode, UnaryNode, FunctionNode, IndexNode, MembershipTestNode, TypeCastNode } from '../types';
 
 export function findNodeAtPosition(root: ASTNode, offset: number): ASTNode | null {
   if (offset < root.range.start.offset! || offset > root.range.end.offset!) {
@@ -42,7 +42,6 @@ export function getExpectedTokens(node: ASTNode | null): TokenType[] {
     case NodeType.Binary:
       return [TokenType.DOT, TokenType.LBRACKET];
     case NodeType.Identifier:
-    case NodeType.TypeOrIdentifier:
       return [TokenType.DOT, TokenType.LPAREN, TokenType.LBRACKET];
     default:
       return getExpectedTokensForError();
@@ -74,4 +73,3 @@ export function getCompletions(node: ASTNode | null, identifiers?: Map<string, A
   );
   return completions;
 }
-

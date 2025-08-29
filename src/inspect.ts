@@ -138,7 +138,6 @@ function analyzeAST(node: ASTNode, maxDepth = 100): ASTMetadata {
       case NodeType.Identifier:
       case NodeType.Variable:
       case NodeType.TypeReference:
-      case NodeType.TypeOrIdentifier:
         complexity += 1;
         break;
     }

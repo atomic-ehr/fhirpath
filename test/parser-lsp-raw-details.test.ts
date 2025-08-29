@@ -27,7 +27,7 @@ describe('Parser LSP raw spans (non-root nodes)', () => {
     expect(fn.raw).toBe("first('x', 1");
 
     // Function name is Identifier 'first'
-    expect(fn.name.type === NodeType.Identifier || fn.name.type === NodeType.TypeOrIdentifier).toBe(true);
+    expect(fn.name.type === NodeType.Identifier).toBe(true);
     expect(fn.name.raw).toBe('first');
   });
 

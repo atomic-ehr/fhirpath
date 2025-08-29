@@ -25,10 +25,6 @@ const isEvaluator: FunctionEvaluator = async (
   
   if (isIdentifierNode(typeArg)) {
     typeName = typeArg.name;
-  } else if (typeArg.type === NodeType.TypeOrIdentifier) {
-    typeName = (typeArg as any).name;
-  } else if (typeArg.type === NodeType.TypeReference) {
-    typeName = (typeArg as any).name;
   } else {
     // For other node types, try to get the name
     throw new Error(`is() requires a type name as argument, got ${typeArg.type}`);

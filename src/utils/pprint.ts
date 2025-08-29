@@ -2,7 +2,6 @@ import { NodeType } from '../types';
 import type {
   ASTNode,
   IdentifierNode,
-  TypeOrIdentifierNode,
   LiteralNode,
   UnaryNode,
   BinaryNode,
@@ -29,9 +28,8 @@ export function pprint(node: ASTNode, indent: number = 0): string {
       return String(lit.value);
     }
 
-    case NodeType.Identifier:
-    case NodeType.TypeOrIdentifier: {
-      const id = node as IdentifierNode | TypeOrIdentifierNode;
+    case NodeType.Identifier: {
+      const id = node as IdentifierNode;
       return id.name;
     }
 
@@ -151,4 +149,3 @@ export function pprint(node: ASTNode, indent: number = 0): string {
       return `<unknown:${(node as any).type}>`;
   }
 }
-

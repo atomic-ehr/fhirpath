@@ -131,7 +131,6 @@ export enum NodeType {
   EOF = 'EOF',
   Binary = 'Binary',
   Unary = 'Unary',
-  TypeOrIdentifier = 'TypeOrIdentifier',
   Identifier = 'Identifier',
   Literal = 'Literal',
   TemporalLiteral = 'TemporalLiteral',
@@ -228,11 +227,6 @@ export interface IdentifierNode extends BaseASTNode {
   symbolKind?: SymbolKind.Variable | SymbolKind.Function | SymbolKind.Property;
 }
 
-export interface TypeOrIdentifierNode extends BaseASTNode {
-  type: NodeType.TypeOrIdentifier;
-  name: string;
-}
-
 export interface LiteralNode extends BaseASTNode {
   type: NodeType.Literal;
   value: any;
@@ -310,7 +304,6 @@ export interface QuantityNode extends BaseASTNode {
 // Unified ASTNode type - discriminated union
 export type ASTNode = 
   | IdentifierNode
-  | TypeOrIdentifierNode
   | LiteralNode
   | TemporalLiteralNode
   | BinaryNode
@@ -450,7 +443,8 @@ export class AnalysisContext {
     public readonly userVariables: ReadonlyMap<string, TypeInfo>,
     private readonly analyzeNodeCallback: (node: ASTNode, ctx: AnalysisContext) => Promise<InternalAnalysisResult>,
     public readonly modelProvider?: ModelProvider,
-    public readonly hasDynamicVariables: boolean = false
+    public readonly hasDynamicVariables: boolean = false,
+    public readonly _chainHead: boolean = true
   ) {}
 
   withUserVariable(name: string, type: TypeInfo): AnalysisContext {
@@ -462,7 +456,8 @@ export class AnalysisContext {
       newUserVars,
       this.analyzeNodeCallback,
       this.modelProvider,
-      this.hasDynamicVariables
+      this.hasDynamicVariables,
+      this._chainHead
     );
   }
 
@@ -475,7 +470,8 @@ export class AnalysisContext {
       this.userVariables,
       this.analyzeNodeCallback,
       this.modelProvider,
-      this.hasDynamicVariables
+      this.hasDynamicVariables,
+      this._chainHead
     );
   }
 
@@ -486,7 +482,8 @@ export class AnalysisContext {
       this.userVariables,
       this.analyzeNodeCallback,
       this.modelProvider,
-      this.hasDynamicVariables
+      this.hasDynamicVariables,
+      false
     );
   }
 
@@ -497,7 +494,8 @@ export class AnalysisContext {
       this.userVariables,
       this.analyzeNodeCallback,
       this.modelProvider,
-      true
+      true,
+      this._chainHead
     );
   }
 
@@ -508,7 +506,8 @@ export class AnalysisContext {
       new Map(this.userVariables),
       this.analyzeNodeCallback,
       this.modelProvider,
-      this.hasDynamicVariables
+      this.hasDynamicVariables,
+      this._chainHead
     );
   }
 
@@ -516,4 +515,3 @@ export class AnalysisContext {
     return this.analyzeNodeCallback(node, this);
   }
 }
-

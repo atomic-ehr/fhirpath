@@ -15,7 +15,6 @@ import type {
   BaseASTNode,
   ASTNode,
   IdentifierNode,
-  TypeOrIdentifierNode,
   LiteralNode,
   TemporalLiteralNode,
   BinaryNode,
@@ -47,7 +46,6 @@ export {
   type Range,
   type ASTNode,
   type IdentifierNode,
-  type TypeOrIdentifierNode,
   type LiteralNode,
   type TemporalLiteralNode,
   type BinaryNode,
@@ -710,7 +708,7 @@ export class Parser {
   
   // Shared utility methods
   protected isFunctionCall(node: ASTNode): boolean {
-    return (node as any).type === NodeType.Identifier || (node as any).type === NodeType.TypeOrIdentifier;
+    return (node as any).type === NodeType.Identifier;
   }
   
   // removed unused: isBinaryOperatorToken, isKeywordAllowedAsMember, isKeywordAllowedAsIdentifier
@@ -796,17 +794,11 @@ export class Parser {
   // Implement node creation methods
   protected createIdentifierNode(name: string, token: Token): ASTNode {
     const range = this.getRangeFromToken(token);
-    const isType = name[0] && name[0] >= 'A' && name[0] <= 'Z';
-    const nodeType = isType ? NodeType.TypeOrIdentifier : NodeType.Identifier;
-    
     const node: ASTNode = {
-      type: nodeType,
+      type: NodeType.Identifier,
       name,
       range
-    };
-    
-    // LSP enrichment handled by augmentor
-    
+    } as any;
     return node;
   }
 

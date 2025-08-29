@@ -16,7 +16,6 @@ import type {
   ModelProvider,
   VariableNode,
   TypeName,
-  TypeOrIdentifierNode,
   ErrorNode,
   InternalAnalysisResult,
   QuantityNode
@@ -92,8 +91,7 @@ export class Analyzer {
         result = this.analyzeVariable(node as VariableNode, context);
         break;
       case NodeType.Identifier:
-      case NodeType.TypeOrIdentifier:
-        result = await this.analyzeIdentifier(node as IdentifierNode | TypeOrIdentifierNode, context);
+        result = await this.analyzeIdentifier(node as IdentifierNode, context);
         break;
       case NodeType.Literal:
         result = this.analyzeLiteral(node as LiteralNode, context);
@@ -396,8 +394,8 @@ export class Analyzer {
     }
     const typeArg = node.arguments[0]!;
     let targetType: string | undefined;
-    if (typeArg.type === NodeType.TypeOrIdentifier) {
-      targetType = (typeArg as TypeOrIdentifierNode).name;
+    if (typeArg.type === NodeType.Identifier) {
+      targetType = (typeArg as IdentifierNode).name;
     }
     if (!targetType) {
       return diagnostics;
@@ -421,9 +419,7 @@ export class Analyzer {
     for (let i = 0; i < node.arguments.length; i++) {
       const arg = node.arguments[i]!;
       const param = params[i];
-      const isTypeParameter =
-        !!param?.expression && ['ofType', 'is', 'as'].includes(functionName) &&
-        (arg.type === NodeType.Identifier || arg.type === NodeType.TypeOrIdentifier);
+      const isTypeParameter = !!param?.typeReference;
 
       if (isTypeParameter) {
         argTypes.push({ type: 'TypeReference' as TypeName, singleton: true });
@@ -647,7 +643,7 @@ export class Analyzer {
   /**
    * Analyzes identifier nodes (property access).
    */
-  private async analyzeIdentifier(node: IdentifierNode | TypeOrIdentifierNode, context: AnalysisContext): Promise<InternalAnalysisResult> {
+  private async analyzeIdentifier(node: IdentifierNode, context: AnalysisContext): Promise<InternalAnalysisResult> {
     const name = 'name' in node ? node.name : '';
     const diagnostics: Diagnostic[] = [];
     
@@ -662,10 +658,9 @@ export class Analyzer {
           context
         };
       }
-      
-      // For TypeOrIdentifier nodes with uppercase names, check if it's a type name
-      // This handles cases like 'Patient.children()' where Patient is a type, not a property
-      if (node.type === NodeType.TypeOrIdentifier && /^[A-Z]/.test(name)) {
+      // Chain-head rule: at the head of a navigation chain, allow treating the
+      // identifier as a known type to seed the chain (e.g., Patient.name)
+      if ((context as any)._chainHead === true) {
         const typeInfo = await context.modelProvider.getType(name);
         if (typeInfo) {
           return {
