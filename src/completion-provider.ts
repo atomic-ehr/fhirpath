@@ -135,7 +135,18 @@ export async function provideCompletions(
     const { typeBeforeCursor, functionCall } = analysis.cursorContext || {};
     
     // Get partial text for filtering
-    const partialText = (cursorNode as any).partialText || '';
+    // Determine partial text for filtering (prefer AST-provided, else infer from source)
+    let partialText = (cursorNode as any).partialText || '';
+    if (!partialText && cursorNode.context === CursorContext.Type) {
+      // Heuristic: scan left from cursor to preceding '(' or whitespace and take the identifier fragment
+      const cp = cursorPosition;
+      const left = expression.slice(0, cp);
+      // Take the trailing run of identifier characters
+      const m = left.match(/[A-Za-z][A-Za-z0-9.]*$/);
+      if (m) {
+        partialText = m[0];
+      }
+    }
     
     // Generate completions based on cursor context
     let completions: CompletionItem[] = [];

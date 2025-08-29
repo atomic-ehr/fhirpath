@@ -2,15 +2,12 @@ import { Lexer, TokenType, Channel } from './lexer';
 import type { Token, LexerOptions } from './lexer';
 import { registry } from './registry';
 import { NodeType } from './types';
-import type { AnyCursorNode } from './cursor-nodes';
 import {
-  CursorContext,
   createCursorOperatorNode,
   createCursorIdentifierNode,
   createCursorArgumentNode,
   createCursorIndexNode,
   createCursorTypeNode,
-  isCursorNode,
 } from './cursor-nodes';
 import type {
   Position,
@@ -38,6 +35,9 @@ import type {
 } from './types';
 import { Errors } from './errors';
 import { parseTemporalLiteral } from './temporal';
+import { augment } from './lsp/augmentor';
+import { findNodeAtPosition, getCompletions as lspGetCompletions, getExpectedTokens as lspGetExpectedTokens } from './lsp/cursor-services';
+import { computeTriviaSpans } from './lsp/trivia-indexer';
 
 // Re-export types for backward compatibility
 export {
@@ -65,6 +65,7 @@ export {
   type ParseResult,
   type ParseError
 } from './types';
+export { pprint } from './utils/pprint';
 
 // Parser options
 export interface ParserOptions {
@@ -86,10 +87,6 @@ export class Parser {
   private options: ParserOptions;
   private preserveTriviaEffective = false;
   private errors?: ParseError[];
-  private nodeIdCounter?: number;
-  private nodeIndex?: Map<string, ASTNode>;
-  private nodesByType?: Map<NodeType | 'Error' | 'CursorNode', ASTNode[]>;
-  private identifierIndex?: Map<string, ASTNode[]>;
   private input: string;
   // Trivia and token indexes for LSP mode with trivia preservation
   private leadingTriviaByTokenStart?: Map<number, TriviaInfo[]>;
@@ -119,7 +116,11 @@ export class Parser {
     
     // If preserving trivia, capture leading/trailing trivia spans before filtering
     if (this.preserveTriviaEffective) {
-      this.computeTriviaSpans(this.tokens);
+      const spans = computeTriviaSpans(this.tokens);
+      this.leadingTriviaByTokenStart = spans.leadingByStart;
+      this.trailingTriviaByTokenEnd = spans.trailingByEnd;
+      this.tokenByStart = spans.tokenByStart;
+      this.tokenByEnd = spans.tokenByEnd;
       // Then filter hidden-channel tokens out for parsing
       this.tokens = this.tokens.filter(token => token.channel === undefined || token.channel === Channel.DEFAULT);
     }
@@ -136,58 +137,8 @@ export class Parser {
     // Initialize LSP features only if needed
     if (this.mode === 'lsp') {
       this.errors = [];
-      this.nodeIdCounter = 0;
-      this.nodeIndex = new Map();
-      this.nodesByType = new Map();
-      this.identifierIndex = new Map();
-      // no parent tracking needed; creators wire parent/children explicitly
+      // indexes are now built by the augmentor
     }
-  }
-  
-  private computeTriviaSpans(allTokens: Token[]): void {
-    this.leadingTriviaByTokenStart = new Map();
-    this.trailingTriviaByTokenEnd = new Map();
-    this.tokenByStart = new Map();
-    this.tokenByEnd = new Map();
-    
-    let acc: TriviaInfo[] = [];
-    let lastDefault: Token | undefined;
-    
-    const toTrivia = (token: Token): TriviaInfo | null => {
-      const range = token.range || {
-        start: { line: 0, character: 0, offset: token.start },
-        end: { line: 0, character: 0, offset: token.end }
-      };
-      if (token.type === TokenType.WHITESPACE) {
-        return { type: 'whitespace', value: token.value, range };
-      }
-      if (token.type === TokenType.LINE_COMMENT) {
-        return { type: 'lineComment', value: token.value, range };
-      }
-      if (token.type === TokenType.BLOCK_COMMENT) {
-        return { type: 'comment', value: token.value, range };
-      }
-      return null;
-    };
-    
-    for (const tok of allTokens) {
-      const isHidden = tok.channel === Channel.HIDDEN;
-      if (isHidden) {
-        const trivia = toTrivia(tok);
-        if (trivia) acc.push(trivia);
-        continue;
-      }
-      const accCopy = acc.length ? acc.slice() : [];
-      if (lastDefault) {
-        this.trailingTriviaByTokenEnd!.set(lastDefault.end, accCopy);
-      }
-      this.leadingTriviaByTokenStart!.set(tok.start, accCopy);
-      this.tokenByStart!.set(tok.start, tok);
-      this.tokenByEnd!.set(tok.end, tok);
-      acc = [];
-      lastDefault = tok;
-    }
-    // Trailing trivia after the last default token is ignored for now
   }
 
   // removed unused checkCursor(); cursor handling is contextual in parse methods
@@ -195,32 +146,32 @@ export class Parser {
   private injectCursorToken(tokens: Token[], cursorPosition: number): Token[] {
     // Find the position to inject the cursor token
     let insertIndex = 0;
-    
+
     for (let i = 0; i < tokens.length; i++) {
       const token = tokens[i];
       if (!token) continue;
-      
+
       // Skip EOF token
       if (token.type === TokenType.EOF) {
         break;
       }
-      
+
       // Check if cursor is before this token
       if (cursorPosition <= token.start) {
         insertIndex = i;
         break;
       }
-      
+
       // Check if cursor is within this token (we ignore mid-token cursors)
       if (cursorPosition > token.start && cursorPosition < token.end) {
         // Cursor is mid-token, ignore it
         return tokens;
       }
-      
+
       // Cursor is after this token
       insertIndex = i + 1;
     }
-    
+
     // Create cursor token
     const cursorToken: Token = {
       type: TokenType.CURSOR,
@@ -234,14 +185,14 @@ export class Parser {
         end: { line: 0, character: cursorPosition, offset: cursorPosition }
       }
     };
-    
+
     // Insert cursor token
     const result = [...tokens];
     result.splice(insertIndex, 0, cursorToken);
-    
+
     return result;
   }
-  
+
   private getRangeFromToken(token: Token): Range {
     return token.range || {
       start: { line: 0, character: 0, offset: token.start },
@@ -308,9 +259,7 @@ export class Parser {
   private parseLSP(): ParseResult {
     // Clear indexes for fresh parse
     this.errors = [];
-    this.nodeIndex!.clear();
-    this.nodesByType!.clear();
-    this.identifierIndex!.clear();
+    // indexes will be built by augmentor
     
     let ast: ASTNode;
     
@@ -322,10 +271,7 @@ export class Parser {
         this.addError(Errors.unexpectedToken(token.value || TokenType[token.type], this.getRangeFromToken(token)).message, token);
       }
       
-      // Transform cursor nodes in ofType function arguments
-      if (this.options.cursorPosition !== undefined) {
-        ast = this.transformOfTypeCursorNodes(ast);
-      }
+      // No transform here; augmentor handles cursor-specific transforms
     } catch (error) {
       // In LSP mode, create error node on fatal errors
       if (error instanceof Error) {
@@ -335,81 +281,37 @@ export class Parser {
       }
     }
     
-    // Populate trivia on all nodes after AST is built
-    if (this.preserveTriviaEffective) {
-      this.populateTrivia(ast);
-    }
+    // Augment AST for LSP consumers
+    const aug = augment(ast, {
+      input: this.input,
+      preserveTrivia: this.preserveTriviaEffective,
+      trivia: this.preserveTriviaEffective ? {
+        leadingByStart: this.leadingTriviaByTokenStart,
+        trailingByEnd: this.trailingTriviaByTokenEnd,
+      } : undefined,
+      cursorPosition: this.options.cursorPosition,
+    });
 
     const result: ParseResult = {
-      ast,
+      ast: aug.ast,
       errors: this.errors!,
-      indexes: {
-        nodeById: this.nodeIndex!,
-        nodesByType: this.nodesByType!,
-        identifiers: this.identifierIndex!
-      }
+      indexes: aug.indexes,
     };
     
     // Add cursor context if partial parsing
     if (this.options.partialParse) {
-      const nodeAtCursor = this.findNodeAtPosition(ast, this.options.partialParse.cursorPosition);
+      const nodeAtCursor = findNodeAtPosition(aug.ast, this.options.partialParse.cursorPosition);
       result.cursorContext = {
         node: nodeAtCursor,
-        expectedTokens: this.getExpectedTokens(nodeAtCursor),
-        availableCompletions: this.getCompletions(nodeAtCursor)
+        expectedTokens: lspGetExpectedTokens(nodeAtCursor),
+        availableCompletions: lspGetCompletions(nodeAtCursor, aug.indexes.identifiers)
       };
     }
     
     return result;
   }
 
-  private populateTrivia(node: ASTNode): void {
-    if (!this.preserveTriviaEffective) return;
-    const startOffset = node.range.start.offset ?? -1;
-    const endOffset = node.range.end.offset ?? -1;
-    node.leadingTrivia = this.leadingTriviaByTokenStart?.get(startOffset) ?? [];
-    node.trailingTrivia = this.trailingTriviaByTokenEnd?.get(endOffset) ?? [];
-    if ('children' in node && Array.isArray((node as any).children)) {
-      for (const child of (node as any).children as ASTNode[]) {
-        this.populateTrivia(child);
-      }
-    }
-    // Handle nodes without children arrays explicitly
-    switch (node.type) {
-      case NodeType.Binary:
-        this.populateTrivia((node as BinaryNode).left);
-        this.populateTrivia((node as BinaryNode).right);
-        break;
-      case NodeType.Unary:
-        this.populateTrivia((node as UnaryNode).operand);
-        break;
-      case NodeType.Function: {
-        const fn = node as FunctionNode;
-        this.populateTrivia(fn.name);
-        for (const arg of fn.arguments) this.populateTrivia(arg);
-        break;
-      }
-      case NodeType.Index: {
-        const idx = node as IndexNode;
-        this.populateTrivia(idx.expression);
-        this.populateTrivia(idx.index);
-        break;
-      }
-      case NodeType.MembershipTest:
-        this.populateTrivia((node as MembershipTestNode).expression);
-        break;
-      case NodeType.TypeCast:
-        this.populateTrivia((node as TypeCastNode).expression);
-        break;
-      case NodeType.Collection: {
-        const coll = node as CollectionNode;
-        for (const el of coll.elements) this.populateTrivia(el);
-        break;
-      }
-      default:
-        break;
-    }
-  }
+  // Trivia population moved to augmentor
   
   // Shared expression parsing with precedence climbing
   protected expression(): ASTNode {
@@ -617,6 +519,15 @@ export class Parser {
     }
 
     if (token.type === TokenType.IDENTIFIER) {
+      // If cursor is exactly at end of identifier and no whitespace at cursor, treat as identifier context
+      if (this.options.cursorPosition !== undefined && this.options.cursorPosition === token.end) {
+        const ch = this.input[this.options.cursorPosition];
+        const isWs = ch === ' ' || ch === '\t' || ch === '\n' || ch === '\r' || ch === undefined;
+        if (!isWs) {
+          this.advance();
+          return createCursorIdentifierNode(this.options.cursorPosition, token.value) as any;
+        }
+      }
       this.advance();
       const name = this.parseIdentifierValue(token.value);
       return this.createIdentifierNode(name, token);
@@ -877,15 +788,7 @@ export class Parser {
       range
     };
     
-    // Add LSP features if in LSP mode
-    if (this.mode === 'lsp') {
-      this.enrichNodeForLSP(node);
-      
-      // Index identifier
-      const identifiers = this.identifierIndex!.get(name) || [];
-      identifiers.push(node);
-      this.identifierIndex!.set(name, identifiers);
-    }
+    // LSP enrichment handled by augmentor
     
     return node;
   }
@@ -898,9 +801,7 @@ export class Parser {
       range: this.getRangeFromToken(token)
     };
     
-    if (this.mode === 'lsp') {
-      this.enrichNodeForLSP(node);
-    }
+    // LSP enrichment handled by augmentor
     
     return node;
   }
@@ -917,9 +818,7 @@ export class Parser {
       range: this.getRangeFromToken(token)
     };
     
-    if (this.mode === 'lsp') {
-      this.enrichNodeForLSP(node);
-    }
+    // LSP enrichment handled by augmentor
     
     return node;
   }
@@ -933,16 +832,7 @@ export class Parser {
       range: this.getRangeFromNodes(left, right)
     };
     
-    if (this.mode === 'lsp') {
-      this.enrichNodeForLSP(node);
-      
-      // Set up parent-child relationships
-      if (node.id) {
-        left.parent = node;
-        right.parent = node;
-        node.children = [left, right];
-      }
-    }
+    // LSP enrichment handled by augmentor
     
     return node;
   }
@@ -956,14 +846,7 @@ export class Parser {
       range: { start: startPos, end: operand.range.end }
     };
     
-    if (this.mode === 'lsp') {
-      this.enrichNodeForLSP(node);
-      
-      if (node.id) {
-        operand.parent = node;
-        node.children = [operand];
-      }
-    }
+    // LSP enrichment handled by augmentor
     
     return node;
   }
@@ -977,15 +860,7 @@ export class Parser {
       range: this.getRangeFromNodes(name, endNode)
     };
     
-    if (this.mode === 'lsp') {
-      this.enrichNodeForLSP(node);
-      
-      if (node.id) {
-        name.parent = node;
-        args.forEach(arg => { arg.parent = node; });
-        node.children = [name, ...args];
-      }
-    }
+    // LSP enrichment handled by augmentor
     
     return node;
   }
@@ -997,9 +872,7 @@ export class Parser {
       range: this.getRangeFromToken(token)
     };
     
-    if (this.mode === 'lsp') {
-      this.enrichNodeForLSP(node);
-    }
+    // LSP enrichment handled by augmentor
     
     return node;
   }
@@ -1012,15 +885,7 @@ export class Parser {
       range: this.getRangeFromNodes(expression, index)
     };
     
-    if (this.mode === 'lsp') {
-      this.enrichNodeForLSP(node);
-      
-      if (node.id) {
-        expression.parent = node;
-        index.parent = node;
-        node.children = [expression, index];
-      }
-    }
+    // LSP enrichment handled by augmentor
     
     return node;
   }
@@ -1036,14 +901,7 @@ export class Parser {
       range: { start: expression.range.start, end: this.getRangeFromToken(endToken).end }
     };
     
-    if (this.mode === 'lsp') {
-      this.enrichNodeForLSP(node);
-      
-      if (node.id) {
-        expression.parent = node;
-        node.children = [expression];
-      }
-    }
+    // LSP enrichment handled by augmentor
     
     return node;
   }
@@ -1058,14 +916,7 @@ export class Parser {
       range: { start: expression.range.start, end: this.getRangeFromToken(endToken).end }
     };
     
-    if (this.mode === 'lsp') {
-      this.enrichNodeForLSP(node);
-      
-      if (node.id) {
-        expression.parent = node;
-        node.children = [expression];
-      }
-    }
+    // LSP enrichment handled by augmentor
     
     return node;
   }
@@ -1078,14 +929,7 @@ export class Parser {
       range: this.getRangeFromTokens(startToken, endToken)
     };
     
-    if (this.mode === 'lsp') {
-      this.enrichNodeForLSP(node);
-      
-      if (node.id) {
-        elements.forEach(elem => { elem.parent = node; });
-        node.children = elements;
-      }
-    }
+    // LSP enrichment handled by augmentor
     
     return node;
   }
@@ -1098,9 +942,7 @@ export class Parser {
       range: this.getRangeFromTokens(startToken, endToken)
     };
     
-    if (this.mode === 'lsp') {
-      this.enrichNodeForLSP(node);
-    }
+    // LSP enrichment handled by augmentor
     
     return node;
   }
@@ -1132,28 +974,7 @@ export class Parser {
     throw Errors.invalidSyntax(message, range);
   }
   
-  // LSP mode helper methods
-  private enrichNodeForLSP(node: ASTNode): void {
-    if (this.mode !== 'lsp') return;
-    // Add unique ID
-    node.id = `node_${this.nodeIdCounter!++}`;
-    // Add raw source text from node range
-    const start = node.range.start.offset ?? 0;
-    const end = node.range.end.offset ?? start;
-    node.raw = this.input.substring(start, end);
-    // Add trivia if preserving (using precomputed spans at token boundaries)
-    if (this.preserveTriviaEffective) {
-      const startOffset = node.range.start.offset ?? -1;
-      const endOffset = node.range.end.offset ?? -1;
-      node.leadingTrivia = this.leadingTriviaByTokenStart?.get(startOffset) ?? [];
-      node.trailingTrivia = this.trailingTriviaByTokenEnd?.get(endOffset) ?? [];
-    }
-    // Index node
-    this.nodeIndex!.set(node.id, node);
-    const nodesByType = this.nodesByType!.get(node.type) || [];
-    nodesByType.push(node);
-    this.nodesByType!.set(node.type, nodesByType);
-  }
+  // LSP enrichment moved to augmentor
   
   private createErrorNode(message: string, token?: Token): ErrorNode {
     const range = token ? this.getRangeFromToken(token) : {
@@ -1167,9 +988,7 @@ export class Parser {
       range
     };
     
-    if (this.mode === 'lsp') {
-      this.enrichNodeForLSP(node);
-    }
+    // LSP enrichment handled by augmentor
     
     return node;
   }
@@ -1206,196 +1025,8 @@ export class Parser {
     }
   }
   
-  private transformOfTypeCursorNodes(node: ASTNode): ASTNode {
-    // Recursively transform cursor nodes in ofType function arguments
-    switch (node.type) {
-      case NodeType.Binary: {
-        const binary = node as BinaryNode;
-        
-        // Check if right is a function call to ofType BEFORE recursively transforming
-        if (binary.right.type === NodeType.Function) {
-          const func = binary.right as FunctionNode;
-          if ((func.name as any).name === 'ofType') {
-            // Transform cursor nodes in arguments to type cursor nodes
-            func.arguments = func.arguments.map((arg, index) => {
-              if (isCursorNode(arg)) {
-                const cursorNode = arg as AnyCursorNode;
-                // Create a new CursorTypeNode with ofType context
-                return createCursorTypeNode(cursorNode.position, 'ofType') as any;
-              }
-              // Handle Binary node with cursor on right (e.g., "P" <cursor>)
-              if (arg.type === NodeType.Binary) {
-                const binaryArg = arg as BinaryNode;
-                if (isCursorNode(binaryArg.right)) {
-                  // Replace the entire binary node with a cursor type node
-                  // preserving the partial text from the left side
-                  const cursorNode = binaryArg.right as AnyCursorNode;
-                  let partialText: string | undefined;
-                  if (binaryArg.left.type === NodeType.TypeOrIdentifier || binaryArg.left.type === NodeType.Identifier) {
-                    partialText = (binaryArg.left as any).name;
-                  }
-                  return createCursorTypeNode(cursorNode.position, 'ofType', partialText) as any;
-                }
-              }
-              return arg;
-            });
-          }
-          // Still need to transform left side
-          binary.left = this.transformOfTypeCursorNodes(binary.left);
-        } else {
-          // Not ofType, do normal recursive transformation
-          binary.left = this.transformOfTypeCursorNodes(binary.left);
-          binary.right = this.transformOfTypeCursorNodes(binary.right);
-        }
-        break;
-      }
-      case NodeType.Function: {
-        const func = node as FunctionNode;
-        if ((func.name as any).name === 'ofType') {
-          // Transform cursor nodes in arguments to type cursor nodes
-          func.arguments = func.arguments.map((arg, index) => {
-            if (isCursorNode(arg)) {
-              const cursorNode = arg as AnyCursorNode;
-              // Create a new CursorTypeNode with ofType context
-              return createCursorTypeNode(cursorNode.position, 'ofType') as any;
-            }
-            // Handle Binary node with cursor on right (e.g., "P" <cursor>)
-            if (arg.type === NodeType.Binary) {
-              const binaryArg = arg as BinaryNode;
-              if (isCursorNode(binaryArg.right)) {
-                // Replace the entire binary node with a cursor type node
-                // preserving the partial text from the left side
-                const cursorNode = binaryArg.right as AnyCursorNode;
-                let partialText: string | undefined;
-                if (binaryArg.left.type === NodeType.TypeOrIdentifier || binaryArg.left.type === NodeType.Identifier) {
-                  partialText = (binaryArg.left as any).name;
-                }
-                return createCursorTypeNode(cursorNode.position, 'ofType', partialText) as any;
-              }
-            }
-            return arg;
-          });
-        } else {
-          // Recursively transform arguments for other functions
-          func.arguments = func.arguments.map(arg => this.transformOfTypeCursorNodes(arg));
-        }
-        break;
-      }
-      case NodeType.Unary: {
-        const unary = node as UnaryNode;
-        unary.operand = this.transformOfTypeCursorNodes(unary.operand);
-        break;
-      }
-      case NodeType.Index: {
-        const idx = node as IndexNode;
-        idx.expression = this.transformOfTypeCursorNodes(idx.expression);
-        idx.index = this.transformOfTypeCursorNodes(idx.index);
-        break;
-      }
-      case NodeType.Collection: {
-        const coll = node as CollectionNode;
-        coll.elements = coll.elements.map(el => this.transformOfTypeCursorNodes(el));
-        break;
-      }
-      case NodeType.MembershipTest: {
-        const mt = node as MembershipTestNode;
-        mt.expression = this.transformOfTypeCursorNodes(mt.expression);
-        break;
-      }
-      case NodeType.TypeCast: {
-        const tc = node as TypeCastNode;
-        tc.expression = this.transformOfTypeCursorNodes(tc.expression);
-        break;
-      }
-    }
-    
-    return node;
-  }
-
-  private findNodeAtPosition(root: ASTNode, offset: number): ASTNode | null {
-    // DFS to find the most specific node containing the position
-    if (offset < root.range.start.offset! || offset > root.range.end.offset!) {
-      return null;
-    }
-    
-    // Check children if they exist
-    if ('children' in root && Array.isArray(root.children)) {
-      for (const child of root.children) {
-        const found = this.findNodeAtPosition(child, offset);
-        if (found) return found;
-      }
-    }
-    
-    // Check specific node types
-    if (root.type === NodeType.Binary) {
-      const binaryNode = root as BinaryNode;
-      const leftResult = this.findNodeAtPosition(binaryNode.left, offset);
-      if (leftResult) return leftResult;
-      const rightResult = this.findNodeAtPosition(binaryNode.right, offset);
-      if (rightResult) return rightResult;
-    } else if (root.type === NodeType.Unary) {
-      const unaryNode = root as UnaryNode;
-      return this.findNodeAtPosition(unaryNode.operand, offset);
-    } else if (root.type === NodeType.Function) {
-      const funcNode = root as FunctionNode;
-      const nameResult = this.findNodeAtPosition(funcNode.name, offset);
-      if (nameResult) return nameResult;
-      for (const arg of funcNode.arguments) {
-        const argResult = this.findNodeAtPosition(arg, offset);
-        if (argResult) return argResult;
-      }
-    }
-    
-    return root;
-  }
-  
-  private getExpectedTokens(node: ASTNode | null): TokenType[] {
-    if (!node) return this.getExpectedTokensForError();
-    
-    // Context-specific expectations
-    switch (node.type) {
-      case NodeType.Binary:
-        return [TokenType.DOT, TokenType.LBRACKET];
-      case NodeType.Identifier:
-      case NodeType.TypeOrIdentifier:
-        return [TokenType.DOT, TokenType.LPAREN, TokenType.LBRACKET];
-      default:
-        return this.getExpectedTokensForError();
-    }
-  }
-  
-  private getExpectedTokensForError(): TokenType[] {
-    // Common continuations
-    return [
-      TokenType.EOF,
-      TokenType.DOT,
-      TokenType.LBRACKET,
-      TokenType.LPAREN,
-      TokenType.OPERATOR,
-      TokenType.IDENTIFIER
-    ];
-  }
-  
-  private getCompletions(node: ASTNode | null): string[] {
-    if (!node) return [];
-    
-    const completions: string[] = [];
-    
-    // Add all identifiers seen so far
-    if (this.identifierIndex) {
-      for (const name of Array.from(this.identifierIndex.keys())) {
-        completions.push(name);
-      }
-    }
-    
-    // Add common FHIRPath functions
-    completions.push(
-      'where', 'select', 'first', 'last', 'tail',
-      'skip', 'take', 'count', 'empty', 'exists'
-    );
-    
-    return completions;
-  }
+  // Cursor-specific transforms moved to augmentor
+  // Cursor services moved to lsp/cursor-services
 }
 
 export function parse(input: string, options?: ParserOptions): ParseResult {
@@ -1409,143 +1040,4 @@ export function parse(input: string, options?: ParserOptions): ParseResult {
  * @param indent - Current indentation level
  * @returns Lisp-style string representation
  */
-export function pprint(node: ASTNode, indent: number = 0): string {
-  const spaces = ' '.repeat(indent);
-  
-  switch (node.type) {
-    case NodeType.Literal: {
-      const lit = node as LiteralNode;
-      if (lit.valueType === 'string') {
-        return `"${lit.value}"`;
-      } else if (lit.valueType === 'null') {
-        return 'null';
-      }
-      return String(lit.value);
-    }
-    
-    case NodeType.Identifier:
-    case NodeType.TypeOrIdentifier: {
-      const id = node as IdentifierNode | TypeOrIdentifierNode;
-      return id.name;
-    }
-    
-    case NodeType.Variable: {
-      const v = node as VariableNode;
-      return v.name;
-    }
-    
-    case NodeType.Binary: {
-      const bin = node as BinaryNode;
-      const op = bin.operator;
-      
-      // For simple expressions, put on one line
-      const leftStr = pprint(bin.left, 0);
-      const rightStr = pprint(bin.right, 0);
-      
-      if (leftStr.length + rightStr.length + op.length + 4 < 60 && 
-          !leftStr.includes('\n') && !rightStr.includes('\n')) {
-        return `(${op} ${leftStr} ${rightStr})`;
-      }
-      
-      // For complex expressions, use multiple lines
-      return `(${op}\n${spaces}  ${pprint(bin.left, indent + 2)}\n${spaces}  ${pprint(bin.right, indent + 2)})`;
-    }
-    
-    case NodeType.Unary: {
-      const un = node as UnaryNode;
-      const operandStr = pprint(un.operand, 0);
-      
-      if (operandStr.length < 40 && !operandStr.includes('\n')) {
-        return `(${un.operator} ${operandStr})`;
-      }
-      
-      return `(${un.operator}\n${spaces}  ${pprint(un.operand, indent + 2)})`;
-    }
-    
-    case NodeType.Function: {
-      const fn = node as FunctionNode;
-      const nameStr = pprint(fn.name, 0);
-      
-      if (fn.arguments.length === 0) {
-        return `(${nameStr})`;
-      }
-      
-      const argStrs = fn.arguments.map(arg => pprint(arg, 0));
-      const totalLen = nameStr.length + argStrs.reduce((sum, s) => sum + s.length + 1, 0) + 2;
-      
-      if (totalLen < 60 && argStrs.every(s => !s.includes('\n'))) {
-        return `(${nameStr} ${argStrs.join(' ')})`;
-      }
-      
-      // Multi-line format
-      const argLines = fn.arguments.map(arg => `${spaces}  ${pprint(arg, indent + 2)}`);
-      return `(${nameStr}\n${argLines.join('\n')})`;
-    }
-    
-    case NodeType.Index: {
-      const idx = node as IndexNode;
-      const exprStr = pprint(idx.expression, 0);
-      const indexStr = pprint(idx.index, 0);
-      
-      if (exprStr.length + indexStr.length < 50 && 
-          !exprStr.includes('\n') && !indexStr.includes('\n')) {
-        return `([] ${exprStr} ${indexStr})`;
-      }
-      
-      return `([]\n${spaces}  ${pprint(idx.expression, indent + 2)}\n${spaces}  ${pprint(idx.index, indent + 2)})`;
-    }
-    
-    case NodeType.MembershipTest: {
-      const mt = node as MembershipTestNode;
-      const exprStr = pprint(mt.expression, 0);
-      
-      if (exprStr.length + mt.targetType.length < 50 && !exprStr.includes('\n')) {
-        return `(is ${exprStr} ${mt.targetType})`;
-      }
-      
-      return `(is\n${spaces}  ${pprint(mt.expression, indent + 2)}\n${spaces}  ${mt.targetType})`;
-    }
-    
-    case NodeType.TypeCast: {
-      const tc = node as TypeCastNode;
-      const exprStr = pprint(tc.expression, 0);
-      
-      if (exprStr.length + tc.targetType.length < 50 && !exprStr.includes('\n')) {
-        return `(as ${exprStr} ${tc.targetType})`;
-      }
-      
-      return `(as\n${spaces}  ${pprint(tc.expression, indent + 2)}\n${spaces}  ${tc.targetType})`;
-    }
-    
-    case NodeType.Collection: {
-      const coll = node as CollectionNode;
-      
-      if (coll.elements.length === 0) {
-        return '{}';
-      }
-      
-      const elemStrs = coll.elements.map(e => pprint(e, 0));
-      const totalLen = elemStrs.reduce((sum, s) => sum + s.length + 1, 2);
-      
-      if (totalLen < 60 && elemStrs.every(s => !s.includes('\n'))) {
-        return `{${elemStrs.join(' ')}}`;
-      }
-      
-      const elemLines = coll.elements.map(e => `${spaces}  ${pprint(e, indent + 2)}`);
-      return `{\n${elemLines.join('\n')}\n${spaces}}`;
-    }
-    
-    case NodeType.TypeReference: {
-      const tr = node as TypeReferenceNode;
-      return `Type[${tr.typeName}]`;
-    }
-    
-    case NodeType.Quantity: {
-      const q = node as QuantityNode;
-      return `${q.value} '${q.unit}'`;
-    }
-    
-    default:
-      return `<unknown:${node.type}>`;
-  }
-}
+// moved to src/utils/pprint

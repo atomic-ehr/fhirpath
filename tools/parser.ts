@@ -1,7 +1,8 @@
 #!/usr/bin/env bun
 
-import { Parser, pprint, type ParseResult } from '../src/parser';
-import type { ASTNode } from '../src/parser';
+import { Parser, type ParseResult } from '../src/parser';
+import { pprint } from '../src/utils/pprint';
+import type { ASTNode } from '../src/types';
 
 let expression = process.argv[2];
 const options = process.argv.slice(3).join(' ');
