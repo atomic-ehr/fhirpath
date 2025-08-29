@@ -1,0 +1,86 @@
+{
+  "name": "matches() function tests",
+  "tags": ["string", "matches", "regex"],
+  "tests": [
+    {
+      "name": "matches - simple pattern match",
+      "expression": "'test string'.matches('t.+')",
+      "expected": [true]
+    },
+    {
+      "name": "matches - no match",
+      "expression": "'test string'.matches('asd.+')",
+      "expected": [false]
+    },
+    {
+      "name": "matches - dotAll mode for newlines",
+      "expression": "'first line\\nsecond line'.matches('line.second')",
+      "expected": [true]
+    },
+    {
+      "name": "matches - partial match",
+      "expression": "'http://example.org/Library'.matches('Library')",
+      "expected": [true]
+    },
+    {
+      "name": "matches - with anchors",
+      "expression": "'N8000123123'.matches('^N[0-9]{8}$')",
+      "expected": [false]
+    },
+    {
+      "name": "matches - partial match without anchors",
+      "expression": "'N8000123123'.matches('N[0-9]{8}')",
+      "expected": [true]
+    },
+    {
+      "name": "matches - Unicode character class escapes",
+      "expression": "'Taupō'.matches('^\\\\p{Lu}\\\\p{Ll}*$')",
+      "expected": [true]
+    },
+    {
+      "name": "matches - empty input",
+      "expression": "{}.matches('.*')",
+      "expected": []
+    },
+    {
+      "name": "matches - empty regex argument",
+      "expression": "'test'.matches({})",
+      "expected": []
+    },
+    {
+      "name": "matches - case sensitive",
+      "expression": "'Test'.matches('test')",
+      "expected": [false]
+    },
+    {
+      "name": "matches - case sensitive correct case",
+      "expression": "'Test'.matches('Test')",
+      "expected": [true]
+    },
+    {
+      "name": "matches - wildcard pattern",
+      "expression": "'anything'.matches('.*')",
+      "expected": [true]
+    },
+    {
+      "name": "matches - digit pattern",
+      "expression": "'123'.matches('^[0-9]+$')",
+      "expected": [true]
+    },
+    {
+      "name": "matches - word boundary",
+      "expression": "'test word'.matches('\\\\bword')",
+      "expected": [true]
+    },
+    {
+      "name": "matches - error on multiple items",
+      "expression": "('a' | 'b').matches('a')",
+      "error": true
+    },
+    {
+      "name": "matches - error on non-string",
+      "expression": "5.matches('[0-9]')",
+      "error": true
+    }
+  ]
+}

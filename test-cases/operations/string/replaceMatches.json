@@ -1,0 +1,86 @@
+{
+  "name": "replaceMatches() function tests",
+  "tags": ["string", "replaceMatches", "regex"],
+  "tests": [
+    {
+      "name": "replaceMatches - simple replacement",
+      "expression": "'test string'.replaceMatches('test', 'match')",
+      "expected": ["match string"]
+    },
+    {
+      "name": "replaceMatches - date format conversion",
+      "expression": "'11/30/1972'.replaceMatches('\\\\b(\\\\d{1,2})/(\\\\d{1,2})/(\\\\d{2,4})\\\\b', '$2-$1-$3')",
+      "expected": ["30-11-1972"]
+    },
+    {
+      "name": "replaceMatches - date range format conversion",
+      "expression": "'11/01/1972 - 11/30/1972'.replaceMatches('\\\\b(\\\\d{1,2})/(\\\\d{1,2})/(\\\\d{2,4})\\\\b', '$2-$1-$3')",
+      "expected": ["01-11-1972 - 30-11-1972"]
+    },
+    {
+      "name": "replaceMatches - replace all matches",
+      "expression": "'test test test'.replaceMatches('test', 'match')",
+      "expected": ["match match match"]
+    },
+    {
+      "name": "replaceMatches - replace single character",
+      "expression": "'test string'.replaceMatches('t', 'T')",
+      "expected": ["TesT sTring"]
+    },
+    {
+      "name": "replaceMatches - no matches",
+      "expression": "'test string'.replaceMatches('xyz', 'abc')",
+      "expected": ["test string"]
+    },
+    {
+      "name": "replaceMatches - empty replacement",
+      "expression": "'test string'.replaceMatches('test ', '')",
+      "expected": ["string"]
+    },
+    {
+      "name": "replaceMatches - wildcard replacement",
+      "expression": "'test'.replaceMatches('^(.*)$', 'prefix-$1-suffix')",
+      "expected": ["prefix-test-suffix"]
+    },
+    {
+      "name": "replaceMatches - Unicode character class",
+      "expression": "'Taupō'.replaceMatches('(\\\\p{Lu})', 'city: $1')",
+      "expected": ["city: Taupō"]
+    },
+    {
+      "name": "replaceMatches - empty input",
+      "expression": "{}.replaceMatches('(.*)', '$1')",
+      "expected": []
+    },
+    {
+      "name": "replaceMatches - empty regex argument",
+      "expression": "'test'.replaceMatches({}, 'replacement')",
+      "expected": []
+    },
+    {
+      "name": "replaceMatches - empty substitution argument",
+      "expression": "'test'.replaceMatches('test', {})",
+      "expected": []
+    },
+    {
+      "name": "replaceMatches - digit replacement",
+      "expression": "'abc123def'.replaceMatches('[0-9]+', 'XXX')",
+      "expected": ["abcXXXdef"]
+    },
+    {
+      "name": "replaceMatches - word boundary",
+      "expression": "'test word test'.replaceMatches('\\\\btest\\\\b', 'TEST')",
+      "expected": ["TEST word TEST"]
+    },
+    {
+      "name": "replaceMatches - error on multiple items",
+      "expression": "('a' | 'b').replaceMatches('a', 'A')",
+      "error": true
+    },
+    {
+      "name": "replaceMatches - error on non-string",
+      "expression": "5.replaceMatches('[0-9]', 'X')",
+      "error": true
+    }
+  ]
+}

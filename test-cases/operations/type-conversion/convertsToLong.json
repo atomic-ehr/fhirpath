@@ -1,0 +1,91 @@
+{
+  "name": "convertsToLong() function tests",
+  "tags": ["type-conversion", "convertsToLong"],
+  "tests": [
+    {
+      "name": "convertsToLong - integer",
+      "expression": "1.convertsToLong()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToLong - zero",
+      "expression": "0.convertsToLong()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToLong - negative integer",
+      "expression": "(-1).convertsToLong()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToLong - string negative",
+      "expression": "'-1'.convertsToLong()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToLong - large integer",
+      "expression": "2147483647.convertsToLong()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToLong - string integer",
+      "expression": "'42'.convertsToLong()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToLong - max long value",
+      "expression": "'9223372036854775807'.convertsToLong()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToLong - min long value",
+      "expression": "'-9223372036854775808'.convertsToLong()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToLong - beyond max long",
+      "expression": "'9223372036854775808'.convertsToLong()",
+      "expected": [false]
+    },
+    {
+      "name": "convertsToLong - beyond min long",
+      "expression": "'-9223372036854775809'.convertsToLong()",
+      "expected": [false]
+    },
+    {
+      "name": "convertsToLong - boolean true",
+      "expression": "true.convertsToLong()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToLong - boolean false",
+      "expression": "false.convertsToLong()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToLong - decimal (not convertible)",
+      "expression": "3.14.convertsToLong()",
+      "expected": [false]
+    },
+    {
+      "name": "convertsToLong - string decimal (not convertible)",
+      "expression": "'3.14'.convertsToLong()",
+      "expected": [false]
+    },
+    {
+      "name": "convertsToLong - invalid string",
+      "expression": "'abc'.convertsToLong()",
+      "expected": [false]
+    },
+    {
+      "name": "convertsToLong - empty input",
+      "expression": "{}.convertsToLong()",
+      "expected": []
+    },
+    {
+      "name": "convertsToLong - error on multiple items",
+      "expression": "(1 | 2).convertsToLong()",
+      "error": true
+    }
+  ]
+}

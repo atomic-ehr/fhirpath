@@ -1,0 +1,96 @@
+{
+  "name": "convertsToDecimal() function tests",
+  "tags": ["type-conversion", "convertsToDecimal"],
+  "tests": [
+    {
+      "name": "convertsToDecimal - decimal",
+      "expression": "1.0.convertsToDecimal()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToDecimal - decimal with fraction",
+      "expression": "0.1.convertsToDecimal()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToDecimal - zero decimal",
+      "expression": "0.0.convertsToDecimal()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToDecimal - negative decimal",
+      "expression": "(-0.1).convertsToDecimal()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToDecimal - string negative decimal",
+      "expression": "'-0.1'.convertsToDecimal()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToDecimal - large decimal",
+      "expression": "1234567890987654321.0.convertsToDecimal()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToDecimal - small decimal",
+      "expression": "0.00000001.convertsToDecimal()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToDecimal - integer",
+      "expression": "42.convertsToDecimal()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToDecimal - string integer",
+      "expression": "'42'.convertsToDecimal()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToDecimal - string decimal",
+      "expression": "'3.14'.convertsToDecimal()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToDecimal - string with plus",
+      "expression": "'+1.5'.convertsToDecimal()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToDecimal - string with minus",
+      "expression": "'-2.7'.convertsToDecimal()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToDecimal - boolean true",
+      "expression": "true.convertsToDecimal()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToDecimal - boolean false",
+      "expression": "false.convertsToDecimal()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToDecimal - invalid string",
+      "expression": "'abc'.convertsToDecimal()",
+      "expected": [false]
+    },
+    {
+      "name": "convertsToDecimal - string with multiple dots",
+      "expression": "'1.2.3'.convertsToDecimal()",
+      "expected": [false]
+    },
+    {
+      "name": "convertsToDecimal - empty input",
+      "expression": "{}.convertsToDecimal()",
+      "expected": []
+    },
+    {
+      "name": "convertsToDecimal - error on multiple items",
+      "expression": "(1.0 | 2.0).convertsToDecimal()",
+      "error": true
+    }
+  ]
+}

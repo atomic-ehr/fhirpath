@@ -1,0 +1,61 @@
+{
+  "name": "convertsToString() function tests",
+  "tags": ["type-conversion", "convertsToString"],
+  "tests": [
+    {
+      "name": "convertsToString - string",
+      "expression": "'test'.convertsToString()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToString - string with special chars",
+      "expression": "'test\\nstring'.convertsToString()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToString - integer",
+      "expression": "42.convertsToString()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToString - decimal",
+      "expression": "3.14.convertsToString()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToString - boolean true",
+      "expression": "true.convertsToString()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToString - boolean false",
+      "expression": "false.convertsToString()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToString - date",
+      "expression": "@2020-01-15.convertsToString()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToString - datetime",
+      "expression": "@2020-01-15T10:30:00.convertsToString()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToString - time",
+      "expression": "@T14:30:00.convertsToString()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToString - empty input",
+      "expression": "{}.convertsToString()",
+      "expected": []
+    },
+    {
+      "name": "convertsToString - error on multiple items",
+      "expression": "('a' | 'b').convertsToString()",
+      "error": true
+    }
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "name": "convertsToInteger() function tests",
+  "tags": ["type-conversion", "convertsToInteger"],
+  "tests": [
+    {
+      "name": "convertsToInteger - integer",
+      "expression": "1.convertsToInteger()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToInteger - zero",
+      "expression": "0.convertsToInteger()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToInteger - negative integer",
+      "expression": "(-1).convertsToInteger()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToInteger - string negative",
+      "expression": "'-1'.convertsToInteger()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToInteger - large integer",
+      "expression": "2147483647.convertsToInteger()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToInteger - string integer",
+      "expression": "'42'.convertsToInteger()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToInteger - string with plus",
+      "expression": "'+123'.convertsToInteger()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToInteger - string with minus",
+      "expression": "'-456'.convertsToInteger()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToInteger - boolean true",
+      "expression": "true.convertsToInteger()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToInteger - boolean false",
+      "expression": "false.convertsToInteger()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToInteger - decimal (not convertible)",
+      "expression": "3.14.convertsToInteger()",
+      "expected": [false]
+    },
+    {
+      "name": "convertsToInteger - string decimal (not convertible)",
+      "expression": "'3.14'.convertsToInteger()",
+      "expected": [false]
+    },
+    {
+      "name": "convertsToInteger - invalid string",
+      "expression": "'abc'.convertsToInteger()",
+      "expected": [false]
+    },
+    {
+      "name": "convertsToInteger - empty input",
+      "expression": "{}.convertsToInteger()",
+      "expected": []
+    },
+    {
+      "name": "convertsToInteger - error on multiple items",
+      "expression": "(1 | 2).convertsToInteger()",
+      "error": true
+    }
+  ]
+}

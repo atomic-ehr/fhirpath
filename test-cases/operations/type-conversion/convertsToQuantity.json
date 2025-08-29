@@ -1,0 +1,71 @@
+{
+  "name": "convertsToQuantity() function tests",
+  "tags": ["type-conversion", "convertsToQuantity"],
+  "tests": [
+    {
+      "name": "convertsToQuantity - quantity literal with decimal",
+      "expression": "10.1 'mg'.convertsToQuantity()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToQuantity - quantity literal with integer",
+      "expression": "10 'mg'.convertsToQuantity()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToQuantity - quantity with calendar duration",
+      "expression": "4 'days'.convertsToQuantity()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToQuantity - string with unit",
+      "expression": "'10 mg'.convertsToQuantity()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToQuantity - string with decimal and unit",
+      "expression": "'5.5 km'.convertsToQuantity()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToQuantity - string with calendar unit",
+      "expression": "'2 weeks'.convertsToQuantity()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToQuantity - string with UCUM unit",
+      "expression": "'100 mL'.convertsToQuantity()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToQuantity - number without unit (not convertible)",
+      "expression": "10.convertsToQuantity()",
+      "expected": [false]
+    },
+    {
+      "name": "convertsToQuantity - string without unit",
+      "expression": "'10'.convertsToQuantity()",
+      "expected": [false]
+    },
+    {
+      "name": "convertsToQuantity - invalid string",
+      "expression": "'invalid'.convertsToQuantity()",
+      "expected": [false]
+    },
+    {
+      "name": "convertsToQuantity - boolean",
+      "expression": "true.convertsToQuantity()",
+      "expected": [false]
+    },
+    {
+      "name": "convertsToQuantity - empty input",
+      "expression": "{}.convertsToQuantity()",
+      "expected": []
+    },
+    {
+      "name": "convertsToQuantity - error on multiple items",
+      "expression": "(10 'mg' | 20 'mg').convertsToQuantity()",
+      "error": true
+    }
+  ]
+}

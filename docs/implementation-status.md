@@ -6,8 +6,8 @@ Generated: 2025-08-28T (manually updated)
 
 ### Functions
 - **Total Functions**: 80
-- **Implemented**: 63 (79%)
-- **Fully Tested**: 63 (100% of implemented)
+- **Implemented**: 77 (96%)
+- **Fully Tested**: 77 (100% of implemented)
 - **Partially Tested**: 0
 - **Untested**: 0
 
@@ -67,19 +67,19 @@ Generated: 2025-08-28T (manually updated)
 | combine | ✅ | operations/combine-function.ts | 4 files | Full | - |
 | union | ✅ | operations/union-function.ts | 10 files | Full | - |
 
-### Conversion Functions (8/19 implemented)
+### Conversion Functions (17/19 implemented)
 
 | Function | Status | Implementation | Tests | Coverage | Notes |
 |----------|--------|----------------|-------|----------|-------|
-| convertsToBoolean | ❌ | - | - | - | Not implemented |
-| convertsToDate | ❌ | - | - | - | Not implemented |
-| convertsToDateTime | ❌ | - | - | - | Not implemented |
-| convertsToDecimal | ❌ | - | - | - | Not implemented |
-| convertsToInteger | ❌ | - | - | - | Not implemented |
-| convertsToLong | ❌ | - | - | - | Not implemented |
-| convertsToQuantity | ❌ | - | - | - | Not implemented |
-| convertsToString | ❌ | - | - | - | Not implemented |
-| convertsToTime | ❌ | - | - | - | Not implemented |
+| convertsToBoolean | ✅ | operations/convertsToBoolean-function.ts | 1 file | Full | - |
+| convertsToDate | ✅ | operations/temporal-functions.ts | Integrated | Full | - |
+| convertsToDateTime | ✅ | operations/temporal-functions.ts | Integrated | Full | - |
+| convertsToDecimal | ✅ | operations/convertsToDecimal-function.ts | 1 file | Full | - |
+| convertsToInteger | ✅ | operations/convertsToInteger-function.ts | 1 file | Full | - |
+| convertsToLong | ✅ | operations/convertsToLong-function.ts | 1 file | Full | - |
+| convertsToQuantity | ✅ | operations/convertsToQuantity-function.ts | 1 file | Full | - |
+| convertsToString | ✅ | operations/convertsToString-function.ts | 1 file | Full | - |
+| convertsToTime | ✅ | operations/temporal-functions.ts | Integrated | Full | - |
 | iif | ✅ | operations/iif-function.ts | 6 files | Full | - |
 | toBoolean | ✅ | operations/toBoolean-function.ts | 2 files | Full | - |
 | toDate | ✅ | operations/temporal-functions.ts | 2 files | Full | - |
@@ -91,23 +91,23 @@ Generated: 2025-08-28T (manually updated)
 | toString | ✅ | operations/toString-function.ts | 7 files | Full | - |
 | toTime | ✅ | operations/temporal-functions.ts | 2 files | Full | - |
 
-### String Manipulation Functions (9/14 implemented)
+### String Manipulation Functions (14/14 implemented)
 
 | Function | Status | Implementation | Tests | Coverage | Notes |
 |----------|--------|----------------|-------|----------|-------|
 | contains | ✅ | operations/contains-function.ts | 10 files | Full | - |
 | endsWith | ✅ | operations/endsWith-function.ts | 6 files | Full | - |
 | indexOf | ✅ | operations/indexOf-function.ts | 5 files | Full | - |
-| lastIndexOf | ❌ | - | - | - | Not implemented |
+| lastIndexOf | ✅ | operations/lastIndexOf-function.ts | 1 file | Full | - |
 | length | ✅ | operations/length-function.ts | 24 files | Full | - |
 | lower | ✅ | operations/lower-function.ts | 5 files | Full | - |
-| matches | ❌ | - | 6 files | - | Not implemented |
-| matchesFull | ❌ | - | - | - | Not implemented |
+| matches | ✅ | operations/matches-function.ts | 7 files | Full | - |
+| matchesFull | ✅ | operations/matchesFull-function.ts | 1 file | Full | - |
 | replace | ✅ | operations/replace-function.ts | 7 files | Full | - |
-| replaceMatches | ❌ | - | - | - | Not implemented |
+| replaceMatches | ✅ | operations/replaceMatches-function.ts | 1 file | Full | - |
 | startsWith | ✅ | operations/startsWith-function.ts | 6 files | Full | - |
 | substring | ✅ | operations/substring-function.ts | 14 files | Full | - |
-| toChars | ❌ | - | - | - | Not implemented |
+| toChars | ✅ | operations/toChars-function.ts | 1 file | Full | - |
 | upper | ✅ | operations/upper-function.ts | 6 files | Full | - |
 
 ### Tree Navigation Functions (2/2 implemented)

@@ -82,7 +82,12 @@ export { combineFunction } from './combine-function';
 export { intersectFunction } from './intersect-function';
 export { excludeFunction } from './exclude-function';
 export { indexOfFunction } from './indexOf-function';
+export { lastIndexOfFunction } from './lastIndexOf-function';
 export { substringFunction } from './substring-function';
+export { matchesFunction } from './matches-function';
+export { matchesFullFunction } from './matchesFull-function';
+export { replaceMatchesFunction } from './replaceMatches-function';
+export { toCharsFunction } from './toChars-function';
 export { containsFunction } from './contains-function';
 export { startsWithFunction } from './startsWith-function';
 export { endsWithFunction } from './endsWith-function';
@@ -103,6 +108,12 @@ export { toIntegerFunction } from './toInteger-function';
 export { toDecimalFunction } from './toDecimal-function';
 export { toStringFunction } from './toString-function';
 export { toBooleanFunction } from './toBoolean-function';
+export { convertsToBooleanFunction } from './convertsToBoolean-function';
+export { convertsToIntegerFunction } from './convertsToInteger-function';
+export { convertsToDecimalFunction } from './convertsToDecimal-function';
+export { convertsToStringFunction } from './convertsToString-function';
+export { convertsToQuantityFunction } from './convertsToQuantity-function';
+export { convertsToLongFunction } from './convertsToLong-function';
 
 // Utility functions
 export { traceFunction } from './trace-function';

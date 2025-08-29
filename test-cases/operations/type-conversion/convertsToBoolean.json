@@ -1,0 +1,101 @@
+{
+  "name": "convertsToBoolean() function tests",
+  "tags": ["type-conversion", "convertsToBoolean"],
+  "tests": [
+    {
+      "name": "convertsToBoolean - true boolean",
+      "expression": "true.convertsToBoolean()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToBoolean - false boolean",
+      "expression": "false.convertsToBoolean()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToBoolean - string 'true'",
+      "expression": "'true'.convertsToBoolean()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToBoolean - string 'false'",
+      "expression": "'false'.convertsToBoolean()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToBoolean - string 'TRUE' (case insensitive)",
+      "expression": "'TRUE'.convertsToBoolean()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToBoolean - string 't'",
+      "expression": "'t'.convertsToBoolean()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToBoolean - string 'yes'",
+      "expression": "'yes'.convertsToBoolean()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToBoolean - string 'y'",
+      "expression": "'y'.convertsToBoolean()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToBoolean - string '1'",
+      "expression": "'1'.convertsToBoolean()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToBoolean - string '0'",
+      "expression": "'0'.convertsToBoolean()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToBoolean - integer 1",
+      "expression": "1.convertsToBoolean()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToBoolean - integer 0",
+      "expression": "0.convertsToBoolean()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToBoolean - integer 2 (not convertible)",
+      "expression": "2.convertsToBoolean()",
+      "expected": [false]
+    },
+    {
+      "name": "convertsToBoolean - decimal 1.0",
+      "expression": "1.0.convertsToBoolean()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToBoolean - decimal 0.0",
+      "expression": "0.0.convertsToBoolean()",
+      "expected": [true]
+    },
+    {
+      "name": "convertsToBoolean - decimal 1.5 (not convertible)",
+      "expression": "1.5.convertsToBoolean()",
+      "expected": [false]
+    },
+    {
+      "name": "convertsToBoolean - invalid string",
+      "expression": "'invalid'.convertsToBoolean()",
+      "expected": [false]
+    },
+    {
+      "name": "convertsToBoolean - empty input",
+      "expression": "{}.convertsToBoolean()",
+      "expected": []
+    },
+    {
+      "name": "convertsToBoolean - error on multiple items",
+      "expression": "(true | false).convertsToBoolean()",
+      "error": true
+    }
+  ]
+}

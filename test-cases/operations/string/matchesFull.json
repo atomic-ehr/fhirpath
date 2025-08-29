@@ -1,0 +1,81 @@
+{
+  "name": "matchesFull() function tests",
+  "tags": ["string", "matchesFull", "regex"],
+  "tests": [
+    {
+      "name": "matchesFull - exact match",
+      "expression": "'Library'.matchesFull('Library')",
+      "expected": [true]
+    },
+    {
+      "name": "matchesFull - partial string doesn't match",
+      "expression": "'http://fhir.org/guides/cqf/common/Library/FHIR-ModelInfo|4.0.1'.matchesFull('Library')",
+      "expected": [false]
+    },
+    {
+      "name": "matchesFull - with explicit anchors",
+      "expression": "'Library'.matchesFull('^Library$')",
+      "expected": [true]
+    },
+    {
+      "name": "matchesFull - pattern with wildcard",
+      "expression": "'http://fhir.org/guides/cqf/common/Library/FHIR-ModelInfo|4.0.1'.matchesFull('.*Library.*')",
+      "expected": [true]
+    },
+    {
+      "name": "matchesFull - no match",
+      "expression": "'http://fhir.org/guides/cqf/common/Library/FHIR-ModelInfo|4.0.1'.matchesFull('Measure')",
+      "expected": [false]
+    },
+    {
+      "name": "matchesFull - digit pattern exact",
+      "expression": "'N8000123'.matchesFull('N[0-9]{7}')",
+      "expected": [true]
+    },
+    {
+      "name": "matchesFull - digit pattern mismatch",
+      "expression": "'N8000123123'.matchesFull('N[0-9]{8}')",
+      "expected": [false]
+    },
+    {
+      "name": "matchesFull - digit pattern exact match",
+      "expression": "'N8000123123'.matchesFull('N[0-9]{10}')",
+      "expected": [true]
+    },
+    {
+      "name": "matchesFull - empty input",
+      "expression": "{}.matchesFull('.*')",
+      "expected": []
+    },
+    {
+      "name": "matchesFull - empty regex argument",
+      "expression": "'test'.matchesFull({})",
+      "expected": []
+    },
+    {
+      "name": "matchesFull - case sensitive",
+      "expression": "'Library'.matchesFull('library')",
+      "expected": [false]
+    },
+    {
+      "name": "matchesFull - empty string pattern",
+      "expression": "''.matchesFull('')",
+      "expected": [true]
+    },
+    {
+      "name": "matchesFull - any character pattern",
+      "expression": "'abc'.matchesFull('...')",
+      "expected": [true]
+    },
+    {
+      "name": "matchesFull - error on multiple items",
+      "expression": "('a' | 'b').matchesFull('a')",
+      "error": true
+    },
+    {
+      "name": "matchesFull - error on non-string",
+      "expression": "5.matchesFull('[0-9]')",
+      "error": true
+    }
+  ]
+}

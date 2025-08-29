@@ -1,0 +1,81 @@
+{
+  "name": "toChars() function tests",
+  "tags": ["string", "toChars"],
+  "tests": [
+    {
+      "name": "toChars - simple string",
+      "expression": "'abc'.toChars()",
+      "expected": ["a", "b", "c"]
+    },
+    {
+      "name": "toChars - longer string",
+      "expression": "'Hello'.toChars()",
+      "expected": ["H", "e", "l", "l", "o"]
+    },
+    {
+      "name": "toChars - empty string",
+      "expression": "''.toChars()",
+      "expected": []
+    },
+    {
+      "name": "toChars - single character",
+      "expression": "'a'.toChars()",
+      "expected": ["a"]
+    },
+    {
+      "name": "toChars - with spaces",
+      "expression": "'a b c'.toChars()",
+      "expected": ["a", " ", "b", " ", "c"]
+    },
+    {
+      "name": "toChars - with numbers",
+      "expression": "'abc123'.toChars()",
+      "expected": ["a", "b", "c", "1", "2", "3"]
+    },
+    {
+      "name": "toChars - with special characters",
+      "expression": "'a!b@c#'.toChars()",
+      "expected": ["a", "!", "b", "@", "c", "#"]
+    },
+    {
+      "name": "toChars - with newline",
+      "expression": "'a\\nb'.toChars()",
+      "expected": ["a", "\n", "b"]
+    },
+    {
+      "name": "toChars - Unicode emoji",
+      "expression": "'😀'.toChars()",
+      "expected": ["😀"]
+    },
+    {
+      "name": "toChars - Unicode with text",
+      "expression": "'Hi😀'.toChars()",
+      "expected": ["H", "i", "😀"]
+    },
+    {
+      "name": "toChars - empty input",
+      "expression": "{}.toChars()",
+      "expected": []
+    },
+    {
+      "name": "toChars - can select from result",
+      "expression": "'abc'.toChars()[1]",
+      "expected": ["b"]
+    },
+    {
+      "name": "toChars - can count result",
+      "expression": "'hello'.toChars().count()",
+      "expected": [5]
+    },
+    {
+      "name": "toChars - error on multiple items",
+      "expression": "('a' | 'b').toChars()",
+      "error": true
+    },
+    {
+      "name": "toChars - error on non-string",
+      "expression": "5.toChars()",
+      "error": true
+    }
+  ]
+}

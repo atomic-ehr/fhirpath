@@ -1,0 +1,66 @@
+{
+  "name": "lastIndexOf() function tests",
+  "tags": ["string", "lastIndexOf"],
+  "tests": [
+    {
+      "name": "lastIndexOf - finds last occurrence",
+      "expression": "'abc abc'.lastIndexOf('a')",
+      "expected": [4]
+    },
+    {
+      "name": "lastIndexOf - finds single occurrence",
+      "expression": "'abcdefg'.lastIndexOf('bc')",
+      "expected": [1]
+    },
+    {
+      "name": "lastIndexOf - not found returns -1",
+      "expression": "'abcdefg'.lastIndexOf('x')",
+      "expected": [-1]
+    },
+    {
+      "name": "lastIndexOf - full string match",
+      "expression": "'abcdefg'.lastIndexOf('abcdefg')",
+      "expected": [0]
+    },
+    {
+      "name": "lastIndexOf - empty substring returns 0",
+      "expression": "'abcdefg'.lastIndexOf('')",
+      "expected": [0]
+    },
+    {
+      "name": "lastIndexOf - on empty input",
+      "expression": "{}.lastIndexOf('a')",
+      "expected": []
+    },
+    {
+      "name": "lastIndexOf - multiple occurrences",
+      "expression": "'ababab'.lastIndexOf('ab')",
+      "expected": [4]
+    },
+    {
+      "name": "lastIndexOf - case sensitive",
+      "expression": "'ABC abc'.lastIndexOf('a')",
+      "expected": [4]
+    },
+    {
+      "name": "lastIndexOf - special characters",
+      "expression": "'test.test.test'.lastIndexOf('.')",
+      "expected": [9]
+    },
+    {
+      "name": "lastIndexOf - error on multiple items",
+      "expression": "('a' | 'b').lastIndexOf('a')",
+      "error": true
+    },
+    {
+      "name": "lastIndexOf - error on non-string input",
+      "expression": "5.lastIndexOf('5')",
+      "error": true
+    },
+    {
+      "name": "lastIndexOf - with empty substring argument",
+      "expression": "'test'.lastIndexOf({})",
+      "expected": []
+    }
+  ]
+}
