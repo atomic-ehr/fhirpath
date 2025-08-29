@@ -125,14 +125,15 @@ export class Parser {
       this.tokens = this.tokens.filter(token => token.channel === undefined || token.channel === Channel.DEFAULT);
     }
     
+    // Make mode/options/input available before cursor injection decisions
+    this.input = input;
+    this.mode = mode;
+    this.options = options;
+
     // Inject cursor token if cursor position is provided
     if (options.cursorPosition !== undefined) {
       this.tokens = this.injectCursorToken(this.tokens, options.cursorPosition);
     }
-    
-    this.input = input;
-    this.mode = mode;
-    this.options = options;
     
     // Initialize LSP features only if needed
     if (this.mode === 'lsp') {
@@ -164,8 +165,13 @@ export class Parser {
 
       // Check if cursor is within this token (we ignore mid-token cursors)
       if (cursorPosition > token.start && cursorPosition < token.end) {
-        // Cursor is mid-token, ignore it
-        return tokens;
+        // Only materialize mid-token cursor in LSP mode; otherwise ignore
+        if (this.mode === 'lsp') {
+          insertIndex = i;
+          break;
+        } else {
+          return tokens;
+        }
       }
 
       // Cursor is after this token
@@ -340,8 +346,15 @@ export class Parser {
         this.current++; // inline advance()
         // Check for cursor in indexer
         if (this.peek().type === TokenType.CURSOR) {
-          this.advance();
-          left = createCursorIndexNode(this.previous().start) as any;
+          if (this.mode === 'lsp') {
+            const cursorTok = this.advance();
+            const cursorIndex = createCursorIndexNode(cursorTok.start) as any;
+            this.consume(TokenType.RBRACKET, "Expected ']'");
+            left = this.createIndexNode(left, cursorIndex, token);
+          } else {
+            this.advance();
+            left = createCursorIndexNode(this.previous().start) as any;
+          }
         } else {
           const index = this.expression();
           this.consume(TokenType.RBRACKET, "Expected ']'");
@@ -351,13 +364,8 @@ export class Parser {
       }
       
       if (token.type === TokenType.LPAREN && this.isFunctionCall(left)) {
-        // Function calls - always bind tightly
-        this.current++; // inline advance()
-        const args = this.parseArgumentList();
-        this.consume(TokenType.RPAREN, "Expected ')'");
-        // For function calls, we need to find the start token from the name node
-        const startToken = this.tokens[this.current - args.length - 2] || token;
-        left = this.createFunctionNode(left, args, startToken);
+        // Function calls - always bind tightly, handled via shared helper
+        left = this.parseFunctionCall(left);
         continue;
       }
       
@@ -583,11 +591,7 @@ export class Parser {
       
       // Check if this is a function call
       if (this.check(TokenType.LPAREN)) {
-        this.advance();
-        const args = this.parseArgumentList();
-        this.consume(TokenType.RPAREN, "Expected ')'");
-        const startToken = this.tokens[this.current - args.length - 2] || this.previous();
-        return this.createFunctionNode(node, args, startToken);
+        return this.parseFunctionCall(node);
       }
       
       return node;
@@ -605,14 +609,14 @@ export class Parser {
     return this.handleAstError(error.message, token);
   }
   
-  protected parseArgumentList(): ASTNode[] {
+  protected parseArgumentList(functionName?: string): ASTNode[] {
     const args: ASTNode[] = [];
     
     // Check for cursor at start of arguments
     if (this.peek().type === TokenType.CURSOR) {
       this.advance();
-      // Need to get function name from context - for now use empty string
-      args.push(createCursorArgumentNode(this.previous().start, '', 0) as any);
+      const fn = functionName ?? '';
+      args.push(createCursorArgumentNode(this.previous().start, fn, 0) as any);
       return args;
     }
     
@@ -626,13 +630,26 @@ export class Parser {
       // Check for cursor after comma
       if (this.peek().type === TokenType.CURSOR) {
         this.advance();
-        args.push(createCursorArgumentNode(this.previous().start, '', args.length) as any);
+        const fn = functionName ?? '';
+        args.push(createCursorArgumentNode(this.previous().start, fn, args.length) as any);
         return args;
       }
       args.push(this.expression());
     }
 
     return args;
+  }
+  
+  // Shared function-call parser for both standalone and dotted calls
+  protected parseFunctionCall(nameNode: ASTNode): ASTNode {
+    // Current token is '(' per caller contract
+    this.advance();
+    const fnName = (nameNode as any)?.name && (typeof (nameNode as any).name === 'string')
+      ? (nameNode as any).name as string
+      : undefined;
+    const args = this.parseArgumentList(fnName);
+    this.consume(TokenType.RPAREN, "Expected ')'");
+    return this.createFunctionNode(nameNode, args);
   }
   
   protected parseCollectionElements(): ASTNode[] {
@@ -851,7 +868,7 @@ export class Parser {
     return node;
   }
 
-  protected createFunctionNode(name: ASTNode, args: ASTNode[], startToken: Token): FunctionNode {
+  protected createFunctionNode(name: ASTNode, args: ASTNode[]): FunctionNode {
     const endNode = args.length > 0 ? args[args.length - 1]! : name;
     const node: FunctionNode = {
       type: NodeType.Function,
