@@ -8,32 +8,93 @@ Please be concise and to the point.
 
 ## FHIRPath Implementation Overview
 
-This is a TypeScript implementation of FHIRPath - a path-based navigation and extraction language for FHIR resources.
+This is a comprehensive TypeScript implementation of FHIRPath - a path-based navigation and extraction language for FHIR resources, designed for high performance and LSP (Language Server Protocol) support.
 
 ### Core Architecture
 
-- **Parser** (`parser.ts`): Converts FHIRPath expressions to AST using precedence climbing
-- **Lexer** (`lexer.ts`): Tokenizes input strings, recognizing operators, literals, identifiers
-- **Interpreter** (`interpreter.ts`): Evaluates AST nodes using visitor pattern
-- **Registry** (`registry.ts`): Manages operator/function definitions with precedence and type signatures
-- **Operations** (`operations/`): Individual implementations for ~50 operators and functions
+- **Lexer** (`lexer.ts`): Multi-channel tokenizer with trivia preservation for LSP support
+  - Recognizes operators, literals, identifiers, structural tokens
+  - Supports temporal literals (@DateTime, @Date, @Time) and quantities
+  - Preserves comments and whitespace in hidden channel for IDE features
 
-### Key Features
+- **Parser** (`parser.ts`): Robust expression parser with error recovery
+  - Dual mode: simple (fast parsing) and LSP (with error recovery)  
+  - Precedence climbing for operators
+  - Cursor node injection for completion support
+  - AST augmentation with position and trivia information
 
-- Expression evaluation: `evaluate("Patient.name.given", {input: resource})`
-- Context management: Efficient prototype-based context with variables ($this, $index, %user-defined)
-- Type system: Supports FHIRPath types (String, Integer, Decimal, Boolean, Date, DateTime, etc.)
-- Extensible: Registry pattern allows adding custom operators/functions
+- **Analyzer** (`analyzer.ts`): Static type analysis and validation
+  - Context-flow type inference
+  - Function/operator signature matching
+  - Error diagnostics with precise location information
+  - Cursor-aware analysis for IDE completions
+
+- **Interpreter** (`interpreter.ts`): High-performance AST evaluator
+  - Visitor pattern with optimized dispatch
+  - Prototype-based context management for efficiency
+  - Boxing/unboxing system for type preservation
+  - Support for all FHIRPath types and operations
+
+- **Registry** (`registry.ts`): Centralized operation management
+  - Symbol, keyword, and unary operator registration
+  - Function definitions with multiple signatures
+  - Precedence and associativity rules
+
+- **Operations** (`operations/`): ~80+ operators and functions
+  - Arithmetic, logical, string, collection operations
+  - Temporal functions (date/time manipulation)
+  - Type conversion and testing functions
+  - FHIR-specific navigation (ofType, as, etc.)
+
+### Advanced Features
+
+- **LSP Support**:
+  - Code completion with context-aware suggestions (`completion-provider.ts`)
+  - Real-time error diagnostics
+  - Cursor tracking for partial expressions
+  - Trivia preservation for formatting
+
+- **Type System**:
+  - Complete FHIRPath type hierarchy (primitives, collections, FHIR types)
+  - Union type support with proper inference
+  - Polymorphic function signatures
+  - FHIR model awareness via ModelProvider interface
+
+- **Runtime Context**:
+  - Efficient prototype-based variable scoping
+  - Built-in variables: $this, $index, $total
+  - User-defined variables with % prefix
+  - System variables: %context, %resource, %rootResource
+
+- **Error Handling**:
+  - Structured error system with error codes
+  - Parse, analysis, and runtime error differentiation
+  - LSP-compatible diagnostic messages with ranges
 
 ### Example Usage
 
 ```typescript
-import { evaluate } from './src/index';
+import { evaluate, analyze } from './src/index';
+import { FHIRModelProvider } from './src/model-provider';
 
-const result = evaluate("Patient.name.where(use = 'official').given", {
+// Simple evaluation
+const result = await evaluate("Patient.name.where(use = 'official').given", {
   input: { resourceType: 'Patient', name: [{use: 'official', given: ['John']}] }
 });
 // Returns: ['John']
+
+// With type analysis and FHIR model
+const modelProvider = new FHIRModelProvider('R4');
+const analysis = await analyze("Patient.name.given", {
+  inputType: { type: 'Patient', singleton: true },
+  modelProvider
+});
+// Returns type info, diagnostics, and analyzed AST
+
+// LSP completions
+import { provideCompletions } from './src/index';
+const completions = await provideCompletions('Patient.na', 10, { modelProvider });
+// Returns completion items for properties starting with 'na'
 ```
 
 * ./spec is official spec of FHIRPath
