@@ -10,6 +10,10 @@ interface TestCase {
   name: string;
   expression: string;
   input?: any;
+  context?: {
+    variables?: Record<string, any>;
+    env?: Record<string, any>;
+  };
   expected?: any;
   error?: any;
   tags?: string[];
@@ -194,6 +198,27 @@ function generateTestSuiteHTML(suite: TestSuite): string {
             ` : ''}
           </div>
         </div>
+        
+        ${(test.context?.variables || test.context?.env) ? `
+        <div class="mb-3">
+          <label class="block text-sm font-medium text-gray-600 mb-1">Variables:</label>
+          <div class="bg-purple-50 border border-purple-200 rounded p-3">
+            ${test.context.env ? Object.entries(test.context.env).map(([key, value]) => `
+              <div class="flex items-start gap-2 mb-2 last:mb-0">
+                <span class="inline-block px-2 py-1 bg-purple-100 text-purple-700 text-xs font-mono rounded">%${key}</span>
+                <span class="text-gray-500 text-xs">(env)</span>
+                <code class="text-purple-900 text-sm font-mono flex-1">${JSON.stringify(value, null, 2)}</code>
+              </div>
+            `).join('') : ''}
+            ${test.context.variables ? Object.entries(test.context.variables).map(([key, value]) => `
+              <div class="flex items-start gap-2 mb-2 last:mb-0">
+                <span class="inline-block px-2 py-1 bg-purple-100 text-purple-700 text-xs font-mono rounded">%${key}</span>
+                <code class="text-purple-900 text-sm font-mono flex-1">${JSON.stringify(value, null, 2)}</code>
+              </div>
+            `).join('') : ''}
+          </div>
+        </div>
+        ` : ''}
         
         ${test.error ? `
         <div class="mb-3">
