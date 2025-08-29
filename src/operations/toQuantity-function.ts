@@ -1,8 +1,8 @@
 import type { FunctionDefinition } from '../types';
 import { Errors } from '../errors';
 import { type FunctionEvaluator } from '../types';
-import { unbox, box } from '../boxing';
-import { createQuantity, CALENDAR_DURATION_UNITS } from '../quantity-value';
+import { unbox, box } from '../interpreter/boxing';
+import { createQuantity, CALENDAR_DURATION_UNITS } from '../complex-types/quantity-value';
 import { ucum } from '@atomic-ehr/ucum';
 
 // Regex for parsing quantity strings according to FHIRPath spec

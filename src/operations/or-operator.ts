@@ -1,7 +1,7 @@
 import type { OperatorDefinition } from '../types';
 import { PRECEDENCE } from '../types';
 import type { OperationEvaluator } from '../types';
-import { box, unbox } from '../boxing';
+import { box, unbox } from '../interpreter/boxing';
 
 export const evaluate: OperationEvaluator = async (input, context, left, right) => {
   // Three-valued logic implementation

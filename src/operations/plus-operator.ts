@@ -1,9 +1,9 @@
 import type { OperatorDefinition } from '../types';
 import { PRECEDENCE } from '../types';
 import type { OperationEvaluator } from '../types';
-import { addQuantities } from '../quantity-value';
-import type { QuantityValue } from '../quantity-value';
-import { box, unbox } from '../boxing';
+import { addQuantities } from '../complex-types/quantity-value';
+import type { QuantityValue } from '../complex-types/quantity-value';
+import { box, unbox } from '../interpreter/boxing';
 
 export const evaluate: OperationEvaluator = async (input, context, left, right) => {
   if (left.length === 0 || right.length === 0) {
@@ -31,7 +31,7 @@ export const evaluate: OperationEvaluator = async (input, context, left, right) 
     const quantity = r as QuantityValue;
     
     // Import temporal utilities and create TimeQuantity
-    const { createTimeQuantity, add } = await import('../temporal');
+    const { createTimeQuantity, add } = await import('../complex-types/temporal');
     
     // Calendar duration units (allowed for temporal arithmetic)
     const calendarUnits = ['year', 'years', 'month', 'months', 'week', 'weeks', 

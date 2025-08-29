@@ -24,11 +24,11 @@ import { NodeType, DiagnosticSeverity, AnalysisContext } from './types';
 import type { OperatorSignature, FunctionSignature } from './types';
 import type { FunctionDefinition } from './types';
 import { registry } from './registry';
-import { matchOperatorSignature, matchFunctionSignature, resolveResultType } from './analysis/type-compat';
-import { checkParamTypes, formatType, isEmptyCollection, isUnionType, getUnionChoices, validateUnionChoice } from './analysis/utils';
+import { matchOperatorSignature, matchFunctionSignature, resolveResultType } from './analyzer/type-compat';
+import { checkParamTypes, formatType, isEmptyCollection, isUnionType, getUnionChoices, validateUnionChoice } from './analyzer/utils';
 import { Errors, toDiagnostic, ErrorCodes } from './errors';
-import { isCursorNode, CursorContext } from './cursor-nodes';
-import type { AnyCursorNode } from './cursor-nodes';
+import { isCursorNode, CursorContext } from './parser/cursor-nodes';
+import type { AnyCursorNode } from './parser/cursor-nodes';
 
 export interface AnalyzerOptions {
   cursorMode?: boolean;

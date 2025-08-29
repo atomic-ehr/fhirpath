@@ -1,7 +1,7 @@
 import type { FunctionDefinition } from '../types';
 import { Errors } from '../errors';
 import type { FunctionEvaluator } from '../types';
-import { box, unbox } from '../boxing';
+import { box, unbox } from '../interpreter/boxing';
 
 export const evaluate: FunctionEvaluator = async (input, context, args, evaluator) => {
   // Check if we have exactly 2 arguments

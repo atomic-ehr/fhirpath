@@ -1,7 +1,7 @@
 import type { OperatorDefinition } from '../types';
 import { PRECEDENCE } from '../types';
 import type { OperationEvaluator } from '../types';
-import { box, unbox } from '../boxing';
+import { box, unbox } from '../interpreter/boxing';
 import { evaluate as equalsEvaluate } from './equal-operator';
 import { Errors } from '../errors';
 

@@ -1,7 +1,7 @@
 import type { FunctionDefinition, FunctionEvaluator, TypeInfo } from '../types';
 import { Errors } from '../errors';
-import { RuntimeContextManager } from '../runtime-context';
-import { box, unbox } from '../boxing';
+import { RuntimeContextManager } from '../interpreter/runtime-context';
+import { box, unbox } from '../interpreter/boxing';
 
 export const evaluate: FunctionEvaluator = async (input, context, args, evaluator) => {
   // aggregator expression is required

@@ -2,7 +2,7 @@ import { readFileSync } from "fs";
 import { join } from "path";
 import { evaluate, FHIRPathError } from "../../src/index";
 import type { EvaluateOptions, FHIRModelProvider } from "../../src/index";
-import { getInitializedModelProvider } from "../../test/model-provider-singleton";
+import { getInitializedModelProvider } from "../../test/utils/model-provider-singleton";
 
 // --- Interfaces ---
 

@@ -1,6 +1,6 @@
 import type { FunctionDefinition, FunctionEvaluator, TypeInfo } from '../types';
 import { Errors } from '../errors';
-import { box, unbox } from '../boxing';
+import { box, unbox } from '../interpreter/boxing';
 
 export const evaluate: FunctionEvaluator = async (input, context, args, evaluator) => {
   if (args.length !== 0) {

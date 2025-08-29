@@ -1,9 +1,9 @@
 import type { FunctionDefinition, AnalysisContext, InternalAnalysisResult } from '../types';
 import { Errors } from '../errors';
-import { RuntimeContextManager } from '../runtime-context';
+import { RuntimeContextManager } from '../interpreter/runtime-context';
 import { type FunctionEvaluator } from '../types';
-import { unbox, box } from '../boxing';
-import { collectionsEqual } from '../comparison';
+import { unbox, box } from '../interpreter/boxing';
+import { collectionsEqual } from './comparison';
 
 export const evaluate: FunctionEvaluator = async (input, context, args, evaluator) => {
   // Repeat requires exactly one argument

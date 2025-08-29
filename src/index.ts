@@ -1,10 +1,11 @@
 import { Parser } from './parser';
 import { Interpreter } from './interpreter';
-import { RuntimeContextManager } from './runtime-context';
+import { RuntimeContextManager } from './interpreter/runtime-context';
 import { Analyzer } from './analyzer';
 import type { AnalysisResult } from './types';
-import { box, unbox } from './boxing';
+import { box, unbox } from './interpreter/boxing';
 import { FHIRPathError, Errors } from './errors';
+import { toTemporalString } from './complex-types/temporal';
 
 export interface EvaluateOptions {
   input?: unknown;
@@ -88,7 +89,7 @@ export async function evaluate(
   // These will be used by now(), today(), and timeOfDay() functions
   // IMPORTANT: All temporal functions must use the same timestamp
   const now = new Date();
-  const { createDateTime, createDate, createTime } = await import('./temporal');
+  const { createDateTime, createDate, createTime } = await import('./complex-types/temporal');
   
   // Cache now() value - this is the primary source
   const dateTime = createDateTime(
@@ -143,12 +144,9 @@ export async function evaluate(
     // Convert temporal values to string representation for output
     if (value && typeof value === 'object' && 'kind' in value) {
       if (value.kind === 'FHIRDate' || value.kind === 'FHIRDateTime') {
-        // Import the toTemporalString function from temporal module
-        const { toTemporalString } = require('./temporal');
         return '@' + toTemporalString(value);
       } else if (value.kind === 'FHIRTime') {
         // Time values need special handling to add the 'T' prefix
-        const { toTemporalString } = require('./temporal');
         return '@T' + toTemporalString(value);
       }
     }
@@ -248,7 +246,7 @@ export type {
 } from './completion-provider';
 
 // Export cursor node types for LSP integration
-export { CursorContext, isCursorNode } from './cursor-nodes';
+export { CursorContext, isCursorNode } from './parser/cursor-nodes';
 export type {
   CursorNode,
   CursorOperatorNode,
@@ -257,4 +255,4 @@ export type {
   CursorIndexNode,
   CursorTypeNode,
   AnyCursorNode
-} from './cursor-nodes';
+} from './parser/cursor-nodes';

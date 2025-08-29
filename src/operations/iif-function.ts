@@ -1,8 +1,8 @@
 import type { FunctionDefinition, AnalysisContext, InternalAnalysisResult } from '../types';
 import { Errors, ErrorCodes } from '../errors';
 import type { FunctionEvaluator } from '../types';
-import { box, unbox } from '../boxing';
-import { RuntimeContextManager } from '../runtime-context';
+import { box, unbox } from '../interpreter/boxing';
+import { RuntimeContextManager } from '../interpreter/runtime-context';
 import { NodeType } from '../parser';
 import { DiagnosticSeverity } from '../types';
 

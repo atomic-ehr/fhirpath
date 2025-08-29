@@ -1,8 +1,8 @@
 // Built-in temporal functions for FHIRPath
 import type { FunctionDefinition } from '../types';
 import type { FunctionEvaluator } from '../types';
-import { box } from '../boxing';
-import { createDate, createDateTime, createTime, isFHIRDate, isFHIRDateTime, isFHIRTime } from '../temporal';
+import { box } from '../interpreter/boxing';
+import { createDate, createDateTime, createTime, isFHIRDate, isFHIRDateTime, isFHIRTime } from '../complex-types/temporal';
 
 // ============================================================================
 // now() function - Returns current DateTime
@@ -180,7 +180,7 @@ export const toDateEvaluator: FunctionEvaluator = async (input, context, args) =
   // If it's a String, try to parse it
   if (typeof item === 'string') {
     try {
-      const { parseTemporalLiteral, isFHIRDate } = await import('../temporal');
+      const { parseTemporalLiteral, isFHIRDate } = await import('../complex-types/temporal');
       const temporal = parseTemporalLiteral('@' + item);
       if (isFHIRDate(temporal)) {
         return {
@@ -254,7 +254,7 @@ export const toDateTimeEvaluator: FunctionEvaluator = async (input, context, arg
   // If it's a String, try to parse it
   if (typeof item === 'string') {
     try {
-      const { parseTemporalLiteral, isFHIRDate, isFHIRDateTime } = await import('../temporal');
+      const { parseTemporalLiteral, isFHIRDate, isFHIRDateTime } = await import('../complex-types/temporal');
       const temporal = parseTemporalLiteral('@' + item);
       if (isFHIRDateTime(temporal)) {
         return {
@@ -337,7 +337,7 @@ export const toTimeEvaluator: FunctionEvaluator = async (input, context, args) =
   // If it's a String, try to parse it
   if (typeof item === 'string') {
     try {
-      const { parseTemporalLiteral, isFHIRTime } = await import('../temporal');
+      const { parseTemporalLiteral, isFHIRTime } = await import('../complex-types/temporal');
       // For time strings, prepend T if not present
       const timeString = item.startsWith('T') ? '@' + item : '@T' + item;
       const temporal = parseTemporalLiteral(timeString);
@@ -403,7 +403,7 @@ export const convertsToDateEvaluator: FunctionEvaluator = async (input, context,
   // Try to parse string
   if (typeof item === 'string') {
     try {
-      const { parseTemporalLiteral, isFHIRDate } = await import('../temporal');
+      const { parseTemporalLiteral, isFHIRDate } = await import('../complex-types/temporal');
       const temporal = parseTemporalLiteral('@' + item);
       return {
         value: [box(isFHIRDate(temporal), { type: 'Boolean', singleton: true })],
@@ -463,7 +463,7 @@ export const convertsToDateTimeEvaluator: FunctionEvaluator = async (input, cont
   // Try to parse string
   if (typeof item === 'string') {
     try {
-      const { parseTemporalLiteral, isFHIRDate, isFHIRDateTime } = await import('../temporal');
+      const { parseTemporalLiteral, isFHIRDate, isFHIRDateTime } = await import('../complex-types/temporal');
       const temporal = parseTemporalLiteral('@' + item);
       return {
         value: [box(isFHIRDateTime(temporal) || isFHIRDate(temporal), { type: 'Boolean', singleton: true })],
@@ -523,7 +523,7 @@ export const convertsToTimeEvaluator: FunctionEvaluator = async (input, context,
   // Try to parse string
   if (typeof item === 'string') {
     try {
-      const { parseTemporalLiteral, isFHIRTime } = await import('../temporal');
+      const { parseTemporalLiteral, isFHIRTime } = await import('../complex-types/temporal');
       const timeString = item.startsWith('T') ? '@' + item : '@T' + item;
       const temporal = parseTemporalLiteral(timeString);
       return {

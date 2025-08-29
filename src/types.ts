@@ -1,5 +1,5 @@
 import type { Token, TokenType } from './lexer';
-import type { AnyCursorNode } from './cursor-nodes';
+import type { AnyCursorNode } from './parser/cursor-nodes';
 
 // Precedence levels (higher number = higher precedence)
 export enum PRECEDENCE {
@@ -329,7 +329,7 @@ export interface RuntimeContext {
 
 // Evaluation result - everything is a collection of boxed values
 export interface EvaluationResult {
-  value: import('./boxing').FHIRPathValue[];
+  value: import('./interpreter/boxing').FHIRPathValue[];
   context: RuntimeContext;
 }
 
@@ -383,15 +383,15 @@ export interface ParseResult {
   };
 }
 
-export type NodeEvaluator = (node: ASTNode, input: import('./boxing').FHIRPathValue[], context: RuntimeContext) => Promise<EvaluationResult>;
+export type NodeEvaluator = (node: ASTNode, input: import('./interpreter/boxing').FHIRPathValue[], context: RuntimeContext) => Promise<EvaluationResult>;
 
-export type OperationEvaluator = (input: import('./boxing').FHIRPathValue[], context: RuntimeContext, ...args: any[]) => Promise<EvaluationResult>;
+export type OperationEvaluator = (input: import('./interpreter/boxing').FHIRPathValue[], context: RuntimeContext, ...args: any[]) => Promise<EvaluationResult>;
 
 export type FunctionEvaluator = (
-  input: import('./boxing').FHIRPathValue[],
+  input: import('./interpreter/boxing').FHIRPathValue[],
   context: RuntimeContext,
   args: ASTNode[],
-  evaluator: (node: ASTNode, input: import('./boxing').FHIRPathValue[], context: RuntimeContext) => Promise<EvaluationResult>
+  evaluator: (node: ASTNode, input: import('./interpreter/boxing').FHIRPathValue[], context: RuntimeContext) => Promise<EvaluationResult>
 ) => Promise<EvaluationResult>;
 
 // Type guards for optional properties

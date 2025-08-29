@@ -1,7 +1,7 @@
 // timezoneOffsetOf() function - Extracts timezone offset component from DateTime
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
-import { box, unbox } from '../boxing';
-import { isFHIRDateTime } from '../temporal';
+import { box, unbox } from '../interpreter/boxing';
+import { isFHIRDateTime } from '../complex-types/temporal';
 import { Errors } from '../errors';
 
 export const timezoneOffsetOfEvaluator: FunctionEvaluator = async (input, context, args) => {

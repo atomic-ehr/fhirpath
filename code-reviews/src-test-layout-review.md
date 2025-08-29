@@ -258,3 +258,122 @@ Notes:
 - src/operations/less-than.ts - category: operation/comparison (inconsistent); usage: redundant alias; relationships: should map to less-operator.
 - src/operations/trace-function.ts - category: operation/dev/utility; usage: debug tracing; relationships: inspect tooling.
 - src/analysis and src/lsp directories listed above.
+
+---
+
+## Alternatives & Recommendation (Long-Term Reorg)
+
+### Objectives
+- Discoverability: Clear homes for core, analyzer, LSP, operations, values.
+- Modularity: Isolate layers; enable optional features/tree-shaking.
+- Stability: Minimize public API churn; support gradual migration.
+- Performance: Keep hot paths shallow; avoid deep import chains.
+- LSP-Friendly: Preserve trivia/positions; decouple analyzer/LSP.
+
+### Alternatives
+- Alt 1 — Layered Mono-Package (Baseline): `core/`, `runtime/`, `model/`, `values/`, `analyzer/`, `lsp/`, `devtools/`, `operations/`.
+  - Pros: Simple build, easy refactors, minimal infra changes.
+  - Cons: Single release unit; relies on tree-shaking for partial consumers.
+
+- Alt 2 — Monorepo Multi-Package: `@fhirpath/{core,analyzer,lsp,operations-*,tools}`.
+  - Pros: Strong boundaries, smaller installs, independent versioning.
+  - Cons: Workspace overhead, cross-package refactor friction, version sync.
+
+- Alt 3 — Plugin/Registry-Driven Ops: Core loads ops via registry; ops as optional packs.
+  - Pros: Pluggable operation sets; minimal builds for targeted users.
+  - Cons: Loader indirection; more complex tests/build; runtime wiring.
+
+- Alt 4 — Virtual Structure via Barrels: Keep files, expose clean structure via barrels/exports.
+  - Pros: Zero-churn imports; incremental internal reshaping; easy rollback.
+  - Cons: Physical layout remains noisy; risk of drift vs “virtual” map.
+
+- Alt 5 — Codegen-Centric Ops: Spec metadata → generate op stubs/registry/tests.
+  - Pros: Consistent naming/signatures; cheap splits/renames; drift checks.
+  - Cons: Generator maintenance; larger diffs for generated code.
+
+- Alt 6 — Type/Value-Centric Slicing: Organize by domain (`numeric/`, `string/`, `temporal/`, `quantity/`).
+  - Pros: Co-locates ops with helpers; domain ownership clarity.
+  - Cons: Cross-cutting ops span domains; registry mapping broadens.
+
+### Naming & Modules
+- File names match FHIRPath identifiers; pick camelCase or kebab-case and enforce.
+- One module per identifier exporting both operator/function variants when both exist.
+- Keep `operations/index.ts` as the single registry export; category barrels optional.
+- Use package `exports` to expose a stable public API; keep internals private.
+
+### Migration Strategies
+- Incremental + Aliases: Add barrels and `tsconfig.paths`; move files gradually with re-exports.
+- Category Sprints: Reorg by operation category in small PRs; update registry/tests per sprint.
+- Compat Window: Deprecate old import paths; add a lint rule to forbid after N releases.
+
+### Decision Factors
+- Consumers: External import patterns; need for per-feature installs.
+- Release Cadence: Ability to coordinate breaking changes.
+- Tooling: Appetite for workspaces/plugins/codegen.
+- Team Size: Layer ownership vs domain ownership.
+
+### Recommendation
+- Adopt Alt 1 (Layered Mono-Package) now, with category-structured `operations/` and unified per-identifier modules. Prepare for potential evolution to Alt 2 or Alt 3 by:
+  - Keeping clean public barrels and private internals.
+  - Avoiding deep inter-layer coupling.
+
+### Next Steps
+- Write ADR capturing chosen structure, naming convention, and deprecation policy.
+- Add public barrels and package `exports` to stabilize imports before physical moves.
+- Spike: small POCs — (a) plugin-loaded ops pack, (b) codegen of 3–5 ops — to assess ROI.
+
+---
+
+## Mid-Term Restructure (Simple, Relationship-Oriented)
+
+### Scope
+- Reflect intended layers and dependencies with minimal churn.
+- Keep public API stable; prefer re-exports over renames.
+
+### Directory Layout (target)
+- src/core: `lexer.ts`, `parser.ts`, `interpreter.ts`, `registry.ts`, `navigator.ts`, `errors.ts`, `types.ts`.
+- src/analyzer: `analyzer.ts`, `analysis/*` (moved under this folder).
+- src/lsp: `completion-provider.ts`, `augmentor.ts`, `cursor-services.ts`, `trivia-indexer.ts`.
+- src/values: `temporal.ts`, `decimal-boundaries.ts`, `quantity-value.ts`.
+- src/runtime: `boxing.ts` (+ `runtime-context.ts` if/when introduced).
+- src/operations: category folders only; keep existing files, add barrels.
+  - arithmetic/, logical/, comparison/, collection/, navigation/, string/, temporal/, type/.
+- src/devtools: `inspect.ts`, trace/debug helpers as needed.
+
+### Operations Organization
+- Keep current file names; introduce category `index.ts` barrels re-exporting existing modules.
+- Consolidate only obvious inconsistencies now:
+  - `less-than.ts` → re-export from `less-operator.ts` (deprecate the former).
+  - `temporal-functions.ts` → keep for now; add a small barrel to expose already split functions (`yearOf`, `dateOf`, `timeOf`) when available.
+- Maintain `*-function.ts`/`*-operator.ts` suffixes for this phase to avoid wide changes.
+
+### Registry & Dependencies
+- Keep `operations/index.ts` as the single aggregator; switch imports to category barrels.
+- Relationships:
+  - Interpreter depends on `registry` and `navigator` (core → operations).
+  - Analyzer reads function/operator signatures from `registry` (analyzer → core/operations types only).
+  - LSP composes `parser` + `analyzer` and does not depend on interpreter.
+
+### Tests Layout
+- Create `test/helpers/` and move `model-provider-singleton.ts` there.
+- Group tests by layer/category without renaming test files:
+  - `test/core/`, `test/analyzer/`, `test/lsp/`, `test/operations/<category>/`.
+- Keep existing fixtures; update imports to `test/helpers/*`.
+
+### Import Stability
+- Add barrels: `src/core/index.ts`, `src/analyzer/index.ts`, `src/lsp/index.ts`, `src/values/index.ts`, and per-operations category barrels.
+- Optionally add `tsconfig.paths` aliases (`@core`, `@analyzer`, `@lsp`, `@values`, `@operations/*`) to decouple paths from physical layout.
+
+### Migration Plan (PR-sized steps)
+- Step 1: Add barrels for `core`, `analyzer`, `lsp`, `values` (no file moves). Update a few internal imports to validate.
+- Step 2: Move `completion-provider.ts` → `src/lsp/`; fix imports.
+- Step 3: Create `src/values/` and move `temporal.ts`, `decimal-boundaries.ts`, `quantity-value.ts`.
+- Step 4: Create `src/operations/<category>/` folders; add `index.ts` per category re-exporting current files.
+- Step 5: Point `operations/index.ts` to category barrels; keep old deep paths re-exported for a deprecation window.
+- Step 6: Deprecate `operations/less-than.ts` (re-export from `less-operator.ts`).
+- Step 7: Move `test/model-provider-singleton.ts` → `test/helpers/` and update imports.
+- Step 8: Run `bun tsc --noEmit` and `bun run test`; fix import path fallout only.
+
+### Notes
+- This preserves hot-path simplicity: interpreter ↔ registry under `core/operations` with shallow imports.
+- Analyzer/LSP remain clearly separated and can evolve independently.

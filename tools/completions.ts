@@ -22,7 +22,7 @@
 import { provideCompletions, CompletionKind } from '../src/completion-provider';
 import type { CompletionItem, CompletionOptions } from '../src/completion-provider';
 import type { TypeInfo } from '../src/types';
-import { getInitializedModelProvider } from '../test/model-provider-singleton';
+import { getInitializedModelProvider } from '../test/utils/model-provider-singleton';
 import { parseArgs } from 'util';
 
 // Parse command line arguments

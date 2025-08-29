@@ -1,5 +1,5 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
-import { box, unbox } from '../boxing';
+import { box, unbox } from '../interpreter/boxing';
 
 export const evaluate: FunctionEvaluator = async (input, context, args, evaluator) => {
   // Empty input returns false per spec

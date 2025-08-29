@@ -1,8 +1,8 @@
 import type { FunctionDefinition, AnalysisContext, InternalAnalysisResult } from '../types';
 import { Errors } from '../errors';
-import { RuntimeContextManager } from '../runtime-context';
+import { RuntimeContextManager } from '../interpreter/runtime-context';
 import { type FunctionEvaluator } from '../types';
-import { unbox } from '../boxing';
+import { unbox } from '../interpreter/boxing';
 
 export const evaluate: FunctionEvaluator = async (input, context, args, evaluator) => {
   // Select requires exactly one argument

@@ -1,8 +1,8 @@
 import type { OperatorDefinition } from '../types';
 import { PRECEDENCE } from '../types';
 import type { OperationEvaluator } from '../types';
-import { box } from '../boxing';
-import { collectionsEquivalent } from '../comparison';
+import { box } from '../interpreter/boxing';
+import { collectionsEquivalent } from './comparison';
 
 export const evaluate: OperationEvaluator = async (input, context, left, right) => {
   // Use the new collectionsEquivalent function from comparison.ts

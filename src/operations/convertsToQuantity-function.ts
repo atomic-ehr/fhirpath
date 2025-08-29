@@ -1,7 +1,7 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
 import { Errors } from '../errors';
-import { box, unbox } from '../boxing';
-import { createQuantity, isValidQuantity } from '../quantity-value';
+import { box, unbox } from '../interpreter/boxing';
+import { createQuantity, isValidQuantity } from '../complex-types/quantity-value';
 
 export const evaluate: FunctionEvaluator = async (input, context, args, evaluator) => {
   // convertsToQuantity() takes no arguments

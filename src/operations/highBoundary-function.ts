@@ -1,11 +1,11 @@
 // highBoundary() function - Returns the greatest possible value to the specified precision
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
-import { box, unbox } from '../boxing';
+import { box, unbox } from '../interpreter/boxing';
 import { 
   isFHIRDate, isFHIRDateTime, isFHIRTime,
   getDateHighBoundary, getDateTimeHighBoundary, getTimeHighBoundary 
-} from '../temporal';
-import { getDecimalHighBoundary } from '../decimal-boundaries';
+} from '../complex-types/temporal';
+import { getDecimalHighBoundary } from './decimal-boundaries';
 import { Errors } from '../errors';
 
 export const highBoundaryEvaluator: FunctionEvaluator = async (input, context, args, evaluator) => {

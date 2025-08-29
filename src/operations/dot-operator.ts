@@ -2,7 +2,7 @@ import type { OperatorDefinition } from '../types';
 import { Errors } from '../errors';
 import { PRECEDENCE } from '../types';
 import type { OperationEvaluator } from '../types';
-import { box, unbox } from '../boxing';
+import { box, unbox } from '../interpreter/boxing';
 
 // Note: The dot operator is special and is typically handled directly in the interpreter
 // because it needs to evaluate its operands in sequence, not in parallel

@@ -1,7 +1,7 @@
 // millisecondOf() function - Extracts millisecond component from Time or DateTime
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
-import { box, unbox } from '../boxing';
-import { isFHIRTime, isFHIRDateTime } from '../temporal';
+import { box, unbox } from '../interpreter/boxing';
+import { isFHIRTime, isFHIRDateTime } from '../complex-types/temporal';
 import { Errors } from '../errors';
 
 export const millisecondOfEvaluator: FunctionEvaluator = async (input, context, args) => {

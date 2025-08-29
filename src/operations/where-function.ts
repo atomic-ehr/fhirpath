@@ -1,7 +1,7 @@
 import type { FunctionDefinition, ASTNode } from '../types';
-import { RuntimeContextManager } from '../runtime-context';
+import { RuntimeContextManager } from '../interpreter/runtime-context';
 import { type FunctionEvaluator } from '../types';
-import { unbox } from '../boxing';
+import { unbox } from '../interpreter/boxing';
 
 export const evaluate: FunctionEvaluator = async (input, context, args, evaluator) => {
   // If no condition provided, return input as-is

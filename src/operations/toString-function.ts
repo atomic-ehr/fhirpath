@@ -1,6 +1,6 @@
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
 import { Errors } from '../errors';
-import { box, unbox } from '../boxing';
+import { box, unbox } from '../interpreter/boxing';
 
 export const evaluate: FunctionEvaluator = async (input, context, args, evaluator) => {
   // toString takes no arguments

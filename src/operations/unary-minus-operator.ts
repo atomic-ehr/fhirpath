@@ -1,8 +1,8 @@
 import type { OperatorDefinition } from '../types';
 import { PRECEDENCE } from '../types';
 import type { OperationEvaluator } from '../types';
-import type { QuantityValue } from '../quantity-value';
-import { box, unbox } from '../boxing';
+import type { QuantityValue } from '../complex-types/quantity-value';
+import { box, unbox } from '../interpreter/boxing';
 
 export const evaluate: OperationEvaluator = async (input, context, operand) => {
   // Unary minus negates each boxed value

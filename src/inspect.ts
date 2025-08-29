@@ -1,10 +1,10 @@
 import type { TypeInfo, ASTNode, Diagnostic } from './types';
-import type { FHIRPathValue } from './boxing';
+import type { FHIRPathValue } from './interpreter/boxing';
 import { NodeType, DiagnosticSeverity } from './types';
 import { parse } from './parser';
 import { Analyzer } from './analyzer';
 import { Interpreter } from './interpreter';
-import { RuntimeContextManager } from './runtime-context';
+import { RuntimeContextManager } from './interpreter/runtime-context';
 import type { RuntimeContext } from './types';
 
 export interface ASTMetadata {

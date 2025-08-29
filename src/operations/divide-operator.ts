@@ -1,9 +1,9 @@
 import type { OperatorDefinition } from '../types';
 import { PRECEDENCE } from '../types';
 import type { OperationEvaluator } from '../types';
-import { divideQuantities } from '../quantity-value';
-import type { QuantityValue } from '../quantity-value';
-import { box, unbox } from '../boxing';
+import { divideQuantities } from '../complex-types/quantity-value';
+import type { QuantityValue } from '../complex-types/quantity-value';
+import { box, unbox } from '../interpreter/boxing';
 import { Errors } from '../errors';
 
 export const evaluate: OperationEvaluator = async (input, context, left, right) => {

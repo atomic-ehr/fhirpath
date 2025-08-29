@@ -16,11 +16,11 @@ import { NodeType } from './types';
 import { Registry } from './registry';
 import * as operations from './operations';
 import type { EvaluationResult, FunctionEvaluator, NodeEvaluator, OperationEvaluator, RuntimeContext, TypeInfo } from './types';
-import { createQuantity } from './quantity-value';
-import { box, unbox, ensureBoxed, type FHIRPathValue } from './boxing';
+import { createQuantity } from './complex-types/quantity-value';
+import { box, unbox, ensureBoxed, type FHIRPathValue } from './interpreter/boxing';
 import { Errors } from './errors';
-import { detectChoiceValues, getPrimitiveElement, maybeParseTemporal, reboxResource } from './navigator';
-import { RuntimeContextManager } from './runtime-context';
+import { detectChoiceValues, getPrimitiveElement, maybeParseTemporal, reboxResource } from './interpreter/navigator';
+import { RuntimeContextManager } from './interpreter/runtime-context';
 
 /**
  * Runtime context manager that provides efficient prototype-based context operations
@@ -172,7 +172,7 @@ export class Interpreter {
     // Handle temporal literals (backwards compatibility - should not reach here with new parser)
     if (literal.valueType === 'date' || literal.valueType === 'datetime' || literal.valueType === 'time') {
       // Import temporal parsing function
-      const { parseTemporalLiteral } = await import('./temporal');
+      const { parseTemporalLiteral } = await import('./complex-types/temporal');
       // Parse the temporal literal (add @ back since it was stripped by parser)
       const temporalValue = parseTemporalLiteral('@' + literal.value);
       

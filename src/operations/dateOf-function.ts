@@ -1,7 +1,7 @@
 // dateOf() function - Extracts date component from Date or DateTime
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
-import { box, unbox } from '../boxing';
-import { createDate, isFHIRDate, isFHIRDateTime } from '../temporal';
+import { box, unbox } from '../interpreter/boxing';
+import { createDate, isFHIRDate, isFHIRDateTime } from '../complex-types/temporal';
 import { Errors } from '../errors';
 
 export const dateOfEvaluator: FunctionEvaluator = async (input, context, args) => {

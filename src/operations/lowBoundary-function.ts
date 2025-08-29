@@ -1,11 +1,11 @@
 // lowBoundary() function - Returns the least possible value to the specified precision
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
-import { box, unbox } from '../boxing';
+import { box, unbox } from '../interpreter/boxing';
 import { 
   isFHIRDate, isFHIRDateTime, isFHIRTime,
   getDateLowBoundary, getDateTimeLowBoundary, getTimeLowBoundary 
-} from '../temporal';
-import { getDecimalLowBoundary } from '../decimal-boundaries';
+} from '../complex-types/temporal';
+import { getDecimalLowBoundary } from './decimal-boundaries';
 import { Errors } from '../errors';
 
 export const lowBoundaryEvaluator: FunctionEvaluator = async (input, context, args, evaluator) => {

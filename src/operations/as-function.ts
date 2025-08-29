@@ -1,5 +1,5 @@
 import type { FunctionDefinition, FunctionEvaluator, ASTNode, RuntimeContext, NodeEvaluator } from '../types';
-import type { FHIRPathValue } from '../boxing';
+import type { FHIRPathValue } from '../interpreter/boxing';
 import { NodeType, isIdentifierNode } from '../types';
 import { evaluate as asOperatorEvaluate } from './as-operator';
 

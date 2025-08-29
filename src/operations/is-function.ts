@@ -1,7 +1,7 @@
 import type { FunctionDefinition, FunctionEvaluator, ASTNode, RuntimeContext, NodeEvaluator } from '../types';
-import type { FHIRPathValue } from '../boxing';
+import type { FHIRPathValue } from '../interpreter/boxing';
 import { NodeType, isIdentifierNode } from '../types';
-import { box } from '../boxing';
+import { box } from '../interpreter/boxing';
 import { evaluate as isOperatorEvaluate } from './is-operator';
 
 const isEvaluator: FunctionEvaluator = async (

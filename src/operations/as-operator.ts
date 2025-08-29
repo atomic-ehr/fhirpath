@@ -1,7 +1,8 @@
 import type { OperatorDefinition } from '../types';
 import { PRECEDENCE } from '../types';
 import type { OperationEvaluator } from '../types';
-import { box, unbox } from '../boxing';
+import { box, unbox } from '../interpreter/boxing';
+import { isFHIRDate, isFHIRDateTime, isFHIRTime } from '../complex-types/temporal';
 
 export const evaluate: OperationEvaluator = async (input, context, left, right) => {
   // 'as' operator performs type casting/filtering
@@ -45,21 +46,18 @@ export const evaluate: OperationEvaluator = async (input, context, left, right) 
         case 'Date':
           // Check if it's a FHIRDate instance or has Date typeInfo
           if (item && typeof item === 'object') {
-            const { isFHIRDate } = require('../temporal');
             matches = isFHIRDate(item) || (item as any).kind === 'FHIRDate';
           }
           break;
         case 'DateTime':
           // Check if it's a FHIRDateTime instance or has DateTime typeInfo
           if (item && typeof item === 'object') {
-            const { isFHIRDateTime } = require('../temporal');
             matches = isFHIRDateTime(item) || (item as any).kind === 'FHIRDateTime';
           }
           break;
         case 'Time':
           // Check if it's a FHIRTime instance or has Time typeInfo
           if (item && typeof item === 'object') {
-            const { isFHIRTime } = require('../temporal');
             matches = isFHIRTime(item) || (item as any).kind === 'FHIRTime';
           }
           break;

@@ -1,8 +1,8 @@
 import type { OperatorDefinition } from '../types';
 import { PRECEDENCE } from '../types';
 import type { OperationEvaluator } from '../types';
-import { box, unbox } from '../boxing';
-import { compareQuantities, type QuantityValue } from '../quantity-value';
+import { box, unbox } from '../interpreter/boxing';
+import { compareQuantities, type QuantityValue } from '../complex-types/quantity-value';
 
 export const evaluate: OperationEvaluator = async (input, context, left, right) => {
   if (left.length === 0 || right.length === 0) {

@@ -8,7 +8,7 @@ import {
   createCursorArgumentNode,
   createCursorIndexNode,
   createCursorTypeNode,
-} from './cursor-nodes';
+} from './parser/cursor-nodes';
 import type {
   Position,
   Range,
@@ -33,10 +33,10 @@ import type {
   ParseError
 } from './types';
 import { Errors } from './errors';
-import { parseTemporalLiteral } from './temporal';
-import { augment } from './lsp/augmentor';
-import { findNodeAtPosition, getCompletions as lspGetCompletions, getExpectedTokens as lspGetExpectedTokens } from './lsp/cursor-services';
-import { computeTriviaSpans } from './lsp/trivia-indexer';
+import { parseTemporalLiteral } from './complex-types/temporal';
+import { augment } from './analyzer/augmentor';
+import { findNodeAtPosition, getCompletions as lspGetCompletions, getExpectedTokens as lspGetExpectedTokens } from './analyzer/cursor-services';
+import { computeTriviaSpans } from './analyzer/trivia-indexer';
 
 // Re-export types for backward compatibility
 export {

@@ -1,7 +1,7 @@
 // monthOf() function - Extracts month component from Date or DateTime
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
-import { box, unbox } from '../boxing';
-import { isFHIRDate, isFHIRDateTime } from '../temporal';
+import { box, unbox } from '../interpreter/boxing';
+import { isFHIRDate, isFHIRDateTime } from '../complex-types/temporal';
 import { Errors } from '../errors';
 
 export const monthOfEvaluator: FunctionEvaluator = async (input, context, args) => {

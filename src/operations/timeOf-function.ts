@@ -1,7 +1,7 @@
 // timeOf() function - Extracts time component from DateTime
 import type { FunctionDefinition, FunctionEvaluator } from '../types';
-import { box, unbox } from '../boxing';
-import { createTime, isFHIRDateTime } from '../temporal';
+import { box, unbox } from '../interpreter/boxing';
+import { createTime, isFHIRDateTime } from '../complex-types/temporal';
 import { Errors } from '../errors';
 
 export const timeOfEvaluator: FunctionEvaluator = async (input, context, args) => {

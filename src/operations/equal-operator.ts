@@ -1,7 +1,7 @@
 import type { OperatorDefinition, OperationEvaluator } from '../types';
 import { PRECEDENCE } from '../types';
-import { box } from '../boxing';
-import { collectionsEqual } from '../comparison';
+import { box } from '../interpreter/boxing';
+import { collectionsEqual } from './comparison';
 
 export const evaluate: OperationEvaluator = async (input, context, left, right) => {
   // Use the unified comparison system

@@ -1,7 +1,7 @@
 import type { FunctionDefinition, RuntimeContext, ASTNode, TypeInfo, NodeEvaluator, FunctionEvaluator } from '../types';
 import { Errors } from '../errors';
-import type { FHIRPathValue } from '../boxing';
-import { unbox } from '../boxing';
+import type { FHIRPathValue } from '../interpreter/boxing';
+import { unbox } from '../interpreter/boxing';
 import { isIdentifierNode, isFunctionNode } from '../types';
 
 export const ofTypeFunction: FunctionDefinition & { evaluate: FunctionEvaluator } = {

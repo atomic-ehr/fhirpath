@@ -1,7 +1,7 @@
 import type { FunctionDefinition } from '../types';
 import { Errors } from '../errors';
 import { type FunctionEvaluator } from '../types';
-import { unbox, box } from '../boxing';
+import { unbox, box } from '../interpreter/boxing';
 
 // 64-bit Long bounds
 const MAX_LONG = BigInt('9223372036854775807');

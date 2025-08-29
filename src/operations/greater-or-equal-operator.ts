@@ -1,9 +1,9 @@
 import type { OperatorDefinition } from '../types';
 import { PRECEDENCE } from '../types';
 import type { OperationEvaluator } from '../types';
-import { compareQuantities } from '../quantity-value';
-import type { QuantityValue } from '../quantity-value';
-import { box, unbox } from '../boxing';
+import { compareQuantities } from '../complex-types/quantity-value';
+import type { QuantityValue } from '../complex-types/quantity-value';
+import { box, unbox } from '../interpreter/boxing';
 
 export const evaluate: OperationEvaluator = async (input, context, left, right) => {
   if (left.length === 0 || right.length === 0) {
@@ -31,7 +31,7 @@ export const evaluate: OperationEvaluator = async (input, context, left, right) 
     const temporalR = r as any;
     const kinds = ['FHIRDate', 'FHIRDateTime', 'FHIRTime'];
     if (kinds.includes(temporalL.kind) && kinds.includes(temporalR.kind)) {
-      const { compare } = await import('../temporal');
+      const { compare } = await import('../complex-types/temporal');
       const result = compare(temporalL, temporalR);
       // null means incomparable (different precisions), returns empty
       if (result === null) {

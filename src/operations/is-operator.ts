@@ -1,7 +1,8 @@
 import type { OperatorDefinition, TypeName } from '../types';
 import { PRECEDENCE } from '../types';
 import type { OperationEvaluator } from '../types';
-import { box, unbox } from '../boxing';
+import { box, unbox } from '../interpreter/boxing';
+import { isFHIRDate, isFHIRDateTime, isFHIRTime } from '../complex-types/temporal';
 
 export const evaluate: OperationEvaluator = async (input, context, left, right) => {
   // Right operand should be a type identifier
@@ -62,21 +63,18 @@ export const evaluate: OperationEvaluator = async (input, context, left, right) 
     case 'Date':
       // Check if it's a FHIRDate instance or has Date type
       if (item && typeof item === 'object') {
-        const { isFHIRDate } = require('../temporal');
         return { value: [box(isFHIRDate(item) || (item as any).kind === 'FHIRDate', { type: 'Boolean', singleton: true })], context };
       }
       return { value: [box(false, { type: 'Boolean', singleton: true })], context };
     case 'DateTime':
       // Check if it's a FHIRDateTime instance or has DateTime type
       if (item && typeof item === 'object') {
-        const { isFHIRDateTime } = require('../temporal');
         return { value: [box(isFHIRDateTime(item) || (item as any).kind === 'FHIRDateTime', { type: 'Boolean', singleton: true })], context };
       }
       return { value: [box(false, { type: 'Boolean', singleton: true })], context };
     case 'Time':
       // Check if it's a FHIRTime instance or has Time type
       if (item && typeof item === 'object') {
-        const { isFHIRTime } = require('../temporal');
         return { value: [box(isFHIRTime(item) || (item as any).kind === 'FHIRTime', { type: 'Boolean', singleton: true })], context };
       }
       return { value: [box(false, { type: 'Boolean', singleton: true })], context };

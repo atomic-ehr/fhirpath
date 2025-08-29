@@ -2,8 +2,8 @@ import { parse } from './parser';
 import { Analyzer } from './analyzer';
 import type { TypeInfo, ModelProvider } from './types';
 
-import { CursorContext, isCursorNode } from './cursor-nodes';
-import type { AnyCursorNode } from './cursor-nodes';
+import { CursorContext, isCursorNode } from './parser/cursor-nodes';
+import type { AnyCursorNode } from './parser/cursor-nodes';
 import { registry } from './registry';
 
 /**
