@@ -20,7 +20,7 @@ This is a comprehensive TypeScript implementation of FHIRPath - a path-based nav
 - **Parser** (`parser.ts`): Robust expression parser with error recovery
   - Dual mode: simple (fast parsing) and LSP (with error recovery)  
   - Precedence climbing for operators
-  - Cursor node injection for completion support
+  - Cursor node injection for completion support (`parser/cursor-nodes.ts`)
   - AST augmentation with position and trivia information
 
 - **Analyzer** (`analyzer.ts`): Static type analysis and validation
@@ -28,48 +28,106 @@ This is a comprehensive TypeScript implementation of FHIRPath - a path-based nav
   - Function/operator signature matching
   - Error diagnostics with precise location information
   - Cursor-aware analysis for IDE completions
+  - Supporting modules:
+    - `analyzer/augmentor.ts` - AST augmentation with type information
+    - `analyzer/scope-manager.ts` - Variable scope tracking
+    - `analyzer/cursor-services.ts` - Cursor position analysis
+    - `analyzer/trivia-indexer.ts` - Trivia preservation for LSP
+    - `analyzer/type-compat.ts` - Type compatibility checking
+    - `analyzer/utils.ts` - Utility functions
 
 - **Interpreter** (`interpreter.ts`): High-performance AST evaluator
   - Visitor pattern with optimized dispatch
   - Prototype-based context management for efficiency
   - Boxing/unboxing system for type preservation
   - Support for all FHIRPath types and operations
+  - Supporting modules:
+    - `interpreter/boxing.ts` - Type boxing/unboxing system
+    - `interpreter/runtime-context.ts` - Runtime context management
+    - `interpreter/navigator.ts` - FHIR resource navigation
 
 - **Registry** (`registry.ts`): Centralized operation management
   - Symbol, keyword, and unary operator registration
   - Function definitions with multiple signatures
   - Precedence and associativity rules
+  - Auto-registration of operations from `operations/` directory
 
-- **Operations** (`operations/`): ~80+ operators and functions
-  - Arithmetic, logical, string, collection operations
-  - Temporal functions (date/time manipulation)
-  - Type conversion and testing functions
-  - FHIR-specific navigation (ofType, as, etc.)
+- **Operations** (`operations/`): 80+ operators and functions organized by category
+  - Arithmetic: plus, minus, multiply, divide, div, mod, power, abs, ceiling, floor, round, sqrt, truncate
+  - Logical: and, or, xor, not, implies
+  - Comparison: equal, not-equal, less-than, greater-than, less-or-equal, greater-or-equal
+  - String: length, substring, startsWith, endsWith, contains, indexOf, lastIndexOf, matches, matchesFull, replace, replaceMatches, split, join, trim, upper, lower, toChars, repeat
+  - Collection: where, select, first, last, tail, skip, take, single, distinct, count, exists, empty, all, allTrue, allFalse, anyTrue, anyFalse, combine, union, intersect, exclude, subsetOf, supersetOf, isDistinct
+  - Type conversion: toBoolean, toInteger, toLong, toDecimal, toString, toQuantity, convertsToBoolean, convertsToInteger, convertsToLong, convertsToDecimal, convertsToString, convertsToQuantity
+  - Type testing: is, as, ofType
+  - Temporal: now, today, timeOfDay, dateOf, timeOf, yearOf, monthOf, dayOf, hourOf, minuteOf, secondOf, millisecondOf, timezoneOffsetOf
+  - Utility: trace, defineVariable, aggregate, iif, children, descendants
+  - Membership: in, contains
+  - Boundaries: highBoundary, lowBoundary
 
-### Advanced Features
+- **Complex Types** (`complex-types/`):
+  - `temporal.ts` - Date, DateTime, Time handling with timezone support
+  - `quantity-value.ts` - UCUM quantity support with unit conversion
 
-- **LSP Support**:
-  - Code completion with context-aware suggestions (`completion-provider.ts`)
-  - Real-time error diagnostics
-  - Cursor tracking for partial expressions
-  - Trivia preservation for formatting
+- **Error System** (`errors.ts`):
+  - Structured error codes and messages
+  - FHIRPathError class with diagnostic information
+  - Parse, analysis, and runtime error differentiation
 
-- **Type System**:
+- **Model Provider** (`model-provider.ts`):
+  - FHIR model integration using @atomic-ehr/fhir-canonical-manager
+  - Support for R4, R5, STU3, DSTU2 FHIR versions
+  - Type hierarchy and element property resolution
+  - Schema caching for performance
+
+- **LSP Support** (`completion-provider.ts`):
+  - Context-aware code completions
+  - Function and property suggestions
+  - Variable completions
+  - Integration with cursor tracking
+
+- **Utilities** (`utils/`):
+  - `pprint.ts` - Pretty printing for AST and debug output
+
+- **Type System** (`types.ts`):
   - Complete FHIRPath type hierarchy (primitives, collections, FHIR types)
   - Union type support with proper inference
   - Polymorphic function signatures
-  - FHIR model awareness via ModelProvider interface
+  - AST node type definitions
+  - Operator and function definition interfaces
+
+- **Main Entry Point** (`index.ts`):
+  - `evaluate()` - Execute FHIRPath expressions with input data
+  - `analyze()` - Type analysis and validation
+  - `parse()` - Parse expressions to AST
+  - `provideCompletions()` - LSP completions
+  - `inspect()` - Debug expressions with traces
+
+### Advanced Features
 
 - **Runtime Context**:
-  - Efficient prototype-based variable scoping
+  - Efficient prototype-based variable scoping via RuntimeContextManager
   - Built-in variables: $this, $index, $total
   - User-defined variables with % prefix
   - System variables: %context, %resource, %rootResource
+  - Cached temporal values for deterministic evaluation
 
-- **Error Handling**:
-  - Structured error system with error codes
-  - Parse, analysis, and runtime error differentiation
-  - LSP-compatible diagnostic messages with ranges
+- **Type Safety**:
+  - Complete type inference through expression chains
+  - Union type handling for polymorphic operations
+  - FHIR resource type awareness
+  - Type compatibility checking with coercion rules
+
+- **Performance Optimizations**:
+  - Prototype-based context for minimal allocation
+  - Lazy evaluation where possible
+  - Schema and type hierarchy caching
+  - Optimized operator dispatch
+
+- **Error Recovery**:
+  - LSP mode with error recovery for IDE integration
+  - Partial AST generation for incomplete expressions
+  - Diagnostic collection without throwing
 
 ### Example Usage
 
