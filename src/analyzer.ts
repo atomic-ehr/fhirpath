@@ -120,7 +120,7 @@ export class Analyzer {
       default:
         result = {
           type: { type: 'Any', singleton: false },
-          diagnostics: [this.createError(node, `Unknown node type: ${node.type}`)]
+          diagnostics: [toDiagnostic(Errors.unknownNodeType(String((node as any)?.type), (node as any)?.range))]
         };
     }
     
@@ -261,7 +261,7 @@ export class Analyzer {
 
     const functionName = this.getFunctionName(node);
     if (!functionName) {
-      diagnostics.push(this.createError(node.name, 'Invalid function name'));
+      diagnostics.push(this.createError(node.name, 'Invalid function name', ErrorCodes.INVALID_SYNTAX));
       return { type: { type: 'Any', singleton: false }, diagnostics };
     }
 
@@ -920,7 +920,7 @@ export class Analyzer {
   private analyzeError(node: ErrorNode, context: AnalysisContext): InternalAnalysisResult {
     return {
       type: { type: 'Any', singleton: false },
-      diagnostics: [this.createError(node, node.message)]
+      diagnostics: [this.createError(node, node.message, ErrorCodes.INVALID_SYNTAX)]
     };
   }
 
