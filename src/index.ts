@@ -3,6 +3,7 @@ import { Interpreter } from './interpreter';
 import { RuntimeContextManager } from './interpreter/runtime-context';
 import { Analyzer } from './analyzer';
 import type { AnalysisResult } from './types';
+import { DiagnosticSeverity } from './types';
 import { box, unbox } from './interpreter/boxing';
 import { FHIRPathError, Errors } from './errors';
 import { toTemporalString } from './complex-types/temporal';
@@ -47,7 +48,7 @@ export async function evaluate(
   );
   
   // Check for analysis errors
-  const errors = analysisResult.diagnostics.filter(d => d.severity === 1); // DiagnosticSeverity.Error
+  const errors = analysisResult.diagnostics.filter(d => d.severity === DiagnosticSeverity.Error);
   if (errors.length > 0) {
     // Throw the first error
     const firstError = errors[0]!;
