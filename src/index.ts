@@ -79,8 +79,8 @@ export async function evaluate(
     }));
   }
   
-  // Create context with variables if provided
-  let context = RuntimeContextManager.create(input);
+  // Create context with BOXED input so system vars keep typeInfo
+  let context = RuntimeContextManager.create(boxedInput);
   
   // Set $this to the boxed input (required for expressions like $this.where(...))
   context = RuntimeContextManager.setVariable(context, '$this', boxedInput);
@@ -131,12 +131,29 @@ export async function evaluate(
   
   if (options.variables) {
     for (const [key, value] of Object.entries(options.variables)) {
-      const varValue = Array.isArray(value) ? value : [value];
-      context = RuntimeContextManager.setVariable(context, key, varValue);
+      // Normalize to array
+      const values = Array.isArray(value) ? value : [value];
+      // If modelProvider present, box FHIR resources with typeInfo; keep primitives as-is
+      const boxedVars = options.modelProvider
+        ? await Promise.all(values.map(async (v) => {
+            if (
+              v &&
+              typeof v === 'object' &&
+              'resourceType' in (v as any) &&
+              typeof (v as any).resourceType === 'string'
+            ) {
+              const ti = await options.modelProvider!.getType((v as any).resourceType);
+              return ti ? box(v, ti) : v;
+            }
+            return v;
+          }))
+        : values;
+      context = RuntimeContextManager.setVariable(context, key, boxedVars);
     }
   }
   
-  const result = await interpreter.evaluate(analysisResult.ast, input, context);
+  // Evaluate using BOXED input to preserve typeInfo through the pipeline
+  const result = await interpreter.evaluate(analysisResult.ast, boxedInput as any[], context);
   
   // Unbox the results before returning
   return result.value.map(boxedValue => {
