@@ -29,6 +29,7 @@ import { checkParamTypes, formatType, isEmptyCollection, isUnionType, getUnionCh
 import { Errors, toDiagnostic, ErrorCodes } from './errors';
 import { isCursorNode, CursorContext } from './parser/cursor-nodes';
 import type { AnyCursorNode } from './parser/cursor-nodes';
+import { Parser, type ParserOptions } from './parser';
 
 export interface AnalyzerOptions {
   cursorMode?: boolean;
@@ -63,6 +64,44 @@ export class Analyzer {
 
   constructor(modelProvider?: ModelProvider) {
     this.modelProvider = modelProvider;
+  }
+
+  /**
+   * Parse and analyze a FHIRPath expression end-to-end, returning an AnalysisResult
+   * and structured diagnostics. Supports optional error recovery (LSP mode).
+   */
+  static async analyzeExpression(
+    expression: string,
+    options: {
+      variables?: Record<string, unknown>;
+      modelProvider?: ModelProvider;
+      inputType?: TypeInfo;
+      errorRecovery?: boolean;
+      parserOptions?: ParserOptions;
+    } = {}
+  ): Promise<AnalysisResultWithCursor> {
+    const parserOptions: ParserOptions | undefined = options.errorRecovery
+      ? { mode: 'lsp', errorRecovery: true, ...(options.parserOptions || {}) }
+      : options.parserOptions;
+
+    const parser = new Parser(expression, parserOptions);
+    const parseResult = parser.parse();
+
+    // If error recovery is not enabled and there are parse errors, surface the first one.
+    if (!options.errorRecovery && parseResult.errors.length > 0) {
+      // Preserve backward compatibility; analyzer doesn't throw custom mapping here.
+      throw Errors.invalidSyntax(parseResult.errors[0]!.message);
+    }
+
+    const analyzer = new Analyzer(options.modelProvider);
+    const result = await analyzer.analyze(
+      parseResult.ast,
+      options.variables,
+      options.inputType,
+      { cursorMode: !!parserOptions?.mode && parserOptions.mode === 'lsp' }
+    );
+
+    return result;
   }
 
   /**

@@ -21,6 +21,10 @@ import { box, unbox, ensureBoxed, type FHIRPathValue } from './interpreter/boxin
 import { Errors } from './errors';
 import { detectChoiceValues, getPrimitiveElement, maybeParseTemporal, reboxResource } from './interpreter/navigator';
 import { RuntimeContextManager } from './interpreter/runtime-context';
+import { Analyzer } from './analyzer';
+import { DiagnosticSeverity } from './types';
+import { FHIRPathError, ErrorCodes } from './errors';
+import { toTemporalString } from './complex-types/temporal';
 
 /**
  * Runtime context manager that provides efficient prototype-based context operations
@@ -119,6 +123,60 @@ export class Interpreter {
       context.modelProvider = this.modelProvider;
     }
     return context;
+  }
+
+  /**
+   * Parse, analyze and evaluate a FHIRPath expression with optional
+   * model provider, variables and input type. Returns unboxed values
+   * with temporal values formatted as FHIRPath literals.
+   */
+  async evaluateExpression(
+    expression: string,
+    options: {
+      input?: unknown;
+      variables?: Record<string, unknown>;
+      inputType?: TypeInfo;
+      modelProvider?: import('./types').ModelProvider;
+      now?: Date;
+    } = {}
+  ): Promise<any[]> {
+    // Analyze expression first (ensures type info and diagnostics)
+    const analysis = await Analyzer.analyzeExpression(expression, {
+      variables: options.variables,
+      modelProvider: options.modelProvider ?? this.modelProvider,
+      inputType: options.inputType,
+      errorRecovery: false,
+    });
+
+    const errors = analysis.diagnostics.filter(d => d.severity === DiagnosticSeverity.Error);
+    if (errors.length > 0) {
+      const first = errors[0]!;
+      const code = typeof first.code === 'string' && first.code.length > 0 ? first.code : ErrorCodes.INVALID_OPERATION;
+      throw new FHIRPathError(code, first.message, first.range);
+    }
+
+    // Bootstrap runtime context and boxed input
+    const { context, input } = await RuntimeContextManager.bootstrapContext(options.input, {
+      modelProvider: options.modelProvider ?? this.modelProvider,
+      variables: options.variables,
+      now: options.now,
+    });
+
+    // Evaluate using analyzed AST and BOXED input
+    const result = await this.evaluate(analysis.ast, input as any[], context);
+
+    // Unbox and format temporal outputs for API parity
+    return result.value.map((boxedValue) => {
+      const value = unbox(boxedValue);
+      if (value && typeof value === 'object' && 'kind' in value) {
+        if ((value as any).kind === 'FHIRDate' || (value as any).kind === 'FHIRDateTime') {
+          return '@' + toTemporalString(value as any);
+        } else if ((value as any).kind === 'FHIRTime') {
+          return '@T' + toTemporalString(value as any);
+        }
+      }
+      return value;
+    });
   }
 
   // Helper: classify a boolean operand for short-circuit decisions

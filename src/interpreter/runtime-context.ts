@@ -1,5 +1,15 @@
 import { Errors } from '../errors';
 import type { RuntimeContext } from '../types';
+import { box } from './boxing';
+
+// Temporal creators used for deterministic caches
+import { createDateTime, createDate, createTime } from '../complex-types/temporal';
+
+export interface BootstrapOptions {
+  modelProvider?: import('../types').ModelProvider;
+  variables?: Record<string, unknown>;
+  now?: Date; // provide deterministic time for tests
+}
 
 /**
  * Runtime context manager that provides efficient prototype-based context operations
@@ -148,5 +158,116 @@ export class RuntimeContextManager {
     }
     return undefined;
   }
-}
 
+  /**
+   * Bootstrap a runtime context with input, system variables, temporal caches,
+   * optional model provider, and user variables. Applies boxing policy for
+   * FHIR resources when a model provider is available.
+   */
+  static async bootstrapContext(
+    rawInput: unknown | unknown[],
+    options: BootstrapOptions = {}
+  ): Promise<{ context: RuntimeContext; input: any[] }> {
+    const { modelProvider, variables, now } = options;
+
+    // Normalize input to array
+    const inputArray = Array.isArray(rawInput)
+      ? rawInput
+      : rawInput === undefined || rawInput === null
+        ? []
+        : [rawInput];
+
+    // Box input with typeInfo when possible (FHIR resources)
+    let boxedInput = inputArray as any[];
+    if (modelProvider) {
+      boxedInput = await Promise.all(
+        inputArray.map(async (item) => {
+          if (
+            item &&
+            typeof item === 'object' &&
+            'resourceType' in (item as any) &&
+            typeof (item as any).resourceType === 'string'
+          ) {
+            const ti = await modelProvider.getType((item as any).resourceType);
+            return ti ? box(item, ti) : item;
+          }
+          return item;
+        })
+      );
+    }
+
+    // Create context with BOXED input so system vars keep typeInfo
+    let context = RuntimeContextManager.create(boxedInput);
+
+    // Set $this to the boxed input (expressions may rely on $this)
+    context = RuntimeContextManager.setVariable(context, '$this', boxedInput);
+
+    // Pre-cache temporal values (single timestamp for now/today/timeOfDay)
+    const ts = now ?? new Date();
+    const dateTime = createDateTime(
+      ts.getFullYear(),
+      ts.getMonth() + 1,
+      ts.getDate(),
+      ts.getHours(),
+      ts.getMinutes(),
+      ts.getSeconds(),
+      ts.getMilliseconds(),
+      -ts.getTimezoneOffset()
+    );
+    context = RuntimeContextManager.setVariable(
+      context,
+      '__fhirpath_now_cache__',
+      box(dateTime, { type: 'DateTime', singleton: true })
+    );
+
+    const date = createDate(dateTime.year, dateTime.month, dateTime.day);
+    context = RuntimeContextManager.setVariable(
+      context,
+      '__fhirpath_today_cache__',
+      box(date, { type: 'Date', singleton: true })
+    );
+
+    const time = createTime(
+      dateTime.hour!,
+      dateTime.minute,
+      dateTime.second,
+      dateTime.millisecond
+    );
+    context = RuntimeContextManager.setVariable(
+      context,
+      '__fhirpath_timeOfDay_cache__',
+      box(time, { type: 'Time', singleton: true })
+    );
+
+    // Attach model provider to context
+    if (modelProvider) {
+      context.modelProvider = modelProvider;
+    }
+
+    // Add user variables, boxing FHIR resources when modelProvider present
+    if (variables) {
+      for (const [key, rawVal] of Object.entries(variables)) {
+        const values = Array.isArray(rawVal) ? rawVal : [rawVal];
+        const maybeBoxed = modelProvider
+          ? await Promise.all(
+              values.map(async (v) => {
+                if (
+                  v &&
+                  typeof v === 'object' &&
+                  'resourceType' in (v as any) &&
+                  typeof (v as any).resourceType === 'string'
+                ) {
+                  const ti = await modelProvider.getType((v as any).resourceType);
+                  return ti ? box(v, ti) : v;
+                }
+                return v;
+              })
+            )
+          : values;
+        context = RuntimeContextManager.setVariable(context, key, maybeBoxed);
+      }
+    }
+
+    return { context, input: boxedInput };
+  }
+}
