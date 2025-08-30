@@ -12,6 +12,7 @@
     - `const context = RuntimeContextManager.create(boxedInput);`
     - `const result = await interpreter.evaluate(analysisResult.ast, boxedInput, context);`
     - Variables: if value has `resourceType`, `const ti = await modelProvider.getType(value.resourceType); ctx = setVariable(ctx, key, box(value, ti));`
+  - Status: Implemented in `src/index.ts`; tests in `test/index/index.boxing.test.ts` validate root vs variable parity and primitives.
 
 - Bold: Error handling and diagnostics consistency
   - Issue: `evaluate()` filters diagnostics using `severity === 1` (magic number) and mixes thrown types (`FHIRPathError` vs `Error`). Parse error mapping relies on brittle message parsing (`includes('Unexpected token')`).
@@ -19,6 +20,10 @@
   - Example:
     - `const errors = analysisResult.diagnostics.filter(d => d.severity === DiagnosticSeverity.Error);`
     - Map parser errors to structured codes (extend parser to emit codes if needed) and throw `new FHIRPathError(code, message, range)` consistently.
+  - Status: Implemented
+    - `src/index.ts`: uses `DiagnosticSeverity.Error`; always throws `FHIRPathError` (defaults to `FP6005` if code missing).
+    - `src/analyzer.ts`: added missing codes for unknown node type (`FP1006`), error nodes and invalid function name (`FP5003`).
+    - Tests: `test/index/index.errors.test.ts`; updated expectations in `test-cases/errors/variable-errors.json` (redefinition → `FP6009`).
 
 - Bold: Move orchestration into core (Interpreter/Analyzer)
   - Issue: `index.ts` orchestrates parse → analyze → interpret, context bootstrapping (temporal caches, `$this`, variables), boxing policy, and parse-error mapping. This couples policy with the public surface and violates single-responsibility.
@@ -37,3 +42,4 @@
        - `analyze()` delegates to `Analyzer.analyzeExpression()` and uses `DiagnosticSeverity.Error`.
     6) Standardize error throwing to `FHIRPathError` with `ErrorCodes` for both parse and analysis paths.
     7) Add tests: context bootstrap (temporal caches stable), boxed variables, and delegation from `index.ts`.
+  - Status: Pending — plan agreed; not yet executed. Index remains the orchestration façade until core APIs are introduced.
