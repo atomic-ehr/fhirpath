@@ -117,12 +117,13 @@ export const defineVariableFunction: FunctionDefinition & { evaluate: FunctionEv
       
       // Check if variable already exists
       if (context.userVariables.has(varName)) {
+        // Flag as warning in analysis; runtime enforces error with proper code (FP6009)
         diagnostics.push({
           range: nameNode.range,
           message: `Variable '${varName}' is already defined`,
-          severity: DiagnosticSeverity.Error
+          severity: DiagnosticSeverity.Warning
         });
-        return { type: context.inputType, diagnostics };
+        return { type: context.inputType, diagnostics, context };
       }
     } else {
       // Dynamic variable name - limited analysis

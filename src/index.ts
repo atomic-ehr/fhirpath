@@ -5,7 +5,7 @@ import { Analyzer } from './analyzer';
 import type { AnalysisResult } from './types';
 import { DiagnosticSeverity } from './types';
 import { box, unbox } from './interpreter/boxing';
-import { FHIRPathError, Errors } from './errors';
+import { FHIRPathError, Errors, ErrorCodes } from './errors';
 import { toTemporalString } from './complex-types/temporal';
 
 export interface EvaluateOptions {
@@ -52,13 +52,11 @@ export async function evaluate(
   if (errors.length > 0) {
     // Throw the first error
     const firstError = errors[0]!;
-    if (firstError.code) {
-      // Always throw as FHIRPathError if we have a code
-      throw new FHIRPathError(firstError.code, firstError.message, firstError.range);
-    } else {
-      // Otherwise throw a generic error
-      throw new Error(firstError.message);
-    }
+    const code = typeof firstError.code === 'string' && firstError.code.length > 0
+      ? firstError.code
+      : ErrorCodes.INVALID_OPERATION;
+    // Always throw FHIRPathError for consistent API surface
+    throw new FHIRPathError(code, firstError.message, firstError.range);
   }
   
   // Use the analyzed AST with type information

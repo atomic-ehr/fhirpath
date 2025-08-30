@@ -69,7 +69,7 @@
         "type": "EvaluationError",
         "message": "Variable.*x.*already.*defined",
         "phase": "evaluate",
-        "code": "FP6005"
+        "code": "FP6009"
       },
       "tags": [
         "error",
