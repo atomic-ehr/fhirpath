@@ -461,7 +461,7 @@ export function equivalent(a: TemporalValue, b: TemporalValue): boolean {
 }
 
 export function compare(a: TemporalValue, b: TemporalValue): -1 | 0 | 1 | null {
-  // Special case: DateTime and Date can be compared (comparing date portions)
+  // Special case: DateTime and Date can be compared when date portions differ
   if (isFHIRDateTime(a) && isFHIRDate(b)) {
     // Compare the date portion of DateTime with Date
     if (a.year !== b.year) return a.year < b.year ? -1 : 1;
@@ -471,8 +471,8 @@ export function compare(a: TemporalValue, b: TemporalValue): -1 | 0 | 1 | null {
     if (b.day !== undefined) {
       if (a.day !== b.day) return a.day < b.day ? -1 : 1;
     }
-    // DateTime with time is always greater than Date alone at same date
-    return 1;
+    // When date portions are equal, Date and DateTime are incomparable
+    return null;
   }
   if (isFHIRDate(a) && isFHIRDateTime(b)) {
     // Compare Date with the date portion of DateTime
@@ -483,8 +483,8 @@ export function compare(a: TemporalValue, b: TemporalValue): -1 | 0 | 1 | null {
     if (a.day !== undefined) {
       if (a.day !== b.day) return a.day < b.day ? -1 : 1;
     }
-    // Date alone is always less than DateTime with time at same date
-    return -1;
+    // When date portions are equal, Date and DateTime are incomparable
+    return null;
   }
   
   // Different types (except DateTime/Date) can't be compared

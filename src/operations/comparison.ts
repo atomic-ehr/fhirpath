@@ -142,11 +142,12 @@ export function collectionsEqual(left: FHIRPathValue[], right: FHIRPathValue[]):
     if (result.reason === 'complex types not equal') {
       return false;
     }
-    // Special case for temporal types: different temporal types are not equal (not incomparable)
+    // Special case: Date vs Time are definitively not equal
     // Per XML tests: Date != Time returns true, Date = Time returns false
-    if (result.reason === 'incomparable temporal values') {
+    if (result.reason === 'date vs time') {
       return false;
     }
+    // Other incomparable cases (e.g., Date vs DateTime with same date) remain incomparable
     return null;
   }
   return result.kind === 'equal';
@@ -178,11 +179,12 @@ export function collectionsNotEqual(left: FHIRPathValue[], right: FHIRPathValue[
     if (result.reason === 'complex types not equal') {
       return true;
     }
-    // Special case for temporal types: different temporal types are not equal (not incomparable)
+    // Special case: Date vs Time are definitively not equal
     // Per XML tests: Date != Time returns true, Date = Time returns false
-    if (result.reason === 'incomparable temporal values') {
+    if (result.reason === 'date vs time') {
       return true;
     }
+    // Other incomparable cases (e.g., Date vs DateTime with same date) remain incomparable
     return null;
   }
   return result.kind !== 'equal';
@@ -208,6 +210,12 @@ function isComplex(value: unknown): value is object {
 // Type-specific comparison functions
 
 function compareTemporal(a: TemporalValue, b: TemporalValue): ComparisonResult {
+  // Check for Date vs Time - these are definitively not equal
+  if ((isFHIRDate(a) && isFHIRTime(b)) || (isFHIRTime(a) && isFHIRDate(b))) {
+    // Date and Time are completely different types - not equal, not incomparable
+    return { kind: 'incomparable', reason: 'date vs time' };
+  }
+  
   // Use existing temporal comparison logic
   const compareResult = temporalCompare(a, b);
   

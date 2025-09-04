@@ -154,10 +154,7 @@ export async function runAndValidateTest(test: UnifiedTest): Promise<TestResult>
     return { success: true, skipped: true, reason: 'Not an interpreter test' };
   }
   
-  // Special handling for calendar duration tests from the main test suite.
-  if (test.name?.includes('calendar duration')) {
-    return { success: true, skipped: true, reason: 'Calendar duration logic differs in test runner' };
-  }
+  // Calendar duration tests are now supported - removed skip
 
   const options = await createEvaluateOptions(test);
   const startTime = performance.now();
