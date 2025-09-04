@@ -1,0 +1,70 @@
+{
+  "name": "convertsToDateTime() Function Tests",
+  "description": "Tests for the convertsToDateTime() function from XML test suite testTypes group",
+  "inputFile": "../../input/patient-example.json",
+  "tests": [
+    {
+      "name": "String year converts to DateTime",
+      "expression": "'2015'.convertsToDateTime()",
+      "expected": [true],
+      "tags": ["type-conversion", "convertsToDateTime", "string"],
+      "fromXML": "testStringYearConvertsToDateTime"
+    },
+    {
+      "name": "String year-month converts to DateTime",
+      "expression": "'2015-02'.convertsToDateTime()",
+      "expected": [true],
+      "tags": ["type-conversion", "convertsToDateTime", "string"],
+      "fromXML": "testStringMonthConvertsToDateTime"
+    },
+    {
+      "name": "String date converts to DateTime",
+      "expression": "'2015-02-04'.convertsToDateTime()",
+      "expected": [true],
+      "tags": ["type-conversion", "convertsToDateTime", "string"],
+      "fromXML": "testStringDayConvertsToDateTime"
+    },
+    {
+      "name": "String with hour converts to DateTime",
+      "expression": "'2015-02-04T14'.convertsToDateTime()",
+      "expected": [true],
+      "tags": ["type-conversion", "convertsToDateTime", "string"],
+      "fromXML": "testStringHourConvertsToDateTime"
+    },
+    {
+      "name": "String with minute converts to DateTime",
+      "expression": "'2015-02-04T14:34'.convertsToDateTime()",
+      "expected": [true],
+      "tags": ["type-conversion", "convertsToDateTime", "string"],
+      "fromXML": "testStringMinuteConvertsToDateTime"
+    },
+    {
+      "name": "String with second converts to DateTime",
+      "expression": "'2015-02-04T14:34:28'.convertsToDateTime()",
+      "expected": [true],
+      "tags": ["type-conversion", "convertsToDateTime", "string"],
+      "fromXML": "testStringSecondConvertsToDateTime"
+    },
+    {
+      "name": "String with millisecond converts to DateTime",
+      "expression": "'2015-02-04T14:34:28.123'.convertsToDateTime()",
+      "expected": [true],
+      "tags": ["type-conversion", "convertsToDateTime", "string"],
+      "fromXML": "testStringMillisecondConvertsToDateTime"
+    },
+    {
+      "name": "String with UTC timezone converts to DateTime",
+      "expression": "'2015-02-04T14:34:28Z'.convertsToDateTime()",
+      "expected": [true],
+      "tags": ["type-conversion", "convertsToDateTime", "string"],
+      "fromXML": "testStringUTCConvertsToDateTime"
+    },
+    {
+      "name": "String with timezone offset converts to DateTime",
+      "expression": "'2015-02-04T14:34:28+10:00'.convertsToDateTime()",
+      "expected": [true],
+      "tags": ["type-conversion", "convertsToDateTime", "string"],
+      "fromXML": "testStringTZConvertsToDateTime"
+    }
+  ]
+}

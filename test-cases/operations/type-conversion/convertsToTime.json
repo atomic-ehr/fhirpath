@@ -1,0 +1,35 @@
+{
+  "name": "convertsToTime() Function Tests",
+  "description": "Tests for the convertsToTime() function from XML test suite testTypes group",
+  "inputFile": "../../input/patient-example.json",
+  "tests": [
+    {
+      "name": "String hour converts to Time",
+      "expression": "'14'.convertsToTime()",
+      "expected": [true],
+      "tags": ["type-conversion", "convertsToTime", "string"],
+      "fromXML": "testStringHourConvertsToTime"
+    },
+    {
+      "name": "String hour:minute converts to Time",
+      "expression": "'14:34'.convertsToTime()",
+      "expected": [true],
+      "tags": ["type-conversion", "convertsToTime", "string"],
+      "fromXML": "testStringMinuteConvertsToTime"
+    },
+    {
+      "name": "String with second converts to Time",
+      "expression": "'14:34:28'.convertsToTime()",
+      "expected": [true],
+      "tags": ["type-conversion", "convertsToTime", "string"],
+      "fromXML": "testStringSecondConvertsToTime"
+    },
+    {
+      "name": "String with millisecond converts to Time",
+      "expression": "'14:34:28.123'.convertsToTime()",
+      "expected": [true],
+      "tags": ["type-conversion", "convertsToTime", "string"],
+      "fromXML": "testStringMillisecondConvertsToTime"
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "name": "convertsToDate() Function Tests", 
+  "description": "Tests for the convertsToDate() function from XML test suite testTypes group",
+  "inputFile": "../../input/patient-example.json",
+  "tests": [
+    {
+      "name": "String year converts to Date",
+      "expression": "'2015'.convertsToDate()",
+      "expected": [true],
+      "tags": ["type-conversion", "convertsToDate", "string"],
+      "fromXML": "testStringYearConvertsToDate"
+    },
+    {
+      "name": "String year-month converts to Date",
+      "expression": "'2015-02'.convertsToDate()",
+      "expected": [true],
+      "tags": ["type-conversion", "convertsToDate", "string"],
+      "fromXML": "testStringMonthConvertsToDate"
+    },
+    {
+      "name": "String full date converts to Date",
+      "expression": "'2015-02-04'.convertsToDate()",
+      "expected": [true],
+      "tags": ["type-conversion", "convertsToDate", "string"],
+      "fromXML": "testStringDayConvertsToDate"
+    }
+  ]
+}
