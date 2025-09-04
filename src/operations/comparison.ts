@@ -142,6 +142,11 @@ export function collectionsEqual(left: FHIRPathValue[], right: FHIRPathValue[]):
     if (result.reason === 'complex types not equal') {
       return false;
     }
+    // Special case for temporal types: different temporal types are not equal (not incomparable)
+    // Per XML tests: Date != Time returns true, Date = Time returns false
+    if (result.reason === 'incomparable temporal values') {
+      return false;
+    }
     return null;
   }
   return result.kind === 'equal';
@@ -171,6 +176,11 @@ export function collectionsNotEqual(left: FHIRPathValue[], right: FHIRPathValue[
   if (result.kind === 'incomparable') {
     // Special case: if the reason is "complex types not equal", we know they're not equal
     if (result.reason === 'complex types not equal') {
+      return true;
+    }
+    // Special case for temporal types: different temporal types are not equal (not incomparable)
+    // Per XML tests: Date != Time returns true, Date = Time returns false
+    if (result.reason === 'incomparable temporal values') {
       return true;
     }
     return null;

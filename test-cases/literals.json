@@ -435,7 +435,6 @@
       "name": "date not equal to time",
       "expression": "Patient.birthDate != @T12:14:15",
       "expected": [true],
-      "pending": "Date and Time comparison returns empty in our implementation",
       "tags": ["literals", "date", "time", "comparison"],
       "fromXML": "testDateNotEqualTimeSecond"
     },
@@ -443,7 +442,6 @@
       "name": "date not equal to time with minute",
       "expression": "Patient.birthDate != @T12:14",
       "expected": [true],
-      "pending": "Date and Time comparison returns empty in our implementation",
       "tags": ["literals", "date", "time", "comparison"],
       "fromXML": "testDateNotEqualTimeMinute"
     },
@@ -458,7 +456,6 @@
       "name": "datetime now greater than date",
       "expression": "now() > Patient.birthDate",
       "expected": [true],
-      "pending": "DateTime and Date comparison returns empty in our implementation",
       "tags": ["literals", "datetime", "date", "comparison", "now"],
       "fromXML": "testDateTimeGreaterThanDate1"
     },
