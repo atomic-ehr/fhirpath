@@ -50,13 +50,25 @@ export const evaluate: FunctionEvaluator = async (input, context, args, evaluato
     }
   }
   
-  // String - check if it can be parsed as a quantity (e.g., "10 mg", "5.5 km")
+  // String - check if it can be parsed as a quantity or plain number
   if (typeof inputValue === 'string') {
+    const trimmed = inputValue.trim();
+    
+    // First check if it's just a plain number (integer or decimal)
+    const numberRegex = /^(\+|-)?\d+(\.\d+)?$/;
+    if (numberRegex.test(trimmed)) {
+      const value = parseFloat(trimmed);
+      if (!isNaN(value)) {
+        // Plain number strings can be converted to quantity with unit '1'
+        return { value: [box(true, { type: 'Boolean', singleton: true })], context };
+      }
+    }
+    
     // Try to parse as quantity: number followed by space(s) and unit
     // This matches the pattern: <number> <unit>
     const quantityRegex = /^(\+|-)?\d+(\.\d+)?\s+.+$/;
     
-    if (!quantityRegex.test(inputValue.trim())) {
+    if (!quantityRegex.test(trimmed)) {
       return { value: [box(false, { type: 'Boolean', singleton: true })], context };
     }
     
@@ -84,10 +96,14 @@ export const evaluate: FunctionEvaluator = async (input, context, args, evaluato
     }
   }
   
-  // Integer or Decimal with no unit - not a valid quantity
-  // (quantities must have units)
+  // Integer or Decimal - can be converted to quantity with unit '1'
   if (typeof inputValue === 'number') {
-    return { value: [box(false, { type: 'Boolean', singleton: true })], context };
+    return { value: [box(true, { type: 'Boolean', singleton: true })], context };
+  }
+  
+  // Boolean - can be converted to quantity (1 or 0 with unit '1')
+  if (typeof inputValue === 'boolean') {
+    return { value: [box(true, { type: 'Boolean', singleton: true })], context };
   }
 
   // For all other types, return false

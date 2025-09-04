@@ -302,5 +302,20 @@
         "array"
       ]
     }
+  ],
+    {
+      "name": "Decimal 1.0 toString",
+      "expression": "1.0.toString()",
+      "expected": ["1.0"],
+      "tags": ["type-conversion", "toString", "decimal"],
+      "fromXML": "testDecimalLiteralToString"
+    },
+    {
+      "name": "String 'true' toString",
+      "expression": "'true'.toString()",
+      "expected": ["true"],
+      "tags": ["type-conversion", "toString", "string"],
+      "fromXML": "testStringLiteralToString"
+    }
   ]
 }

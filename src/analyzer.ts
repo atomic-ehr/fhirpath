@@ -745,10 +745,12 @@ export class Analyzer {
         type = { type: 'String', singleton: true };
         break;
       case 'number':
-        // Check if integer or decimal
-        type = Number.isInteger(node.value) 
-          ? { type: 'Integer', singleton: true }
-          : { type: 'Decimal', singleton: true };
+        // Number without decimal point is integer
+        type = { type: 'Integer', singleton: true };
+        break;
+      case 'decimal':
+        // Number with decimal point is decimal (even if value is whole)
+        type = { type: 'Decimal', singleton: true };
         break;
       case 'boolean':
         type = { type: 'Boolean', singleton: true };

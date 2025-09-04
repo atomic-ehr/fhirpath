@@ -38,14 +38,16 @@
       "expected": [true]
     },
     {
-      "name": "convertsToQuantity - number without unit (not convertible)",
+      "name": "convertsToQuantity - number without unit",
       "expression": "10.convertsToQuantity()",
-      "expected": [false]
+      "expected": [true],
+      "tags": ["type-conversion", "convertsToQuantity", "integer"]
     },
     {
-      "name": "convertsToQuantity - string without unit",
+      "name": "convertsToQuantity - string number without unit",
       "expression": "'10'.convertsToQuantity()",
-      "expected": [false]
+      "expected": [true],
+      "tags": ["type-conversion", "convertsToQuantity", "string"]
     },
     {
       "name": "convertsToQuantity - invalid string",
@@ -53,9 +55,17 @@
       "expected": [false]
     },
     {
-      "name": "convertsToQuantity - boolean",
+      "name": "convertsToQuantity - boolean true",
       "expression": "true.convertsToQuantity()",
-      "expected": [false]
+      "expected": [true],
+      "tags": ["type-conversion", "convertsToQuantity", "boolean"],
+      "fromXML": "testBooleanLiteralConvertsToQuantity"
+    },
+    {
+      "name": "convertsToQuantity - boolean false",
+      "expression": "false.convertsToQuantity()",
+      "expected": [true],
+      "tags": ["type-conversion", "convertsToQuantity", "boolean"]
     },
     {
       "name": "convertsToQuantity - empty input",
@@ -66,6 +76,20 @@
       "name": "convertsToQuantity - error on multiple items",
       "expression": "(10 'mg' | 20 'mg').convertsToQuantity()",
       "error": true
+    },
+    {
+      "name": "Decimal literal converts to Quantity",
+      "expression": "1.0.convertsToQuantity()",
+      "expected": [true],
+      "tags": ["type-conversion", "convertsToQuantity", "decimal"],
+      "fromXML": "testDecimalLiteralConvertsToQuantity"
+    },
+    {
+      "name": "String '1' converts to Quantity",
+      "expression": "'1'.convertsToQuantity()",
+      "expected": [true],
+      "tags": ["type-conversion", "convertsToQuantity", "string"],
+      "fromXML": "testStringIntegerLiteralConvertsToQuantity"
     }
   ]
 }

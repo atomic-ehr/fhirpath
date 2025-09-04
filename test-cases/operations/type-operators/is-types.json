@@ -1,0 +1,63 @@
+{
+  "name": "is() Type Operator Tests from testTypes",
+  "description": "Tests for the is() operator with primitive types from XML test suite testTypes group",
+  "inputFile": "../../input/patient-example.json",
+  "tests": [
+    {
+      "name": "Integer literal is Integer",
+      "expression": "1.is(Integer)",
+      "expected": [true],
+      "tags": ["type-operators", "is", "integer"],
+      "fromXML": "testIntegerLiteralIsInteger"
+    },
+    {
+      "name": "Integer literal is Integer (System prefix)",
+      "expression": "1.is(Integer)",
+      "expected": [true],
+      "tags": ["type-operators", "is", "integer", "system"],
+      "fromXML": "testIntegerLiteralIsSystemInteger"
+    },
+    {
+      "name": "String literal is not Integer",
+      "expression": "'1'.is(Integer).not()",
+      "expected": [true],
+      "tags": ["type-operators", "is", "integer", "string"],
+      "fromXML": "testStringLiteralIsNotInteger"
+    },
+    {
+      "name": "Boolean literal is not Integer",
+      "expression": "true.is(Integer).not()",
+      "expected": [true],
+      "tags": ["type-operators", "is", "integer", "boolean"],
+      "fromXML": "testBooleanLiteralIsNotInteger"
+    },
+    {
+      "name": "Decimal literal is Decimal",
+      "expression": "1.0.is(Decimal)",
+      "expected": [true],
+      "tags": ["type-operators", "is", "decimal"],
+      "fromXML": "testDecimalLiteralIsDecimal"
+    },
+    {
+      "name": "String '1' is not Decimal",
+      "expression": "'1'.is(Decimal).not()",
+      "expected": [true],
+      "tags": ["type-operators", "is", "decimal", "string"],
+      "fromXML": "testStringIntegerLiteralIsNotDecimal"
+    },
+    {
+      "name": "Decimal literal is not Quantity",
+      "expression": "1.0.is(Quantity).not()",
+      "expected": [true],
+      "tags": ["type-operators", "is", "quantity", "decimal"],
+      "fromXML": "testDecimalLiteralIsNotQuantity"
+    },
+    {
+      "name": "String '1' is not Quantity",
+      "expression": "'1'.is(Quantity).not()",
+      "expected": [true],
+      "tags": ["type-operators", "is", "quantity", "string"],
+      "fromXML": "testStringIntegerLiteralIsNotQuantity"
+    }
+  ]
+}

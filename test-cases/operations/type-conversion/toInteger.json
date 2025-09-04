@@ -112,6 +112,41 @@
       "expression": "'999999999'.toInteger()",
       "expected": [999999999],
       "tags": ["function", "conversion", "toInteger", "function:toInteger", "string", "large"]
+    },
+    {
+      "name": "Integer literal toInteger equals itself",
+      "expression": "1.toInteger() = 1",
+      "expected": [true],
+      "tags": ["type-conversion", "toInteger", "integer"],
+      "fromXML": "testIntegerLiteralToInteger"
+    },
+    {
+      "name": "String '1' toInteger equals 1",
+      "expression": "'1'.toInteger() = 1",
+      "expected": [true],
+      "tags": ["type-conversion", "toInteger", "string"],
+      "fromXML": "testStringIntegerLiteralToInteger"
+    },
+    {
+      "name": "Decimal string toInteger returns empty",
+      "expression": "'1.1'.toInteger() = {}",
+      "expected": [],
+      "tags": ["type-conversion", "toInteger", "decimal", "empty"],
+      "fromXML": "testDecimalLiteralToInteger"
+    },
+    {
+      "name": "Decimal string toInteger is empty",
+      "expression": "'1.1'.toInteger().empty()",
+      "expected": [true],
+      "tags": ["type-conversion", "toInteger", "decimal", "empty"],
+      "fromXML": "testDecimalLiteralToIntegerIsEmpty"
+    },
+    {
+      "name": "Boolean true toInteger equals 1",
+      "expression": "true.toInteger() = 1",
+      "expected": [true],
+      "tags": ["type-conversion", "toInteger", "boolean"],
+      "fromXML": "testBooleanLiteralToInteger"
     }
   ]
 }

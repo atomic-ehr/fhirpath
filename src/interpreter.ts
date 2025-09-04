@@ -247,9 +247,11 @@ export class Interpreter {
     } else if (typeof value === 'string') {
       typeInfo = { type: 'String', singleton: true };
     } else if (typeof value === 'number') {
-      typeInfo = Number.isInteger(value) ? 
-        { type: 'Integer', singleton: true } : 
-        { type: 'Decimal', singleton: true };
+      // Use the valueType from the literal node to determine if it's integer or decimal
+      // This preserves the distinction between 1.0 (decimal) and 1 (integer)
+      typeInfo = literal.valueType === 'decimal' ? 
+        { type: 'Decimal', singleton: true } : 
+        { type: 'Integer', singleton: true };
     } else if (typeof value === 'boolean') {
       typeInfo = { type: 'Boolean', singleton: true };
     }

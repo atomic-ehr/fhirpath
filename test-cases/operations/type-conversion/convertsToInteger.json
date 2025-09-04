@@ -76,6 +76,27 @@
       "name": "convertsToInteger - error on multiple items",
       "expression": "(1 | 2).convertsToInteger()",
       "error": true
+    },
+    {
+      "name": "String '1' converts to Integer",
+      "expression": "'1'.convertsToInteger()",
+      "expected": [true],
+      "tags": ["type-conversion", "convertsToInteger", "string"],
+      "fromXML": "testStringLiteralConvertsToInteger"
+    },
+    {
+      "name": "String 'a' does not convert to Integer",
+      "expression": "'a'.convertsToInteger().not()",
+      "expected": [true],
+      "tags": ["type-conversion", "convertsToInteger", "string"],
+      "fromXML": "testStringLiteralConvertsToIntegerFalse"
+    },
+    {
+      "name": "String '1.0' does not convert to Integer",
+      "expression": "'1.0'.convertsToInteger().not()",
+      "expected": [true],
+      "tags": ["type-conversion", "convertsToInteger", "string", "decimal"],
+      "fromXML": "testStringDecimalConvertsToIntegerFalse"
     }
   ]
 }

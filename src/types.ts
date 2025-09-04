@@ -230,7 +230,7 @@ export interface IdentifierNode extends BaseASTNode {
 export interface LiteralNode extends BaseASTNode {
   type: NodeType.Literal;
   value: any;
-  valueType: 'string' | 'number' | 'boolean' | 'date' | 'time' | 'datetime' | 'null';
+  valueType: 'string' | 'number' | 'decimal' | 'boolean' | 'date' | 'time' | 'datetime' | 'null';
 }
 
 export interface TemporalLiteralNode extends BaseASTNode {

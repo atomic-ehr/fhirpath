@@ -36,7 +36,7 @@ describe("FHIRPath Parser", () => {
       const ast = parse("3.14") as LiteralNode;
       expect(ast.type).toBe(NodeType.Literal);
       expect(ast.value).toBe(3.14);
-      expect(ast.valueType).toBe("number");
+      expect(ast.valueType).toBe("decimal");
     });
 
     it("should parse strings with single quotes", async () => {

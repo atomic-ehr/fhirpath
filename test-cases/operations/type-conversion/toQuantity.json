@@ -1,0 +1,73 @@
+{
+  "name": "toQuantity() function tests from XML",
+  "description": "Tests for the toQuantity() function ported from XML test suite",
+  "inputFile": "../../input/patient-example.json",
+  "tests": [
+    {
+      "name": "Integer literal toQuantity equals 1 '1'",
+      "expression": "1.toQuantity() = 1 '1'",
+      "expected": [true],
+      "tags": ["type-conversion", "toQuantity", "integer"],
+      "fromXML": "testIntegerLiteralToQuantity"
+    },
+    {
+      "name": "Decimal literal toQuantity equals 1.0 '1'",
+      "expression": "1.0.toQuantity() = 1.0 '1'",
+      "expected": [true],
+      "tags": ["type-conversion", "toQuantity", "decimal"],
+      "fromXML": "testDecimalLiteralToQuantity"
+    },
+    {
+      "name": "String '1' toQuantity",
+      "expression": "'1'.toQuantity()",
+      "expected": [{"value": 1, "unit": "1"}],
+      "tags": ["type-conversion", "toQuantity", "string"],
+      "fromXML": "testStringIntegerLiteralToQuantity"
+    },
+    {
+      "name": "String '1 day' toQuantity equals 1 day",
+      "expression": "'1 day'.toQuantity() = 1 day",
+      "expected": [true],
+      "pending": "UCUM calendar unit normalization needed",
+      "tags": ["type-conversion", "toQuantity", "string", "calendar"],
+      "fromXML": "testStringQuantityLiteralToQuantity"
+    },
+    {
+      "name": "String '1 day' toQuantity equals 1 'd'",
+      "expression": "'1 day'.toQuantity() = 1 'd'",
+      "expected": [true],
+      "pending": "UCUM calendar unit normalization needed",
+      "tags": ["type-conversion", "toQuantity", "string", "calendar"],
+      "fromXML": "testStringQuantityDayLiteralToQuantity"
+    },
+    {
+      "name": "String '1 'wk'' toQuantity equals 1 week",
+      "expression": "'1 \\'wk\\''.toQuantity() = 1 week",
+      "expected": [true],
+      "pending": "UCUM calendar unit normalization needed",
+      "tags": ["type-conversion", "toQuantity", "string", "calendar"],
+      "fromXML": "testStringQuantityWeekLiteralToQuantity"
+    },
+    {
+      "name": "String '1 'mo'' toQuantity equals 1 month",
+      "expression": "'1 \\'mo\\''.toQuantity() = 1 month",
+      "expected": [],
+      "tags": ["type-conversion", "toQuantity", "string", "calendar"],
+      "fromXML": "testStringQuantityMonthLiteralToQuantity"
+    },
+    {
+      "name": "String '1 'a'' toQuantity equals 1 year",
+      "expression": "'1 \\'a\\''.toQuantity() = 1 year",
+      "expected": [],
+      "tags": ["type-conversion", "toQuantity", "string", "calendar"],
+      "fromXML": "testStringQuantityYearLiteralToQuantity"
+    },
+    {
+      "name": "String '1.0' toQuantity equivalent to 1 '1'",
+      "expression": "'1.0'.toQuantity() ~ 1 '1'",
+      "expected": [true],
+      "tags": ["type-conversion", "toQuantity", "string", "decimal"],
+      "fromXML": "testStringDecimalLiteralToQuantity"
+    }
+  ]
+}

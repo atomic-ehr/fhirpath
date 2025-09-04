@@ -91,6 +91,13 @@
       "name": "convertsToDecimal - error on multiple items",
       "expression": "(1.0 | 2.0).convertsToDecimal()",
       "error": true
+    },
+    {
+      "name": "String '1' converts to Decimal",
+      "expression": "'1'.convertsToDecimal()",
+      "expected": [true],
+      "tags": ["type-conversion", "convertsToDecimal", "string"],
+      "fromXML": "testStringIntegerLiteralConvertsToDecimal"
     }
   ]
 }

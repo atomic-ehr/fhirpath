@@ -138,5 +138,27 @@
       "expected": [42.5],
       "tags": ["function", "conversion", "toDecimal", "function:toDecimal", "path"]
     }
+  ],
+    {
+      "name": "Decimal literal toDecimal equals itself",
+      "expression": "1.0.toDecimal() = 1.0",
+      "expected": [true],
+      "tags": ["type-conversion", "toDecimal", "decimal"],
+      "fromXML": "testDecimalLiteralToDecimal"
+    },
+    {
+      "name": "String '1.1' toDecimal equals 1.1",
+      "expression": "'1.1'.toDecimal() = 1.1",
+      "expected": [true],
+      "tags": ["type-conversion", "toDecimal", "string"],
+      "fromXML": "testDecimalLiteralToDecimalEqual"
+    },
+    {
+      "name": "Boolean true toDecimal equals 1",
+      "expression": "true.toDecimal() = 1",
+      "expected": [true],
+      "tags": ["type-conversion", "toDecimal", "boolean"],
+      "fromXML": "testBooleanLiteralToDecimal"
+    }
   ]
 }

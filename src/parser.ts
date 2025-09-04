@@ -471,7 +471,10 @@ export class Parser {
         }
       }
       
-      return this.createLiteralNode(numberValue, 'number', token);
+      // Determine if this is an integer or decimal based on the original token text
+      // If the token contains a decimal point, it's a decimal even if the value is a whole number
+      const isDecimal = token.value.includes('.');
+      return this.createLiteralNode(numberValue, isDecimal ? 'decimal' : 'number', token);
     }
 
     if (token.type === TokenType.STRING) {

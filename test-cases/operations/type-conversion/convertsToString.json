@@ -57,5 +57,27 @@
       "expression": "('a' | 'b').convertsToString()",
       "error": true
     }
+  ],
+    {
+      "name": "Decimal 1.0 converts to String",
+      "expression": "1.0.convertsToString()",
+      "expected": [true],
+      "tags": ["type-conversion", "convertsToString", "decimal"],
+      "fromXML": "testDecimalLiteralConvertsToString"
+    },
+    {
+      "name": "String 'true' converts to String",
+      "expression": "'true'.convertsToString()",
+      "expected": [true],
+      "tags": ["type-conversion", "convertsToString", "string"],
+      "fromXML": "testStringLiteralConvertsToString"
+    },
+    {
+      "name": "Boolean true converts to String",
+      "expression": "true.convertsToString()",
+      "expected": [true],
+      "tags": ["type-conversion", "convertsToString", "boolean"],
+      "fromXML": "testBooleanLiteralConvertsToString"
+    }
   ]
 }
