@@ -36,7 +36,7 @@
       "expression": "timeOfDay() + 1 hour >= timeOfDay()",
       "input": [{}],
       "expected": [true],
-      "pending": "timeOfDay() cache initialization issue in test runner"
+      "pending": "Passes individually but fails in test suite - cache initialization timing issue"
     },
     {
       "name": "timeOfDay() with arithmetic - subtract hours",
@@ -49,7 +49,7 @@
       "expression": "timeOfDay() + 30 minutes >= timeOfDay()",
       "input": [{}],
       "expected": [true],
-      "pending": "timeOfDay() cache initialization issue in test runner"
+      "pending": "Passes individually but fails in test suite - cache initialization timing issue"
     },
     {
       "name": "timeOfDay() with arithmetic - add seconds",
