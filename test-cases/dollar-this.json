@@ -1,0 +1,43 @@
+{
+  "name": "$this Variable Tests",
+  "description": "Tests for the $this variable and ordering functions from testDollar group",
+  "inputFile": "input/patient-example.json",
+  "tests": [
+    {
+      "name": "$this with substring filter - no matches",
+      "expression": "Patient.name.given.where($this.substring($this.length()-3) = 'out')",
+      "expected": [],
+      "tags": ["variables", "$this", "filtering"],
+      "fromXML": "testDollarThis1"
+    },
+    {
+      "name": "$this with substring filter - matches 'ter'",
+      "expression": "Patient.name.given.where($this.substring($this.length()-3) = 'ter')",
+      "expected": ["Peter", "Peter"],
+      "tags": ["variables", "$this", "filtering", "substring"],
+      "fromXML": "testDollarThis2"
+    },
+    {
+      "name": "skip() with ordered collection",
+      "expression": "Patient.name.skip(1).given",
+      "expected": ["Jim", "Peter", "James"],
+      "tags": ["collection", "skip", "ordering"],
+      "fromXML": "testDollarOrderAllowed"
+    },
+    {
+      "name": "skip() beyond collection size",
+      "expression": "Patient.name.skip(3).given",
+      "expected": [],
+      "tags": ["collection", "skip", "empty"],
+      "fromXML": "testDollarOrderAllowedA"
+    },
+    {
+      "name": "skip() on unordered collection",
+      "expression": "Patient.children().skip(1)",
+      "pending": "Requires strict mode with checkOrderedFunctions to error. Currently returns values in non-strict mode.",
+      "tags": ["collection", "skip", "unordered", "strict"],
+      "note": "In strict mode with checkOrderedFunctions, this should error. In standard mode, our implementation returns values.",
+      "fromXML": "testDollarOrderNotAllowed"
+    }
+  ]
+}
