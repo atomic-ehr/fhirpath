@@ -69,10 +69,9 @@
       "expected": [],
       "tags": ["comments", "error", "syntax", "multi-line"],
       "error": {
-        "type": "ParseError",
+        "message": "Unclosed multi-line comment",
         "phase": "parse"
       },
-      "pending": "Lexer bug: doesn't throw error for unclosed multi-line comments",
       "fromXML": "testComment8"
     },
     {

@@ -674,10 +674,13 @@ export class Lexer {
       if (this.current() === '*' && this.peek() === '/') {
         this.advance(); // Skip *
         this.advance(); // Skip /
-        break;
+        return;
       }
       this.advance();
     }
+    
+    // If we reached the end without finding */, it's an error
+    throw this.error('Unclosed multi-line comment');
   }
   
   private advance(): void {
