@@ -1,7 +1,7 @@
 {
   "name": "Miscellaneous Accessor Tests",
   "description": "Miscellaneous accessor tests for basic property access",
-  "inputFile": "../input/patient-example.json",
+  "inputFile": "input/patient-example.json",
   "tests": [
     {
       "name": "extract birthDate",

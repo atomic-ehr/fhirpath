@@ -1,0 +1,290 @@
+{
+  "name": "Literal Values Tests",
+  "description": "Tests for literal values - boolean, string, integer, decimal, date/time, and quantity literals",
+  "inputFile": "input/patient-example.json",
+  "tests": [
+    {
+      "name": "literal true equality",
+      "expression": "Patient.name.exists() = true",
+      "expected": [true],
+      "tags": ["literals", "boolean"],
+      "fromXML": "testLiteralTrue"
+    },
+    {
+      "name": "literal false equality",
+      "expression": "Patient.name.empty() = false",
+      "expected": [true],
+      "tags": ["literals", "boolean"],
+      "fromXML": "testLiteralFalse"
+    },
+    {
+      "name": "literal string equality",
+      "expression": "Patient.name.given.first() = 'Peter'",
+      "expected": [true],
+      "tags": ["literals", "string"],
+      "fromXML": "testLiteralString1"
+    },
+    {
+      "name": "integer literal 1 converts to integer",
+      "expression": "1.convertsToInteger()",
+      "expected": [true],
+      "tags": ["literals", "integer", "conversion"],
+      "fromXML": "testLiteralInteger1"
+    },
+    {
+      "name": "integer literal 0 converts to integer",
+      "expression": "0.convertsToInteger()",
+      "expected": [true],
+      "tags": ["literals", "integer", "conversion"],
+      "fromXML": "testLiteralInteger0"
+    },
+    {
+      "name": "negative integer literal with parentheses",
+      "expression": "(-1).convertsToInteger()",
+      "expected": [true],
+      "tags": ["literals", "integer", "negative", "conversion"],
+      "fromXML": "testLiteralIntegerNegative1"
+    },
+    {
+      "name": "negative integer literal without parentheses invalid",
+      "expression": "-1.convertsToInteger()",
+      "expected": [],
+      "tags": ["literals", "integer", "negative", "error"],
+      "fromXML": "testLiteralIntegerNegative1Invalid",
+      "note": "Without parentheses, -1.convertsToInteger() is parsed as -(1.convertsToInteger()) which returns empty"
+    },
+    {
+      "name": "integer literal max value",
+      "expression": "2147483647.convertsToInteger()",
+      "expected": [true],
+      "tags": ["literals", "integer", "boundary"],
+      "fromXML": "testLiteralIntegerMax"
+    },
+    {
+      "name": "string literal converts to string",
+      "expression": "'test'.convertsToString()",
+      "expected": [true],
+      "tags": ["literals", "string", "conversion"],
+      "fromXML": "testLiteralString2"
+    },
+    {
+      "name": "string literal with escape sequences",
+      "expression": "'\\\\\\/\\f\\r\\n\\t\\\"\\`\\'\\u002a'.convertsToString()",
+      "expected": [true],
+      "tags": ["literals", "string", "escapes"],
+      "fromXML": "testLiteralStringEscapes"
+    },
+    {
+      "name": "boolean literal true converts to boolean",
+      "expression": "true.convertsToBoolean()",
+      "expected": [true],
+      "tags": ["literals", "boolean", "conversion"],
+      "fromXML": "testLiteralBooleanTrue"
+    },
+    {
+      "name": "boolean literal false converts to boolean",
+      "expression": "false.convertsToBoolean()",
+      "expected": [true],
+      "tags": ["literals", "boolean", "conversion"],
+      "fromXML": "testLiteralBooleanFalse"
+    },
+    {
+      "name": "decimal literal 1.0",
+      "expression": "1.0.convertsToDecimal()",
+      "expected": [true],
+      "tags": ["literals", "decimal", "conversion"],
+      "fromXML": "testLiteralDecimal10"
+    },
+    {
+      "name": "decimal literal 0.1",
+      "expression": "0.1.convertsToDecimal()",
+      "expected": [true],
+      "tags": ["literals", "decimal", "conversion"],
+      "fromXML": "testLiteralDecimal01"
+    },
+    {
+      "name": "decimal literal 0.0",
+      "expression": "0.0.convertsToDecimal()",
+      "expected": [true],
+      "tags": ["literals", "decimal", "conversion"],
+      "fromXML": "testLiteralDecimal00"
+    },
+    {
+      "name": "negative decimal literal with parentheses",
+      "expression": "(-0.1).convertsToDecimal()",
+      "expected": [true],
+      "tags": ["literals", "decimal", "negative", "conversion"],
+      "fromXML": "testLiteralDecimalNegative01"
+    },
+    {
+      "name": "negative decimal literal without parentheses invalid",
+      "expression": "-0.1.convertsToDecimal()",
+      "expected": [],
+      "tags": ["literals", "decimal", "negative", "error"],
+      "fromXML": "testLiteralDecimalNegative01Invalid"
+    },
+    {
+      "name": "decimal literal max precision",
+      "expression": "1234567890987654321.0.convertsToDecimal()",
+      "expected": [true],
+      "tags": ["literals", "decimal", "boundary"],
+      "fromXML": "testLiteralDecimalMax"
+    },
+    {
+      "name": "decimal literal small step",
+      "expression": "0.00000001.convertsToDecimal()",
+      "expected": [true],
+      "tags": ["literals", "decimal", "precision"],
+      "fromXML": "testLiteralDecimalStep"
+    },
+    {
+      "name": "date literal year only",
+      "expression": "@2015.is(Date)",
+      "expected": [true],
+      "tags": ["literals", "date", "temporal"],
+      "fromXML": "testLiteralDateYear"
+    },
+    {
+      "name": "date literal year-month",
+      "expression": "@2015-02.is(Date)",
+      "expected": [true],
+      "tags": ["literals", "date", "temporal"],
+      "fromXML": "testLiteralDateMonth"
+    },
+    {
+      "name": "date literal year-month-day",
+      "expression": "@2015-02-04.is(Date)",
+      "expected": [true],
+      "tags": ["literals", "date", "temporal"],
+      "fromXML": "testLiteralDateDay"
+    },
+    {
+      "name": "datetime literal year only",
+      "expression": "@2015T.is(DateTime)",
+      "expected": [true],
+      "tags": ["literals", "datetime", "temporal"],
+      "fromXML": "testLiteralDateTimeYear"
+    },
+    {
+      "name": "datetime literal year-month",
+      "expression": "@2015-02T.is(DateTime)",
+      "expected": [true],
+      "tags": ["literals", "datetime", "temporal"],
+      "fromXML": "testLiteralDateTimeMonth"
+    },
+    {
+      "name": "datetime literal year-month-day",
+      "expression": "@2015-02-04T.is(DateTime)",
+      "expected": [true],
+      "tags": ["literals", "datetime", "temporal"],
+      "fromXML": "testLiteralDateTimeDay"
+    },
+    {
+      "name": "datetime literal with hour",
+      "expression": "@2015-02-04T14.is(DateTime)",
+      "expected": [true],
+      "tags": ["literals", "datetime", "temporal"],
+      "fromXML": "testLiteralDateTimeHour"
+    },
+    {
+      "name": "datetime literal with minute",
+      "expression": "@2015-02-04T14:34.is(DateTime)",
+      "expected": [true],
+      "tags": ["literals", "datetime", "temporal"],
+      "fromXML": "testLiteralDateTimeMinute"
+    },
+    {
+      "name": "datetime literal with second",
+      "expression": "@2015-02-04T14:34:28.is(DateTime)",
+      "expected": [true],
+      "tags": ["literals", "datetime", "temporal"],
+      "fromXML": "testLiteralDateTimeSecond"
+    },
+    {
+      "name": "datetime literal with millisecond",
+      "expression": "@2015-02-04T14:34:28.123.is(DateTime)",
+      "expected": [true],
+      "tags": ["literals", "datetime", "temporal", "precision"],
+      "fromXML": "testLiteralDateTimeMillisecond"
+    },
+    {
+      "name": "datetime literal UTC",
+      "expression": "@2015-02-04T14:34:28Z.is(DateTime)",
+      "expected": [true],
+      "tags": ["literals", "datetime", "temporal", "timezone"],
+      "fromXML": "testLiteralDateTimeUTC"
+    },
+    {
+      "name": "datetime literal with timezone offset",
+      "expression": "@2015-02-04T14:34:28+10:00.is(DateTime)",
+      "expected": [true],
+      "tags": ["literals", "datetime", "temporal", "timezone"],
+      "fromXML": "testLiteralDateTimeTimezoneOffset"
+    },
+    {
+      "name": "time literal hour only",
+      "expression": "@T14.is(Time)",
+      "expected": [true],
+      "tags": ["literals", "time", "temporal"],
+      "fromXML": "testLiteralTimeHour"
+    },
+    {
+      "name": "time literal with minute",
+      "expression": "@T14:34.is(Time)",
+      "expected": [true],
+      "tags": ["literals", "time", "temporal"],
+      "fromXML": "testLiteralTimeMinute"
+    },
+    {
+      "name": "time literal with second",
+      "expression": "@T14:34:28.is(Time)",
+      "expected": [true],
+      "tags": ["literals", "time", "temporal"],
+      "fromXML": "testLiteralTimeSecond"
+    },
+    {
+      "name": "time literal with millisecond",
+      "expression": "@T14:34:28.123.is(Time)",
+      "expected": [true],
+      "tags": ["literals", "time", "temporal", "precision"],
+      "fromXML": "testLiteralTimeMillisecond"
+    },
+    {
+      "name": "time literal UTC invalid",
+      "expression": "@T14:34:28Z.is(Time)",
+      "expected": [],
+      "tags": ["literals", "time", "temporal", "timezone", "error"],
+      "fromXML": "testLiteralTimeUTC",
+      "note": "Time literals cannot have timezone information"
+    },
+    {
+      "name": "time literal with timezone offset invalid",
+      "expression": "@T14:34:28+10:00.is(Time)",
+      "expected": [],
+      "tags": ["literals", "time", "temporal", "timezone", "error"],
+      "fromXML": "testLiteralTimeTimezoneOffset",
+      "note": "Time literals cannot have timezone information"
+    },
+    {
+      "name": "quantity literal with decimal",
+      "expression": "10.1 'mg'.convertsToQuantity()",
+      "expected": [true],
+      "tags": ["literals", "quantity"],
+      "fromXML": "testLiteralQuantityDecimal"
+    },
+    {
+      "name": "quantity literal with integer",
+      "expression": "10 'mg'.convertsToQuantity()",
+      "expected": [true],
+      "tags": ["literals", "quantity"],
+      "fromXML": "testLiteralQuantityInteger"
+    },
+    {
+      "name": "quantity literal with calendar duration",
+      "expression": "4 days.convertsToQuantity()",
+      "expected": [true],
+      "tags": ["literals", "quantity", "calendar"],
+      "fromXML": "testLiteralQuantityDay"
+    }
+  ]
+}

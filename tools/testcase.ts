@@ -45,6 +45,20 @@ function displayResult(test: UnifiedTest, result: TestResult) {
   console.log(`   ⏱️  Time: ${result.time?.toFixed(2)}ms`);
 }
 
+// Load input file if specified
+function loadInputFile(suite: any, testFilePath: string): any {
+  if (!suite.inputFile) return undefined;
+  
+  try {
+    const inputPath = join(testFilePath, '..', suite.inputFile);
+    const inputContent = readFileSync(inputPath, 'utf-8');
+    return JSON.parse(inputContent);
+  } catch (error) {
+    console.error(`Failed to load input file ${suite.inputFile}:`, error);
+    return undefined;
+  }
+}
+
 // Main CLI logic
 async function main() {
   const args = process.argv.slice(2);
@@ -167,6 +181,8 @@ async function main() {
 
   try {
     const suite = loadTestSuite(testPath);
+    const defaultInput = loadInputFile(suite, testPath);
+    
     if (testName) {
       // Run specific test
       const test = findTest(suite, testName);
@@ -174,16 +190,20 @@ async function main() {
         console.error(`❌ Test "${testName}" not found in ${basename(testPath)}`);
         process.exit(1);
       }
+      // Use test's input or fall back to suite's inputFile
+      const testWithInput = test.input ? test : { ...test, input: defaultInput };
       console.log(`\n🎯 Running test: ${test.name}`);
-      const result = await runAndValidateTest(test);
-      displayResult(test, result);
+      const result = await runAndValidateTest(testWithInput);
+      displayResult(testWithInput, result);
     } else {
       // Run all tests in the file
       console.log(`\n🎯 Running all tests from: ${basename(testPath)}`);
       for (const test of suite.tests) {
+        // Use test's input or fall back to suite's inputFile
+        const testWithInput = test.input ? test : { ...test, input: defaultInput };
         console.log(`\n--- Test: ${test.name} ---`);
-        const result = await runAndValidateTest(test);
-        displayResult(test, result);
+        const result = await runAndValidateTest(testWithInput);
+        displayResult(testWithInput, result);
       }
     }
   } catch (error: any) {

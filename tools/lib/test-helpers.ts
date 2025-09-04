@@ -40,6 +40,7 @@ export interface TestSuite {
   name: string;
   description?: string;
   modelProvider?: string;
+  inputFile?: string;
   beforeEach?: {
     context?: any;
   };
