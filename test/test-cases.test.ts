@@ -42,15 +42,15 @@ testFiles.forEach(file => {
 });
 
 // Helper to load input file if specified
-function loadInputFile(suite: any, testFilePath: string): any {
-  if (!suite.inputFile) return undefined;
+function loadInputFile(inputFile: string | undefined, testFilePath: string): any {
+  if (!inputFile) return undefined;
   
   try {
-    const inputPath = join(testFilePath, '..', suite.inputFile);
+    const inputPath = join(testFilePath, '..', inputFile);
     const inputContent = readFileSync(inputPath, 'utf-8');
     return JSON.parse(inputContent);
   } catch (error) {
-    console.error(`Failed to load input file ${suite.inputFile}:`, error);
+    console.error(`Failed to load input file ${inputFile}:`, error);
     return undefined;
   }
 }
@@ -78,7 +78,7 @@ describe('FHIRPath Test Cases', () => {
           return;
         }
         
-        const defaultInput = loadInputFile(suite, file);
+        const defaultInput = loadInputFile(suite.inputFile, file);
         
         // Get relative path from test-cases directory for better context
         const relativePath = file.replace(TEST_CASES_DIR + '/', '');
@@ -90,8 +90,9 @@ describe('FHIRPath Test Cases', () => {
             const testName = String(test.name || 'unnamed test');
 
             const testFn = async () => {
-              // Use test's input or fall back to suite's inputFile
-              const testWithInput = test.input ? test : { ...test, input: defaultInput };
+              // Use test's input or fall back to test's inputFile or suite's inputFile
+              const testInput = (test as any).inputFile ? loadInputFile((test as any).inputFile, file) : defaultInput;
+              const testWithInput = test.input ? test : { ...test, input: testInput };
               const result = await runAndValidateTest(testWithInput);
 
               if (result.pending || result.skipped) {

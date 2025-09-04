@@ -1,0 +1,46 @@
+{
+  "name": "repeat() Function Tests from XML",
+  "description": "Tests for the repeat() function ported from XML test suite",
+  "tests": [
+    {
+      "name": "repeat() on ValueSet expansion",
+      "expression": "ValueSet.expansion.repeat(contains).count() = 10",
+      "inputFile": "../../input/valueset-example-expansion.json",
+      "expected": [true],
+      "tags": ["filtering", "repeat", "count", "valueset"],
+      "fromXML": "testRepeat1"
+    },
+    {
+      "name": "repeat() on Questionnaire items",
+      "expression": "Questionnaire.repeat(item).code.count() = 11",
+      "inputFile": "../../input/questionnaire-example.json",
+      "expected": [true],
+      "tags": ["filtering", "repeat", "count", "questionnaire"],
+      "fromXML": "testRepeat2"
+    },
+    {
+      "name": "descendants() on Questionnaire",
+      "expression": "Questionnaire.descendants().code.count() = 23",
+      "inputFile": "../../input/questionnaire-example.json",
+      "expected": [true],
+      "tags": ["navigation", "descendants", "count", "questionnaire"],
+      "fromXML": "testRepeat3"
+    },
+    {
+      "name": "children() on Questionnaire",
+      "expression": "Questionnaire.children().code.count() = 2",
+      "inputFile": "../../input/questionnaire-example.json",
+      "expected": [true],
+      "tags": ["navigation", "children", "count", "questionnaire"],
+      "fromXML": "testRepeat4"
+    },
+    {
+      "name": "repeat() with invalid expression",
+      "expression": "Patient.name.repeat('test')",
+      "inputFile": "../../input/patient-example.json",
+      "expected": ["test"],
+      "tags": ["filtering", "repeat", "literal"],
+      "fromXML": "testRepeat5"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "name": "where() Function Tests from XML",
+  "description": "Tests for the where() function ported from XML test suite",
+  "inputFile": "../../input/patient-example.json",
+  "tests": [
+    {
+      "name": "where() baseline count",
+      "expression": "Patient.name.count() = 3",
+      "expected": [true],
+      "tags": ["collection", "count"],
+      "fromXML": "testWhere1"
+    },
+    {
+      "name": "where() with given name filter",
+      "expression": "Patient.name.where(given = 'Jim').count() = 1",
+      "expected": [true],
+      "tags": ["filtering", "where", "count"],
+      "fromXML": "testWhere2"
+    },
+    {
+      "name": "where() with no matches",
+      "expression": "Patient.name.where(given = 'X').count() = 0",
+      "expected": [true],
+      "tags": ["filtering", "where", "count", "empty"],
+      "fromXML": "testWhere3"
+    },
+    {
+      "name": "where() with $this variable",
+      "expression": "Patient.name.where($this.given = 'Jim').count() = 1",
+      "expected": [true],
+      "tags": ["filtering", "where", "$this", "count"],
+      "fromXML": "testWhere4"
+    }
+  ]
+}

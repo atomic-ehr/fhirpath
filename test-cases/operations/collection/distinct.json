@@ -1,0 +1,52 @@
+{
+  "name": "distinct() and isDistinct() Function Tests",
+  "description": "Tests for the distinct() and isDistinct() functions",
+  "tests": [
+    {
+      "name": "isDistinct() on distinct integers",
+      "expression": "(1 | 2 | 3).isDistinct()",
+      "expected": [true],
+      "tags": ["collection", "distinct", "isDistinct"],
+      "fromXML": "testDistinct1"
+    },
+    {
+      "name": "isDistinct() on questionnaire linkIds",
+      "expression": "Questionnaire.descendants().linkId.isDistinct()",
+      "inputFile": "../../input/questionnaire-example.json",
+      "expected": [true],
+      "tags": ["collection", "distinct", "isDistinct", "questionnaire"],
+      "fromXML": "testDistinct2"
+    },
+    {
+      "name": "isDistinct() on substring of linkIds - not distinct",
+      "expression": "Questionnaire.descendants().linkId.select(substring(0,1)).isDistinct().not()",
+      "inputFile": "../../input/questionnaire-example.json",
+      "expected": [true],
+      "tags": ["collection", "distinct", "isDistinct", "substring"],
+      "fromXML": "testDistinct3"
+    },
+    {
+      "name": "distinct() on integers",
+      "expression": "(1 | 2 | 3).distinct()",
+      "expected": [1, 2, 3],
+      "tags": ["collection", "distinct"],
+      "fromXML": "testDistinct4"
+    },
+    {
+      "name": "distinct() count on questionnaire linkIds",
+      "expression": "Questionnaire.descendants().linkId.distinct().count()",
+      "inputFile": "../../input/questionnaire-example.json",
+      "expected": [10],
+      "tags": ["collection", "distinct", "count", "questionnaire"],
+      "fromXML": "testDistinct5"
+    },
+    {
+      "name": "distinct() count on substring of linkIds",
+      "expression": "Questionnaire.descendants().linkId.select(substring(0,1)).distinct().count()",
+      "inputFile": "../../input/questionnaire-example.json",
+      "expected": [2],
+      "tags": ["collection", "distinct", "count", "substring"],
+      "fromXML": "testDistinct6"
+    }
+  ]
+}

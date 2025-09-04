@@ -1,0 +1,28 @@
+{
+  "name": "select() Function Tests from XML",
+  "description": "Tests for the select() function ported from XML test suite",
+  "inputFile": "../../input/patient-example.json",
+  "tests": [
+    {
+      "name": "select() given names count",
+      "expression": "Patient.name.select(given).count() = 5",
+      "expected": [true],
+      "tags": ["filtering", "select", "count"],
+      "fromXML": "testSelect1"
+    },
+    {
+      "name": "select() union of given and family names",
+      "expression": "Patient.name.select(given | family).count() = 7",
+      "expected": [true],
+      "tags": ["filtering", "select", "union", "count"],
+      "fromXML": "testSelect2"
+    },
+    {
+      "name": "select() with contains expression",
+      "expression": "name.select(use.contains('i')).count()",
+      "expected": [3],
+      "tags": ["filtering", "select", "contains", "count"],
+      "fromXML": "testSelect3"
+    }
+  ]
+}

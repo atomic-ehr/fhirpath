@@ -1,0 +1,35 @@
+{
+  "name": "count() Function Tests",
+  "description": "Tests for the count() function",
+  "inputFile": "../../input/patient-example.json",
+  "tests": [
+    {
+      "name": "count() on name collection",
+      "expression": "Patient.name.count()",
+      "expected": [3],
+      "tags": ["collection", "count"],
+      "fromXML": "testCount1"
+    },
+    {
+      "name": "count() comparison",
+      "expression": "Patient.name.count() = 3",
+      "expected": [true],
+      "tags": ["collection", "count", "comparison"],
+      "fromXML": "testCount2"
+    },
+    {
+      "name": "count() on single element",
+      "expression": "Patient.name.first().count()",
+      "expected": [1],
+      "tags": ["collection", "count", "first"],
+      "fromXML": "testCount3"
+    },
+    {
+      "name": "count() on single element comparison",
+      "expression": "Patient.name.first().count() = 1",
+      "expected": [true],
+      "tags": ["collection", "count", "first", "comparison"],
+      "fromXML": "testCount4"
+    }
+  ]
+}

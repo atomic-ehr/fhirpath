@@ -46,15 +46,15 @@ function displayResult(test: UnifiedTest, result: TestResult) {
 }
 
 // Load input file if specified
-function loadInputFile(suite: any, testFilePath: string): any {
-  if (!suite.inputFile) return undefined;
+function loadInputFile(inputFile: string | undefined, testFilePath: string): any {
+  if (!inputFile) return undefined;
   
   try {
-    const inputPath = join(testFilePath, '..', suite.inputFile);
+    const inputPath = join(testFilePath, '..', inputFile);
     const inputContent = readFileSync(inputPath, 'utf-8');
     return JSON.parse(inputContent);
   } catch (error) {
-    console.error(`Failed to load input file ${suite.inputFile}:`, error);
+    console.error(`Failed to load input file ${inputFile}:`, error);
     return undefined;
   }
 }
@@ -84,13 +84,14 @@ async function main() {
 
       try {
         const suite = loadTestSuite(fullPath);
-        const defaultInput = loadInputFile(suite, fullPath);
+        const defaultInput = loadInputFile(suite.inputFile, fullPath);
         const pendingInFile: Array<{ test: UnifiedTest, reason: string }> = [];
         
         for (const test of suite.tests) {
           if (test.pending) {
             // Apply default input for consistency with regular running
-            const testWithInput = test.input ? test : { ...test, input: defaultInput };
+            const testInput = (test as any).inputFile ? loadInputFile((test as any).inputFile, fullPath) : defaultInput;
+            const testWithInput = test.input ? test : { ...test, input: testInput };
             pendingInFile.push({ 
               test: testWithInput, 
               reason: typeof test.pending === 'string' ? test.pending : 'No reason provided'
@@ -146,11 +147,12 @@ async function main() {
 
       try {
         const suite = loadTestSuite(fullPath);
-        const defaultInput = loadInputFile(suite, fullPath);
+        const defaultInput = loadInputFile(suite.inputFile, fullPath);
         
         for (const test of suite.tests) {
-          // Use test's input or fall back to suite's inputFile
-          const testWithInput = test.input ? test : { ...test, input: defaultInput };
+          // Use test's input or fall back to test's inputFile or suite's inputFile
+          const testInput = (test as any).inputFile ? loadInputFile((test as any).inputFile, fullPath) : defaultInput;
+          const testWithInput = test.input ? test : { ...test, input: testInput };
           const result = await runAndValidateTest(testWithInput);
           if (!result.success && !result.pending && !result.skipped) {
             failingTests.push({ test, file });
@@ -188,7 +190,7 @@ async function main() {
 
   try {
     const suite = loadTestSuite(testPath);
-    const defaultInput = loadInputFile(suite, testPath);
+    const defaultInput = loadInputFile(suite.inputFile, testPath);
     
     if (testName) {
       // Run specific test
@@ -197,8 +199,9 @@ async function main() {
         console.error(`❌ Test "${testName}" not found in ${basename(testPath)}`);
         process.exit(1);
       }
-      // Use test's input or fall back to suite's inputFile
-      const testWithInput = test.input ? test : { ...test, input: defaultInput };
+      // Use test's input or fall back to test's inputFile or suite's inputFile
+      const testInput = (test as any).inputFile ? loadInputFile((test as any).inputFile, testPath) : defaultInput;
+      const testWithInput = test.input ? test : { ...test, input: testInput };
       console.log(`\n🎯 Running test: ${test.name}`);
       const result = await runAndValidateTest(testWithInput);
       displayResult(testWithInput, result);
@@ -206,8 +209,9 @@ async function main() {
       // Run all tests in the file
       console.log(`\n🎯 Running all tests from: ${basename(testPath)}`);
       for (const test of suite.tests) {
-        // Use test's input or fall back to suite's inputFile
-        const testWithInput = test.input ? test : { ...test, input: defaultInput };
+        // Use test's input or fall back to test's inputFile or suite's inputFile
+        const testInput = (test as any).inputFile ? loadInputFile((test as any).inputFile, testPath) : defaultInput;
+        const testWithInput = test.input ? test : { ...test, input: testInput };
         console.log(`\n--- Test: ${test.name} ---`);
         const result = await runAndValidateTest(testWithInput);
         displayResult(testWithInput, result);
