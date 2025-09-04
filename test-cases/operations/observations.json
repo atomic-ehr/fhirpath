@@ -76,12 +76,11 @@
       "expression": "Observation.issued is instant",
       "input": {
         "resourceType": "Observation",
-        "status": "final",
-        "issued": "2014-04-01T13:02:00+01:00"
+        "status": "final"
       },
-      "expected": [true],
+      "expected": [],
       "tags": ["type-testing", "instant", "is"],
-      "note": "issued is defined as instant type in FHIR R4",
+      "note": "Returns empty when issued field is not present",
       "fromXML": "testPolymorphismIsA3"
     },
     {
