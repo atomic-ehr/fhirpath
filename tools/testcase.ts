@@ -84,12 +84,15 @@ async function main() {
 
       try {
         const suite = loadTestSuite(fullPath);
+        const defaultInput = loadInputFile(suite, fullPath);
         const pendingInFile: Array<{ test: UnifiedTest, reason: string }> = [];
         
         for (const test of suite.tests) {
           if (test.pending) {
+            // Apply default input for consistency with regular running
+            const testWithInput = test.input ? test : { ...test, input: defaultInput };
             pendingInFile.push({ 
-              test, 
+              test: testWithInput, 
               reason: typeof test.pending === 'string' ? test.pending : 'No reason provided'
             });
           }
@@ -143,8 +146,12 @@ async function main() {
 
       try {
         const suite = loadTestSuite(fullPath);
+        const defaultInput = loadInputFile(suite, fullPath);
+        
         for (const test of suite.tests) {
-          const result = await runAndValidateTest(test);
+          // Use test's input or fall back to suite's inputFile
+          const testWithInput = test.input ? test : { ...test, input: defaultInput };
+          const result = await runAndValidateTest(testWithInput);
           if (!result.success && !result.pending && !result.skipped) {
             failingTests.push({ test, file });
           }

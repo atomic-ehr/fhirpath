@@ -263,7 +263,7 @@
       "name": "time literal with timezone offset invalid",
       "expression": "@T14:34:28+10:00.is(Time)",
       "error": {
-        "message": "Unexpected token"
+        "message": "Unexpected character"
       },
       "tags": ["literals", "time", "temporal", "timezone", "error"],
       "fromXML": "testLiteralTimeTimezoneOffset",
