@@ -682,7 +682,14 @@ export class Parser {
   protected parseStringValue(raw: string): string {
     // Remove quotes and handle escape sequences
     const content = raw.slice(1, -1);
-    return content.replace(/\\(.)/g, (_, char) => {
+    
+    // Handle unicode escapes first (\uXXXX)
+    let result = content.replace(/\\u([0-9a-fA-F]{4})/g, (_, hex) => {
+      return String.fromCharCode(parseInt(hex, 16));
+    });
+    
+    // Then handle other escape sequences
+    result = result.replace(/\\(.)/g, (_, char) => {
       switch (char) {
         case 'n': return '\n';
         case 'r': return '\r';
@@ -696,6 +703,8 @@ export class Parser {
         default: return char;
       }
     });
+    
+    return result;
   }
   
   protected parseIdentifierValue(raw: string): string {

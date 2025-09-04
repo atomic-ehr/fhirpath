@@ -512,7 +512,6 @@
       "name": "unicode string literal equality",
       "expression": "Patient.name.given.first() = 'P\\u0065ter'",
       "expected": [true],
-      "pending": "Unicode escape sequences not handled correctly by lexer",
       "tags": ["literals", "string", "unicode"],
       "fromXML": "testLiteralUnicode"
     },
