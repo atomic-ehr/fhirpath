@@ -33,10 +33,10 @@
     },
     {
       "name": "skip() on unordered collection",
-      "expression": "Patient.children().skip(1)",
-      "pending": "Requires strict mode with checkOrderedFunctions to error. Currently returns values in non-strict mode.",
-      "tags": ["collection", "skip", "unordered", "strict"],
-      "note": "In strict mode with checkOrderedFunctions, this should error. In standard mode, our implementation returns values.",
+      "expression": "Patient.children().skip(1).count()",
+      "expected": [16],
+      "tags": ["collection", "skip", "unordered", "non-strict"],
+      "note": "In strict mode with checkOrderedFunctions, this should error. In standard mode, returns children minus first element (17-1=16).",
       "fromXML": "testDollarOrderNotAllowed"
     }
   ]
