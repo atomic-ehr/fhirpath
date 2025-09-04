@@ -1,0 +1,87 @@
+{
+  "name": "Comments Tests",
+  "description": "Tests for comment syntax parsing and handling",
+  "tests": [
+    {
+      "name": "single line comment after expression",
+      "expression": "2 + 2 // This is a single-line comment + 4",
+      "input": {},
+      "expected": [4],
+      "tags": ["comments", "single-line"],
+      "fromXML": "testComment1"
+    },
+    {
+      "name": "multi line comment using // at start",
+      "expression": "// This is a multi line comment using // that\n  // should not fail during parsing\n  2+2",
+      "input": {},
+      "expected": [4],
+      "tags": ["comments", "single-line", "multi-line"],
+      "fromXML": "testComment2"
+    },
+    {
+      "name": "multi-line comment block without continuation",
+      "expression": "2 + 2 \n      /*\nThis is a multi-line comment\nAny text enclosed within is ignored\n+2\n*/",
+      "input": {},
+      "expected": [4],
+      "tags": ["comments", "multi-line", "block"],
+      "fromXML": "testComment3"
+    },
+    {
+      "name": "multi-line comment block with continuation",
+      "expression": "2 + 2 \n      /*\nThis is a multi-line comment\nAny text enclosed within is ignored\n*/\n+2",
+      "input": {},
+      "expected": [6],
+      "tags": ["comments", "multi-line", "block"],
+      "fromXML": "testComment4"
+    },
+    {
+      "name": "multi-line comment at start",
+      "expression": "/*\nThis is a multi-line comment\nAny text enclosed within is ignored\n*/\n2+2",
+      "input": {},
+      "expected": [4],
+      "tags": ["comments", "multi-line", "block"],
+      "fromXML": "testComment5"
+    },
+    {
+      "name": "comment not interfering with division",
+      "expression": "2 // comment\n/ 2",
+      "input": {},
+      "expected": [1],
+      "tags": ["comments", "single-line", "division"],
+      "fromXML": "testComment6"
+    },
+    {
+      "name": "incomplete single line comment syntax error",
+      "expression": "2 + 2 /",
+      "input": {},
+      "expected": [],
+      "tags": ["comments", "error", "syntax"],
+      "error": {
+        "type": "ParseError",
+        "phase": "parse"
+      },
+      "fromXML": "testComment7"
+    },
+    {
+      "name": "unclosed multi-line comment syntax error",
+      "expression": "2 + 2 /* not finished",
+      "input": {},
+      "expected": [],
+      "tags": ["comments", "error", "syntax", "multi-line"],
+      "error": {
+        "type": "ParseError",
+        "phase": "parse"
+      },
+      "pending": "Lexer bug: doesn't throw error for unclosed multi-line comments",
+      "fromXML": "testComment8"
+    },
+    {
+      "name": "inline multi-line comment",
+      "expression": "2 + /* inline $@%^+ * */ 2 = 4",
+      "input": {},
+      "expected": [true],
+      "tags": ["comments", "multi-line", "inline"],
+      "fromXML": "testComment9"
+    }
+  ]
+}

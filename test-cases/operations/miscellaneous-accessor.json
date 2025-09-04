@@ -1,0 +1,46 @@
+{
+  "name": "Miscellaneous Accessor Tests",
+  "description": "Miscellaneous accessor tests for basic property access",
+  "tests": [
+    {
+      "name": "extract birthDate",
+      "expression": "birthDate",
+      "input": {
+        "resourceType": "Patient",
+        "birthDate": "1974-12-25",
+        "gender": "male"
+      },
+      "expected": ["1974-12-25"],
+      "tags": ["accessor", "date", "navigation"],
+      "fromXML": "testExtractBirthDate"
+    },
+    {
+      "name": "patient has a birthDate (predicate)",
+      "expression": "birthDate.exists()",
+      "input": {
+        "resourceType": "Patient",
+        "birthDate": "1974-12-25"
+      },
+      "expected": [true],
+      "tags": ["accessor", "predicate", "exists"],
+      "fromXML": "testPatientHasBirthDate",
+      "note": "Using exists() since predicate mode not directly supported"
+    },
+    {
+      "name": "patient telecom types",
+      "expression": "telecom.use",
+      "input": {
+        "resourceType": "Patient",
+        "telecom": [
+          { "use": "home" },
+          { "system": "phone", "value": "(03) 5555 6473", "use": "work" },
+          { "system": "phone", "value": "(03) 3410 5613", "use": "mobile" },
+          { "system": "phone", "value": "(03) 5555 8834", "use": "old" }
+        ]
+      },
+      "expected": ["home", "work", "mobile", "old"],
+      "tags": ["accessor", "navigation", "collection"],
+      "fromXML": "testPatientTelecomTypes"
+    }
+  ]
+}

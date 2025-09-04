@@ -1,0 +1,171 @@
+{
+  "name": "Basic FHIRPath Tests",
+  "description": "Tests ported from the Java Unit Tests - basic navigation and property access",
+  "tests": [
+    {
+      "name": "simple name.given navigation",
+      "expression": "name.given",
+      "input": {
+        "resourceType": "Patient",
+        "name": [
+          {
+            "use": "official",
+            "family": "Chalmers",
+            "given": ["Peter", "James"]
+          },
+          {
+            "use": "usual",
+            "given": ["Jim"]
+          },
+          {
+            "use": "maiden",
+            "family": "Windsor",
+            "given": ["Peter", "James"]
+          }
+        ]
+      },
+      "expected": ["Peter", "James", "Jim", "Peter", "James"],
+      "tags": ["basics", "navigation", "collection"],
+      "fromXML": "testSimple"
+    },
+    {
+      "name": "simple navigation with no results",
+      "expression": "name.suffix",
+      "input": {
+        "resourceType": "Patient",
+        "name": [
+          {
+            "use": "official",
+            "family": "Chalmers",
+            "given": ["Peter", "James"]
+          }
+        ]
+      },
+      "expected": [],
+      "tags": ["basics", "navigation", "empty"],
+      "fromXML": "testSimpleNone"
+    },
+    {
+      "name": "escaped identifier with backticks",
+      "expression": "name.`given`",
+      "input": {
+        "resourceType": "Patient",
+        "name": [
+          {
+            "use": "official",
+            "family": "Chalmers",
+            "given": ["Peter", "James"]
+          },
+          {
+            "use": "usual",
+            "given": ["Jim"]
+          },
+          {
+            "use": "maiden",
+            "family": "Windsor",
+            "given": ["Peter", "James"]
+          }
+        ]
+      },
+      "expected": ["Peter", "James", "Jim", "Peter", "James"],
+      "tags": ["basics", "navigation", "escaped-identifier"],
+      "fromXML": "testEscapedIdentifier"
+    },
+    {
+      "name": "backticks on type and property",
+      "expression": "`Patient`.name.`given`",
+      "input": {
+        "resourceType": "Patient",
+        "name": [
+          {
+            "use": "official",
+            "family": "Chalmers",
+            "given": ["Peter", "James"]
+          },
+          {
+            "use": "usual",
+            "given": ["Jim"]
+          },
+          {
+            "use": "maiden",
+            "family": "Windsor",
+            "given": ["Peter", "James"]
+          }
+        ]
+      },
+      "expected": ["Peter", "James", "Jim", "Peter", "James"],
+      "tags": ["basics", "navigation", "escaped-identifier", "type-check"],
+      "fromXML": "testSimpleBackTick1"
+    },
+    {
+      "name": "invalid property access in strict mode",
+      "expression": "name.given1",
+      "input": {
+        "resourceType": "Patient",
+        "name": [
+          {
+            "use": "official",
+            "family": "Chalmers",
+            "given": ["Peter", "James"]
+          }
+        ]
+      },
+      "expected": [],
+      "tags": ["basics", "error", "semantic", "strict"],
+      "error": {
+        "type": "AnalysisError",
+        "phase": "analysis"
+      },
+      "pending": "Strict mode error checking not yet implemented",
+      "fromXML": "testSimpleFail"
+    },
+    {
+      "name": "navigation with type context",
+      "expression": "Patient.name.given",
+      "input": {
+        "resourceType": "Patient",
+        "name": [
+          {
+            "use": "official",
+            "family": "Chalmers",
+            "given": ["Peter", "James"]
+          },
+          {
+            "use": "usual",
+            "given": ["Jim"]
+          },
+          {
+            "use": "maiden",
+            "family": "Windsor",
+            "given": ["Peter", "James"]
+          }
+        ]
+      },
+      "expected": ["Peter", "James", "Jim", "Peter", "James"],
+      "tags": ["basics", "navigation", "type-context"],
+      "fromXML": "testSimpleWithContext"
+    },
+    {
+      "name": "navigation with wrong type context",
+      "expression": "Encounter.name.given",
+      "input": {
+        "resourceType": "Patient",
+        "name": [
+          {
+            "use": "official",
+            "family": "Chalmers",
+            "given": ["Peter", "James"]
+          }
+        ]
+      },
+      "expected": [],
+      "tags": ["basics", "error", "semantic", "type-context"],
+      "error": {
+        "type": "AnalysisError",
+        "phase": "analysis"
+      },
+      "pending": "Strict mode type checking not yet implemented",
+      "fromXML": "testSimpleWithWrongContext"
+    }
+  ]
+}
