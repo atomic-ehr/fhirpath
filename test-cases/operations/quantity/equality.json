@@ -64,11 +64,11 @@
     },
     {
       "name": "Calendar week to days conversion",
-      "description": "Different calendar units (week vs days) are incomparable - returns empty",
+      "description": "Calendar units week and days can be compared with conversion per XML tests",
       "expression": "1 week = 7 days",
       "input": [],
-      "expected": [],
-      "tags": ["quantity", "equality", "calendar-duration", "incomparable"]
+      "expected": [true],
+      "tags": ["quantity", "equality", "calendar-duration", "conversion"]
     },
     {
       "name": "Calendar day vs UCUM day - equal",

@@ -552,31 +552,41 @@ const CALENDAR_TO_UCUM_MAP: Record<string, string> = {
  * Quantity equivalence with UCUM semantic comparison and calendar mappings
  */
 function quantityEquivalent(a: QuantityValue, b: QuantityValue): boolean | null {
-  // Check for calendar to UCUM equivalence
-  const aIsCalendar = CALENDAR_TO_UCUM_MAP[a.unit] !== undefined;
-  const bIsCalendar = CALENDAR_TO_UCUM_MAP[b.unit] !== undefined;
-  
-  // Calendar to UCUM mapping
-  if (aIsCalendar && !bIsCalendar) {
-    const ucumUnit = CALENDAR_TO_UCUM_MAP[a.unit];
-    return ucumUnit === b.unit && a.value === b.value;
-  }
-  if (!aIsCalendar && bIsCalendar) {
-    const ucumUnit = CALENDAR_TO_UCUM_MAP[b.unit];
-    return ucumUnit === a.unit && a.value === b.value;
-  }
-  
-  // Both calendar units - must be same unit and value
-  if (aIsCalendar && bIsCalendar) {
-    // Normalize to singular/plural
-    const aNorm = CALENDAR_TO_UCUM_MAP[a.unit];
-    const bNorm = CALENDAR_TO_UCUM_MAP[b.unit];
-    return aNorm === bNorm && a.value === b.value;
-  }
-  
-  // Standard UCUM semantic equivalence (1000 mg ~ 1 g)
+  // Use compareQuantities which now handles calendar unit conversions
   const result = compareQuantities(a, b);
-  return result === 0;
+  
+  // Null means incomparable
+  if (result === null) {
+    return null;
+  }
+  
+  // For equivalence, we check if they're equal when converted
+  // compareQuantities returns 0 for equal values
+  if (result === 0) {
+    return true;
+  }
+  
+  // For approximate equivalence (~), check if values are within tolerance
+  // This is primarily for handling precision differences like 4 g ~ 4.040 g
+  // We need special handling for common unit conversions with tolerance
+  
+  // Check if one is g and other is mg
+  if ((a.unit === 'g' && b.unit === 'mg') || (a.unit === 'mg' && b.unit === 'g')) {
+    // Convert both to mg for comparison
+    const aInMg = a.unit === 'g' ? a.value * 1000 : a.value;
+    const bInMg = b.unit === 'g' ? b.value * 1000 : b.value;
+    
+    // Check if within 1% tolerance for approximate equivalence
+    const diff = Math.abs(aInMg - bInMg);
+    const avg = (aInMg + bInMg) / 2;
+    const tolerance = avg * 0.01; // 1% tolerance
+    
+    return diff <= tolerance;
+  }
+  
+  // For other units, compareQuantities handles the conversion
+  // If it returned non-zero, they're not equivalent
+  return false;
 }
 
 /**

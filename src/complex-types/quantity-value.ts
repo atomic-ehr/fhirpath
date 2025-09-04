@@ -261,56 +261,114 @@ export function compareQuantities(left: QuantityValue, right: QuantityValue): nu
   const leftIsCalendar = CALENDAR_DURATION_UNITS.has(left.unit);
   const rightIsCalendar = CALENDAR_DURATION_UNITS.has(right.unit);
   
-  // Both calendar units - compare if they normalize to same UCUM unit
+  // Both calendar units - only compare if they're compatible units
   if (leftIsCalendar && rightIsCalendar) {
-    const leftUcum = CALENDAR_TO_UCUM[left.unit];
-    const rightUcum = CALENDAR_TO_UCUM[right.unit];
+    // Only allow conversion between specific compatible units
+    const areCompatible = (unit1: string, unit2: string): boolean => {
+      // Normalize to singular form
+      const normalize = (u: string) => u.endsWith('s') ? u.slice(0, -1) : u;
+      const n1 = normalize(unit1);
+      const n2 = normalize(unit2);
+      
+      // Same unit (singular/plural)
+      if (n1 === n2) return true;
+      
+      // Week <-> days conversion
+      if ((n1 === 'week' && n2 === 'day') || (n1 === 'day' && n2 === 'week')) return true;
+      
+      // No other conversions between calendar units
+      return false;
+    };
     
-    if (leftUcum === rightUcum) {
-      // Same normalized unit, compare values
-      if (left.value < right.value) {
-        return -1;
-      } else if (left.value > right.value) {
-        return 1;
-      } else {
-        return 0;
-      }
+    if (!areCompatible(left.unit, right.unit)) {
+      // Different calendar units that aren't compatible
+      return null;
     }
-    // Different calendar units cannot be compared
+    
+    // Handle week/day conversion
+    const normalizeToSingular = (u: string) => u.endsWith('s') ? u.slice(0, -1) : u;
+    const leftNorm = normalizeToSingular(left.unit);
+    const rightNorm = normalizeToSingular(right.unit);
+    
+    if (leftNorm === rightNorm) {
+      // Same unit, just compare values
+      if (left.value < right.value) return -1;
+      if (left.value > right.value) return 1;
+      return 0;
+    }
+    
+    // Week <-> day conversion
+    if ((leftNorm === 'week' && rightNorm === 'day') || 
+        (leftNorm === 'day' && rightNorm === 'week')) {
+      const leftInDays = leftNorm === 'week' ? left.value * 7 : left.value;
+      const rightInDays = rightNorm === 'week' ? right.value * 7 : right.value;
+      
+      if (leftInDays < rightInDays) return -1;
+      if (leftInDays > rightInDays) return 1;
+      return 0;
+    }
+    
+    // Shouldn't reach here
     return null;
   }
   
   // Calendar to UCUM comparison
   if (leftIsCalendar && !rightIsCalendar) {
+    // Check for week/day special case
+    if ((left.unit === 'days' || left.unit === 'day') && right.unit === 'wk') {
+      // Convert days to weeks
+      const leftInWeeks = left.value / 7;
+      if (leftInWeeks < right.value) return -1;
+      if (leftInWeeks > right.value) return 1;
+      return 0;
+    }
+    if ((left.unit === 'weeks' || left.unit === 'week') && right.unit === 'd') {
+      // Convert weeks to days
+      const leftInDays = left.value * 7;
+      if (leftInDays < right.value) return -1;
+      if (leftInDays > right.value) return 1;
+      return 0;
+    }
+    
+    // Direct mapping check
     const leftUcumUnit = CALENDAR_TO_UCUM[left.unit];
     if (leftUcumUnit === right.unit) {
       // Direct mapping, compare values
-      if (left.value < right.value) {
-        return -1;
-      } else if (left.value > right.value) {
-        return 1;
-      } else {
-        return 0;
-      }
+      if (left.value < right.value) return -1;
+      if (left.value > right.value) return 1;
+      return 0;
     }
-    // No direct mapping, incomparable
+    // No mapping, incomparable
     return null;
   }
   
   // UCUM to calendar comparison
   if (!leftIsCalendar && rightIsCalendar) {
+    // Check for week/day special case
+    if (left.unit === 'wk' && (right.unit === 'days' || right.unit === 'day')) {
+      // Convert weeks to days
+      const leftInDays = left.value * 7;
+      if (leftInDays < right.value) return -1;
+      if (leftInDays > right.value) return 1;
+      return 0;
+    }
+    if (left.unit === 'd' && (right.unit === 'weeks' || right.unit === 'week')) {
+      // Convert days to weeks
+      const leftInWeeks = left.value / 7;
+      if (leftInWeeks < right.value) return -1;
+      if (leftInWeeks > right.value) return 1;
+      return 0;
+    }
+    
+    // Direct mapping check
     const rightUcumUnit = CALENDAR_TO_UCUM[right.unit];
     if (left.unit === rightUcumUnit) {
       // Direct mapping, compare values
-      if (left.value < right.value) {
-        return -1;
-      } else if (left.value > right.value) {
-        return 1;
-      } else {
-        return 0;
-      }
+      if (left.value < right.value) return -1;
+      if (left.value > right.value) return 1;
+      return 0;
     }
-    // No direct mapping, incomparable
+    // No mapping, incomparable
     return null;
   }
   
