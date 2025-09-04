@@ -1,0 +1,30 @@
+{
+  "name": "subsetOf() Function Tests",
+  "description": "Tests for the subsetOf() function",
+  "tests": [
+    {
+      "name": "subsetOf() - first name is subset of all names",
+      "expression": "Patient.name.first().subsetOf($this.name)",
+      "input": "../../input/patient-example.json",
+      "expected": [true],
+      "tags": ["collection", "subsetOf"],
+      "fromXML": "testSubSetOf1"
+    },
+    {
+      "name": "subsetOf() - all names not subset of first name",
+      "expression": "Patient.name.subsetOf($this.name.first()).not()",
+      "input": "../../input/patient-example.json",
+      "expected": [true],
+      "tags": ["collection", "subsetOf"],
+      "fromXML": "testSubSetOf2"
+    },
+    {
+      "name": "subsetOf() - complex example with ExplanationOfBenefit",
+      "expression": "supportingInfo.where(category.coding.code = 'additionalbodysite').sequence.subsetOf($this.item.informationSequence)",
+      "input": "../../input/explanationofbenefit-example.json",
+      "expected": [true],
+      "tags": ["collection", "subsetOf", "complex"],
+      "fromXML": "testSubSetOf3"
+    }
+  ]
+}

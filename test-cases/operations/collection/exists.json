@@ -1,0 +1,42 @@
+{
+  "name": "exists() Function Tests",
+  "description": "Tests for the exists() function",
+  "inputFile": "../../input/patient-example.json",
+  "tests": [
+    {
+      "name": "exists() on non-empty collection",
+      "expression": "Patient.name.exists()",
+      "expected": [true],
+      "tags": ["collection", "exists"],
+      "fromXML": "testExists1"
+    },
+    {
+      "name": "exists() with false condition",
+      "expression": "Patient.name.exists(use = 'nickname')",
+      "expected": [false],
+      "tags": ["collection", "exists", "filtering"],
+      "fromXML": "testExists2"
+    },
+    {
+      "name": "exists() with true condition",
+      "expression": "Patient.name.exists(use = 'official')",
+      "expected": [true],
+      "tags": ["collection", "exists", "filtering"],
+      "fromXML": "testExists3"
+    },
+    {
+      "name": "exists() with complex condition",
+      "expression": "Patient.maritalStatus.coding.exists(code = 'P' and system = 'http://terminology.hl7.org/CodeSystem/v3-MaritalStatus') or Patient.maritalStatus.coding.exists(code = 'A' and system = 'http://terminology.hl7.org/CodeSystem/v3-MaritalStatus')",
+      "expected": [false],
+      "tags": ["collection", "exists", "complex"],
+      "fromXML": "testExists4"
+    },
+    {
+      "name": "exists() on union collection",
+      "expression": "(1 | 2).exists()",
+      "expected": [true],
+      "tags": ["collection", "exists", "union"],
+      "fromXML": "testExists5"
+    }
+  ]
+}

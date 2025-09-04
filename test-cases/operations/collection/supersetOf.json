@@ -1,0 +1,21 @@
+{
+  "name": "supersetOf() Function Tests",
+  "description": "Tests for the supersetOf() function",
+  "inputFile": "../../input/patient-example.json",
+  "tests": [
+    {
+      "name": "supersetOf() - first name not superset of all names",
+      "expression": "Patient.name.first().supersetOf($this.name).not()",
+      "expected": [true],
+      "tags": ["collection", "supersetOf"],
+      "fromXML": "testSuperSetOf1"
+    },
+    {
+      "name": "supersetOf() - all names superset of first name",
+      "expression": "Patient.name.supersetOf($this.name.first())",
+      "expected": [true],
+      "tags": ["collection", "supersetOf"],
+      "fromXML": "testSuperSetOf2"
+    }
+  ]
+}

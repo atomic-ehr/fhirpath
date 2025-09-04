@@ -1,0 +1,35 @@
+{
+  "name": "all() and allTrue() Function Tests",
+  "description": "Tests for the all() and allTrue() functions",
+  "inputFile": "../../input/patient-example.json",
+  "tests": [
+    {
+      "name": "allTrue() on all true conditions",
+      "expression": "Patient.name.select(given.exists()).allTrue()",
+      "expected": [true],
+      "tags": ["collection", "allTrue"],
+      "fromXML": "testAllTrue1"
+    },
+    {
+      "name": "allTrue() on mixed conditions",
+      "expression": "Patient.name.select(period.exists()).allTrue()",
+      "expected": [false],
+      "tags": ["collection", "allTrue"],
+      "fromXML": "testAllTrue2"
+    },
+    {
+      "name": "all() with true condition",
+      "expression": "Patient.name.all(given.exists())",
+      "expected": [true],
+      "tags": ["collection", "all"],
+      "fromXML": "testAllTrue3"
+    },
+    {
+      "name": "all() with false condition",
+      "expression": "Patient.name.all(period.exists())",
+      "expected": [false],
+      "tags": ["collection", "all"],
+      "fromXML": "testAllTrue4"
+    }
+  ]
+}

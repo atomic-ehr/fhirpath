@@ -465,10 +465,10 @@ export function compare(a: TemporalValue, b: TemporalValue): -1 | 0 | 1 | null {
   if (isFHIRDateTime(a) && isFHIRDate(b)) {
     // Compare the date portion of DateTime with Date
     if (a.year !== b.year) return a.year < b.year ? -1 : 1;
-    if (b.month !== undefined) {
+    if (b.month !== undefined && a.month !== undefined) {
       if (a.month !== b.month) return a.month < b.month ? -1 : 1;
     }
-    if (b.day !== undefined) {
+    if (b.day !== undefined && a.day !== undefined) {
       if (a.day !== b.day) return a.day < b.day ? -1 : 1;
     }
     // When date portions are equal, Date and DateTime are incomparable
@@ -477,10 +477,10 @@ export function compare(a: TemporalValue, b: TemporalValue): -1 | 0 | 1 | null {
   if (isFHIRDate(a) && isFHIRDateTime(b)) {
     // Compare Date with the date portion of DateTime
     if (a.year !== b.year) return a.year < b.year ? -1 : 1;
-    if (a.month !== undefined) {
+    if (a.month !== undefined && b.month !== undefined) {
       if (a.month !== b.month) return a.month < b.month ? -1 : 1;
     }
-    if (a.day !== undefined) {
+    if (a.day !== undefined && b.day !== undefined) {
       if (a.day !== b.day) return a.day < b.day ? -1 : 1;
     }
     // When date portions are equal, Date and DateTime are incomparable

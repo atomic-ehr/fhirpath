@@ -1,0 +1,48 @@
+{
+  "name": "iif() with Collection Boolean Tests",
+  "description": "Tests for iif() function with collection-to-boolean conversion",
+  "tests": [
+    {
+      "name": "iif() with multi-item collection - should error",
+      "expression": "iif(1 | 2 | 3, true, false)",
+      "error": true,
+      "tags": ["iif", "collection", "error"],
+      "fromXML": "testCollectionBoolean1"
+    },
+    {
+      "name": "iif() with empty collection",
+      "expression": "iif({}, true, false)",
+      "expected": [false],
+      "tags": ["iif", "collection", "empty"],
+      "fromXML": "testCollectionBoolean2"
+    },
+    {
+      "name": "iif() with true boolean",
+      "expression": "iif(true, true, false)",
+      "expected": [true],
+      "tags": ["iif", "boolean"],
+      "fromXML": "testCollectionBoolean3"
+    },
+    {
+      "name": "iif() with singleton true in union",
+      "expression": "iif({} | true, true, false)",
+      "expected": [true],
+      "tags": ["iif", "collection", "union"],
+      "fromXML": "testCollectionBoolean4"
+    },
+    {
+      "name": "iif() - true branch evaluated only",
+      "expression": "iif(true, true, 1/0)",
+      "expected": [true],
+      "tags": ["iif", "lazy-evaluation"],
+      "fromXML": "testCollectionBoolean5"
+    },
+    {
+      "name": "iif() - false branch evaluated only",
+      "expression": "iif(false, 1/0, true)",
+      "expected": [true],
+      "tags": ["iif", "lazy-evaluation"],
+      "fromXML": "testCollectionBoolean6"
+    }
+  ]
+}

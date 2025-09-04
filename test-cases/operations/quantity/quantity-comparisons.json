@@ -1,0 +1,83 @@
+{
+  "name": "Quantity Comparison Tests",
+  "description": "Tests for quantity comparison operations",
+  "tests": [
+    {
+      "name": "Quantity equality - g to mg conversion",
+      "expression": "4.0000 'g' = 4000.0 'mg'",
+      "expected": [true],
+      "tags": ["quantity", "comparison", "conversion"],
+      "fromXML": "testQuantity1"
+    },
+    {
+      "name": "Quantity equivalence - g to mg",
+      "expression": "4 'g' ~ 4000 'mg'",
+      "expected": [true],
+      "tags": ["quantity", "equivalence"],
+      "fromXML": "testQuantity2"
+    },
+    {
+      "name": "Quantity inequality",
+      "expression": "4 'g' != 4040 'mg'",
+      "expected": [true],
+      "tags": ["quantity", "comparison"],
+      "fromXML": "testQuantity3"
+    },
+    {
+      "name": "Quantity approximate equivalence",
+      "expression": "4 'g' ~ 4040 'mg'",
+      "expected": [true],
+      "tags": ["quantity", "equivalence"],
+      "fromXML": "testQuantity4"
+    },
+    {
+      "name": "Calendar unit equality - days to week",
+      "expression": "7 days = 1 week",
+      "expected": [true],
+      "tags": ["quantity", "calendar", "comparison"],
+      "fromXML": "testQuantity5"
+    },
+    {
+      "name": "Calendar to UCUM comparison",
+      "expression": "7 days = 1 'wk'",
+      "expected": [true],
+      "tags": ["quantity", "calendar", "ucum"],
+      "fromXML": "testQuantity6"
+    },
+    {
+      "name": "Calendar less than comparison",
+      "expression": "6 days < 1 week",
+      "expected": [true],
+      "tags": ["quantity", "calendar", "comparison"],
+      "fromXML": "testQuantity7"
+    },
+    {
+      "name": "Calendar greater than comparison",
+      "expression": "8 days > 1 week",
+      "expected": [true],
+      "tags": ["quantity", "calendar", "comparison"],
+      "fromXML": "testQuantity8"
+    },
+    {
+      "name": "Quantity multiplication - area calculation",
+      "expression": "2.0 'cm' * 2.0 'm' = 0.040 'm2'",
+      "expected": [true],
+      "tags": ["quantity", "arithmetic", "multiplication"],
+      "fromXML": "testQuantity9"
+    },
+    {
+      "name": "Quantity division",
+      "expression": "4.0 'g' / 2.0 'm' = 2 'g/m'",
+      "expected": [true],
+      "tags": ["quantity", "arithmetic", "division"],
+      "fromXML": "testQuantity10"
+    },
+    {
+      "name": "Quantity division - same units",
+      "expression": "1.0 'm' / 1.0 'm' = 1 '1'",
+      "expected": [true],
+      "tags": ["quantity", "arithmetic", "division"],
+      "fromXML": "testQuantity11"
+    }
+  ]
+}

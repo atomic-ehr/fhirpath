@@ -37,6 +37,12 @@ export const evaluate: FunctionEvaluator = async (input, context, args, evaluato
   
   const condResult = await evaluator(condExpr, input, evalContext);
   
+  // Check if condition is a singleton boolean
+  if (condResult.value.length > 1) {
+    // Multiple items in condition - should error per spec
+    throw Errors.invalidOperation('iif condition must be a single boolean value');
+  }
+  
   // Empty condition is treated as false
   if (condResult.value.length === 0) {
     // If no else expression provided, return empty
@@ -56,7 +62,7 @@ export const evaluate: FunctionEvaluator = async (input, context, args, evaluato
   
   // Check if condition is a boolean
   if (typeof condition !== 'boolean') {
-    // Non-boolean criteria returns empty
+    // Non-boolean singleton returns empty per FHIRPath spec behavior
     return { value: [], context };
   }
   
