@@ -1,0 +1,164 @@
+{
+  "name": "Observation Polymorphism Tests",
+  "description": "Tests for polymorphic fields (value[x]) in FHIR Observations",
+  "tests": [
+    {
+      "name": "polymorphic value field access via base name",
+      "expression": "Observation.value.unit",
+      "input": {
+        "resourceType": "Observation",
+        "id": "example",
+        "status": "final",
+        "code": {
+          "text": "Body Weight"
+        },
+        "valueQuantity": {
+          "value": 185,
+          "unit": "lbs",
+          "system": "http://unitsofmeasure.org",
+          "code": "[lb_av]"
+        }
+      },
+      "expected": ["lbs"],
+      "tags": ["polymorphism", "value[x]", "navigation"],
+      "fromXML": "testPolymorphismA"
+    },
+    {
+      "name": "polymorphic value field via specific type name (strict mode)",
+      "expression": "Observation.valueQuantity.unit",
+      "input": {
+        "resourceType": "Observation",
+        "status": "final",
+        "valueQuantity": {
+          "value": 185,
+          "unit": "lbs",
+          "system": "http://unitsofmeasure.org",
+          "code": "[lb_av]"
+        }
+      },
+      "expected": ["lbs"],
+      "tags": ["polymorphism", "value[x]", "navigation", "strict"],
+      "note": "In strict mode this should error; in standard FHIRPath accessing via specific type name is allowed",
+      "fromXML": "testPolymorphismB"
+    },
+    {
+      "name": "polymorphism type test with is() function",
+      "expression": "Observation.value.is(Quantity)",
+      "input": {
+        "resourceType": "Observation",
+        "status": "final",
+        "valueQuantity": {
+          "value": 185,
+          "unit": "lbs"
+        }
+      },
+      "expected": [true],
+      "tags": ["polymorphism", "type-testing", "is"],
+      "fromXML": "testPolymorphismIsA1"
+    },
+    {
+      "name": "polymorphism type test with is operator",
+      "expression": "Observation.value is Quantity",
+      "input": {
+        "resourceType": "Observation",
+        "status": "final",
+        "valueQuantity": {
+          "value": 185,
+          "unit": "lbs"
+        }
+      },
+      "expected": [true],
+      "tags": ["polymorphism", "type-testing", "is"],
+      "fromXML": "testPolymorphismIsA2"
+    },
+    {
+      "name": "issued field is instant type test",
+      "expression": "Observation.issued is instant",
+      "input": {
+        "resourceType": "Observation",
+        "status": "final",
+        "issued": "2014-04-01T13:02:00+01:00"
+      },
+      "expected": [true],
+      "tags": ["type-testing", "instant", "is"],
+      "note": "issued is defined as instant type in FHIR R4",
+      "fromXML": "testPolymorphismIsA3"
+    },
+    {
+      "name": "polymorphism negative type test",
+      "expression": "Observation.value.is(Period).not()",
+      "input": {
+        "resourceType": "Observation",
+        "status": "final",
+        "valueQuantity": {
+          "value": 185,
+          "unit": "lbs"
+        }
+      },
+      "expected": [true],
+      "tags": ["polymorphism", "type-testing", "is", "not"],
+      "fromXML": "testPolymorphismIsB"
+    },
+    {
+      "name": "polymorphism type cast with as() function",
+      "expression": "Observation.value.as(Quantity).unit",
+      "input": {
+        "resourceType": "Observation",
+        "status": "final",
+        "valueQuantity": {
+          "value": 185,
+          "unit": "lbs"
+        }
+      },
+      "expected": ["lbs"],
+      "tags": ["polymorphism", "type-cast", "as"],
+      "fromXML": "testPolymorphismAsA"
+    },
+    {
+      "name": "polymorphism type cast with as operator",
+      "expression": "(Observation.value as Quantity).unit",
+      "input": {
+        "resourceType": "Observation",
+        "status": "final",
+        "valueQuantity": {
+          "value": 185,
+          "unit": "lbs"
+        }
+      },
+      "expected": ["lbs"],
+      "tags": ["polymorphism", "type-cast", "as"],
+      "fromXML": "testPolymorphismAsAFunction"
+    },
+    {
+      "name": "polymorphism invalid type cast (strict mode)",
+      "expression": "(Observation.value as Period).unit",
+      "input": {
+        "resourceType": "Observation",
+        "status": "final",
+        "valueQuantity": {
+          "value": 185,
+          "unit": "lbs"
+        }
+      },
+      "expected": [],
+      "tags": ["polymorphism", "type-cast", "as", "strict"],
+      "note": "Cast to wrong type returns empty; in strict mode should error",
+      "fromXML": "testPolymorphismAsB"
+    },
+    {
+      "name": "polymorphism cast to wrong type property access",
+      "expression": "Observation.value.as(Period).start",
+      "input": {
+        "resourceType": "Observation",
+        "status": "final",
+        "valueQuantity": {
+          "value": 185,
+          "unit": "lbs"
+        }
+      },
+      "expected": [],
+      "tags": ["polymorphism", "type-cast", "as"],
+      "fromXML": "testPolymorphismAsBFunction"
+    }
+  ]
+}
