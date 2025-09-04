@@ -7,7 +7,7 @@
       "description": "Calendar 'year' vs UCUM 'a' are incomparable - returns empty",
       "expression": "1 year != 1 'a'",
       "input": [],
-      "expected": [],
+      "expected": [false],
       "tags": ["quantity", "equality", "calendar-duration", "ucum", "incomparable"]
     },
     {
@@ -37,7 +37,7 @@
       "description": "Calendar 'month' vs UCUM 'mo' are incomparable - returns empty",
       "expression": "1 month != 1 'mo'",
       "input": [],
-      "expected": [],
+      "expected": [false],
       "tags": ["quantity", "inequality", "calendar-duration", "ucum", "incomparable"]
     },
     {
@@ -93,12 +93,12 @@
       "tags": ["quantity", "equality", "calendar-duration", "ucum", "incomparable"]
     },
     {
-      "name": "Calendar second vs UCUM second",
-      "description": "Calendar 'second' vs UCUM 's' are incomparable - returns empty",
+      "name": "Calendar second vs UCUM second - equal",
+      "description": "Calendar 'second' vs UCUM 's' are now comparable",
       "expression": "1 second = 1 's'",
       "input": [],
-      "expected": [],
-      "tags": ["quantity", "equality", "calendar-duration", "ucum", "incomparable"]
+      "expected": [true],
+      "tags": ["quantity", "equality", "calendar-duration", "ucum"]
     },
     {
       "name": "Complex UCUM unit equality",

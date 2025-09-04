@@ -26,6 +26,29 @@ export const CALENDAR_DURATION_UNITS = new Set([
 ]);
 
 /**
+ * Calendar to UCUM duration mappings
+ * Maps FHIRPath calendar duration units to their UCUM equivalents
+ */
+export const CALENDAR_TO_UCUM: Record<string, string> = {
+  'year': 'a',
+  'years': 'a',
+  'month': 'mo',
+  'months': 'mo',
+  'week': 'wk',
+  'weeks': 'wk',
+  'day': 'd',
+  'days': 'd',
+  'hour': 'h',
+  'hours': 'h',
+  'minute': 'min',
+  'minutes': 'min',
+  'second': 's',
+  'seconds': 's',
+  'millisecond': 'ms',
+  'milliseconds': 'ms'
+};
+
+/**
  * Create a quantity value
  */
 export function createQuantity(value: number, unit: string): QuantityValue {
@@ -234,19 +257,60 @@ export function divideQuantities(left: QuantityValue, right: QuantityValue): Qua
  * Returns -1 if left < right, 0 if equal, 1 if left > right, null if incomparable
  */
 export function compareQuantities(left: QuantityValue, right: QuantityValue): number | null {
-  // Special case: comparing calendar durations with the same unit
-  if (CALENDAR_DURATION_UNITS.has(left.unit) && left.unit === right.unit) {
-    if (left.value < right.value) {
-      return -1;
-    } else if (left.value > right.value) {
-      return 1;
-    } else {
-      return 0;
+  // Handle calendar to UCUM comparisons
+  const leftIsCalendar = CALENDAR_DURATION_UNITS.has(left.unit);
+  const rightIsCalendar = CALENDAR_DURATION_UNITS.has(right.unit);
+  
+  // Both calendar units - compare if they normalize to same UCUM unit
+  if (leftIsCalendar && rightIsCalendar) {
+    const leftUcum = CALENDAR_TO_UCUM[left.unit];
+    const rightUcum = CALENDAR_TO_UCUM[right.unit];
+    
+    if (leftUcum === rightUcum) {
+      // Same normalized unit, compare values
+      if (left.value < right.value) {
+        return -1;
+      } else if (left.value > right.value) {
+        return 1;
+      } else {
+        return 0;
+      }
     }
+    // Different calendar units cannot be compared
+    return null;
   }
   
-  // Different calendar units cannot be compared
-  if (CALENDAR_DURATION_UNITS.has(left.unit) || CALENDAR_DURATION_UNITS.has(right.unit)) {
+  // Calendar to UCUM comparison
+  if (leftIsCalendar && !rightIsCalendar) {
+    const leftUcumUnit = CALENDAR_TO_UCUM[left.unit];
+    if (leftUcumUnit === right.unit) {
+      // Direct mapping, compare values
+      if (left.value < right.value) {
+        return -1;
+      } else if (left.value > right.value) {
+        return 1;
+      } else {
+        return 0;
+      }
+    }
+    // No direct mapping, incomparable
+    return null;
+  }
+  
+  // UCUM to calendar comparison
+  if (!leftIsCalendar && rightIsCalendar) {
+    const rightUcumUnit = CALENDAR_TO_UCUM[right.unit];
+    if (left.unit === rightUcumUnit) {
+      // Direct mapping, compare values
+      if (left.value < right.value) {
+        return -1;
+      } else if (left.value > right.value) {
+        return 1;
+      } else {
+        return 0;
+      }
+    }
+    // No direct mapping, incomparable
     return null;
   }
   
