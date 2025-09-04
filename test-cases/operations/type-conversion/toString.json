@@ -317,5 +317,27 @@
       "tags": ["type-conversion", "toString", "string"],
       "fromXML": "testStringLiteralToString"
     }
+  ],
+    {
+      "name": "Negative integer toString",
+      "expression": "(-1).toString()",
+      "expected": ["-1"],
+      "tags": ["type-conversion", "toString", "integer", "negative"],
+      "fromXML": "testNegativeIntegerLiteralToString"
+    },
+    {
+      "name": "Quantity 'wk' toString",
+      "expression": "1 'wk'.toString()",
+      "expected": ["1 'wk'"],
+      "tags": ["type-conversion", "toString", "quantity"],
+      "fromXML": "testQuantityLiteralWkToString"
+    },
+    {
+      "name": "Quantity week toString",
+      "expression": "1 week.toString()",
+      "expected": ["1 week"],
+      "tags": ["type-conversion", "toString", "quantity", "calendar"],
+      "fromXML": "testQuantityLiteralWeekToString"
+    }
   ]
 }

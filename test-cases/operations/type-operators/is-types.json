@@ -58,6 +58,34 @@
       "expected": [true],
       "tags": ["type-operators", "is", "quantity", "string"],
       "fromXML": "testStringIntegerLiteralIsNotQuantity"
+    },
+    {
+      "name": "Integer literal is not String",
+      "expression": "1.is(String).not()",
+      "expected": [true],
+      "tags": ["type-operators", "is", "integer", "string"],
+      "fromXML": "testIntegerLiteralIsNotString"
+    },
+    {
+      "name": "String decimal is not Quantity",
+      "expression": "'1.0'.is(Quantity).not()",
+      "expected": [true],
+      "tags": ["type-operators", "is", "string", "quantity"],
+      "fromXML": "testStringDecimalLiteralIsNotSystemQuantity"
+    },
+    {
+      "name": "Boolean is not Quantity",
+      "expression": "true.is(Quantity).not()",
+      "expected": [true],
+      "tags": ["type-operators", "is", "boolean", "quantity"],
+      "fromXML": "testBooleanLiteralIsNotSystemQuantity"
+    },
+    {
+      "name": "Date literal is not Integer",
+      "expression": "@2013-04-05.is(Integer).not()",
+      "expected": [true],
+      "tags": ["type-operators", "is", "date", "integer"],
+      "fromXML": "testDateIsNotInteger"
     }
   ]
 }

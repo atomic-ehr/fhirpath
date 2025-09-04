@@ -78,6 +78,20 @@
       "expected": [true],
       "tags": ["type-conversion", "convertsToString", "boolean"],
       "fromXML": "testBooleanLiteralConvertsToString"
+    },
+    {
+      "name": "Negative integer converts to String",
+      "expression": "(-1).convertsToString()",
+      "expected": [true],
+      "tags": ["type-conversion", "convertsToString", "integer", "negative"],
+      "fromXML": "testNegativeIntegerLiteralConvertsToString"
+    },
+    {
+      "name": "Quantity literal converts to String",
+      "expression": "1 'wk'.convertsToString()",
+      "expected": [true],
+      "tags": ["type-conversion", "convertsToString", "quantity"],
+      "fromXML": "testQuantityLiteralConvertsToString"
     }
   ]
 }

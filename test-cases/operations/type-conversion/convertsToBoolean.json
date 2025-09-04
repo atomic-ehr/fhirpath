@@ -96,6 +96,20 @@
       "name": "convertsToBoolean - error on multiple items",
       "expression": "(true | false).convertsToBoolean()",
       "error": true
+    },
+    {
+      "name": "Negative integer does not convert to Boolean",
+      "expression": "(-1).convertsToBoolean()",
+      "expected": [false],
+      "tags": ["type-conversion", "convertsToBoolean", "integer", "negative"],
+      "fromXML": "testNegativeIntegerLiteralConvertsToBooleanFalse"
+    },
+    {
+      "name": "String 'False' converts to Boolean",
+      "expression": "'False'.convertsToBoolean()",
+      "expected": [true],
+      "tags": ["type-conversion", "convertsToBoolean", "string"],
+      "fromXML": "testStringFalseLiteralAlsoConvertsToBoolean"
     }
   ]
 }
