@@ -9,6 +9,11 @@ export const evaluate: FunctionEvaluator = async (input, context, args, evaluato
     return { value: [], context };
   }
   
+  // Multiple values should throw an error per XML tests
+  if (input.length > 1) {
+    throw new Error('not() can only be applied to a single item');
+  }
+  
   const boxedValue = input[0];
   if (!boxedValue) {
     return { value: [], context };
@@ -24,8 +29,10 @@ export const evaluate: FunctionEvaluator = async (input, context, args, evaluato
     return { value: [box(true, { type: 'Boolean', singleton: true })], context };
   }
   
-  // Non-boolean values return empty
-  return { value: [], context };
+  // Non-boolean values: any non-empty collection is considered truthy
+  // So not() returns false for any non-boolean value
+  // This follows the XML test suite behavior
+  return { value: [box(false, { type: 'Boolean', singleton: true })], context };
 };
 
 export const notFunction: FunctionDefinition & { evaluate: FunctionEvaluator } = {
