@@ -1,29 +1,11 @@
 {
   "name": "Basic FHIRPath Tests",
   "description": "Tests ported from the Java Unit Tests - basic navigation and property access",
+  "inputFile": "input/patient-example.json",
   "tests": [
     {
       "name": "simple name.given navigation",
       "expression": "name.given",
-      "input": {
-        "resourceType": "Patient",
-        "name": [
-          {
-            "use": "official",
-            "family": "Chalmers",
-            "given": ["Peter", "James"]
-          },
-          {
-            "use": "usual",
-            "given": ["Jim"]
-          },
-          {
-            "use": "maiden",
-            "family": "Windsor",
-            "given": ["Peter", "James"]
-          }
-        ]
-      },
       "expected": ["Peter", "James", "Jim", "Peter", "James"],
       "tags": ["basics", "navigation", "collection"],
       "fromXML": "testSimple"
@@ -31,16 +13,6 @@
     {
       "name": "simple navigation with no results",
       "expression": "name.suffix",
-      "input": {
-        "resourceType": "Patient",
-        "name": [
-          {
-            "use": "official",
-            "family": "Chalmers",
-            "given": ["Peter", "James"]
-          }
-        ]
-      },
       "expected": [],
       "tags": ["basics", "navigation", "empty"],
       "fromXML": "testSimpleNone"
@@ -48,25 +20,6 @@
     {
       "name": "escaped identifier with backticks",
       "expression": "name.`given`",
-      "input": {
-        "resourceType": "Patient",
-        "name": [
-          {
-            "use": "official",
-            "family": "Chalmers",
-            "given": ["Peter", "James"]
-          },
-          {
-            "use": "usual",
-            "given": ["Jim"]
-          },
-          {
-            "use": "maiden",
-            "family": "Windsor",
-            "given": ["Peter", "James"]
-          }
-        ]
-      },
       "expected": ["Peter", "James", "Jim", "Peter", "James"],
       "tags": ["basics", "navigation", "escaped-identifier"],
       "fromXML": "testEscapedIdentifier"
@@ -74,25 +27,6 @@
     {
       "name": "backticks on type and property",
       "expression": "`Patient`.name.`given`",
-      "input": {
-        "resourceType": "Patient",
-        "name": [
-          {
-            "use": "official",
-            "family": "Chalmers",
-            "given": ["Peter", "James"]
-          },
-          {
-            "use": "usual",
-            "given": ["Jim"]
-          },
-          {
-            "use": "maiden",
-            "family": "Windsor",
-            "given": ["Peter", "James"]
-          }
-        ]
-      },
       "expected": ["Peter", "James", "Jim", "Peter", "James"],
       "tags": ["basics", "navigation", "escaped-identifier", "type-check"],
       "fromXML": "testSimpleBackTick1"
@@ -100,16 +34,6 @@
     {
       "name": "invalid property access in strict mode",
       "expression": "name.given1",
-      "input": {
-        "resourceType": "Patient",
-        "name": [
-          {
-            "use": "official",
-            "family": "Chalmers",
-            "given": ["Peter", "James"]
-          }
-        ]
-      },
       "expected": [],
       "tags": ["basics", "error", "semantic", "strict"],
       "note": "In standard FHIRPath this returns empty. In strict mode it should error. Analyzer reports warning with model provider.",
@@ -118,25 +42,6 @@
     {
       "name": "navigation with type context",
       "expression": "Patient.name.given",
-      "input": {
-        "resourceType": "Patient",
-        "name": [
-          {
-            "use": "official",
-            "family": "Chalmers",
-            "given": ["Peter", "James"]
-          },
-          {
-            "use": "usual",
-            "given": ["Jim"]
-          },
-          {
-            "use": "maiden",
-            "family": "Windsor",
-            "given": ["Peter", "James"]
-          }
-        ]
-      },
       "expected": ["Peter", "James", "Jim", "Peter", "James"],
       "tags": ["basics", "navigation", "type-context"],
       "fromXML": "testSimpleWithContext"
@@ -144,16 +49,6 @@
     {
       "name": "navigation with wrong type context",
       "expression": "Encounter.name.given",
-      "input": {
-        "resourceType": "Patient",
-        "name": [
-          {
-            "use": "official",
-            "family": "Chalmers",
-            "given": ["Peter", "James"]
-          }
-        ]
-      },
       "expected": [],
       "tags": ["basics", "type-context"],
       "note": "Returns empty because Patient doesn't match Encounter type constraint. With model provider, analyzer reports error.",

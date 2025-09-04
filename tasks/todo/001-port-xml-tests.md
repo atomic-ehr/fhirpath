@@ -108,6 +108,14 @@ Already have complete or over-coverage for: defineVariable, testAll, testSubSetO
 4. **Create checkpoints** after each successful batch
 5. **Commit after each batch** to preserve progress in git history
 
+## CRITICAL RULES
+- **NEVER modify XML test expectations** - they are the source of truth
+- **ALWAYS port input files exactly as they are** - no artificial/made-up inputs
+- **If a test references an inputfile, PORT THAT FILE from XML to JSON**
+- **If unsure about expected behavior, ASK before modifying**
+- **Find suitable existing test-case files for ported tests** - e.g., operations/arithmetic/plus.json
+- **Create new test files only if no suitable file exists**
+
 ## Validation Metrics
 - Total XML test tags: 1027
 - Successfully parsed: 1025 

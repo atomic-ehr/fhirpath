@@ -1,6 +1,7 @@
 {
   "name": "Observation Polymorphism Tests",
   "description": "Tests for polymorphic fields (value[x]) in FHIR Observations",
+  "_comment": "Using actual observation-example.json data inline since test runner doesn't support inputFile",
   "tests": [
     {
       "name": "polymorphic value field access via base name",
@@ -9,9 +10,6 @@
         "resourceType": "Observation",
         "id": "example",
         "status": "final",
-        "code": {
-          "text": "Body Weight"
-        },
         "valueQuantity": {
           "value": 185,
           "unit": "lbs",
@@ -28,6 +26,7 @@
       "expression": "Observation.valueQuantity.unit",
       "input": {
         "resourceType": "Observation",
+        "id": "example",
         "status": "final",
         "valueQuantity": {
           "value": 185,
@@ -46,10 +45,13 @@
       "expression": "Observation.value.is(Quantity)",
       "input": {
         "resourceType": "Observation",
+        "id": "example",
         "status": "final",
         "valueQuantity": {
           "value": 185,
-          "unit": "lbs"
+          "unit": "lbs",
+          "system": "http://unitsofmeasure.org",
+          "code": "[lb_av]"
         }
       },
       "expected": [true],
@@ -61,10 +63,13 @@
       "expression": "Observation.value is Quantity",
       "input": {
         "resourceType": "Observation",
+        "id": "example",
         "status": "final",
         "valueQuantity": {
           "value": 185,
-          "unit": "lbs"
+          "unit": "lbs",
+          "system": "http://unitsofmeasure.org",
+          "code": "[lb_av]"
         }
       },
       "expected": [true],
@@ -76,11 +81,12 @@
       "expression": "Observation.issued is instant",
       "input": {
         "resourceType": "Observation",
+        "id": "example",
         "status": "final"
       },
       "expected": [],
       "tags": ["type-testing", "instant", "is"],
-      "note": "Returns empty when issued field is not present",
+      "note": "Returns empty when issued field is not present (actual observation-example.xml has no issued field)",
       "fromXML": "testPolymorphismIsA3"
     },
     {
@@ -88,10 +94,13 @@
       "expression": "Observation.value.is(Period).not()",
       "input": {
         "resourceType": "Observation",
+        "id": "example",
         "status": "final",
         "valueQuantity": {
           "value": 185,
-          "unit": "lbs"
+          "unit": "lbs",
+          "system": "http://unitsofmeasure.org",
+          "code": "[lb_av]"
         }
       },
       "expected": [true],
@@ -103,10 +112,13 @@
       "expression": "Observation.value.as(Quantity).unit",
       "input": {
         "resourceType": "Observation",
+        "id": "example",
         "status": "final",
         "valueQuantity": {
           "value": 185,
-          "unit": "lbs"
+          "unit": "lbs",
+          "system": "http://unitsofmeasure.org",
+          "code": "[lb_av]"
         }
       },
       "expected": ["lbs"],
@@ -118,10 +130,13 @@
       "expression": "(Observation.value as Quantity).unit",
       "input": {
         "resourceType": "Observation",
+        "id": "example",
         "status": "final",
         "valueQuantity": {
           "value": 185,
-          "unit": "lbs"
+          "unit": "lbs",
+          "system": "http://unitsofmeasure.org",
+          "code": "[lb_av]"
         }
       },
       "expected": ["lbs"],
@@ -133,10 +148,13 @@
       "expression": "(Observation.value as Period).unit",
       "input": {
         "resourceType": "Observation",
+        "id": "example",
         "status": "final",
         "valueQuantity": {
           "value": 185,
-          "unit": "lbs"
+          "unit": "lbs",
+          "system": "http://unitsofmeasure.org",
+          "code": "[lb_av]"
         }
       },
       "expected": [],
@@ -149,10 +167,13 @@
       "expression": "Observation.value.as(Period).start",
       "input": {
         "resourceType": "Observation",
+        "id": "example",
         "status": "final",
         "valueQuantity": {
           "value": 185,
-          "unit": "lbs"
+          "unit": "lbs",
+          "system": "http://unitsofmeasure.org",
+          "code": "[lb_av]"
         }
       },
       "expected": [],
