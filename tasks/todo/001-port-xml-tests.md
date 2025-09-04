@@ -106,6 +106,7 @@ Already have complete or over-coverage for: defineVariable, testAll, testSubSetO
 2. **Port in batches of 10 tests** to allow for validation
 3. **Run tests immediately after porting** to catch issues early
 4. **Create checkpoints** after each successful batch
+5. **Commit after each batch** to preserve progress in git history
 
 ## Validation Metrics
 - Total XML test tags: 1027

@@ -112,11 +112,7 @@
       },
       "expected": [],
       "tags": ["basics", "error", "semantic", "strict"],
-      "error": {
-        "type": "AnalysisError",
-        "phase": "analysis"
-      },
-      "pending": "Strict mode error checking not yet implemented",
+      "note": "In standard FHIRPath this returns empty. In strict mode it should error. Analyzer reports warning with model provider.",
       "fromXML": "testSimpleFail"
     },
     {
@@ -159,12 +155,8 @@
         ]
       },
       "expected": [],
-      "tags": ["basics", "error", "semantic", "type-context"],
-      "error": {
-        "type": "AnalysisError",
-        "phase": "analysis"
-      },
-      "pending": "Strict mode type checking not yet implemented",
+      "tags": ["basics", "type-context"],
+      "note": "Returns empty because Patient doesn't match Encounter type constraint. With model provider, analyzer reports error.",
       "fromXML": "testSimpleWithWrongContext"
     }
   ]
