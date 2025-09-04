@@ -56,11 +56,11 @@
       "tags": ["quantity", "equality", "calendar-duration", "incomparable"]
     },
     {
-      "name": "Calendar week vs UCUM week - incomparable",
+      "name": "Calendar week vs UCUM week - equal",
       "expression": "1 week = 1 'wk'",
       "input": [],
-      "expected": [],
-      "tags": ["quantity", "equality", "calendar-duration", "ucum", "incomparable"]
+      "expected": [true],
+      "tags": ["quantity", "equality", "calendar-duration", "ucum"]
     },
     {
       "name": "Calendar week to days conversion",
@@ -71,11 +71,11 @@
       "tags": ["quantity", "equality", "calendar-duration", "incomparable"]
     },
     {
-      "name": "Calendar day vs UCUM day - incomparable",
+      "name": "Calendar day vs UCUM day - equal",
       "expression": "1 day = 1 'd'",
       "input": [],
-      "expected": [],
-      "tags": ["quantity", "equality", "calendar-duration", "ucum", "incomparable"]
+      "expected": [true],
+      "tags": ["quantity", "equality", "calendar-duration", "ucum"]
     },
     {
       "name": "Calendar day to hours conversion",
