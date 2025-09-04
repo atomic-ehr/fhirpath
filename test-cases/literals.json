@@ -485,7 +485,6 @@
       "name": "datetime timezone comparison less true",
       "expression": "@2017-11-05T01:30:00.0-04:00 < @2017-11-05T01:15:00.0-05:00",
       "expected": [true],
-      "pending": "Timezone comparison not working correctly - returns false instead of true",
       "tags": ["literals", "datetime", "timezone", "comparison"],
       "fromXML": "testLiteralDateTimeTZLess"
     },
@@ -493,7 +492,6 @@
       "name": "datetime timezone comparison equal false",
       "expression": "@2017-11-05T01:30:00.0-04:00 = @2017-11-05T01:15:00.0-05:00",
       "expected": [false],
-      "pending": "Timezone comparison not working correctly",
       "tags": ["literals", "datetime", "timezone", "comparison"],
       "fromXML": "testLiteralDateTimeTZEqualFalse"
     },
@@ -501,7 +499,6 @@
       "name": "datetime timezone comparison equal true",
       "expression": "@2017-11-05T01:30:00.0-04:00 = @2017-11-05T00:30:00.0-05:00",
       "expected": [true],
-      "pending": "Timezone comparison not working correctly",
       "tags": ["literals", "datetime", "timezone", "comparison"],
       "fromXML": "testLiteralDateTimeTZEqualTrue"
     },

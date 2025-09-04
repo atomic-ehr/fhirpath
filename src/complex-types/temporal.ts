@@ -791,7 +791,7 @@ function parseDateLiteral(value: string): FHIRDate {
 }
 
 function parseTimeLiteral(value: string): FHIRTime {
-  const match = value.match(/^(\d{2})(?::(\d{2})(?::(\d{2})(?:\.(\d{3}))?)?)?$/);
+  const match = value.match(/^(\d{2})(?::(\d{2})(?::(\d{2})(?:\.(\d+))?)?)?$/);
   if (!match) {
     throw new Error(`Invalid time literal: @T${value}`);
   }
@@ -799,7 +799,14 @@ function parseTimeLiteral(value: string): FHIRTime {
   const hour = parseInt(match[1]!, 10);
   const minute = match[2] ? parseInt(match[2]!, 10) : undefined;
   const second = match[3] ? parseInt(match[3]!, 10) : undefined;
-  const millisecond = match[4] ? parseInt(match[4]!, 10) : undefined;
+  // Handle variable-length fractional seconds (pad or truncate to 3 digits)
+  let millisecond: number | undefined;
+  if (match[4]) {
+    const fraction = match[4];
+    // Pad to 3 digits if needed, truncate if longer
+    const padded = (fraction + '000').substring(0, 3);
+    millisecond = parseInt(padded, 10);
+  }
   
   return createTime(hour, minute, second, millisecond);
 }
@@ -852,13 +859,19 @@ function parseDateTimeLiteral(value: string): FHIRDateTime {
       }
     }
     
-    // Parse time components
-    const timeMatch = timeWithoutTz.match(/^(\d{2})(?::(\d{2})(?::(\d{2})(?:\.(\d{3}))?)?)?$/);
+    // Parse time components - handle variable-length milliseconds
+    const timeMatch = timeWithoutTz.match(/^(\d{2})(?::(\d{2})(?::(\d{2})(?:\.(\d+))?)?)?$/);
     if (timeMatch) {
       hour = parseInt(timeMatch[1]!, 10);
       minute = timeMatch[2] ? parseInt(timeMatch[2]!, 10) : undefined;
       second = timeMatch[3] ? parseInt(timeMatch[3]!, 10) : undefined;
-      millisecond = timeMatch[4] ? parseInt(timeMatch[4]!, 10) : undefined;
+      // Handle variable-length fractional seconds (pad or truncate to 3 digits)
+      if (timeMatch[4]) {
+        const fraction = timeMatch[4];
+        // Pad to 3 digits if needed, truncate if longer
+        const padded = (fraction + '000').substring(0, 3);
+        millisecond = parseInt(padded, 10);
+      }
     }
   }
   
