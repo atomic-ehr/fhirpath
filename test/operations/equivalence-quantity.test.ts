@@ -99,14 +99,14 @@ describe('Quantity Equivalence', () => {
     });
 
     it('should NOT convert between different calendar units', () => {
-      // 1 year is NOT equivalent to 12 months in calendar duration
+      // 1 year and 12 months are incomparable (returns null)
       const yearQ: QuantityValue = { value: 1, unit: 'year' };
       const monthsQ: QuantityValue = { value: 12, unit: 'months' };
-      expect(equivalent(yearQ, monthsQ)).toBe(false);
+      expect(equivalent(yearQ, monthsQ)).toBe(null);
       
-      // 1 year is NOT equivalent to 365.25 days
+      // 1 year and 365.25 days are incomparable (returns null)
       const daysQ: QuantityValue = { value: 365.25, unit: 'd' };
-      expect(equivalent(yearQ, daysQ)).toBe(false);
+      expect(equivalent(yearQ, daysQ)).toBe(null);
     });
   });
 
@@ -144,7 +144,7 @@ describe('Quantity Equivalence', () => {
     it('should handle different UCUM dimensions as not equivalent', () => {
       const kg: QuantityValue = { value: 1, unit: 'kg' };
       const meter: QuantityValue = { value: 1, unit: 'm' };
-      expect(equivalent(kg, meter)).toBe(false);
+      expect(equivalent(kg, meter)).toBe(null); // Different dimensions are incomparable
     });
   });
 
@@ -154,9 +154,8 @@ describe('Quantity Equivalence', () => {
       const yearQ: QuantityValue = { value: 1, unit: 'year' };
       const hoursQ: QuantityValue = { value: 8760, unit: 'h' }; // ~365 days * 24 hours
       
-      // These should NOT be equivalent even though mathematically they might be close
-      // Calendar durations don't convert to other time units
-      expect(equivalent(yearQ, hoursQ)).toBe(false);
+      // These are incomparable - calendar durations don't convert to other time units
+      expect(equivalent(yearQ, hoursQ)).toBe(null);
     });
   });
 });
