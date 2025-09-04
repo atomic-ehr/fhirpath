@@ -102,8 +102,10 @@
     {
       "name": "toDecimal - date type",
       "expression": "@2023-01-01.toDecimal()",
-      "expected": [],
-      "tags": ["function", "conversion", "toDecimal", "function:toDecimal", "date", "invalid-type"]
+      "error": {
+        "message": "Cannot apply"
+      },
+      "tags": ["function", "conversion", "toDecimal", "function:toDecimal", "date", "invalid-type", "error"]
     },
     {
       "name": "toDecimal - error on multiple items",

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { readdirSync, statSync } from 'fs';
+import { readdirSync, statSync, readFileSync } from 'fs';
 import { join, basename } from 'path';
 import { loadTestSuite, runAndValidateTest } from '../tools/lib/test-helpers';
 
@@ -41,12 +41,28 @@ testFiles.forEach(file => {
   testGroups.get(group)!.push(file);
 });
 
+// Helper to load input file if specified
+function loadInputFile(suite: any, testFilePath: string): any {
+  if (!suite.inputFile) return undefined;
+  
+  try {
+    const inputPath = join(testFilePath, '..', suite.inputFile);
+    const inputContent = readFileSync(inputPath, 'utf-8');
+    return JSON.parse(inputContent);
+  } catch (error) {
+    console.error(`Failed to load input file ${suite.inputFile}:`, error);
+    return undefined;
+  }
+}
+
 // Create test suites
 describe('FHIRPath Test Cases', () => {
   testGroups.forEach((files, group) => {
     describe(group, () => {
       files.forEach(file => {
         const suite = loadTestSuite(file);
+        const defaultInput = loadInputFile(suite, file);
+        
         // Get relative path from test-cases directory for better context
         const relativePath = file.replace(TEST_CASES_DIR + '/', '');
         // Always show filename for clarity, along with suite name if it exists
@@ -57,7 +73,9 @@ describe('FHIRPath Test Cases', () => {
             const testName = String(test.name || 'unnamed test');
 
             const testFn = async () => {
-              const result = await runAndValidateTest(test);
+              // Use test's input or fall back to suite's inputFile
+              const testWithInput = test.input ? test : { ...test, input: defaultInput };
+              const result = await runAndValidateTest(testWithInput);
 
               if (result.pending || result.skipped) {
                 // Bun doesn't have a direct way to mark a test as skipped from within the test function,
@@ -75,7 +93,10 @@ describe('FHIRPath Test Cases', () => {
                   throw new Error(`Test failed: ${testName}\nExpression: ${test.expression}\nExpected: ${JSON.stringify(test.expected)}\nGot:      ${JSON.stringify(result.value)}\nError: ${result.error}`);
                 }
                 expect(result.success).toBe(true);
-                expect(result.value).toEqual(test.expected);
+                // Only check value if test expects a value (not an error)
+                if (test.expected !== undefined) {
+                  expect(result.value).toEqual(test.expected);
+                }
               }
             };
 

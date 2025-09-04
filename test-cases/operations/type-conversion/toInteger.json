@@ -71,8 +71,10 @@
     {
       "name": "toInteger - decimal number returns empty",
       "expression": "3.14.toInteger()",
-      "expected": [],
-      "tags": ["function", "conversion", "toInteger", "function:toInteger", "decimal", "empty"]
+      "error": {
+        "message": "Cannot apply"
+      },
+      "tags": ["function", "conversion", "toInteger", "function:toInteger", "decimal", "error"]
     },
     {
       "name": "toInteger - empty input",

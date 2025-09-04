@@ -159,11 +159,6 @@ export async function runAndValidateTest(test: UnifiedTest): Promise<TestResult>
     return { success: true, skipped: true, reason: 'Calendar duration logic differs in test runner' };
   }
 
-  // Handle tests that should now throw errors after signature updates
-  if (test.name === 'toInteger - decimal number returns empty' || test.name === 'toDecimal - date type') {
-    test.error = { message: 'Cannot apply' };
-  }
-
   const options = await createEvaluateOptions(test);
   const startTime = performance.now();
 
