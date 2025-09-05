@@ -233,6 +233,90 @@
         "where",
         "navigation"
       ]
+    },
+    {
+      "name": "testLength1",
+      "expression": "'123456'.length() = 6",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "length",
+        "string",
+        "xml-ported"
+      ],
+      "fromXML": "testLength1",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testLength2",
+      "expression": "'12345'.length() = 5",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "length",
+        "string",
+        "xml-ported"
+      ],
+      "fromXML": "testLength2",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testLength3",
+      "expression": "'123'.length() = 3",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "length",
+        "string",
+        "xml-ported"
+      ],
+      "fromXML": "testLength3",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testLength4",
+      "expression": "'1'.length() = 1",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "length",
+        "string",
+        "xml-ported"
+      ],
+      "fromXML": "testLength4",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testLength5",
+      "expression": "''.length() = 0",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "length",
+        "string",
+        "xml-ported"
+      ],
+      "fromXML": "testLength5",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testLength6",
+      "expression": "{}.length().empty() = true",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "length",
+        "string",
+        "xml-ported"
+      ],
+      "fromXML": "testLength6",
+      "inputFile": "../../patient-example.json"
     }
   ]
 }
