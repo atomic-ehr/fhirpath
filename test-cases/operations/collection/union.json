@@ -155,6 +155,177 @@
         "defineVariable"
       ],
       "description": "Each side of union can define its own variables independently"
+    },
+    {
+      "name": "testUnion1",
+      "expression": "(1 | 2 | 3).count() = 3",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "union",
+        "collection",
+        "xml-ported"
+      ],
+      "fromXML": "testUnion1",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testUnion2",
+      "expression": "(1 | 2 | 2).count() = 2",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "union",
+        "collection",
+        "xml-ported"
+      ],
+      "fromXML": "testUnion2",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testUnion3",
+      "expression": "(1|1).count() = 1",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "union",
+        "collection",
+        "xml-ported"
+      ],
+      "fromXML": "testUnion3",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testUnion4",
+      "expression": "1.union(2).union(3).count() = 3",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "union",
+        "collection",
+        "xml-ported"
+      ],
+      "fromXML": "testUnion4",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testUnion5",
+      "expression": "1.union(2.union(3)).count() = 3",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "union",
+        "collection",
+        "xml-ported"
+      ],
+      "fromXML": "testUnion5",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testUnion6",
+      "expression": "(1 | 2).combine(2).count() = 3",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "union",
+        "collection",
+        "xml-ported"
+      ],
+      "fromXML": "testUnion6",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testUnion7",
+      "expression": "1.combine(1).count() = 2",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "union",
+        "collection",
+        "xml-ported"
+      ],
+      "fromXML": "testUnion7",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testUnion8",
+      "expression": "1.combine(1).union(2).count() = 2",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "union",
+        "collection",
+        "xml-ported"
+      ],
+      "fromXML": "testUnion8",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testUnion9",
+      "expression": "name.select(use | given).count()",
+      "expected": [
+        8
+      ],
+      "tags": [
+        "union",
+        "collection",
+        "xml-ported"
+      ],
+      "fromXML": "testUnion9",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testUnion10",
+      "expression": "name.select(use.union($this.given)).count()",
+      "expected": [
+        8
+      ],
+      "tags": [
+        "union",
+        "collection",
+        "xml-ported"
+      ],
+      "fromXML": "testUnion10",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testUnion11",
+      "expression": "name.select(use.union(given)).count()",
+      "expected": [
+        0
+      ],
+      "tags": [
+        "union",
+        "collection",
+        "xml-ported"
+      ],
+      "fromXML": "testUnion11",
+      "inputFile": "../../patient-example.json",
+      "note": "Marked as 'invalid=semantic' in XML - evaluates to 0 because use.union(given) is evaluated per name element and returns empty for names without use"
+    },
+    {
+      "name": "testUnion12",
+      "expression": "true | Patient.name.given.first()",
+      "expected": [
+        true,
+        "Peter"
+      ],
+      "tags": [
+        "union",
+        "collection",
+        "xml-ported"
+      ],
+      "fromXML": "testUnion12",
+      "inputFile": "../../patient-example.json",
+      "note": "Union removes duplicates - returns both true and 'Peter'"
     }
   ]
 }
