@@ -121,6 +121,7 @@ export { convertsToLongFunction } from './convertsToLong-function';
 
 // Utility functions
 export { traceFunction } from './trace-function';
+export { precisionFunction } from './precision-function';
 export { dateOfFunction } from './dateOf-function';
 export { timeOfFunction } from './timeOf-function';
 export { yearOfFunction } from './yearOf-function';

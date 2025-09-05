@@ -1,0 +1,49 @@
+{
+  "name": "Precision Function Tests",
+  "description": "Tests for the precision() function",
+  "tests": [
+    {
+      "name": "PrecisionDecimal",
+      "expression": "1.58700.precision()",
+      "expected": [5],
+      "tags": ["precision", "xml-ported"],
+      "fromXML": "PrecisionDecimal",
+      "pending": "Decimal literals don't preserve trailing zeros - JavaScript strips them during parsing"
+    },
+    {
+      "name": "PrecisionYear",
+      "expression": "@2014.precision()",
+      "expected": [4],
+      "tags": ["precision", "temporal", "xml-ported"],
+      "fromXML": "PrecisionYear"
+    },
+    {
+      "name": "PrecisionDateTimeMilliseconds",
+      "expression": "@2014-01-05T10:30:00.000.precision()",
+      "expected": [17],
+      "tags": ["precision", "temporal", "xml-ported"],
+      "fromXML": "PrecisionDateTimeMilliseconds"
+    },
+    {
+      "name": "PrecisionTimeMinutes",
+      "expression": "@T10:30.precision()",
+      "expected": [4],
+      "tags": ["precision", "temporal", "xml-ported"],
+      "fromXML": "PrecisionTimeMinutes"
+    },
+    {
+      "name": "PrecisionTimeMilliseconds",
+      "expression": "@T10:30:00.000.precision()",
+      "expected": [9],
+      "tags": ["precision", "temporal", "xml-ported"],
+      "fromXML": "PrecisionTimeMilliseconds"
+    },
+    {
+      "name": "PrecisionEmpty",
+      "expression": "{}.precision().empty()",
+      "expected": [true],
+      "tags": ["precision", "xml-ported"],
+      "fromXML": "PrecisionEmpty"
+    }
+  ]
+}
