@@ -257,6 +257,104 @@
         "function:take",
         "integration"
       ]
+    },
+    {
+      "name": "testTake1",
+      "expression": "(0 | 1 | 2).take(1) = 0",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "take",
+        "subsetting",
+        "xml-ported"
+      ],
+      "fromXML": "testTake1",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testTake2",
+      "expression": "(0 | 1 | 2).take(2) = 0 | 1",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "take",
+        "subsetting",
+        "xml-ported"
+      ],
+      "fromXML": "testTake2",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testTake3",
+      "expression": "Patient.name.take(1).given = 'Peter' | 'James'",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "take",
+        "subsetting",
+        "xml-ported"
+      ],
+      "fromXML": "testTake3",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testTake4",
+      "expression": "Patient.name.take(2).given = 'Peter' | 'James' | 'Jim'",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "take",
+        "subsetting",
+        "xml-ported"
+      ],
+      "fromXML": "testTake4",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testTake5",
+      "expression": "Patient.name.take(3).given.count() = 5",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "take",
+        "subsetting",
+        "xml-ported"
+      ],
+      "fromXML": "testTake5",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testTake6",
+      "expression": "Patient.name.take(4).given.count() = 5",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "take",
+        "subsetting",
+        "xml-ported"
+      ],
+      "fromXML": "testTake6",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testTake7",
+      "expression": "Patient.name.take(0).given.exists() = false",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "take",
+        "subsetting",
+        "xml-ported"
+      ],
+      "fromXML": "testTake7",
+      "inputFile": "../../patient-example.json"
     }
   ]
 }
