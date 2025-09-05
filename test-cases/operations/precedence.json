@@ -1,0 +1,90 @@
+{
+  "name": "Operator Precedence Tests",
+  "description": "Tests for operator precedence in FHIRPath expressions",
+  "tests": [
+    {
+      "name": "testPrecedence1",
+      "expression": "-1.convertsToInteger()",
+      "expected": [],
+      "tags": [
+        "precedence",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testPrecedence1",
+      "note": "Unary minus has higher precedence than function invocation - returns empty"
+    },
+    {
+      "name": "testPrecedence2",
+      "expression": "1+2*3+4 = 11",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "precedence",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testPrecedence2",
+      "note": "Multiplication has higher precedence than addition"
+    },
+    {
+      "name": "testPrecedence3",
+      "expression": "1 > 2 is Boolean",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "precedence",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testPrecedence3",
+      "note": "Comparison operators have higher precedence than 'is'"
+    },
+    {
+      "name": "testPrecedence4",
+      "expression": "1 | 1 is Integer",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "precedence",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testPrecedence4",
+      "note": "Union operator has higher precedence than 'is'"
+    },
+    {
+      "name": "testPrecedence5",
+      "expression": "true and '0215' in ('0215' | '0216')",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "precedence",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testPrecedence5",
+      "inputFile": "../../input/observation-example.json",
+      "note": "'in' operator has higher precedence than 'and'"
+    },
+    {
+      "name": "testPrecedence6",
+      "expression": "category.exists(coding.exists(system = 'http://terminology.hl7.org/CodeSystem/observation-category' and code.trace('c') in ('vital-signs' | 'vital-signs2').trace('codes')))",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "precedence",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testPrecedence6",
+      "inputFile": "../../input/observation-example.json",
+      "note": "Complex expression testing multiple precedence levels"
+    }
+  ]
+}
