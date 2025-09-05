@@ -228,14 +228,20 @@
       "name": "testIn5",
       "expression": "('a' | 'c' | 'd') in 'b'",
       "expected": [],
+      "error": {
+        "type": "EvaluationError",
+        "message": "Operator 'in' cannot be applied to types.*String",
+        "phase": "analyze"
+      },
       "tags": [
         "in",
         "membership",
-        "xml-ported"
+        "xml-ported",
+        "error"
       ],
       "fromXML": "testIn5",
       "inputFile": "../../patient-example.json",
-      "note": "Multiple values on left side returns empty per spec"
+      "note": "Marked as 'invalid=execution' in XML - 'in' expects collection on right side"
     },
     {
       "name": "testInEmptyBoth",
