@@ -30,7 +30,7 @@
     },
     {
       "name": "testPrecedence3",
-      "expression": "1 > 2 is Boolean",
+      "expression": "(1 > 2) is Boolean",
       "expected": [
         true
       ],
@@ -44,7 +44,7 @@
     },
     {
       "name": "testPrecedence4",
-      "expression": "1 | 1 is Integer",
+      "expression": "(1 | 1) is Integer",
       "expected": [
         true
       ],
@@ -68,7 +68,7 @@
         "xml-ported"
       ],
       "fromXML": "testPrecedence5",
-      "inputFile": "../../input/observation-example.json",
+      "inputFile": "../input/observation-example.json",
       "note": "'in' operator has higher precedence than 'and'"
     },
     {
@@ -83,7 +83,7 @@
         "xml-ported"
       ],
       "fromXML": "testPrecedence6",
-      "inputFile": "../../input/observation-example.json",
+      "inputFile": "../input/observation-example.json",
       "note": "Complex expression testing multiple precedence levels"
     }
   ]
