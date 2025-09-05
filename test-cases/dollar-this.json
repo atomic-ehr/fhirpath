@@ -13,7 +13,7 @@
     {
       "name": "$this with substring filter - matches 'ter'",
       "expression": "Patient.name.given.where($this.substring($this.length()-3) = 'ter')",
-      "expected": ["Peter"],
+      "expected": ["Peter", "Peter"],
       "tags": ["variables", "$this", "filtering", "substring"],
       "fromXML": "testDollarThis2"
     },
