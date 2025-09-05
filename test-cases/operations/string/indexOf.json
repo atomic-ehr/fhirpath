@@ -165,6 +165,76 @@
         "error",
         "type"
       ]
+    },
+    {
+      "name": "testIndexOf2",
+      "expression": "'LogicalModel-Person'.indexOf('z')",
+      "expected": [
+        -1
+      ],
+      "tags": [
+        "indexOf",
+        "string",
+        "xml-ported"
+      ],
+      "fromXML": "testIndexOf2",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testIndexOf3",
+      "expression": "'LogicalModel-Person'.indexOf('')",
+      "expected": [
+        0
+      ],
+      "tags": [
+        "indexOf",
+        "string",
+        "xml-ported"
+      ],
+      "fromXML": "testIndexOf3",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testIndexOf5",
+      "expression": "'LogicalModel-Person'.indexOf({}).empty() = true",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "indexOf",
+        "string",
+        "xml-ported"
+      ],
+      "fromXML": "testIndexOf5",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testIndexOf4",
+      "expression": "{}.indexOf('-').empty() = true",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "indexOf",
+        "string",
+        "xml-ported"
+      ],
+      "fromXML": "testIndexOf4",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testIndexOf6",
+      "expression": "{}.indexOf({}).empty() = true",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "indexOf",
+        "string",
+        "xml-ported"
+      ],
+      "fromXML": "testIndexOf6",
+      "inputFile": "../../patient-example.json"
     }
   ]
 }
