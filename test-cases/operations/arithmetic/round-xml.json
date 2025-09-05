@@ -7,21 +7,24 @@
       "expression": "1.round() = 1",
       "input": [],
       "expected": [true],
-      "tags": ["function", "arithmetic", "round", "function:round", "xml-port"]
+      "tags": ["function", "arithmetic", "round", "function:round", "xml-port"],
+      "fromXML": "testRound1"
     },
     {
       "name": "testRound2 - round decimal with precision",
       "expression": "3.14159.round(3) = 3.142",
       "input": [],
       "expected": [true],
-      "tags": ["function", "arithmetic", "round", "function:round", "decimal", "precision", "xml-port"]
+      "tags": ["function", "arithmetic", "round", "function:round", "decimal", "precision", "xml-port"],
+      "fromXML": "testRound2"
     },
     {
       "name": "testRoundEmpty - empty round",
       "expression": "{}.round().empty()",
       "input": [],
       "expected": [true],
-      "tags": ["function", "arithmetic", "empty", "function:round", "xml-port"]
+      "tags": ["function", "arithmetic", "empty", "function:round", "xml-port"],
+      "fromXML": "testRoundEmpty"
     }
   ]
 }
