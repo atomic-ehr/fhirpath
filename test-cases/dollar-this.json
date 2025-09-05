@@ -30,15 +30,6 @@
       "expected": [],
       "tags": ["collection", "skip", "empty"],
       "fromXML": "testDollarOrderAllowedA"
-    },
-    {
-      "name": "skip() on unordered collection",
-      "expression": "Patient.children().skip(1)",
-      "expected": [],
-      "tags": ["collection", "skip", "unordered", "non-strict"],
-      "note": "The XML test expects empty result, likely because skip() on unordered collection should return empty per spec",
-      "fromXML": "testDollarOrderNotAllowed",
-      "pending": "Our implementation allows skip() on unordered collections, but spec says it should return empty"
     }
   ]
 }
