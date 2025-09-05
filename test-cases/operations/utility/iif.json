@@ -145,7 +145,8 @@
         "two-parameter",
         "spec",
         "function:iif"
-      ]
+      ],
+      "fromXML": "testIif5"
     },
     {
       "name": "iif - non-boolean criteria returns empty",
@@ -175,7 +176,8 @@
         "context",
         "spec",
         "function:iif"
-      ]
+      ],
+      "fromXML": "testIif7"
     },
     {
       "name": "iif - single value context preservation",
@@ -191,7 +193,8 @@
         "context",
         "spec",
         "function:iif"
-      ]
+      ],
+      "fromXML": "testIif8"
     },
     {
       "name": "iif - $this in true branch",
@@ -209,7 +212,8 @@
         "spec",
         "function:iif",
         "function:select"
-      ]
+      ],
+      "fromXML": "testIif9"
     },
     {
       "name": "iif - $this in condition",
@@ -228,7 +232,8 @@
         "$this",
         "spec",
         "function:iif"
-      ]
+      ],
+      "fromXML": "testIif11"
     },
     {
       "name": "iif - lazy evaluation with true condition",
@@ -244,7 +249,8 @@
         "lazy",
         "spec",
         "function:iif"
-      ]
+      ],
+      "fromXML": "testIif3"
     },
     {
       "name": "iif - lazy evaluation with false condition",
@@ -260,7 +266,8 @@
         "lazy",
         "spec",
         "function:iif"
-      ]
+      ],
+      "fromXML": "testIif4"
     },
     {
       "name": "iif - $this refers to input collection",
@@ -402,7 +409,50 @@
         "multiple",
         "cardinality",
         "function:iif"
-      ]
+      ],
+      "fromXML": "testIif10"
+    },
+    {
+      "name": "testIif1",
+      "expression": "iif(Patient.name.exists(), 'named', 'unnamed') = 'named'",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "iif",
+        "conditional",
+        "xml-ported"
+      ],
+      "fromXML": "testIif1",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testIif2",
+      "expression": "iif(Patient.name.empty(), 'unnamed', 'named') = 'named'",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "iif",
+        "conditional",
+        "xml-ported"
+      ],
+      "fromXML": "testIif2",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testIif6",
+      "expression": "iif('non boolean criteria', 'true-result', 'true-result')",
+      "expected": [],
+      "tags": [
+        "iif",
+        "conditional",
+        "xml-ported",
+        "error"
+      ],
+      "fromXML": "testIif6",
+      "inputFile": "../../patient-example.json",
+      "note": "Non-boolean condition returns empty"
     }
   ]
 }

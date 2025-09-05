@@ -14,7 +14,8 @@
         "membership",
         "contains",
         "operator:contains"
-      ]
+      ],
+      "fromXML": "testContainsCollection1"
     },
     {
       "name": "contains - string collection contains character",
@@ -73,7 +74,8 @@
         "contains",
         "empty",
         "operator:contains"
-      ]
+      ],
+      "fromXML": "testContainsCollectionEmpty1"
     },
     {
       "name": "contains - empty right operand",
@@ -112,6 +114,110 @@
         "operator:contains"
       ],
       "description": "Example from the spec: returns true if the list of given names has 'Joe' in it"
+    },
+    {
+      "name": "testContainsCollection2",
+      "expression": "(2 | 3) contains 1",
+      "expected": [
+        false
+      ],
+      "tags": [
+        "contains",
+        "membership",
+        "collection",
+        "xml-ported"
+      ],
+      "fromXML": "testContainsCollection2",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testContainsCollection3",
+      "expression": "('a' | 'c' | 'd') contains 'a'",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "contains",
+        "membership",
+        "collection",
+        "xml-ported"
+      ],
+      "fromXML": "testContainsCollection3",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testContainsCollection4",
+      "expression": "('a' | 'c' | 'd') contains 'b'",
+      "expected": [
+        false
+      ],
+      "tags": [
+        "contains",
+        "membership",
+        "collection",
+        "xml-ported"
+      ],
+      "fromXML": "testContainsCollection4",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testContainsCollectionEmpty2",
+      "expression": "{} contains 'value'",
+      "expected": [
+        false
+      ],
+      "tags": [
+        "contains",
+        "membership",
+        "collection",
+        "xml-ported"
+      ],
+      "fromXML": "testContainsCollectionEmpty2",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testContainsCollectionEmpty3",
+      "expression": "{} contains true",
+      "expected": [
+        false
+      ],
+      "tags": [
+        "contains",
+        "membership",
+        "collection",
+        "xml-ported"
+      ],
+      "fromXML": "testContainsCollectionEmpty3",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testContainsCollectionEmpty4",
+      "expression": "{} contains {}",
+      "expected": [],
+      "tags": [
+        "contains",
+        "membership",
+        "collection",
+        "xml-ported"
+      ],
+      "fromXML": "testContainsCollectionEmpty4",
+      "inputFile": "../../patient-example.json",
+      "note": "Empty contains empty returns empty per spec"
+    },
+    {
+      "name": "testContainsCollectionEmptyDateTime",
+      "expression": "{} contains @2023-01-01",
+      "expected": [
+        false
+      ],
+      "tags": [
+        "contains",
+        "membership",
+        "collection",
+        "xml-ported"
+      ],
+      "fromXML": "testContainsCollectionEmptyDateTime",
+      "inputFile": "../../patient-example.json"
     }
   ]
 }
