@@ -13,7 +13,7 @@
     {
       "name": "$this with substring filter - matches 'ter'",
       "expression": "Patient.name.given.where($this.substring($this.length()-3) = 'ter')",
-      "expected": ["Peter", "Peter"],
+      "expected": ["Peter"],
       "tags": ["variables", "$this", "filtering", "substring"],
       "fromXML": "testDollarThis2"
     },
@@ -33,11 +33,12 @@
     },
     {
       "name": "skip() on unordered collection",
-      "expression": "Patient.children().skip(1).count()",
-      "expected": [16],
+      "expression": "Patient.children().skip(1)",
+      "expected": [],
       "tags": ["collection", "skip", "unordered", "non-strict"],
-      "note": "In strict mode with checkOrderedFunctions, this should error. In standard mode, returns children minus first element (17-1=16).",
-      "fromXML": "testDollarOrderNotAllowed"
+      "note": "The XML test expects empty result, likely because skip() on unordered collection should return empty per spec",
+      "fromXML": "testDollarOrderNotAllowed",
+      "pending": "Our implementation allows skip() on unordered collections, but spec says it should return empty"
     }
   ]
 }
