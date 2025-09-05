@@ -1,0 +1,258 @@
+{
+  "title": "Not-Equivalent Operator Tests (XML Port)",
+  "description": "Tests for the !~ (not-equivalent) operator ported from fhirpathlab-tests.xml testNotEquivalent group",
+  "tests": [
+    {
+      "name": "testNotEquivalent3",
+      "expression": "{} !~ 1",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "not-equivalent",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testNotEquivalent3",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testNotEquivalent5",
+      "expression": "'a' !~ 'a'",
+      "expected": [
+        false
+      ],
+      "tags": [
+        "not-equivalent",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testNotEquivalent5",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testNotEquivalent6",
+      "expression": "'a' !~ 'A'",
+      "expected": [
+        false
+      ],
+      "tags": [
+        "not-equivalent",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testNotEquivalent6",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testNotEquivalent7",
+      "expression": "'a' !~ 'b'",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "not-equivalent",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testNotEquivalent7",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testNotEquivalent8",
+      "expression": "1.1 !~ 1.1",
+      "expected": [
+        false
+      ],
+      "tags": [
+        "not-equivalent",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testNotEquivalent8",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testNotEquivalent10",
+      "expression": "1.10 !~ 1.1",
+      "expected": [
+        false
+      ],
+      "tags": [
+        "not-equivalent",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testNotEquivalent10",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testNotEquivalent11",
+      "expression": "0 !~ 0",
+      "expected": [
+        false
+      ],
+      "tags": [
+        "not-equivalent",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testNotEquivalent11",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testNotEquivalent12",
+      "expression": "0.0 !~ 0",
+      "expected": [
+        false
+      ],
+      "tags": [
+        "not-equivalent",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testNotEquivalent12",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testNotEquivalent13",
+      "expression": "1.2 / 1.8 !~ 0.6",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "not-equivalent",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testNotEquivalent13",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testNotEquivalent14",
+      "expression": "@2012-04-15 !~ @2012-04-15",
+      "expected": [
+        false
+      ],
+      "tags": [
+        "not-equivalent",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testNotEquivalent14",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testNotEquivalent15",
+      "expression": "@2012-04-15 !~ @2012-04-16",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "not-equivalent",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testNotEquivalent15",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testNotEquivalent16",
+      "expression": "@2012-04-15 !~ @2012-04-15T10:00:00",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "not-equivalent",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testNotEquivalent16",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testNotEquivalent17",
+      "expression": "@2012-04-15T15:30:31 !~ @2012-04-15T15:30:31.0",
+      "expected": [
+        false
+      ],
+      "tags": [
+        "not-equivalent",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testNotEquivalent17",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testNotEquivalent18",
+      "expression": "@2012-04-15T15:30:31 !~ @2012-04-15T15:30:31.1",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "not-equivalent",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testNotEquivalent18",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testNotEquivalent19",
+      "expression": "name !~ name",
+      "expected": [
+        false
+      ],
+      "tags": [
+        "not-equivalent",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testNotEquivalent19",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testNotEquivalent20",
+      "expression": "name.take(2).given !~ name.take(2).first().given | name.take(2).last().given",
+      "expected": [
+        false
+      ],
+      "tags": [
+        "not-equivalent",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testNotEquivalent20",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testNotEquivalent21",
+      "expression": "name.take(2).given !~ name.take(2).last().given | name.take(2).first().given",
+      "expected": [
+        false
+      ],
+      "tags": [
+        "not-equivalent",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testNotEquivalent21",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testNotEquivalent22",
+      "expression": "Observation.value !~ 185 'kg'",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "not-equivalent",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testNotEquivalent22",
+      "inputFile": "../../input/observation-example.json"
+    }
+  ]
+}

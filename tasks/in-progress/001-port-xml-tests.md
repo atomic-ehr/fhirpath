@@ -19,7 +19,7 @@ Porting FHIRPath test cases from XML format (spec/fhirpathlab-tests/fhirpathlab-
 - [x] **testEquality** (28 tests) ✅ Ported to equality-xml.json
 - [x] **testNEquality** (24 tests) - ✅ Ported to not-equal-xml.json (24/24 passing)
 - [x] **testEquivalent** (24 tests) - ✅ Added to equivalence.json (21 unique, 3 duplicates skipped)  
-- [ ] **testNotEquivalent** (22 tests) - Not-equivalent operator tests
+- [x] **testNotEquivalent** (22 tests) - ✅ Ported to not-equivalent-xml.json (18 unique, 4 duplicates skipped)
 
 ### Comparison Operators (120 tests total)
 - [x] **testLessThan** (30 tests) ✅ Ported to less-than-xml.json
@@ -28,8 +28,8 @@ Porting FHIRPath test cases from XML format (spec/fhirpathlab-tests/fhirpathlab-
 - [x] **testGreaterThan** (30 tests) ✅ Ported to greater-than-xml.json
 
 ### Boundaries & Precision
-- [ ] **LowBoundary** (28 tests) - Low boundary value tests
-- [ ] **HighBoundary** (24 tests) - High boundary value tests
+- [x] **LowBoundary** (28 tests) - ✅ Already ported to lowBoundary.json
+- [x] **HighBoundary** (24 tests) - ✅ Already ported to highBoundary.json
 - [ ] **Precision** (6 tests) - Precision handling tests
 
 ### String Operations
