@@ -7,21 +7,24 @@
       "expression": "81.sqrt() = 9.0",
       "input": [],
       "expected": [true],
-      "tags": ["function", "arithmetic", "sqrt", "function:sqrt", "xml-port"]
+      "tags": ["function", "arithmetic", "sqrt", "function:sqrt", "xml-port"],
+      "fromXML": "testSqrt1"
     },
     {
       "name": "testSqrt2 - square root of negative number",
       "expression": "(-1).sqrt()",
       "input": [],
       "expected": [],
-      "tags": ["function", "arithmetic", "sqrt", "function:sqrt", "negative", "xml-port"]
+      "tags": ["function", "arithmetic", "sqrt", "function:sqrt", "negative", "xml-port"],
+      "fromXML": "testSqrt2"
     },
     {
       "name": "testSqrtEmpty - empty sqrt",
       "expression": "{}.sqrt().empty()",
       "input": [],
       "expected": [true],
-      "tags": ["function", "arithmetic", "empty", "function:sqrt", "xml-port"]
+      "tags": ["function", "arithmetic", "empty", "function:sqrt", "xml-port"],
+      "fromXML": "testSqrtEmpty"
     }
   ]
 }
