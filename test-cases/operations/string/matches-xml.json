@@ -1,0 +1,188 @@
+{
+  "title": "Matches Function Tests (XML Port)",
+  "description": "Tests for the matches() and matchesFull() regex functions ported from fhirpathlab-tests.xml testMatches group",
+  "tests": [
+    {
+      "name": "testMatchesCaseSensitive1",
+      "expression": "'FHIR'.matches('FHIR')",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "matches",
+        "regex",
+        "string",
+        "xml-ported"
+      ],
+      "fromXML": "testMatchesCaseSensitive1"
+    },
+    {
+      "name": "testMatchesCaseSensitive2",
+      "expression": "'FHIR'.matches('fhir')",
+      "expected": [
+        false
+      ],
+      "tags": [
+        "matches",
+        "regex",
+        "string",
+        "xml-ported"
+      ],
+      "fromXML": "testMatchesCaseSensitive2"
+    },
+    {
+      "name": "testMatchesEmpty",
+      "expression": "'FHIR'.matches({}).empty() = true",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "matches",
+        "regex",
+        "string",
+        "xml-ported"
+      ],
+      "fromXML": "testMatchesEmpty"
+    },
+    {
+      "name": "testMatchesEmpty2",
+      "expression": "{}.matches('FHIR').empty() = true",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "matches",
+        "regex",
+        "string",
+        "xml-ported"
+      ],
+      "fromXML": "testMatchesEmpty2"
+    },
+    {
+      "name": "testMatchesEmpty3",
+      "expression": "{}.matches({}).empty() = true",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "matches",
+        "regex",
+        "string",
+        "xml-ported"
+      ],
+      "fromXML": "testMatchesEmpty3"
+    },
+    {
+      "name": "testMatchesSingleLineMode1",
+      "expression": "'A\n\t\t\tB'.matches('A.*B')",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "matches",
+        "regex",
+        "string",
+        "xml-ported"
+      ],
+      "fromXML": "testMatchesSingleLineMode1"
+    },
+    {
+      "name": "testMatchesWithinUrl1",
+      "expression": "'http://fhir.org/guides/cqf/common/Library/FHIR-ModelInfo|4.0.1'.matches('library')",
+      "expected": [
+        false
+      ],
+      "tags": [
+        "matches",
+        "regex",
+        "string",
+        "xml-ported"
+      ],
+      "fromXML": "testMatchesWithinUrl1"
+    },
+    {
+      "name": "testMatchesWithinUrl2",
+      "expression": "'http://fhir.org/guides/cqf/common/Library/FHIR-ModelInfo|4.0.1'.matches('Library')",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "matches",
+        "regex",
+        "string",
+        "xml-ported"
+      ],
+      "fromXML": "testMatchesWithinUrl2"
+    },
+    {
+      "name": "testMatchesWithinUrl3",
+      "expression": "'http://fhir.org/guides/cqf/common/Library/FHIR-ModelInfo|4.0.1'.matches('^Library$')",
+      "expected": [
+        false
+      ],
+      "tags": [
+        "matches",
+        "regex",
+        "string",
+        "xml-ported"
+      ],
+      "fromXML": "testMatchesWithinUrl3"
+    },
+    {
+      "name": "testMatchesWithinUrl1a",
+      "expression": "'http://fhir.org/guides/cqf/common/Library/FHIR-ModelInfo|4.0.1'.matches('.*Library.*')",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "matches",
+        "regex",
+        "string",
+        "xml-ported"
+      ],
+      "fromXML": "testMatchesWithinUrl1a"
+    },
+    {
+      "name": "testMatchesWithinUrl4",
+      "expression": "'http://fhir.org/guides/cqf/common/Library/FHIR-ModelInfo|4.0.1'.matches('Measure')",
+      "expected": [
+        false
+      ],
+      "tags": [
+        "matches",
+        "regex",
+        "string",
+        "xml-ported"
+      ],
+      "fromXML": "testMatchesWithinUrl4"
+    },
+    {
+      "name": "testMatchesFullWithinUrl1",
+      "expression": "'http://fhir.org/guides/cqf/common/Library/FHIR-ModelInfo|4.0.1'.matchesFull('library')",
+      "expected": [
+        false
+      ],
+      "tags": [
+        "matches",
+        "regex",
+        "string",
+        "xml-ported"
+      ],
+      "fromXML": "testMatchesFullWithinUrl1"
+    },
+    {
+      "name": "testMatchesFullWithinUrl4",
+      "expression": "'http://fhir.org/guides/cqf/common/Library/FHIR-ModelInfo|4.0.1'.matchesFull('^Library$')",
+      "expected": [
+        false
+      ],
+      "tags": [
+        "matches",
+        "regex",
+        "string",
+        "xml-ported"
+      ],
+      "fromXML": "testMatchesFullWithinUrl4"
+    }
+  ]
+}

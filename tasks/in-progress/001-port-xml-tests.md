@@ -33,7 +33,7 @@ Porting FHIRPath test cases from XML format (spec/fhirpathlab-tests/fhirpathlab-
 - [ ] **Precision** (6 tests) - Precision handling tests
 
 ### String Operations
-- [ ] **testMatches** (16 tests) - Regular expression matching
+- [x] **testMatches** (16 tests) - ✅ Ported to matches-xml.json (13 unique, 3 duplicates skipped)
 - [x] **testReplaceMatches** (7 tests) ✅ Ported to replace-matches-xml.json
 - [ ] **testEncodeDecode** (8 tests) - String encoding/decoding
 - [ ] **testEscapeUnescape** (4 tests) - Escape character handling
