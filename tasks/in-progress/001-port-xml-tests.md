@@ -4,21 +4,21 @@
 Porting FHIRPath test cases from XML format (spec/fhirpathlab-tests/fhirpathlab-tests.xml) to JSON format.
 
 **Source:** 1751 lines, 101 test groups, 1025 tests parsed (1027 test tags found - 2 missing in parse)
-**Current Coverage:** 394 tests ported (~38% of total), 38 XML test files created
+**Current Coverage:** 590 tests ported (~58% of total), 54 files with XML tests
 
 ## Coverage Summary
-- ✅ **Ported from XML:** 38 test groups (~394 tests)
-- ⚠️ **Partially Ported:** Some groups still need more tests
-- ❌ **Not Yet Ported:** ~63 groups remaining (~631 tests)
+- ✅ **Ported from XML:** 590 tests (458 with fromXML tag, 132 with xml-ported tag)
+- ✅ **Test Groups Completed:** ~45 groups fully or partially ported
+- ❌ **Not Yet Ported:** ~435 tests remaining (~42% of total)
 
 ## Priority 1: Groups with No Coverage (49 groups, ~425 tests)
 
 ### High Priority - Core Functionality
-- [ ] **testLiterals** (82 tests) - Basic literal parsing and handling
+- [x] **testLiterals** (82 tests) - ✅ Already ported to literals.json
 - [ ] **testTypes** (99 tests) - Type system tests
 - [x] **testEquality** (28 tests) ✅ Ported to equality-xml.json
-- [ ] **testNEquality** (24 tests) - Not-equal operator tests
-- [ ] **testEquivalent** (24 tests) - Equivalence operator tests  
+- [x] **testNEquality** (24 tests) - ✅ Ported to not-equal-xml.json (24/24 passing)
+- [x] **testEquivalent** (24 tests) - ✅ Added to equivalence.json (21 unique, 3 duplicates skipped)  
 - [ ] **testNotEquivalent** (22 tests) - Not-equivalent operator tests
 
 ### Comparison Operators (120 tests total)
@@ -139,21 +139,27 @@ defineVariable, testAll, testSubSetOf, testSuperSetOf, testAggregate, testSingle
 
 ## Summary of Remaining Work
 
-### Tests Ported: 394/1025 (~38%)
-### Files Created: 38 XML test files
+### Tests Ported: 590/1025 (~58%)
+### Files with XML tests: 54
 
-### High-Priority Remaining Groups (~400 tests):
-1. **testLiterals** (82 tests) - Critical for basic functionality
-2. **testTypes** (99 tests) - Core type system
-3. **testNEquality** (24 tests) - Not-equal operator
-4. **testEquivalent** (24 tests) - Equivalence operator  
-5. **testNotEquivalent** (22 tests) - Not-equivalent operator
-6. **testQuantity** (11 tests) - Quantity handling
-7. **testMatches** (16 tests) - Regex matching
+### High-Priority Remaining Groups (~200 tests):
+1. **testTypes** (99 tests) - Type system tests (many may already be ported)
+2. **testNotEquivalent** (22 tests) - Not-equivalent operator
+3. **testMatches** (16 tests) - Regex matching
+4. **testQuantity** (11 tests) - Quantity handling
+5. **testSort** (10 tests) - Sorting operations
+6. **testEncodeDecode** (8 tests) - String encoding/decoding
 
-### Total Remaining: ~631 tests across 63 groups
+### Total Remaining: ~435 tests across ~50 groups
 
-### Current Status:
-- 35 tests pending (mostly type() function and floating point precision)
-- 0 failing tests
-- All ported tests passing or properly marked as pending
+### Current Status as of 2025-09-05:
+- **0 failing tests** ✅
+- **2 pending tests** (timeOfDay arithmetic with cache timing issues)
+- **590 XML tests successfully ported** (58% complete)
+- **All ported tests passing**
+
+### Recent Progress:
+- ✅ Implemented extension() function - 3 tests now passing
+- ✅ Fixed floating point precision issues - 2 tests now passing  
+- ✅ Ported testNEquality - 24 tests added, all passing
+- ✅ Ported testEquivalent - 21 unique tests added, all passing

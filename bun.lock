@@ -18,6 +18,7 @@
         "@types/lodash": "^4.17.20",
         "@types/node": "22.13.14",
         "@types/turndown": "^5.0.5",
+        "@xmldom/xmldom": "^0.8.11",
         "antlr4ts": "^0.5.0-alpha.4",
         "antlr4ts-cli": "^0.5.0-alpha.4",
         "js-yaml": "^4.1.0",
@@ -143,6 +144,8 @@
     "@types/tough-cookie": ["@types/tough-cookie@4.0.5", "", {}, ""],
 
     "@types/turndown": ["@types/turndown@5.0.5", "", {}, ""],
+
+    "@xmldom/xmldom": ["@xmldom/xmldom@0.8.11", "", {}, "sha512-cQzWCtO6C8TQiYl1ruKNn2U6Ao4o4WBBcbL61yJl84x+j5sOWWFU9X7DpND8XZG3daDppSsigMdfAIl2upQBRw=="],
 
     "accepts": ["accepts@2.0.0", "", { "dependencies": { "mime-types": "^3.0.0", "negotiator": "^1.0.0" } }, "sha512-5cvg6CtKwfgdmVqY1WIiXKc3Q1bkRqGLi+2W/6ao+6Y7gu/RCwRuAhGEzh5B4KlszSuTLgZYuqFqo5bImjNKng=="],
 

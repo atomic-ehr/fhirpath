@@ -1,169 +1,601 @@
 {
   "name": "Equivalence Operator Tests",
-  "description": "Tests for ~ and !~ operators (ported from fhirpath.js)",
+  "description": "Tests for ~ and !~ operators (ported from fhirpath.js) (includes tests from XML test suite)",
   "tests": [
     {
       "name": "Empty collections are equivalent",
       "description": "collections for equivalence { } ~ { } will result in true",
       "expression": "{} ~ {}",
       "input": [],
-      "expected": [true],
-      "tags": ["equivalence", "empty", "collection"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "equivalence",
+        "empty",
+        "collection"
+      ]
     },
     {
       "name": "String equivalence - case insensitive with whitespace normalization",
       "description": "strings must be the same while ignoring case and normalizing whitespace",
       "expression": "'ab c' ~ 'Ab  C'",
       "input": [],
-      "expected": [true],
-      "tags": ["equivalence", "string", "case-insensitive", "whitespace"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "equivalence",
+        "string",
+        "case-insensitive",
+        "whitespace"
+      ]
     },
     {
       "name": "String equivalence - different strings",
       "expression": "'hello' ~ 'world'",
       "input": [],
-      "expected": [false],
-      "tags": ["equivalence", "string"]
+      "expected": [
+        false
+      ],
+      "tags": [
+        "equivalence",
+        "string"
+      ]
     },
     {
       "name": "Decimal equivalence with trailing zeros",
       "expression": "1.001 ~ 01.0012",
       "input": [],
-      "expected": [true],
-      "tags": ["equivalence", "decimal", "trailing-zeros"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "equivalence",
+        "decimal",
+        "trailing-zeros"
+      ]
     },
     {
       "name": "Decimal - 1.100 ~ 1.1",
       "expression": "1.100 ~ 1.1",
       "input": [],
-      "expected": [true],
-      "tags": ["equivalence", "decimal", "trailing-zeros"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "equivalence",
+        "decimal",
+        "trailing-zeros"
+      ]
     },
     {
       "name": "Decimal - 1.100 ~ 1.101 (rounded, ignoring trailing zeros)",
       "expression": "1.100 ~ 1.101",
       "input": [],
-      "expected": [true],
-      "tags": ["equivalence", "decimal", "trailing-zeros", "rounding"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "equivalence",
+        "decimal",
+        "trailing-zeros",
+        "rounding"
+      ]
     },
     {
       "name": "Decimal - 1.1 ~ 1.0 (rounded, ignoring trailing zeros)",
       "expression": "1.1 ~ 1.0",
       "input": [],
-      "expected": [true],
-      "tags": ["equivalence", "decimal", "trailing-zeros", "rounding"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "equivalence",
+        "decimal",
+        "trailing-zeros",
+        "rounding"
+      ]
     },
     {
       "name": "Decimal - 1.1 ~ 1.00",
       "expression": "1.1 ~ 1.00",
       "input": [],
-      "expected": [true],
-      "tags": ["equivalence", "decimal", "trailing-zeros"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "equivalence",
+        "decimal",
+        "trailing-zeros"
+      ]
     },
     {
       "name": "Decimal - 1.10 ~ 1.00",
       "expression": "1.10 ~ 1.00",
       "input": [],
-      "expected": [true],
-      "tags": ["equivalence", "decimal", "trailing-zeros", "rounding"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "equivalence",
+        "decimal",
+        "trailing-zeros",
+        "rounding"
+      ]
     },
     {
       "name": "Decimal - 11 ~ 10 (digits before decimal are not trailing zeros)",
       "expression": "11 ~ 10",
       "input": [],
-      "expected": [false],
-      "tags": ["equivalence", "decimal"]
+      "expected": [
+        false
+      ],
+      "tags": [
+        "equivalence",
+        "decimal"
+      ]
     },
     {
       "name": "Decimal - 12 ~ 11",
       "expression": "12 ~ 11",
       "input": [],
-      "expected": [false],
-      "tags": ["equivalence", "decimal"]
+      "expected": [
+        false
+      ],
+      "tags": [
+        "equivalence",
+        "decimal"
+      ]
     },
     {
       "name": "Decimal - 1.1 ~ 1.2",
       "expression": "1.1 ~ 1.2",
       "input": [],
-      "expected": [false],
-      "tags": ["equivalence", "decimal"]
+      "expected": [
+        false
+      ],
+      "tags": [
+        "equivalence",
+        "decimal"
+      ]
     },
     {
       "name": "Decimal - very small numbers 0.00000011 ~ 0.00000012",
       "expression": "0.00000011 ~ 0.00000012",
       "input": [],
-      "expected": [false],
-      "tags": ["equivalence", "decimal", "precision"]
+      "expected": [
+        false
+      ],
+      "tags": [
+        "equivalence",
+        "decimal",
+        "precision"
+      ]
     },
     {
       "name": "Decimal - very small numbers 0.00000011 ~ 0.00000010",
       "expression": "0.00000011 ~ 0.00000010",
       "input": [],
-      "expected": [true],
-      "tags": ["equivalence", "decimal", "precision", "rounding"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "equivalence",
+        "decimal",
+        "precision",
+        "rounding"
+      ]
     },
     {
       "name": "Decimal - 0 ~ 0.00000010",
       "expression": "0 ~ 0.00000010",
       "input": [],
-      "expected": [true],
-      "tags": ["equivalence", "decimal", "precision", "rounding"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "equivalence",
+        "decimal",
+        "precision",
+        "rounding"
+      ]
     },
     {
       "name": "Decimal - 1 ~ 0.00000010",
       "expression": "1 ~ 0.00000010",
       "input": [],
-      "expected": [false],
-      "tags": ["equivalence", "decimal", "precision"]
+      "expected": [
+        false
+      ],
+      "tags": [
+        "equivalence",
+        "decimal",
+        "precision"
+      ]
     },
     {
       "name": "Decimal - 0.010 ~ 0.00000010",
       "expression": "0.010 ~ 0.00000010",
       "input": [],
-      "expected": [false],
-      "tags": ["equivalence", "decimal", "precision"]
+      "expected": [
+        false
+      ],
+      "tags": [
+        "equivalence",
+        "decimal",
+        "precision"
+      ]
     },
     {
       "name": "Boolean equivalence - true ~ true",
       "expression": "true ~ true",
       "input": [],
-      "expected": [true],
-      "tags": ["equivalence", "boolean"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "equivalence",
+        "boolean"
+      ]
     },
     {
       "name": "Boolean equivalence - false ~ false",
       "expression": "false ~ false",
       "input": [],
-      "expected": [true],
-      "tags": ["equivalence", "boolean"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "equivalence",
+        "boolean"
+      ]
     },
     {
       "name": "Boolean equivalence - true ~ false",
       "expression": "true ~ false",
       "input": [],
-      "expected": [false],
-      "tags": ["equivalence", "boolean"]
+      "expected": [
+        false
+      ],
+      "tags": [
+        "equivalence",
+        "boolean"
+      ]
     },
     {
       "name": "Collection equivalence - order independent",
       "expression": "(1 | 2 | 3) ~ (3 | 2 | 1)",
       "input": [],
-      "expected": [true],
-      "tags": ["equivalence", "collection", "order-independent"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "equivalence",
+        "collection",
+        "order-independent"
+      ]
     },
     {
       "name": "Collection equivalence - duplicates matter",
       "expression": "1.combine(1).combine(2) ~ 2.combine(1).combine(1)",
       "input": [],
-      "expected": [true],
-      "tags": ["equivalence", "collection", "duplicates", "order-independent"]
+      "expected": [
+        true
+      ],
+      "tags": [
+        "equivalence",
+        "collection",
+        "duplicates",
+        "order-independent"
+      ]
     },
     {
       "name": "Collection equivalence - different duplicates",
       "expression": "1.combine(1).combine(2) ~ 1.combine(2).combine(2)",
       "input": [],
-      "expected": [false],
-      "tags": ["equivalence", "collection", "duplicates"]
+      "expected": [
+        false
+      ],
+      "tags": [
+        "equivalence",
+        "collection",
+        "duplicates"
+      ]
+    },
+    {
+      "name": "testEquivalent1 (XML)",
+      "expression": "1 ~ 1",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "equivalent",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testEquivalent1",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testEquivalent3 (XML)",
+      "expression": "1 ~ {}",
+      "expected": [
+        false
+      ],
+      "tags": [
+        "equivalent",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testEquivalent3",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testEquivalent4 (XML)",
+      "expression": "1 ~ 2",
+      "expected": [
+        false
+      ],
+      "tags": [
+        "equivalent",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testEquivalent4",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testEquivalent5 (XML)",
+      "expression": "'a' ~ 'a'",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "equivalent",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testEquivalent5",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testEquivalent6 (XML)",
+      "expression": "'a' ~ 'A'",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "equivalent",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testEquivalent6",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testEquivalent7 (XML)",
+      "expression": "'a' ~ 'b'",
+      "expected": [
+        false
+      ],
+      "tags": [
+        "equivalent",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testEquivalent7",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testEquivalent8 (XML)",
+      "expression": "1.1 ~ 1.1",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "equivalent",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testEquivalent8",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testEquivalent10 (XML)",
+      "expression": "1.10 ~ 1.1",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "equivalent",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testEquivalent10",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testEquivalent11 (XML)",
+      "expression": "1.2 / 1.8 ~ 0.67",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "equivalent",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testEquivalent11",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testEquivalent12 (XML)",
+      "expression": "0 ~ 0",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "equivalent",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testEquivalent12",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testEquivalent13 (XML)",
+      "expression": "0.0 ~ 0",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "equivalent",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testEquivalent13",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testEquivalent14 (XML)",
+      "expression": "@2012-04-15 ~ @2012-04-15",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "equivalent",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testEquivalent14",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testEquivalent15 (XML)",
+      "expression": "@2012-04-15 ~ @2012-04-16",
+      "expected": [
+        false
+      ],
+      "tags": [
+        "equivalent",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testEquivalent15",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testEquivalent16 (XML)",
+      "expression": "@2012-04-15 ~ @2012-04-15T10:00:00",
+      "expected": [
+        false
+      ],
+      "tags": [
+        "equivalent",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testEquivalent16",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testEquivalent17 (XML)",
+      "expression": "@2012-04-15T15:30:31 ~ @2012-04-15T15:30:31.0",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "equivalent",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testEquivalent17",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testEquivalent18 (XML)",
+      "expression": "@2012-04-15T15:30:31 ~ @2012-04-15T15:30:31.1",
+      "expected": [
+        false
+      ],
+      "tags": [
+        "equivalent",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testEquivalent18",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testEquivalent19 (XML)",
+      "expression": "name ~ name",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "equivalent",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testEquivalent19",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testEquivalent20 (XML)",
+      "expression": "name.take(2).given ~ name.take(2).first().given | name.take(2).last().given",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "equivalent",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testEquivalent20",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testEquivalent21 (XML)",
+      "expression": "name.take(2).given ~ name.take(2).last().given | name.take(2).first().given",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "equivalent",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testEquivalent21",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testEquivalent22 (XML)",
+      "expression": "Observation.value ~ 185 '[lb_av]'",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "equivalent",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testEquivalent22",
+      "inputFile": "../../input/observation-example.json"
+    },
+    {
+      "name": "testEquivalent23 (XML)",
+      "expression": "(1 | 2 | 3) ~ (1 | 2 | 3)",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "equivalent",
+        "operator",
+        "xml-ported"
+      ],
+      "fromXML": "testEquivalent23",
+      "inputFile": "../../input/observation-example.json"
     }
   ]
 }

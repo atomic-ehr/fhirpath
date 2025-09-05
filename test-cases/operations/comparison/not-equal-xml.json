@@ -1,0 +1,290 @@
+{
+  "title": "Not-Equal Operator Tests (XML Port)",
+  "description": "Tests for the != (not-equal) operator ported from fhirpathlab-tests.xml testNEquality group",
+  "inputFile": "../../patient-example.json",
+  "tests": [
+    {
+      "name": "testNEquality1",
+      "expression": "1 != 1",
+      "expected": [
+        false
+      ],
+      "tags": [
+        "not-equal",
+        "operator",
+        "xml-ported"
+      ]
+    },
+    {
+      "name": "testNEquality2",
+      "expression": "{} != {}",
+      "expected": [],
+      "tags": [
+        "not-equal",
+        "operator",
+        "xml-ported"
+      ]
+    },
+    {
+      "name": "testNEquality3",
+      "expression": "1 != 2",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "not-equal",
+        "operator",
+        "xml-ported"
+      ]
+    },
+    {
+      "name": "testNEquality4",
+      "expression": "'a' != 'a'",
+      "expected": [
+        false
+      ],
+      "tags": [
+        "not-equal",
+        "operator",
+        "xml-ported"
+      ]
+    },
+    {
+      "name": "testNEquality5",
+      "expression": "'a' != 'b'",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "not-equal",
+        "operator",
+        "xml-ported"
+      ]
+    },
+    {
+      "name": "testNEquality6",
+      "expression": "1.1 != 1.1",
+      "expected": [
+        false
+      ],
+      "tags": [
+        "not-equal",
+        "operator",
+        "xml-ported"
+      ]
+    },
+    {
+      "name": "testNEquality7",
+      "expression": "1.1 != 1.2",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "not-equal",
+        "operator",
+        "xml-ported"
+      ]
+    },
+    {
+      "name": "testNEquality8",
+      "expression": "1.10 != 1.1",
+      "expected": [
+        false
+      ],
+      "tags": [
+        "not-equal",
+        "operator",
+        "xml-ported"
+      ]
+    },
+    {
+      "name": "testNEquality9",
+      "expression": "0 != 0",
+      "expected": [
+        false
+      ],
+      "tags": [
+        "not-equal",
+        "operator",
+        "xml-ported"
+      ]
+    },
+    {
+      "name": "testNEquality10",
+      "expression": "0.0 != 0",
+      "expected": [
+        false
+      ],
+      "tags": [
+        "not-equal",
+        "operator",
+        "xml-ported"
+      ]
+    },
+    {
+      "name": "testNEquality11",
+      "expression": "@2012-04-15 != @2012-04-15",
+      "expected": [
+        false
+      ],
+      "tags": [
+        "not-equal",
+        "operator",
+        "xml-ported"
+      ]
+    },
+    {
+      "name": "testNEquality12",
+      "expression": "@2012-04-15 != @2012-04-16",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "not-equal",
+        "operator",
+        "xml-ported"
+      ]
+    },
+    {
+      "name": "testNEquality13",
+      "expression": "@2012-04-15 != @2012-04-15T10:00:00",
+      "expected": [],
+      "tags": [
+        "not-equal",
+        "operator",
+        "xml-ported"
+      ]
+    },
+    {
+      "name": "testNEquality14",
+      "expression": "@2012-04-15T15:00:00 != @2012-04-15T10:00:00",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "not-equal",
+        "operator",
+        "xml-ported"
+      ]
+    },
+    {
+      "name": "testNEquality15",
+      "expression": "@2012-04-15T15:30:31 != @2012-04-15T15:30:31.0",
+      "expected": [
+        false
+      ],
+      "tags": [
+        "not-equal",
+        "operator",
+        "xml-ported"
+      ]
+    },
+    {
+      "name": "testNEquality16",
+      "expression": "@2012-04-15T15:30:31 != @2012-04-15T15:30:31.1",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "not-equal",
+        "operator",
+        "xml-ported"
+      ]
+    },
+    {
+      "name": "testNEquality17",
+      "expression": "@2012-04-15T15:00:00Z != @2012-04-15T10:00:00",
+      "expected": [],
+      "tags": [
+        "not-equal",
+        "operator",
+        "xml-ported"
+      ]
+    },
+    {
+      "name": "testNEquality18",
+      "expression": "@2012-04-15T15:00:00+02:00 != @2012-04-15T16:00:00+03:00",
+      "expected": [
+        false
+      ],
+      "tags": [
+        "not-equal",
+        "operator",
+        "xml-ported"
+      ]
+    },
+    {
+      "name": "testNEquality19",
+      "expression": "name != name",
+      "expected": [
+        false
+      ],
+      "tags": [
+        "not-equal",
+        "operator",
+        "xml-ported"
+      ]
+    },
+    {
+      "name": "testNEquality20",
+      "expression": "name.take(2) != name.take(2).first() | name.take(2).last()",
+      "expected": [
+        false
+      ],
+      "tags": [
+        "not-equal",
+        "operator",
+        "xml-ported"
+      ]
+    },
+    {
+      "name": "testNEquality21",
+      "expression": "name.take(2) != name.take(2).last() | name.take(2).first()",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "not-equal",
+        "operator",
+        "xml-ported"
+      ]
+    },
+    {
+      "name": "testNEquality22",
+      "expression": "(1.2 / 1.8).round(2) != 0.6666667",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "not-equal",
+        "operator",
+        "xml-ported"
+      ]
+    },
+    {
+      "name": "testNEquality23",
+      "expression": "(1.2 / 1.8).round(2) != 0.67",
+      "expected": [
+        false
+      ],
+      "tags": [
+        "not-equal",
+        "operator",
+        "xml-ported"
+      ]
+    },
+    {
+      "name": "testNEquality24",
+      "expression": "Observation.value != 185 'kg'",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "not-equal",
+        "operator",
+        "xml-ported"
+      ],
+      "inputFile": "../../input/observation-example.json"
+    }
+  ]
+}
