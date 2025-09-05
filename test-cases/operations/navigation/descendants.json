@@ -1,6 +1,7 @@
 {
   "description": "Tests for descendants() function",
   "tags": ["descendants", "navigation"],
+  "modelProvider": "R4",
   "tests": [
     {
       "name": "empty input returns empty",

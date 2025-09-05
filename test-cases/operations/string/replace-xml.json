@@ -1,0 +1,48 @@
+{
+  "name": "Replace Function Tests from XML",
+  "description": "Tests for the replace() function ported from XML test suite",
+  "tests": [
+    {
+      "name": "replace - basic replacement",
+      "expression": "'123456'.replace('234', 'X')",
+      "expected": ["1X56"],
+      "tags": ["function", "string", "replace", "function:replace"],
+      "fromXML": "testReplace1"
+    },
+    {
+      "name": "replace - empty string replacement adds to each position",
+      "expression": "'abc'.replace('', 'x')",
+      "expected": ["xaxbxcx"],
+      "tags": ["function", "string", "replace", "function:replace", "empty"],
+      "fromXML": "testReplace2"
+    },
+    {
+      "name": "replace - replacement with empty string removes substring",
+      "expression": "'123456'.replace('234', '')",
+      "expected": ["156"],
+      "tags": ["function", "string", "replace", "function:replace", "empty"],
+      "fromXML": "testReplace3"
+    },
+    {
+      "name": "replace - empty input should return empty",
+      "expression": "{}.replace('234', 'X').empty() = true",
+      "expected": [true],
+      "tags": ["function", "string", "replace", "function:replace", "empty"],
+      "fromXML": "testReplace4"
+    },
+    {
+      "name": "replace - empty search parameter should return empty",
+      "expression": "'123'.replace({}, 'X').empty() = true",
+      "expected": [true],
+      "tags": ["function", "string", "replace", "function:replace", "empty"],
+      "fromXML": "testReplace5"
+    },
+    {
+      "name": "replace - empty replacement parameter should return empty",
+      "expression": "'123'.replace('2', {}).empty() = true",
+      "expected": [true],
+      "tags": ["function", "string", "replace", "function:replace", "empty"],
+      "fromXML": "testReplace6"
+    }
+  ]
+}

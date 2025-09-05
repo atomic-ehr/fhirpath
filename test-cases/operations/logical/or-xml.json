@@ -1,0 +1,60 @@
+{
+  "title": "Boolean Logic OR Tests from XML Test Suite",
+  "description": "Tests for the 'or' logical operator with various boolean combinations and empty collections",
+  "tests": [
+    {
+      "name": "testBooleanLogicOr1 - true or true = true",
+      "expression": "(true or true) = true",
+      "expected": [true],
+      "tags": ["or", "boolean-logic", "xml-ported"]
+    },
+    {
+      "name": "testBooleanLogicOr2 - true or false = true",
+      "expression": "(true or false) = true",
+      "expected": [true],
+      "tags": ["or", "boolean-logic", "xml-ported"]
+    },
+    {
+      "name": "testBooleanLogicOr3 - true or empty = true",
+      "expression": "(true or {}) = true",
+      "expected": [true],
+      "tags": ["or", "boolean-logic", "empty-collection", "xml-ported"]
+    },
+    {
+      "name": "testBooleanLogicOr4 - false or true = true",
+      "expression": "(false or true) = true",
+      "expected": [true],
+      "tags": ["or", "boolean-logic", "xml-ported"]
+    },
+    {
+      "name": "testBooleanLogicOr5 - false or false = false",
+      "expression": "(false or false) = false",
+      "expected": [true],
+      "tags": ["or", "boolean-logic", "xml-ported"]
+    },
+    {
+      "name": "testBooleanLogicOr6 - false or empty is empty",
+      "expression": "(false or {}).empty()",
+      "expected": [true],
+      "tags": ["or", "boolean-logic", "empty-collection", "xml-ported"]
+    },
+    {
+      "name": "testBooleanLogicOr7 - empty or true = true",
+      "expression": "({} or true) = true",
+      "expected": [true],
+      "tags": ["or", "boolean-logic", "empty-collection", "xml-ported"]
+    },
+    {
+      "name": "testBooleanLogicOr8 - empty or false is empty",
+      "expression": "({} or false).empty()",
+      "expected": [true],
+      "tags": ["or", "boolean-logic", "empty-collection", "xml-ported"]
+    },
+    {
+      "name": "testBooleanLogicOr9 - empty or empty is empty",
+      "expression": "({} or {}).empty()",
+      "expected": [true],
+      "tags": ["or", "boolean-logic", "empty-collection", "xml-ported"]
+    }
+  ]
+}

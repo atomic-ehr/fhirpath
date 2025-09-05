@@ -1,0 +1,196 @@
+{
+  "name": "Greater-or-Equal (>=) Tests from XML",
+  "description": "Tests for the greater-or-equal (>=) operator extracted from fhirpathlab-tests.xml (note: XML has typo 'testGreatorOrEqual')",
+  "tests": [
+    {
+      "name": "Integer comparison - 1 not >= 2",
+      "expression": "1 >= 2",
+      "expected": [false],
+      "tags": ["comparison", "greater-or-equal", "integer"],
+      "fromXML": "testGreatorOrEqual1"
+    },
+    {
+      "name": "Decimal comparison - 1.0 not >= 1.2",
+      "expression": "1.0 >= 1.2",
+      "expected": [false],
+      "tags": ["comparison", "greater-or-equal", "decimal"],
+      "fromXML": "testGreatorOrEqual2"
+    },
+    {
+      "name": "String comparison - 'a' not >= 'b'",
+      "expression": "'a' >= 'b'",
+      "expected": [false],
+      "tags": ["comparison", "greater-or-equal", "string"],
+      "fromXML": "testGreatorOrEqual3"
+    },
+    {
+      "name": "Case sensitive string comparison - 'A' not >= 'a'",
+      "expression": "'A' >= 'a'",
+      "expected": [false],
+      "tags": ["comparison", "greater-or-equal", "string", "case-sensitive"],
+      "fromXML": "testGreatorOrEqual4"
+    },
+    {
+      "name": "Date comparison - earlier date not greater or equal",
+      "expression": "@2014-12-12 >= @2014-12-13",
+      "expected": [false],
+      "tags": ["comparison", "greater-or-equal", "date", "temporal"],
+      "fromXML": "testGreatorOrEqual5"
+    },
+    {
+      "name": "DateTime comparison - earlier datetime not greater or equal",
+      "expression": "@2014-12-13T12:00:00 >= @2014-12-13T12:00:01",
+      "expected": [false],
+      "tags": ["comparison", "greater-or-equal", "datetime", "temporal"],
+      "fromXML": "testGreatorOrEqual6"
+    },
+    {
+      "name": "Time comparison - earlier time not greater or equal",
+      "expression": "@T12:00:00 >= @T14:00:00",
+      "expected": [false],
+      "tags": ["comparison", "greater-or-equal", "time", "temporal"],
+      "fromXML": "testGreatorOrEqual7"
+    },
+    {
+      "name": "Integer equality - equal",
+      "expression": "1 >= 1",
+      "expected": [true],
+      "tags": ["comparison", "greater-or-equal", "integer", "equality"],
+      "fromXML": "testGreatorOrEqual8"
+    },
+    {
+      "name": "Decimal equality - equal",
+      "expression": "1.0 >= 1.0",
+      "expected": [true],
+      "tags": ["comparison", "greater-or-equal", "decimal", "equality"],
+      "fromXML": "testGreatorOrEqual9"
+    },
+    {
+      "name": "String equality - equal",
+      "expression": "'a' >= 'a'",
+      "expected": [true],
+      "tags": ["comparison", "greater-or-equal", "string", "equality"],
+      "fromXML": "testGreatorOrEqual10"
+    },
+    {
+      "name": "Uppercase string equality - equal",
+      "expression": "'A' >= 'A'",
+      "expected": [true],
+      "tags": ["comparison", "greater-or-equal", "string", "equality"],
+      "fromXML": "testGreatorOrEqual11"
+    },
+    {
+      "name": "Date equality - same date",
+      "expression": "@2014-12-12 >= @2014-12-12",
+      "expected": [true],
+      "tags": ["comparison", "greater-or-equal", "date", "temporal", "equality"],
+      "fromXML": "testGreatorOrEqual12"
+    },
+    {
+      "name": "DateTime equality - same datetime",
+      "expression": "@2014-12-13T12:00:00 >= @2014-12-13T12:00:00",
+      "expected": [true],
+      "tags": ["comparison", "greater-or-equal", "datetime", "temporal", "equality"],
+      "fromXML": "testGreatorOrEqual13"
+    },
+    {
+      "name": "Time equality - same time",
+      "expression": "@T12:00:00 >= @T12:00:00",
+      "expected": [true],
+      "tags": ["comparison", "greater-or-equal", "time", "temporal", "equality"],
+      "fromXML": "testGreatorOrEqual14"
+    },
+    {
+      "name": "Integer comparison - 2 >= 1",
+      "expression": "2 >= 1",
+      "expected": [true],
+      "tags": ["comparison", "greater-or-equal", "integer"],
+      "fromXML": "testGreatorOrEqual15"
+    },
+    {
+      "name": "Decimal comparison - 1.1 >= 1.0",
+      "expression": "1.1 >= 1.0",
+      "expected": [true],
+      "tags": ["comparison", "greater-or-equal", "decimal"],
+      "fromXML": "testGreatorOrEqual16"
+    },
+    {
+      "name": "String comparison - 'b' >= 'a'",
+      "expression": "'b' >= 'a'",
+      "expected": [true],
+      "tags": ["comparison", "greater-or-equal", "string"],
+      "fromXML": "testGreatorOrEqual17"
+    },
+    {
+      "name": "Case sensitive string comparison - 'B' >= 'A'",
+      "expression": "'B' >= 'A'",
+      "expected": [true],
+      "tags": ["comparison", "greater-or-equal", "string", "case-sensitive"],
+      "fromXML": "testGreatorOrEqual18"
+    },
+    {
+      "name": "Date comparison - later date greater or equal",
+      "expression": "@2014-12-13 >= @2014-12-12",
+      "expected": [true],
+      "tags": ["comparison", "greater-or-equal", "date", "temporal"],
+      "fromXML": "testGreatorOrEqual19"
+    },
+    {
+      "name": "DateTime comparison - later datetime greater or equal",
+      "expression": "@2014-12-13T12:00:01 >= @2014-12-13T12:00:00",
+      "expected": [true],
+      "tags": ["comparison", "greater-or-equal", "datetime", "temporal"],
+      "fromXML": "testGreatorOrEqual20"
+    },
+    {
+      "name": "Time comparison - later time greater or equal",
+      "expression": "@T12:00:01 >= @T12:00:00",
+      "expected": [true],
+      "tags": ["comparison", "greater-or-equal", "time", "temporal"],
+      "fromXML": "testGreatorOrEqual21"
+    },
+    {
+      "name": "Observation value greater-or-equal with quantity",
+      "expression": "Observation.value >= 100 '[lb_av]'",
+      "inputFile": "../../input/observation-example.json",
+      "expected": [true],
+      "tags": ["comparison", "greater-or-equal", "quantity", "fhir"],
+      "fromXML": "testGreatorOrEqual22"
+    },
+    {
+      "name": "Partial date comparison - incomparable precision",
+      "expression": "@2018-03 >= @2018-03-01",
+      "expected": [],
+      "tags": ["comparison", "greater-or-equal", "date", "temporal", "precision"],
+      "fromXML": "testGreatorOrEqual23"
+    },
+    {
+      "name": "Partial datetime comparison - incomparable precision",
+      "expression": "@2018-03-01T10:30 >= @2018-03-01T10:30:00",
+      "expected": [],
+      "tags": ["comparison", "greater-or-equal", "datetime", "temporal", "precision"],
+      "fromXML": "testGreatorOrEqual24"
+    },
+    {
+      "name": "Partial time comparison - incomparable precision",
+      "expression": "@T10:30 >= @T10:30:00",
+      "expected": [],
+      "tags": ["comparison", "greater-or-equal", "time", "temporal", "precision"],
+      "fromXML": "testGreatorOrEqual25"
+    },
+    {
+      "name": "DateTime precision comparison - equal with decimals",
+      "expression": "@2018-03-01T10:30:00 >= @2018-03-01T10:30:00.0",
+      "expected": [true],
+      "tags": ["comparison", "greater-or-equal", "datetime", "temporal", "precision"],
+      "fromXML": "testGreatorOrEqual26"
+    },
+    {
+      "name": "Time precision comparison - equal with decimals",
+      "expression": "@T10:30:00 >= @T10:30:00.0",
+      "expected": [true],
+      "tags": ["comparison", "greater-or-equal", "time", "temporal", "precision"],
+      "fromXML": "testGreatorOrEqual27"
+    }
+  ]
+}

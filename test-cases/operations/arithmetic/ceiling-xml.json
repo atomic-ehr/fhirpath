@@ -1,0 +1,34 @@
+{
+  "name": "Ceiling Function Tests (XML Port)",
+  "description": "Tests for the ceiling() function ported from fhirpathlab-tests.xml",
+  "tests": [
+    {
+      "name": "testCeiling1 - ceiling of integer",
+      "expression": "1.ceiling() = 1",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "arithmetic", "ceiling", "function:ceiling", "xml-port"]
+    },
+    {
+      "name": "testCeiling2 - ceiling of negative decimal",
+      "expression": "(-1.1).ceiling() = -1",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "arithmetic", "ceiling", "function:ceiling", "negative", "xml-port"]
+    },
+    {
+      "name": "testCeiling3 - ceiling of positive decimal",
+      "expression": "1.1.ceiling() = 2",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "arithmetic", "ceiling", "function:ceiling", "decimal", "xml-port"]
+    },
+    {
+      "name": "testCeilingEmpty - empty ceiling",
+      "expression": "{}.ceiling().empty()",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "arithmetic", "empty", "function:ceiling", "xml-port"]
+    }
+  ]
+}

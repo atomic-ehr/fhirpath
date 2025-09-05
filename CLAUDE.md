@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+**CRITICAL: AFTER CONTEXT RESET/COMPACT - Read CONTEXT-RESET-CHECKLIST.md IMMEDIATELY**
+
 When you are generating code prefer to be concise and to the point.
 Make comments only if needed.
 

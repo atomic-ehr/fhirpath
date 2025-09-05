@@ -79,6 +79,11 @@ export const evaluate: FunctionEvaluator = async (input, context, args, evaluato
     throw Errors.invalidStringOperation('replaceMatches', 'substitution argument');
   }
 
+  // FHIRPath spec: empty pattern should return the original string unchanged
+  if (regexPattern === '') {
+    return { value: [box(inputValue, { type: 'String', singleton: true })], context };
+  }
+
   try {
     // Create regex with unicode support, single line mode (dotAll), and global flag for all matches
     // Per spec: case-sensitive, single line mode, allow Unicode

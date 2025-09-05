@@ -1,0 +1,62 @@
+{
+  "name": "Div Operator Tests (XML Port)",
+  "description": "Tests for the div (integer division) operator ported from fhirpathlab-tests.xml",
+  "tests": [
+    {
+      "name": "testDiv1 - basic integer division",
+      "expression": "1 div 1 = 1",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "arithmetic", "division", "integer", "operator:div", "xml-port"]
+    },
+    {
+      "name": "testDiv2 - even integer division",
+      "expression": "4 div 2 = 2",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "arithmetic", "division", "integer", "operator:div", "xml-port"]
+    },
+    {
+      "name": "testDiv3 - integer division with remainder",
+      "expression": "5 div 2 = 2",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "arithmetic", "division", "integer", "operator:div", "xml-port"]
+    },
+    {
+      "name": "testDiv4 - decimal to integer division",
+      "expression": "2.2 div 1.8 = 1",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "arithmetic", "division", "integer", "decimal", "operator:div", "xml-port"]
+    },
+    {
+      "name": "testDiv5 - integer division by zero",
+      "expression": "5 div 0",
+      "input": [],
+      "expected": [],
+      "tags": ["operator", "arithmetic", "division", "zero", "operator:div", "xml-port"]
+    },
+    {
+      "name": "testDivEmpty1 - number div empty",
+      "expression": "1 div {}",
+      "input": [],
+      "expected": [],
+      "tags": ["operator", "arithmetic", "empty", "operator:div", "xml-port"]
+    },
+    {
+      "name": "testDivEmpty2 - empty div number",
+      "expression": "{} div 1",
+      "input": [],
+      "expected": [],
+      "tags": ["operator", "arithmetic", "empty", "operator:div", "xml-port"]
+    },
+    {
+      "name": "testDivEmpty3 - empty div empty",
+      "expression": "{} div {}",
+      "input": [],
+      "expected": [],
+      "tags": ["operator", "arithmetic", "empty", "operator:div", "xml-port"]
+    }
+  ]
+}

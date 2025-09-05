@@ -1,0 +1,34 @@
+{
+  "name": "Floor Function Tests (XML Port)",
+  "description": "Tests for the floor() function ported from fhirpathlab-tests.xml",
+  "tests": [
+    {
+      "name": "testFloor1 - floor of integer",
+      "expression": "1.floor() = 1",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "arithmetic", "floor", "function:floor", "xml-port"]
+    },
+    {
+      "name": "testFloor2 - floor of positive decimal",
+      "expression": "2.1.floor() = 2",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "arithmetic", "floor", "function:floor", "decimal", "xml-port"]
+    },
+    {
+      "name": "testFloor3 - floor of negative decimal",
+      "expression": "(-2.1).floor() = -3",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "arithmetic", "floor", "function:floor", "negative", "xml-port"]
+    },
+    {
+      "name": "testFloorEmpty - empty floor",
+      "expression": "{}.floor().empty()",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "arithmetic", "empty", "function:floor", "xml-port"]
+    }
+  ]
+}

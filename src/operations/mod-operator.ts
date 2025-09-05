@@ -2,6 +2,7 @@ import type { OperatorDefinition } from '../types';
 import { PRECEDENCE } from '../types';
 import type { OperationEvaluator } from '../types';
 import { box, unbox } from '../interpreter/boxing';
+import { normalizeModuloResult } from '../utils/decimal';
 
 export const evaluate: OperationEvaluator = async (input, context, left, right) => {
   if (left.length === 0 || right.length === 0) {
@@ -21,7 +22,12 @@ export const evaluate: OperationEvaluator = async (input, context, left, right) 
     return { value: [], context };
   }
   
-  const result = (leftValue as any) % (rightValue as any);
+  let result = (leftValue as any) % (rightValue as any);
+  
+  // Normalize decimal result to handle floating point precision issues
+  if (!Number.isInteger(leftValue) || !Number.isInteger(rightValue)) {
+    result = normalizeModuloResult(result, leftValue as number, rightValue as number);
+  }
   
   // Determine result type based on input types
   const resultType = Number.isInteger(leftValue) && Number.isInteger(rightValue) ? 'Integer' : 'Decimal';

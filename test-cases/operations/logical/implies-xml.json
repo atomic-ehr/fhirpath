@@ -1,0 +1,60 @@
+{
+  "title": "Boolean Logic IMPLIES Tests from XML Test Suite",
+  "description": "Tests for the 'implies' logical operator with various boolean combinations and empty collections",
+  "tests": [
+    {
+      "name": "testBooleanImplies1 - true implies true = true",
+      "expression": "(true implies true) = true",
+      "expected": [true],
+      "tags": ["implies", "boolean-logic", "xml-ported"]
+    },
+    {
+      "name": "testBooleanImplies2 - true implies false = false",
+      "expression": "(true implies false) = false",
+      "expected": [true],
+      "tags": ["implies", "boolean-logic", "xml-ported"]
+    },
+    {
+      "name": "testBooleanImplies3 - true implies empty is empty",
+      "expression": "(true implies {}).empty()",
+      "expected": [true],
+      "tags": ["implies", "boolean-logic", "empty-collection", "xml-ported"]
+    },
+    {
+      "name": "testBooleanImplies4 - false implies true = true",
+      "expression": "(false implies true) = true",
+      "expected": [true],
+      "tags": ["implies", "boolean-logic", "xml-ported"]
+    },
+    {
+      "name": "testBooleanImplies5 - false implies false = true",
+      "expression": "(false implies false) = true",
+      "expected": [true],
+      "tags": ["implies", "boolean-logic", "xml-ported"]
+    },
+    {
+      "name": "testBooleanImplies6 - false implies empty = true",
+      "expression": "(false implies {}) = true",
+      "expected": [true],
+      "tags": ["implies", "boolean-logic", "empty-collection", "xml-ported"]
+    },
+    {
+      "name": "testBooleanImplies7 - empty implies true = true",
+      "expression": "({} implies true) = true",
+      "expected": [true],
+      "tags": ["implies", "boolean-logic", "empty-collection", "xml-ported"]
+    },
+    {
+      "name": "testBooleanImplies8 - empty implies false is empty",
+      "expression": "({} implies false).empty()",
+      "expected": [true],
+      "tags": ["implies", "boolean-logic", "empty-collection", "xml-ported"]
+    },
+    {
+      "name": "testBooleanImplies9 - empty implies empty is empty",
+      "expression": "({} implies {}).empty()",
+      "expected": [true],
+      "tags": ["implies", "boolean-logic", "empty-collection", "xml-ported"]
+    }
+  ]
+}

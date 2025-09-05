@@ -1,0 +1,88 @@
+{
+  "name": "Minus Operator Tests (XML Port)",
+  "description": "Tests for the - (subtraction) operator ported from fhirpathlab-tests.xml",
+  "tests": [
+    {
+      "name": "testMinus1 - basic subtraction",
+      "expression": "1 - 1 = 0",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "arithmetic", "subtraction", "operator:-", "xml-port"]
+    },
+    {
+      "name": "testMinus2 - subtract zero",
+      "expression": "1 - 0 = 1",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "arithmetic", "subtraction", "operator:-", "xml-port"]
+    },
+    {
+      "name": "testMinus3 - decimal subtraction",
+      "expression": "1.8 - 1.2 = 0.6",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "arithmetic", "subtraction", "operator:-", "decimal", "xml-port"]
+    },
+    {
+      "name": "testMinus4 - invalid string subtraction",
+      "expression": "'a'-'b' = 'ab'",
+      "input": [],
+      "expected": [],
+      "error": {
+        "code": "FP3006"
+      },
+      "tags": ["operator", "string", "error", "operator:-", "xml-port"],
+      "note": "Returns empty for invalid type operations per FHIRPath spec. Analyzer reports type mismatch error."
+    },
+    {
+      "name": "testMinus5 - date subtraction with quantity",
+      "expression": "@1974-12-25 - 1 'month'",
+      "input": [],
+      "expected": ["@1974-11-25"],
+      "tags": ["operator", "temporal", "date", "quantity", "operator:-", "xml-port"]
+    },
+    {
+      "name": "testMinus6 - invalid date subtraction with wrong unit",
+      "expression": "@1974-12-25 - 1 'cm'",
+      "input": [],
+      "expected": [],
+      "expectedError": "FP5003",
+      "tags": ["operator", "temporal", "date", "error", "operator:-", "xml-port"]
+    },
+    {
+      "name": "testMinus7 - time subtraction with hour rollover",
+      "expression": "@T00:30:00 - 1 hour",
+      "input": [],
+      "expected": ["@T23:30:00"],
+      "tags": ["operator", "temporal", "time", "quantity", "operator:-", "xml-port"]
+    },
+    {
+      "name": "testMinus8 - time subtraction with multiple hour rollover",
+      "expression": "@T01:00:00 - 2 hours",
+      "input": [],
+      "expected": ["@T23:00:00"],
+      "tags": ["operator", "temporal", "time", "quantity", "operator:-", "xml-port"]
+    },
+    {
+      "name": "testMinusEmpty1 - number minus empty",
+      "expression": "1 - {}",
+      "input": [],
+      "expected": [],
+      "tags": ["operator", "arithmetic", "empty", "operator:-", "xml-port"]
+    },
+    {
+      "name": "testMinusEmpty2 - empty minus number",
+      "expression": "{} - 1",
+      "input": [],
+      "expected": [],
+      "tags": ["operator", "arithmetic", "empty", "operator:-", "xml-port"]
+    },
+    {
+      "name": "testMinusEmpty3 - empty minus empty",
+      "expression": "{} - {}",
+      "input": [],
+      "expected": [],
+      "tags": ["operator", "arithmetic", "empty", "operator:-", "xml-port"]
+    }
+  ]
+}

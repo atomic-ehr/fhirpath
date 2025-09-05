@@ -1,0 +1,60 @@
+{
+  "title": "Boolean Logic XOR Tests from XML Test Suite",
+  "description": "Tests for the 'xor' logical operator with various boolean combinations and empty collections",
+  "tests": [
+    {
+      "name": "testBooleanLogicXOr1 - true xor true = false",
+      "expression": "(true xor true) = false",
+      "expected": [true],
+      "tags": ["xor", "boolean-logic", "xml-ported"]
+    },
+    {
+      "name": "testBooleanLogicXOr2 - true xor false = true",
+      "expression": "(true xor false) = true",
+      "expected": [true],
+      "tags": ["xor", "boolean-logic", "xml-ported"]
+    },
+    {
+      "name": "testBooleanLogicXOr3 - true xor empty is empty",
+      "expression": "(true xor {}).empty()",
+      "expected": [true],
+      "tags": ["xor", "boolean-logic", "empty-collection", "xml-ported"]
+    },
+    {
+      "name": "testBooleanLogicXOr4 - false xor true = true",
+      "expression": "(false xor true) = true",
+      "expected": [true],
+      "tags": ["xor", "boolean-logic", "xml-ported"]
+    },
+    {
+      "name": "testBooleanLogicXOr5 - false xor false = false",
+      "expression": "(false xor false) = false",
+      "expected": [true],
+      "tags": ["xor", "boolean-logic", "xml-ported"]
+    },
+    {
+      "name": "testBooleanLogicXOr6 - false xor empty is empty",
+      "expression": "(false xor {}).empty()",
+      "expected": [true],
+      "tags": ["xor", "boolean-logic", "empty-collection", "xml-ported"]
+    },
+    {
+      "name": "testBooleanLogicXOr7 - empty xor true is empty",
+      "expression": "({} xor true).empty()",
+      "expected": [true],
+      "tags": ["xor", "boolean-logic", "empty-collection", "xml-ported"]
+    },
+    {
+      "name": "testBooleanLogicXOr8 - empty xor false is empty",
+      "expression": "({} xor false).empty()",
+      "expected": [true],
+      "tags": ["xor", "boolean-logic", "empty-collection", "xml-ported"]
+    },
+    {
+      "name": "testBooleanLogicXOr9 - empty xor empty is empty",
+      "expression": "({} xor {}).empty()",
+      "expected": [true],
+      "tags": ["xor", "boolean-logic", "empty-collection", "xml-ported"]
+    }
+  ]
+}

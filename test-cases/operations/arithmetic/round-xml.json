@@ -1,0 +1,27 @@
+{
+  "name": "Round Function Tests (XML Port)",
+  "description": "Tests for the round() function ported from fhirpathlab-tests.xml",
+  "tests": [
+    {
+      "name": "testRound1 - round integer",
+      "expression": "1.round() = 1",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "arithmetic", "round", "function:round", "xml-port"]
+    },
+    {
+      "name": "testRound2 - round decimal with precision",
+      "expression": "3.14159.round(3) = 3.142",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "arithmetic", "round", "function:round", "decimal", "precision", "xml-port"]
+    },
+    {
+      "name": "testRoundEmpty - empty round",
+      "expression": "{}.round().empty()",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "arithmetic", "empty", "function:round", "xml-port"]
+    }
+  ]
+}

@@ -1,0 +1,206 @@
+{
+  "name": "Equality (=) Tests from XML",
+  "description": "Tests for the equality operator ported from XML test suite",
+  "tests": [
+    {
+      "name": "Integer equality - true",
+      "expression": "1 = 1",
+      "expected": [true],
+      "tags": ["comparison", "equality", "integer"],
+      "fromXML": "testEquality1"
+    },
+    {
+      "name": "Empty equality",
+      "expression": "{} = {}",
+      "expected": [],
+      "tags": ["comparison", "equality", "empty"],
+      "fromXML": "testEquality2"
+    },
+    {
+      "name": "Boolean vs empty",
+      "expression": "true = {}",
+      "expected": [],
+      "tags": ["comparison", "equality", "boolean", "empty"],
+      "fromXML": "testEquality3"
+    },
+    {
+      "name": "Singleton equality",
+      "expression": "(1) = (1)",
+      "expected": [true],
+      "tags": ["comparison", "equality", "singleton"],
+      "fromXML": "testEquality4"
+    },
+    {
+      "name": "Collection equality - 2 elements",
+      "expression": "(1 | 2) = (1 | 2)",
+      "expected": [true],
+      "tags": ["comparison", "equality", "collection"],
+      "fromXML": "testEquality5"
+    },
+    {
+      "name": "Collection equality - 3 elements",
+      "expression": "(1 | 2 | 3) = (1 | 2 | 3)",
+      "expected": [true],
+      "tags": ["comparison", "equality", "collection"],
+      "fromXML": "testEquality6"
+    },
+    {
+      "name": "Collection inequality with empty",
+      "expression": "(1 | 1) = (1 | 2 | {})",
+      "expected": [false],
+      "tags": ["comparison", "equality", "collection", "empty"],
+      "fromXML": "testEquality7"
+    },
+    {
+      "name": "Integer inequality",
+      "expression": "1 = 2",
+      "expected": [false],
+      "tags": ["comparison", "equality", "integer"],
+      "fromXML": "testEquality8"
+    },
+    {
+      "name": "String equality - same case",
+      "expression": "'a' = 'a'",
+      "expected": [true],
+      "tags": ["comparison", "equality", "string"],
+      "fromXML": "testEquality9"
+    },
+    {
+      "name": "String inequality - different case",
+      "expression": "'a' = 'A'",
+      "expected": [false],
+      "tags": ["comparison", "equality", "string", "case-sensitive"],
+      "fromXML": "testEquality10"
+    },
+    {
+      "name": "String inequality - different letters",
+      "expression": "'a' = 'b'",
+      "expected": [false],
+      "tags": ["comparison", "equality", "string"],
+      "fromXML": "testEquality11"
+    },
+    {
+      "name": "Decimal equality",
+      "expression": "1.1 = 1.1",
+      "expected": [true],
+      "tags": ["comparison", "equality", "decimal"],
+      "fromXML": "testEquality12"
+    },
+    {
+      "name": "Decimal inequality",
+      "expression": "1.1 = 1.2",
+      "expected": [false],
+      "tags": ["comparison", "equality", "decimal"],
+      "fromXML": "testEquality13"
+    },
+    {
+      "name": "Decimal equality - trailing zeros",
+      "expression": "1.10 = 1.1",
+      "expected": [true],
+      "tags": ["comparison", "equality", "decimal", "normalization"],
+      "fromXML": "testEquality14"
+    },
+    {
+      "name": "Zero equality",
+      "expression": "0 = 0",
+      "expected": [true],
+      "tags": ["comparison", "equality", "integer", "zero"],
+      "fromXML": "testEquality15"
+    },
+    {
+      "name": "Zero equality - decimal form",
+      "expression": "0.0 = 0",
+      "expected": [true],
+      "tags": ["comparison", "equality", "decimal", "integer", "zero"],
+      "fromXML": "testEquality16"
+    },
+    {
+      "name": "Date equality",
+      "expression": "@2012-04-15 = @2012-04-15",
+      "expected": [true],
+      "tags": ["comparison", "equality", "date"],
+      "fromXML": "testEquality17"
+    },
+    {
+      "name": "Date inequality",
+      "expression": "@2012-04-15 = @2012-04-16",
+      "expected": [false],
+      "tags": ["comparison", "equality", "date"],
+      "fromXML": "testEquality18"
+    },
+    {
+      "name": "Date vs DateTime - incomparable",
+      "expression": "@2012-04-15 = @2012-04-15T10:00:00",
+      "expected": [],
+      "tags": ["comparison", "equality", "date", "datetime", "incomparable"],
+      "fromXML": "testEquality19"
+    },
+    {
+      "name": "DateTime inequality - different times",
+      "expression": "@2012-04-15T15:00:00 = @2012-04-15T10:00:00",
+      "expected": [false],
+      "tags": ["comparison", "equality", "datetime"],
+      "fromXML": "testEquality20"
+    },
+    {
+      "name": "DateTime equality - subsecond precision",
+      "expression": "@2012-04-15T15:30:31 = @2012-04-15T15:30:31.0",
+      "expected": [true],
+      "tags": ["comparison", "equality", "datetime", "precision"],
+      "fromXML": "testEquality21"
+    },
+    {
+      "name": "DateTime inequality - subsecond difference",
+      "expression": "@2012-04-15T15:30:31 = @2012-04-15T15:30:31.1",
+      "expected": [false],
+      "tags": ["comparison", "equality", "datetime", "precision"],
+      "fromXML": "testEquality22"
+    },
+    {
+      "name": "DateTime with timezone vs without - incomparable",
+      "expression": "@2012-04-15T15:00:00Z = @2012-04-15T10:00:00",
+      "expected": [],
+      "tags": ["comparison", "equality", "datetime", "timezone", "incomparable"],
+      "fromXML": "testEquality23"
+    },
+    {
+      "name": "DateTime equality - different timezones",
+      "expression": "@2012-04-15T15:00:00+02:00 = @2012-04-15T16:00:00+03:00",
+      "expected": [true],
+      "tags": ["comparison", "equality", "datetime", "timezone"],
+      "fromXML": "testEquality24"
+    },
+    {
+      "name": "Property equality - name",
+      "expression": "name = name",
+      "inputFile": "../../input/patient-example.json",
+      "expected": [true],
+      "tags": ["comparison", "equality", "property"],
+      "fromXML": "testEquality25"
+    },
+    {
+      "name": "Collection equality - ordered vs unioned",
+      "expression": "name.take(2) = name.take(2).first() | name.take(2).last()",
+      "inputFile": "../../input/patient-example.json",
+      "expected": [true],
+      "tags": ["comparison", "equality", "collection", "order"],
+      "fromXML": "testEquality26"
+    },
+    {
+      "name": "Collection inequality - different order",
+      "expression": "name.take(2) = name.take(2).last() | name.take(2).first()",
+      "inputFile": "../../input/patient-example.json",
+      "expected": [false],
+      "tags": ["comparison", "equality", "collection", "order"],
+      "fromXML": "testEquality27"
+    },
+    {
+      "name": "Observation value equality with quantity",
+      "expression": "Observation.value = 185 '[lb_av]'",
+      "inputFile": "../../input/observation-example.json",
+      "expected": [true],
+      "tags": ["comparison", "equality", "quantity", "observation"],
+      "fromXML": "testEquality28"
+    }
+  ]
+}

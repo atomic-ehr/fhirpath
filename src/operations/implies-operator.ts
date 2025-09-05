@@ -50,6 +50,7 @@ export const impliesOperator: OperatorDefinition & { evaluate: OperationEvaluato
   category: ['logical'],
   precedence: PRECEDENCE.IMPLIES,
   associativity: 'right',
+  doesNotPropagateEmpty: true,  // Implies has special empty handling rules
   description: 'If the left operand evaluates to true, returns the boolean evaluation of the right operand. If the left operand evaluates to false, returns true. Otherwise, returns true if the right operand evaluates to true, and empty ({ }) otherwise',
   examples: [
     'Patient.name.given.exists() implies Patient.name.family.exists()',

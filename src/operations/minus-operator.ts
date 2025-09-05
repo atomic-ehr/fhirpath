@@ -4,6 +4,7 @@ import type { OperationEvaluator } from '../types';
 import { subtractQuantities } from '../complex-types/quantity-value';
 import type { QuantityValue } from '../complex-types/quantity-value';
 import { box, unbox } from '../interpreter/boxing';
+import { normalizeDecimalResult } from '../utils/decimal';
 
 export const evaluate: OperationEvaluator = async (input, context, left, right) => {
   if (left.length === 0 || right.length === 0) {
@@ -87,7 +88,13 @@ export const evaluate: OperationEvaluator = async (input, context, left, right) 
   
   // Handle numeric subtraction
   if (typeof l === 'number' && typeof r === 'number') {
-    const result = l - r;
+    let result = l - r;
+    
+    // Normalize decimal result to handle floating point precision issues
+    if (!Number.isInteger(l) || !Number.isInteger(r)) {
+      result = normalizeDecimalResult(result, l, r);
+    }
+    
     const typeInfo = Number.isInteger(result) ? 
       { type: 'Integer' as const, singleton: true } : 
       { type: 'Decimal' as const, singleton: true };

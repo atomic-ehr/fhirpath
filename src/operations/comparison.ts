@@ -200,7 +200,15 @@ function isTemporalValue(value: unknown): value is TemporalValue {
 function isQuantity(value: unknown): value is QuantityValue {
   if (!value || typeof value !== 'object') return false;
   const v = value as any;
-  return 'unit' in v && 'value' in v && typeof v.value === 'number' && typeof v.unit === 'string';
+  // Check for FHIRPath quantity (has unit and value)
+  if ('unit' in v && 'value' in v && typeof v.value === 'number' && typeof v.unit === 'string') {
+    return true;
+  }
+  // Check for FHIR Quantity (has code or unit, and value)
+  if ('value' in v && typeof v.value === 'number' && ('code' in v || 'unit' in v)) {
+    return true;
+  }
+  return false;
 }
 
 function isComplex(value: unknown): value is object {
@@ -231,8 +239,20 @@ function compareTemporal(a: TemporalValue, b: TemporalValue): ComparisonResult {
   return { kind: 'greater' };
 }
 
+function normalizeQuantity(q: any): QuantityValue {
+  // For FHIR Quantity, use code field if present, otherwise unit
+  if ('code' in q && typeof q.code === 'string') {
+    return { value: q.value, unit: q.code };
+  }
+  return { value: q.value, unit: q.unit };
+}
+
 function compareQuantityValues(a: QuantityValue, b: QuantityValue): ComparisonResult {
-  const result = compareQuantities(a, b);
+  // Normalize both quantities to handle FHIR vs FHIRPath quantities
+  const normA = normalizeQuantity(a);
+  const normB = normalizeQuantity(b);
+  
+  const result = compareQuantities(normA, normB);
   
   if (result === null) {
     return { kind: 'incomparable', reason: 'incompatible quantity dimensions' };
@@ -552,8 +572,12 @@ const CALENDAR_TO_UCUM_MAP: Record<string, string> = {
  * Quantity equivalence with UCUM semantic comparison and calendar mappings
  */
 function quantityEquivalent(a: QuantityValue, b: QuantityValue): boolean | null {
+  // Normalize both quantities to handle FHIR vs FHIRPath quantities
+  const normA = normalizeQuantity(a);
+  const normB = normalizeQuantity(b);
+  
   // Use compareQuantities which now handles calendar unit conversions
-  const result = compareQuantities(a, b);
+  const result = compareQuantities(normA, normB);
   
   // Null means incomparable
   if (result === null) {

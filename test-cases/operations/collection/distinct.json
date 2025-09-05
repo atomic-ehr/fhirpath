@@ -1,6 +1,7 @@
 {
   "name": "distinct() and isDistinct() Function Tests",
   "description": "Tests for the distinct() and isDistinct() functions",
+  "modelProvider": "R4",
   "tests": [
     {
       "name": "isDistinct() on distinct integers",

@@ -1,0 +1,97 @@
+{
+  "name": "StartsWith Function Tests from XML",
+  "description": "Tests for the startsWith() function ported from XML test suite",
+  "tests": [
+    {
+      "name": "startsWith - should return false for non-matching prefix",
+      "expression": "'12345'.startsWith('2') = false",
+      "expected": [true],
+      "tags": ["function", "string", "startsWith", "function:startsWith"],
+      "fromXML": "testStartsWith1"
+    },
+    {
+      "name": "startsWith - should return true for matching single character",
+      "expression": "'12345'.startsWith('1') = true",
+      "expected": [true],
+      "tags": ["function", "string", "startsWith", "function:startsWith"],
+      "fromXML": "testStartsWith2"
+    },
+    {
+      "name": "startsWith - should return true for matching multi-character prefix",
+      "expression": "'12345'.startsWith('12') = true",
+      "expected": [true],
+      "tags": ["function", "string", "startsWith", "function:startsWith"],
+      "fromXML": "testStartsWith3"
+    },
+    {
+      "name": "startsWith - should return false for non-matching multi-character prefix",
+      "expression": "'12345'.startsWith('13') = false",
+      "expected": [true],
+      "tags": ["function", "string", "startsWith", "function:startsWith"],
+      "fromXML": "testStartsWith4"
+    },
+    {
+      "name": "startsWith - should return true for complete string match",
+      "expression": "'12345'.startsWith('12345') = true",
+      "expected": [true],
+      "tags": ["function", "string", "startsWith", "function:startsWith"],
+      "fromXML": "testStartsWith5"
+    },
+    {
+      "name": "startsWith - should return false for longer string",
+      "expression": "'12345'.startsWith('123456') = false",
+      "expected": [true],
+      "tags": ["function", "string", "startsWith", "function:startsWith"],
+      "fromXML": "testStartsWith6"
+    },
+    {
+      "name": "startsWith - should return true for empty string",
+      "expression": "'12345'.startsWith('') = true",
+      "expected": [true],
+      "tags": ["function", "string", "startsWith", "function:startsWith"],
+      "fromXML": "testStartsWith7"
+    },
+    {
+      "name": "startsWith - empty input should return empty",
+      "expression": "{}.startsWith('1').empty() = true",
+      "expected": [true],
+      "tags": ["function", "string", "startsWith", "function:startsWith", "empty"],
+      "fromXML": "testStartsWith8"
+    },
+    {
+      "name": "startsWith - empty input with empty string should return empty",
+      "expression": "{}.startsWith('').empty() = true",
+      "expected": [true],
+      "tags": ["function", "string", "startsWith", "function:startsWith", "empty"],
+      "fromXML": "testStartsWith9"
+    },
+    {
+      "name": "startsWith - empty string should return true for empty prefix",
+      "expression": "''.startsWith('') = true",
+      "expected": [true],
+      "tags": ["function", "string", "startsWith", "function:startsWith", "empty"],
+      "fromXML": "testStartsWith10"
+    },
+    {
+      "name": "startsWith - empty input exists check should return false",
+      "expression": "{}.startsWith('').exists() = false",
+      "expected": [true],
+      "tags": ["function", "string", "startsWith", "function:startsWith", "empty", "exists"],
+      "fromXML": "testStartsWith11"
+    },
+    {
+      "name": "startsWith - dynamic prefix using length",
+      "expression": "'987654321'.startsWith(length().toString())",
+      "expected": [true],
+      "tags": ["function", "string", "startsWith", "function:startsWith", "dynamic"],
+      "fromXML": "testStartsWith12"
+    },
+    {
+      "name": "startsWith - semantic error on non-string input",
+      "expression": "Appointment.identifier.startsWith('rand')",
+      "expected": [],
+      "tags": ["function", "string", "startsWith", "function:startsWith", "error"],
+      "fromXML": "testStartsWithNonString1"
+    }
+  ]
+}

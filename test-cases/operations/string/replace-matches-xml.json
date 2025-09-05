@@ -1,0 +1,55 @@
+{
+  "name": "ReplaceMatches Function Tests from XML",
+  "description": "Tests for the replaceMatches() function ported from XML test suite",
+  "tests": [
+    {
+      "name": "replaceMatches - basic regex replacement",
+      "expression": "'123456'.replaceMatches('234', 'X')",
+      "expected": ["1X56"],
+      "tags": ["function", "string", "replaceMatches", "function:replaceMatches", "regex"],
+      "fromXML": "testReplaceMatches1"
+    },
+    {
+      "name": "replaceMatches - empty regex pattern should return original string",
+      "expression": "'abc'.replaceMatches('', 'x')",
+      "expected": ["abc"],
+      "tags": ["function", "string", "replaceMatches", "function:replaceMatches", "empty", "regex"],
+      "fromXML": "testReplaceMatches2"
+    },
+    {
+      "name": "replaceMatches - replacement with empty string removes matches",
+      "expression": "'123456'.replaceMatches('234', '')",
+      "expected": ["156"],
+      "tags": ["function", "string", "replaceMatches", "function:replaceMatches", "empty", "regex"],
+      "fromXML": "testReplaceMatches3"
+    },
+    {
+      "name": "replaceMatches - empty input should return empty",
+      "expression": "{}.replaceMatches('234', 'X').empty() = true",
+      "expected": [true],
+      "tags": ["function", "string", "replaceMatches", "function:replaceMatches", "empty"],
+      "fromXML": "testReplaceMatches4"
+    },
+    {
+      "name": "replaceMatches - empty pattern parameter should return empty",
+      "expression": "'123'.replaceMatches({}, 'X').empty() = true",
+      "expected": [true],
+      "tags": ["function", "string", "replaceMatches", "function:replaceMatches", "empty"],
+      "fromXML": "testReplaceMatches5"
+    },
+    {
+      "name": "replaceMatches - empty replacement parameter should return empty",
+      "expression": "'123'.replaceMatches('2', {}).empty() = true",
+      "expected": [true],
+      "tags": ["function", "string", "replaceMatches", "function:replaceMatches", "empty"],
+      "fromXML": "testReplaceMatches6"
+    },
+    {
+      "name": "replaceMatches - character class regex replacement",
+      "expression": "'abc123'.replaceMatches('[0-9]', '-')",
+      "expected": ["abc---"],
+      "tags": ["function", "string", "replaceMatches", "function:replaceMatches", "regex", "character-class"],
+      "fromXML": "testReplaceMatches7"
+    }
+  ]
+}

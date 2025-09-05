@@ -1,0 +1,48 @@
+{
+  "name": "Trim Function Tests from XML",
+  "description": "Tests for the trim() function ported from XML test suite",
+  "tests": [
+    {
+      "name": "trim - string without leading/trailing whitespace should remain unchanged",
+      "expression": "'123456'.trim().length() = 6",
+      "expected": [true],
+      "tags": ["function", "string", "trim", "function:trim"],
+      "fromXML": "testTrim1"
+    },
+    {
+      "name": "trim - string with internal whitespace should remain unchanged",
+      "expression": "'123 456'.trim().length() = 7",
+      "expected": [true],
+      "tags": ["function", "string", "trim", "function:trim"],
+      "fromXML": "testTrim2"
+    },
+    {
+      "name": "trim - string with leading and trailing whitespace should be trimmed",
+      "expression": "' 123456 '.trim().length() = 6",
+      "expected": [true],
+      "tags": ["function", "string", "trim", "function:trim", "whitespace"],
+      "fromXML": "testTrim3"
+    },
+    {
+      "name": "trim - string with only whitespace should become empty",
+      "expression": "'  '.trim().length() = 0",
+      "expected": [true],
+      "tags": ["function", "string", "trim", "function:trim", "whitespace", "empty"],
+      "fromXML": "testTrim4"
+    },
+    {
+      "name": "trim - empty input should return empty",
+      "expression": "{}.trim().empty() = true",
+      "expected": [true],
+      "tags": ["function", "string", "trim", "function:trim", "empty"],
+      "fromXML": "testTrim5"
+    },
+    {
+      "name": "trim - multiple spaces should become empty string",
+      "expression": "'      '.trim() = ''",
+      "expected": [true],
+      "tags": ["function", "string", "trim", "function:trim", "whitespace", "empty"],
+      "fromXML": "testTrim6"
+    }
+  ]
+}

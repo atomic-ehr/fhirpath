@@ -44,6 +44,41 @@ export const ofTypeFunction: FunctionDefinition & { evaluate: FunctionEvaluator 
       throw Errors.invalidOperation(`ofType() requires a type name as argument, got ${typeArg.type}`);
     }
 
+    // Validate the type name using ModelProvider if available
+    if (context.modelProvider) {
+      // Try to get the type from the model provider
+      const typeInfo = await context.modelProvider.getType(targetTypeName);
+      if (!typeInfo) {
+        // Not a valid FHIR type, check if it's a System type
+        const systemTypes = ['Boolean', 'String', 'Integer', 'Decimal', 'Date', 'DateTime', 'Time', 'Quantity'];
+        const fhirPrimitiveTypes = ['boolean', 'integer', 'string', 'decimal', 'uri', 'url', 'canonical', 
+                                     'base64Binary', 'instant', 'date', 'dateTime', 'time', 'code', 'oid', 
+                                     'id', 'markdown', 'unsignedInt', 'positiveInt', 'uuid', 'xhtml'];
+        
+        if (!systemTypes.includes(targetTypeName) && !fhirPrimitiveTypes.includes(targetTypeName)) {
+          throw Errors.invalidOperation(`Unknown type: ${targetTypeName}`);
+        }
+      }
+    } else {
+      // Without ModelProvider, only allow basic System types and reject obvious invalid names
+      const systemTypes = ['Boolean', 'String', 'Integer', 'Decimal', 'Date', 'DateTime', 'Time'];
+      const fhirPrimitiveTypes = ['boolean', 'integer', 'string', 'decimal', 'uri', 'url', 'canonical', 
+                                   'base64Binary', 'instant', 'date', 'dateTime', 'time', 'code', 'oid', 
+                                   'id', 'markdown', 'unsignedInt', 'positiveInt', 'uuid'];
+      
+      // If it's not a known primitive type and looks invalid, reject it
+      if (!systemTypes.includes(targetTypeName) && !fhirPrimitiveTypes.includes(targetTypeName)) {
+        // Check if it looks like a valid type name
+        if (!/^[A-Z][A-Za-z0-9]*$/.test(targetTypeName) && !/^[a-z][a-z0-9]*$/i.test(targetTypeName)) {
+          throw Errors.invalidOperation(`Invalid type name: ${targetTypeName}`);
+        }
+        // If it contains numbers but isn't a known type, it's likely invalid
+        if (/\d/.test(targetTypeName) && targetTypeName !== 'base64Binary') {
+          throw Errors.invalidOperation(`Unknown type: ${targetTypeName}`);
+        }
+      }
+    }
+
     // If we have typeInfo from the analyzer (with ModelProvider), use it
     // NOTE: This optimization is currently disabled because currentNode refers to the ofType
     // function node, not the input navigation node. The correct type checking happens below

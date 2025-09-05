@@ -198,6 +198,19 @@ export class Analyzer {
 
     // Special handling for dot operator - flow context through
     if (node.operator === '.') {
+      // Check if this is actually a namespaced type in an 'is' expression
+      // Parser incorrectly creates: (true is System).Boolean instead of: true is System.Boolean
+      if (node.left.type === NodeType.MembershipTest && node.right.type === NodeType.Identifier) {
+        const membershipTest = node.left as MembershipTestNode;
+        const rightIdent = node.right as IdentifierNode;
+        // Reconstruct the correct MembershipTest with full type name
+        const correctedNode: MembershipTestNode = {
+          ...membershipTest,
+          targetType: `${membershipTest.targetType}.${rightIdent.name}`
+        };
+        return await this.analyzeMembershipTest(correctedNode, context);
+      }
+      
       const leftResult = await this.analyzeNode(node.left, context);
       if (this.stoppedAtCursor) {
         return { type: { type: 'Any', singleton: false }, diagnostics: leftResult.diagnostics };
@@ -892,7 +905,14 @@ export class Analyzer {
 
     // ModelProvider requirement for non-primitive target types
     const primitiveTypes = ['String', 'Integer', 'Decimal', 'Boolean', 'Date', 'DateTime', 'Time', 'Quantity'];
-    if (!context.modelProvider && !primitiveTypes.includes(node.targetType)) {
+    
+    // Normalize System.X types to check if they're primitive
+    let targetType = node.targetType;
+    if (targetType.startsWith('System.')) {
+      targetType = targetType.substring(7); // Remove "System." prefix
+    }
+    
+    if (!context.modelProvider && !primitiveTypes.includes(targetType)) {
       diagnostics.push(toDiagnostic(Errors.modelProviderRequired('is', node.range)));
     }
     

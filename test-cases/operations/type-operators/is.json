@@ -390,7 +390,7 @@
     },
     {
       "name": "is - singleton true",
-      "expression": "Patient.active is Boolean",
+      "expression": "Patient.active is FHIR.boolean",
       "input": {
         "resourceType": "Patient",
         "active": true

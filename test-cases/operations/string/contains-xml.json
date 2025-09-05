@@ -1,0 +1,83 @@
+{
+  "name": "Contains String Function Tests from XML",
+  "description": "Tests for the contains() function with string arguments ported from XML test suite",
+  "tests": [
+    {
+      "name": "contains - should return false for non-matching substring",
+      "expression": "'12345'.contains('6') = false",
+      "expected": [true],
+      "tags": ["function", "string", "contains", "function:contains"],
+      "fromXML": "testContainsString1"
+    },
+    {
+      "name": "contains - should return true for matching single character",
+      "expression": "'12345'.contains('5') = true",
+      "expected": [true],
+      "tags": ["function", "string", "contains", "function:contains"],
+      "fromXML": "testContainsString2"
+    },
+    {
+      "name": "contains - should return true for matching multi-character substring",
+      "expression": "'12345'.contains('45') = true",
+      "expected": [true],
+      "tags": ["function", "string", "contains", "function:contains"],
+      "fromXML": "testContainsString3"
+    },
+    {
+      "name": "contains - should return false for non-matching multi-character substring",
+      "expression": "'12345'.contains('35') = false",
+      "expected": [true],
+      "tags": ["function", "string", "contains", "function:contains"],
+      "fromXML": "testContainsString4"
+    },
+    {
+      "name": "contains - should return true for complete string match",
+      "expression": "'12345'.contains('12345') = true",
+      "expected": [true],
+      "tags": ["function", "string", "contains", "function:contains"],
+      "fromXML": "testContainsString5"
+    },
+    {
+      "name": "contains - should return false for longer string",
+      "expression": "'12345'.contains('012345') = false",
+      "expected": [true],
+      "tags": ["function", "string", "contains", "function:contains"],
+      "fromXML": "testContainsString6"
+    },
+    {
+      "name": "contains - should return true for empty string",
+      "expression": "'12345'.contains('') = true",
+      "expected": [true],
+      "tags": ["function", "string", "contains", "function:contains"],
+      "fromXML": "testContainsString7"
+    },
+    {
+      "name": "contains - empty input should return empty",
+      "expression": "{}.contains('a').empty() = true",
+      "expected": [true],
+      "tags": ["function", "string", "contains", "function:contains", "empty"],
+      "fromXML": "testContainsString8"
+    },
+    {
+      "name": "contains - empty input with empty string should return empty",
+      "expression": "{}.contains('').empty() = true",
+      "expected": [true],
+      "tags": ["function", "string", "contains", "function:contains", "empty"],
+      "fromXML": "testContainsString9"
+    },
+    {
+      "name": "contains - dynamic substring using length",
+      "expression": "'123456789'.contains(length().toString())",
+      "expected": [true],
+      "tags": ["function", "string", "contains", "function:contains", "dynamic"],
+      "fromXML": "testContainsString10"
+    },
+    {
+      "name": "contains - semantic error on non-string input",
+      "expression": "Appointment.identifier.contains('rand')",
+      "expected": [],
+      "tags": ["function", "string", "contains", "function:contains", "error"],
+      "fromXML": "testContainsNonString1"
+    }
+  ]
+}

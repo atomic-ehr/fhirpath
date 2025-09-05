@@ -25,6 +25,17 @@ const isEvaluator: FunctionEvaluator = async (
   
   if (isIdentifierNode(typeArg)) {
     typeName = typeArg.name;
+  } else if (typeArg.type === NodeType.Binary && typeArg.operator === '.') {
+    // Handle namespaced types like System.Boolean or FHIR.Patient
+    // Reconstruct the full type name from the binary expression
+    const leftPart = typeArg.left;
+    const rightPart = typeArg.right;
+    
+    if (isIdentifierNode(leftPart) && isIdentifierNode(rightPart)) {
+      typeName = `${leftPart.name}.${rightPart.name}`;
+    } else {
+      throw new Error(`is() requires a type name as argument, got complex expression`);
+    }
   } else {
     // For other node types, try to get the name
     throw new Error(`is() requires a type name as argument, got ${typeArg.type}`);

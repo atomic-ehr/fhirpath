@@ -1,0 +1,83 @@
+{
+  "name": "EndsWith Function Tests from XML",
+  "description": "Tests for the endsWith() function ported from XML test suite",
+  "tests": [
+    {
+      "name": "endsWith - should return false for non-matching suffix",
+      "expression": "'12345'.endsWith('2') = false",
+      "expected": [true],
+      "tags": ["function", "string", "endsWith", "function:endsWith"],
+      "fromXML": "testEndsWith1"
+    },
+    {
+      "name": "endsWith - should return true for matching single character",
+      "expression": "'12345'.endsWith('5') = true",
+      "expected": [true],
+      "tags": ["function", "string", "endsWith", "function:endsWith"],
+      "fromXML": "testEndsWith2"
+    },
+    {
+      "name": "endsWith - should return true for matching multi-character suffix",
+      "expression": "'12345'.endsWith('45') = true",
+      "expected": [true],
+      "tags": ["function", "string", "endsWith", "function:endsWith"],
+      "fromXML": "testEndsWith3"
+    },
+    {
+      "name": "endsWith - should return false for non-matching multi-character suffix",
+      "expression": "'12345'.endsWith('35') = false",
+      "expected": [true],
+      "tags": ["function", "string", "endsWith", "function:endsWith"],
+      "fromXML": "testEndsWith4"
+    },
+    {
+      "name": "endsWith - should return true for complete string match",
+      "expression": "'12345'.endsWith('12345') = true",
+      "expected": [true],
+      "tags": ["function", "string", "endsWith", "function:endsWith"],
+      "fromXML": "testEndsWith5"
+    },
+    {
+      "name": "endsWith - should return false for longer string",
+      "expression": "'12345'.endsWith('012345') = false",
+      "expected": [true],
+      "tags": ["function", "string", "endsWith", "function:endsWith"],
+      "fromXML": "testEndsWith6"
+    },
+    {
+      "name": "endsWith - should return true for empty string",
+      "expression": "'12345'.endsWith('') = true",
+      "expected": [true],
+      "tags": ["function", "string", "endsWith", "function:endsWith"],
+      "fromXML": "testEndsWith7"
+    },
+    {
+      "name": "endsWith - empty input should return empty",
+      "expression": "{}.endsWith('1').empty() = true",
+      "expected": [true],
+      "tags": ["function", "string", "endsWith", "function:endsWith", "empty"],
+      "fromXML": "testEndsWith8"
+    },
+    {
+      "name": "endsWith - empty input with empty string should return empty",
+      "expression": "{}.endsWith('').empty() = true",
+      "expected": [true],
+      "tags": ["function", "string", "endsWith", "function:endsWith", "empty"],
+      "fromXML": "testEndsWith9"
+    },
+    {
+      "name": "endsWith - dynamic suffix using length",
+      "expression": "'123456789'.endsWith(length().toString())",
+      "expected": [true],
+      "tags": ["function", "string", "endsWith", "function:endsWith", "dynamic"],
+      "fromXML": "testEndsWith10"
+    },
+    {
+      "name": "endsWith - semantic error on non-string input",
+      "expression": "Appointment.identifier.endsWith('rand')",
+      "expected": [],
+      "tags": ["function", "string", "endsWith", "function:endsWith", "error"],
+      "fromXML": "testEndsWithNonString1"
+    }
+  ]
+}

@@ -1,0 +1,190 @@
+{
+  "title": "FHIRPath as() Function Tests from XML Test Suite",
+  "description": "Tests for the as() and ofType() functions with FHIR types and type conversions",
+  "tests": [
+    {
+      "name": "testFHIRPathAsFunction11 - Patient.gender.as(string)",
+      "expression": "Patient.gender.as(string)",
+      "input": {
+        "resourceType": "Patient",
+        "gender": "male"
+      },
+      "expected": [],
+      "tags": ["as-function", "fhir-types", "string", "xml-ported"],
+      "note": "Original XML test had no output element, indicating empty result"
+    },
+    {
+      "name": "testFHIRPathAsFunction12 - Patient.gender.as(code)",
+      "expression": "Patient.gender.as(code)",
+      "input": {
+        "resourceType": "Patient",
+        "gender": "male"
+      },
+      "expected": ["male"],
+      "tags": ["as-function", "fhir-types", "code", "xml-ported"]
+    },
+    {
+      "name": "testFHIRPathAsFunction13 - Patient.gender.as(id)",
+      "expression": "Patient.gender.as(id)",
+      "input": {
+        "resourceType": "Patient",
+        "gender": "male"
+      },
+      "expected": [],
+      "tags": ["as-function", "fhir-types", "id", "xml-ported"],
+      "note": "Original XML test had no output element, indicating empty result"
+    },
+    {
+      "name": "testFHIRPathAsFunction14 - ValueSet.version.as(string)",
+      "expression": "ValueSet.version.as(string)",
+      "input": {
+        "resourceType": "ValueSet",
+        "version": "20150622"
+      },
+      "expected": ["20150622"],
+      "tags": ["as-function", "fhir-types", "string", "xml-ported"]
+    },
+    {
+      "name": "testFHIRPathAsFunction15 - ValueSet.version.as(code)",
+      "expression": "ValueSet.version.as(code)",
+      "input": {
+        "resourceType": "ValueSet",
+        "version": "20150622"
+      },
+      "expected": [],
+      "tags": ["as-function", "fhir-types", "code", "xml-ported"],
+      "note": "Original XML test had no output element, indicating empty result"
+    },
+    {
+      "name": "testFHIRPathAsFunction16 - Patient.gender.ofType(string)",
+      "expression": "Patient.gender.ofType(string)",
+      "input": {
+        "resourceType": "Patient",
+        "gender": "male"
+      },
+      "expected": [],
+      "tags": ["of-type", "fhir-types", "string", "xml-ported"],
+      "note": "Original XML test had no output element, indicating empty result"
+    },
+    {
+      "name": "testFHIRPathAsFunction17 - Patient.gender.ofType(code)",
+      "expression": "Patient.gender.ofType(code)",
+      "input": {
+        "resourceType": "Patient",
+        "gender": "male"
+      },
+      "expected": ["male"],
+      "tags": ["of-type", "fhir-types", "code", "xml-ported"]
+    },
+    {
+      "name": "testFHIRPathAsFunction18 - Patient.gender.ofType(id)",
+      "expression": "Patient.gender.ofType(id)",
+      "input": {
+        "resourceType": "Patient",
+        "gender": "male"
+      },
+      "expected": [],
+      "tags": ["of-type", "fhir-types", "id", "xml-ported"],
+      "note": "Original XML test had no output element, indicating empty result"
+    },
+    {
+      "name": "testFHIRPathAsFunction19 - ValueSet.version.ofType(string)",
+      "expression": "ValueSet.version.ofType(string)",
+      "input": {
+        "resourceType": "ValueSet",
+        "version": "20150622"
+      },
+      "expected": ["20150622"],
+      "tags": ["of-type", "fhir-types", "string", "xml-ported"]
+    },
+    {
+      "name": "testFHIRPathAsFunction20 - ValueSet.version.ofType(code)",
+      "expression": "ValueSet.version.ofType(code)",
+      "input": {
+        "resourceType": "ValueSet",
+        "version": "20150622"
+      },
+      "expected": [],
+      "tags": ["of-type", "fhir-types", "code", "xml-ported"],
+      "note": "Original XML test had no output element, indicating empty result"
+    },
+    {
+      "name": "testFHIRPathAsFunction21 - Patient.name.as(HumanName).use (invalid execution)",
+      "expression": "Patient.name.as(HumanName).use",
+      "input": {
+        "resourceType": "Patient",
+        "name": [
+          {
+            "use": "official",
+            "family": "Chalmers",
+            "given": ["Peter", "James"]
+          },
+          {
+            "use": "usual",
+            "given": ["Jim"]
+          },
+          {
+            "use": "maiden",
+            "family": "Windsor",
+            "given": ["Peter", "James"]
+          }
+        ]
+      },
+      "error": {
+        "message": "as\\(\\) can only be used on single values, not on collections"
+      },
+      "tags": ["as-function", "fhir-types", "human-name", "xml-ported", "invalid-execution"]
+    },
+    {
+      "name": "testFHIRPathAsFunction22 - Patient.name.ofType(HumanName).use",
+      "expression": "Patient.name.ofType(HumanName).use",
+      "input": {
+        "resourceType": "Patient",
+        "name": [
+          {
+            "use": "official",
+            "family": "Chalmers",
+            "given": ["Peter", "James"]
+          },
+          {
+            "use": "usual",
+            "given": ["Jim"]
+          },
+          {
+            "use": "maiden",
+            "family": "Windsor",
+            "given": ["Peter", "James"]
+          }
+        ]
+      },
+      "expected": ["official", "usual", "maiden"],
+      "tags": ["of-type", "fhir-types", "human-name", "xml-ported"]
+    },
+    {
+      "name": "testFHIRPathAsFunction23 - Patient.gender.as(string1) (invalid execution)",
+      "expression": "Patient.gender.as(string1)",
+      "input": {
+        "resourceType": "Patient",
+        "gender": "male"
+      },
+      "modelProvider": "R4",
+      "error": {
+        "message": "Unknown type: string1"
+      },
+      "tags": ["as-function", "fhir-types", "invalid-type", "xml-ported", "invalid-execution"]
+    },
+    {
+      "name": "testFHIRPathAsFunction24 - Patient.gender.ofType(string1) (invalid execution)",
+      "expression": "Patient.gender.ofType(string1)",
+      "input": {
+        "resourceType": "Patient",
+        "gender": "male"
+      },
+      "modelProvider": "R4",
+      "error": {
+        "message": "Invalid operation: Unknown type: string1"
+      },
+      "tags": ["of-type", "fhir-types", "invalid-type", "xml-ported", "invalid-execution"]
+    }
+  ]
+}

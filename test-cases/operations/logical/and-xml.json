@@ -1,0 +1,60 @@
+{
+  "title": "Boolean Logic AND Tests from XML Test Suite",
+  "description": "Tests for the 'and' logical operator with various boolean combinations and empty collections",
+  "tests": [
+    {
+      "name": "testBooleanLogicAnd1 - true and true = true",
+      "expression": "(true and true) = true",
+      "expected": [true],
+      "tags": ["and", "boolean-logic", "xml-ported"]
+    },
+    {
+      "name": "testBooleanLogicAnd2 - true and false = false",
+      "expression": "(true and false) = false",
+      "expected": [true],
+      "tags": ["and", "boolean-logic", "xml-ported"]
+    },
+    {
+      "name": "testBooleanLogicAnd3 - true and empty is empty",
+      "expression": "(true and {}).empty()",
+      "expected": [true],
+      "tags": ["and", "boolean-logic", "empty-collection", "xml-ported"]
+    },
+    {
+      "name": "testBooleanLogicAnd4 - false and true = false",
+      "expression": "(false and true) = false",
+      "expected": [true],
+      "tags": ["and", "boolean-logic", "xml-ported"]
+    },
+    {
+      "name": "testBooleanLogicAnd5 - false and false = false",
+      "expression": "(false and false) = false",
+      "expected": [true],
+      "tags": ["and", "boolean-logic", "xml-ported"]
+    },
+    {
+      "name": "testBooleanLogicAnd6 - false and empty = false",
+      "expression": "(false and {}) = false",
+      "expected": [true],
+      "tags": ["and", "boolean-logic", "empty-collection", "xml-ported"]
+    },
+    {
+      "name": "testBooleanLogicAnd7 - empty and true is empty",
+      "expression": "({} and true).empty()",
+      "expected": [true],
+      "tags": ["and", "boolean-logic", "empty-collection", "xml-ported"]
+    },
+    {
+      "name": "testBooleanLogicAnd8 - empty and false = false",
+      "expression": "({} and false) = false",
+      "expected": [true],
+      "tags": ["and", "boolean-logic", "empty-collection", "xml-ported"]
+    },
+    {
+      "name": "testBooleanLogicAnd9 - empty and empty is empty",
+      "expression": "({} and {}).empty()",
+      "expected": [true],
+      "tags": ["and", "boolean-logic", "empty-collection", "xml-ported"]
+    }
+  ]
+}

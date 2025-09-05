@@ -328,15 +328,31 @@ export class Interpreter {
     item: object,
     name: string,
     nodeTypeInfo: TypeInfo | undefined,
-    context: RuntimeContext
+    context: RuntimeContext,
+    parentTypeInfo?: TypeInfo
   ): Promise<FHIRPathValue[]> {
     const results: FHIRPathValue[] = [];
     if (name in (item as any)) {
       const value = (item as any)[name];
       const primitiveElement = getPrimitiveElement(item as Record<string, unknown>, name);
 
+      // Determine if this is a FHIR primitive - if parent is a FHIR resource and value is primitive
+      const isFHIRPrimitive = parentTypeInfo && 
+                              parentTypeInfo.type && 
+                              parentTypeInfo.type !== 'Any' && 
+                              !parentTypeInfo.type.startsWith('System.') &&
+                              (typeof value === 'boolean' || typeof value === 'string' || typeof value === 'number');
+
       if (Array.isArray(value)) {
-        const elementTypeInfo = nodeTypeInfo ? { ...nodeTypeInfo, singleton: true } : undefined;
+        let elementTypeInfo = nodeTypeInfo ? { ...nodeTypeInfo, singleton: true } : undefined;
+        
+        // For FHIR primitives, use FHIR namespace
+        if (isFHIRPrimitive && elementTypeInfo) {
+          if (elementTypeInfo.type === 'Boolean') {
+            elementTypeInfo = { ...elementTypeInfo, type: 'boolean' as any };
+          }
+        }
+        
         for (const v of value) {
           if (
             v && typeof v === 'object' && 'resourceType' in (v as any) && typeof (v as any).resourceType === 'string'
@@ -357,8 +373,16 @@ export class Interpreter {
           const boxed = await reboxResource(value, true, context.modelProvider);
           results.push(boxed);
         } else {
-          const val = await maybeParseTemporal(value, nodeTypeInfo, context.modelProvider);
-          results.push(box(val, nodeTypeInfo, primitiveElement));
+          // For FHIR primitives, use FHIR namespace
+          let typeInfo = nodeTypeInfo;
+          if (isFHIRPrimitive && typeInfo) {
+            if (typeInfo.type === 'Boolean') {
+              typeInfo = { ...typeInfo, type: 'boolean' as any };
+            }
+          }
+          
+          const val = await maybeParseTemporal(value, typeInfo, context.modelProvider);
+          results.push(box(val, typeInfo, primitiveElement));
         }
       }
     }
@@ -395,7 +419,7 @@ export class Interpreter {
         results.push(...unionResults);
 
         // 4. Handle standard property access
-        const propertyResults = await this.handleStandardProperty(item, name, nodeTypeInfo, context);
+        const propertyResults = await this.handleStandardProperty(item, name, nodeTypeInfo, context, boxedItem.typeInfo);
         results.push(...propertyResults);
       }
     }
@@ -433,6 +457,26 @@ export class Interpreter {
 
     // Special handling for dot operator (sequential pipeline)
     if (operator === '.') {
+      // Check if this is actually a namespaced type in an 'is' expression
+      // Parser incorrectly creates: (true is System).Boolean instead of: true is System.Boolean
+      if (binary.left.type === NodeType.MembershipTest && binary.right.type === NodeType.Identifier) {
+        const membershipTest = binary.left as MembershipTestNode;
+        const rightIdent = binary.right as IdentifierNode;
+        
+        // Extract the expression from the membership test
+        const expr = membershipTest.expression;
+        const typeName = `${membershipTest.targetType}.${rightIdent.name}`;
+        
+        // Evaluate the expression
+        const exprResult = await this.evaluate(expr, input, context);
+        
+        // Now apply the is operator with the full type name
+        const evaluator = this.operationEvaluators.get('is');
+        if (evaluator) {
+          return await evaluator(input, context, exprResult.value, [typeName]);
+        }
+      }
+      
       // Evaluate left with current input/context
       const leftResult = await this.evaluate(binary.left, input, context);
       
@@ -459,6 +503,32 @@ export class Interpreter {
       throw Errors.noEvaluatorFound('binary operator', '|');
     }
 
+    // Special handling for 'is' and 'as' operators - right side is a type identifier, not an expression
+    if (operator === 'is' || operator === 'as') {
+      const leftResult = await this.evaluate(binary.left, input, context);
+      
+      // Extract type name from right side WITHOUT evaluating it
+      let typeName: string;
+      if (binary.right.type === NodeType.Identifier) {
+        typeName = (binary.right as any).name;
+      } else if (binary.right.type === NodeType.Binary && (binary.right as any).operator === '.') {
+        // Handle namespaced types like System.Boolean or FHIR.Patient
+        const rightBinary = binary.right as any;
+        if (rightBinary.left.type === NodeType.Identifier && rightBinary.right.type === NodeType.Identifier) {
+          typeName = `${rightBinary.left.name}.${rightBinary.right.name}`;
+        } else {
+          throw new Error('is operator requires a type name as right operand');
+        }
+      } else {
+        throw new Error('is operator requires a type name as right operand');
+      }
+      
+      const evaluator = this.operationEvaluators.get('is');
+      if (evaluator) {
+        return await evaluator(input, context, leftResult.value, [typeName]);
+      }
+    }
+    
     // Get operation evaluator
     const evaluator = this.operationEvaluators.get(operator);
     if (evaluator) {

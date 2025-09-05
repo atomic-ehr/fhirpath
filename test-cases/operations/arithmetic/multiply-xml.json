@@ -1,0 +1,48 @@
+{
+  "name": "Multiply Operator Tests (XML Port)",
+  "description": "Tests for the * (multiplication) operator ported from fhirpathlab-tests.xml",
+  "tests": [
+    {
+      "name": "testMultiply1 - basic multiplication",
+      "expression": "1 * 1 = 1",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "arithmetic", "multiplication", "operator:*", "xml-port"]
+    },
+    {
+      "name": "testMultiply2 - multiply by zero",
+      "expression": "1 * 0 = 0",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "arithmetic", "multiplication", "operator:*", "xml-port"]
+    },
+    {
+      "name": "testMultiply3 - decimal multiplication",
+      "expression": "1.2 * 1.8 = 2.16",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "arithmetic", "multiplication", "operator:*", "decimal", "xml-port"]
+    },
+    {
+      "name": "testMultiplyEmpty1 - number multiply empty",
+      "expression": "1 * {}",
+      "input": [],
+      "expected": [],
+      "tags": ["operator", "arithmetic", "empty", "operator:*", "xml-port"]
+    },
+    {
+      "name": "testMultiplyEmpty2 - empty multiply number",
+      "expression": "{} * 1",
+      "input": [],
+      "expected": [],
+      "tags": ["operator", "arithmetic", "empty", "operator:*", "xml-port"]
+    },
+    {
+      "name": "testMultiplyEmpty3 - empty multiply empty",
+      "expression": "{} * {}",
+      "input": [],
+      "expected": [],
+      "tags": ["operator", "arithmetic", "empty", "operator:*", "xml-port"]
+    }
+  ]
+}

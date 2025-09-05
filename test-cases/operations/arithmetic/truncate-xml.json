@@ -1,0 +1,34 @@
+{
+  "name": "Truncate Function Tests (XML Port)",
+  "description": "Tests for the truncate() function ported from fhirpathlab-tests.xml",
+  "tests": [
+    {
+      "name": "testTruncate1 - truncate integer",
+      "expression": "101.truncate() = 101",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "arithmetic", "truncate", "function:truncate", "xml-port"]
+    },
+    {
+      "name": "testTruncate2 - truncate small positive decimal",
+      "expression": "1.00000001.truncate() = 1",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "arithmetic", "truncate", "function:truncate", "decimal", "xml-port"]
+    },
+    {
+      "name": "testTruncate3 - truncate negative decimal",
+      "expression": "(-1.56).truncate() = -1",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "arithmetic", "truncate", "function:truncate", "negative", "xml-port"]
+    },
+    {
+      "name": "testTruncateEmpty - empty truncate",
+      "expression": "{}.truncate().empty()",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "arithmetic", "empty", "function:truncate", "xml-port"]
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "name": "Power Function Tests (XML Port)",
+  "description": "Tests for the power() function ported from fhirpathlab-tests.xml",
+  "tests": [
+    {
+      "name": "testPower1 - integer power",
+      "expression": "2.power(3) = 8",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "arithmetic", "power", "function:power", "xml-port"]
+    },
+    {
+      "name": "testPower2 - decimal power",
+      "expression": "2.5.power(2) = 6.25",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "arithmetic", "power", "function:power", "decimal", "xml-port"]
+    },
+    {
+      "name": "testPower3 - negative base with fractional exponent",
+      "expression": "(-1).power(0.5)",
+      "input": [],
+      "expected": [],
+      "tags": ["function", "arithmetic", "power", "function:power", "negative", "xml-port"]
+    },
+    {
+      "name": "testPowerEmpty - empty base",
+      "expression": "{}.power(2).empty()",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "arithmetic", "empty", "function:power", "xml-port"]
+    },
+    {
+      "name": "testPowerEmpty2 - empty exponent",
+      "expression": "{}.power({}).empty()",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "arithmetic", "empty", "function:power", "xml-port"]
+    },
+    {
+      "name": "testPowerEmpty3 - number with empty exponent",
+      "expression": "2.5.power({}).empty()",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "arithmetic", "empty", "function:power", "xml-port"]
+    }
+  ]
+}

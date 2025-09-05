@@ -1,0 +1,196 @@
+{
+  "name": "Less-or-Equal (<=) Tests from XML",
+  "description": "Tests for the less-or-equal (<=) operator extracted from fhirpathlab-tests.xml",
+  "tests": [
+    {
+      "name": "Integer comparison - 1 <= 2",
+      "expression": "1 <= 2",
+      "expected": [true],
+      "tags": ["comparison", "less-or-equal", "integer"],
+      "fromXML": "testLessOrEqual1"
+    },
+    {
+      "name": "Decimal comparison - 1.0 <= 1.2",
+      "expression": "1.0 <= 1.2",
+      "expected": [true],
+      "tags": ["comparison", "less-or-equal", "decimal"],
+      "fromXML": "testLessOrEqual2"
+    },
+    {
+      "name": "String comparison - 'a' <= 'b'",
+      "expression": "'a' <= 'b'",
+      "expected": [true],
+      "tags": ["comparison", "less-or-equal", "string"],
+      "fromXML": "testLessOrEqual3"
+    },
+    {
+      "name": "Case sensitive string comparison - 'A' <= 'a'",
+      "expression": "'A' <= 'a'",
+      "expected": [true],
+      "tags": ["comparison", "less-or-equal", "string", "case-sensitive"],
+      "fromXML": "testLessOrEqual4"
+    },
+    {
+      "name": "Date comparison - earlier date",
+      "expression": "@2014-12-12 <= @2014-12-13",
+      "expected": [true],
+      "tags": ["comparison", "less-or-equal", "date", "temporal"],
+      "fromXML": "testLessOrEqual5"
+    },
+    {
+      "name": "DateTime comparison - earlier datetime",
+      "expression": "@2014-12-13T12:00:00 <= @2014-12-13T12:00:01",
+      "expected": [true],
+      "tags": ["comparison", "less-or-equal", "datetime", "temporal"],
+      "fromXML": "testLessOrEqual6"
+    },
+    {
+      "name": "Time comparison - earlier time",
+      "expression": "@T12:00:00 <= @T14:00:00",
+      "expected": [true],
+      "tags": ["comparison", "less-or-equal", "time", "temporal"],
+      "fromXML": "testLessOrEqual7"
+    },
+    {
+      "name": "Integer equality - equal",
+      "expression": "1 <= 1",
+      "expected": [true],
+      "tags": ["comparison", "less-or-equal", "integer", "equality"],
+      "fromXML": "testLessOrEqual8"
+    },
+    {
+      "name": "Decimal equality - equal",
+      "expression": "1.0 <= 1.0",
+      "expected": [true],
+      "tags": ["comparison", "less-or-equal", "decimal", "equality"],
+      "fromXML": "testLessOrEqual9"
+    },
+    {
+      "name": "String equality - equal",
+      "expression": "'a' <= 'a'",
+      "expected": [true],
+      "tags": ["comparison", "less-or-equal", "string", "equality"],
+      "fromXML": "testLessOrEqual10"
+    },
+    {
+      "name": "Uppercase string equality - equal",
+      "expression": "'A' <= 'A'",
+      "expected": [true],
+      "tags": ["comparison", "less-or-equal", "string", "equality"],
+      "fromXML": "testLessOrEqual11"
+    },
+    {
+      "name": "Date equality - same date",
+      "expression": "@2014-12-12 <= @2014-12-12",
+      "expected": [true],
+      "tags": ["comparison", "less-or-equal", "date", "temporal", "equality"],
+      "fromXML": "testLessOrEqual12"
+    },
+    {
+      "name": "DateTime equality - same datetime",
+      "expression": "@2014-12-13T12:00:00 <= @2014-12-13T12:00:00",
+      "expected": [true],
+      "tags": ["comparison", "less-or-equal", "datetime", "temporal", "equality"],
+      "fromXML": "testLessOrEqual13"
+    },
+    {
+      "name": "Time equality - same time",
+      "expression": "@T12:00:00 <= @T12:00:00",
+      "expected": [true],
+      "tags": ["comparison", "less-or-equal", "time", "temporal", "equality"],
+      "fromXML": "testLessOrEqual14"
+    },
+    {
+      "name": "Integer comparison - 2 not <= 1",
+      "expression": "2 <= 1",
+      "expected": [false],
+      "tags": ["comparison", "less-or-equal", "integer"],
+      "fromXML": "testLessOrEqual15"
+    },
+    {
+      "name": "Decimal comparison - 1.1 not <= 1.0",
+      "expression": "1.1 <= 1.0",
+      "expected": [false],
+      "tags": ["comparison", "less-or-equal", "decimal"],
+      "fromXML": "testLessOrEqual16"
+    },
+    {
+      "name": "String comparison - 'b' not <= 'a'",
+      "expression": "'b' <= 'a'",
+      "expected": [false],
+      "tags": ["comparison", "less-or-equal", "string"],
+      "fromXML": "testLessOrEqual17"
+    },
+    {
+      "name": "Case sensitive string comparison - 'B' not <= 'A'",
+      "expression": "'B' <= 'A'",
+      "expected": [false],
+      "tags": ["comparison", "less-or-equal", "string", "case-sensitive"],
+      "fromXML": "testLessOrEqual18"
+    },
+    {
+      "name": "Date comparison - later date not less or equal",
+      "expression": "@2014-12-13 <= @2014-12-12",
+      "expected": [false],
+      "tags": ["comparison", "less-or-equal", "date", "temporal"],
+      "fromXML": "testLessOrEqual19"
+    },
+    {
+      "name": "DateTime comparison - later datetime not less or equal",
+      "expression": "@2014-12-13T12:00:01 <= @2014-12-13T12:00:00",
+      "expected": [false],
+      "tags": ["comparison", "less-or-equal", "datetime", "temporal"],
+      "fromXML": "testLessOrEqual20"
+    },
+    {
+      "name": "Time comparison - later time not less or equal",
+      "expression": "@T12:00:01 <= @T12:00:00",
+      "expected": [false],
+      "tags": ["comparison", "less-or-equal", "time", "temporal"],
+      "fromXML": "testLessOrEqual21"
+    },
+    {
+      "name": "Observation value less-or-equal with quantity",
+      "expression": "Observation.value <= 200 '[lb_av]'",
+      "inputFile": "../../input/observation-example.json",
+      "expected": [true],
+      "tags": ["comparison", "less-or-equal", "quantity", "fhir"],
+      "fromXML": "testLessOrEqual22"
+    },
+    {
+      "name": "Partial date comparison - incomparable precision",
+      "expression": "@2018-03 <= @2018-03-01",
+      "expected": [],
+      "tags": ["comparison", "less-or-equal", "date", "temporal", "precision"],
+      "fromXML": "testLessOrEqual23"
+    },
+    {
+      "name": "Partial datetime comparison - incomparable precision",
+      "expression": "@2018-03-01T10:30 <= @2018-03-01T10:30:00",
+      "expected": [],
+      "tags": ["comparison", "less-or-equal", "datetime", "temporal", "precision"],
+      "fromXML": "testLessOrEqual24"
+    },
+    {
+      "name": "Partial time comparison - incomparable precision",
+      "expression": "@T10:30 <= @T10:30:00",
+      "expected": [],
+      "tags": ["comparison", "less-or-equal", "time", "temporal", "precision"],
+      "fromXML": "testLessOrEqual25"
+    },
+    {
+      "name": "DateTime precision comparison - equal with decimals",
+      "expression": "@2018-03-01T10:30:00 <= @2018-03-01T10:30:00.0",
+      "expected": [true],
+      "tags": ["comparison", "less-or-equal", "datetime", "temporal", "precision"],
+      "fromXML": "testLessOrEqual26"
+    },
+    {
+      "name": "Time precision comparison - equal with decimals",
+      "expression": "@T10:30:00 <= @T10:30:00.0",
+      "expected": [true],
+      "tags": ["comparison", "less-or-equal", "time", "temporal", "precision"],
+      "fromXML": "testLessOrEqual27"
+    }
+  ]
+}

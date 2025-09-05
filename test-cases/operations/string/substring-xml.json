@@ -1,0 +1,84 @@
+{
+  "name": "Substring Function Tests from XML",
+  "description": "Tests for the substring() function ported from XML test suite",
+  "tests": [
+    {
+      "name": "substring - with start index only",
+      "expression": "'12345'.substring(2) = '345'",
+      "expected": [true],
+      "tags": ["function", "string", "substring", "function:substring"],
+      "fromXML": "testSubstring1"
+    },
+    {
+      "name": "substring - with start and length",
+      "expression": "'12345'.substring(2,1) = '3'",
+      "expected": [true],
+      "tags": ["function", "string", "substring", "function:substring"],
+      "fromXML": "testSubstring2"
+    },
+    {
+      "name": "substring - with start and length equal to remaining",
+      "expression": "'12345'.substring(2,5) = '345'",
+      "expected": [true],
+      "tags": ["function", "string", "substring", "function:substring"],
+      "fromXML": "testSubstring3"
+    },
+    {
+      "name": "substring - with out of bounds start index should return empty",
+      "expression": "'12345'.substring(25).empty()",
+      "expected": [true],
+      "tags": ["function", "string", "substring", "function:substring", "empty", "bounds"],
+      "fromXML": "testSubstring4"
+    },
+    {
+      "name": "substring - with negative start index should return empty",
+      "expression": "'12345'.substring(-1).empty()",
+      "expected": [true],
+      "tags": ["function", "string", "substring", "function:substring", "empty", "negative"],
+      "fromXML": "testSubstring5"
+    },
+    {
+      "name": "substring - from beginning with length",
+      "expression": "'LogicalModel-Person'.substring(0, 12)",
+      "expected": ["LogicalModel"],
+      "tags": ["function", "string", "substring", "function:substring"],
+      "fromXML": "testSubstring7"
+    },
+    {
+      "name": "substring - from beginning to indexOf result",
+      "expression": "'LogicalModel-Person'.substring(0, 'LogicalModel-Person'.indexOf('-'))",
+      "expected": ["LogicalModel"],
+      "tags": ["function", "string", "substring", "function:substring", "indexOf"],
+      "fromXML": "testSubstring8"
+    },
+    {
+      "name": "substring - empty input should return empty",
+      "expression": "{}.substring(25).empty() = true",
+      "expected": [true],
+      "tags": ["function", "string", "substring", "function:substring", "empty"],
+      "fromXML": "testSubstring9"
+    },
+    {
+      "name": "substring - Patient name family with length calculation",
+      "expression": "Patient.name.family.first().substring(2, length()-5)",
+      "expected": ["alm"],
+      "tags": ["function", "string", "substring", "function:substring", "Patient"],
+      "fromXML": "testSubstring10",
+      "inputFile": "../../input/patient-example.json"
+    },
+    {
+      "name": "substring - empty input with empty parameters should return empty",
+      "expression": "{}.substring({}).empty() = true",
+      "expected": [true],
+      "tags": ["function", "string", "substring", "function:substring", "empty"],
+      "fromXML": "testSubstring11"
+    },
+    {
+      "name": "substring - string with empty parameters should return empty",
+      "expression": "'string'.substring({}).empty() = true",
+      "expected": [true],
+      "tags": ["function", "string", "substring", "function:substring", "empty"],
+      "fromXML": "testSubstring12"
+    }
+  ]
+}

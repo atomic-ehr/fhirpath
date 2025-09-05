@@ -1,0 +1,62 @@
+{
+  "name": "Plus Operator Tests (XML Port)",
+  "description": "Tests for the + (addition) operator ported from fhirpathlab-tests.xml",
+  "tests": [
+    {
+      "name": "testPlus1 - integer addition",
+      "expression": "1 + 1 = 2",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "arithmetic", "addition", "operator:+", "xml-port"]
+    },
+    {
+      "name": "testPlus2 - add zero",
+      "expression": "1 + 0 = 1",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "arithmetic", "addition", "operator:+", "xml-port"]
+    },
+    {
+      "name": "testPlus3 - decimal addition",
+      "expression": "1.2 + 1.8 = 3.0",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "arithmetic", "addition", "operator:+", "decimal", "xml-port"]
+    },
+    {
+      "name": "testPlus4 - string concatenation",
+      "expression": "'a'+'b' = 'ab'",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "string", "concatenation", "operator:+", "xml-port"]
+    },
+    {
+      "name": "testPlus5 - string plus empty",
+      "expression": "'a'+{}",
+      "input": [],
+      "expected": [],
+      "tags": ["operator", "string", "empty", "operator:+", "xml-port"]
+    },
+    {
+      "name": "testPlusEmpty1 - number plus empty",
+      "expression": "1 + {}",
+      "input": [],
+      "expected": [],
+      "tags": ["operator", "arithmetic", "empty", "operator:+", "xml-port"]
+    },
+    {
+      "name": "testPlusEmpty2 - empty plus number",
+      "expression": "{} + 1",
+      "input": [],
+      "expected": [],
+      "tags": ["operator", "arithmetic", "empty", "operator:+", "xml-port"]
+    },
+    {
+      "name": "testPlusEmpty3 - empty plus empty",
+      "expression": "{} + {}",
+      "input": [],
+      "expected": [],
+      "tags": ["operator", "arithmetic", "empty", "operator:+", "xml-port"]
+    }
+  ]
+}

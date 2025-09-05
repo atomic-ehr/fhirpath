@@ -23,7 +23,7 @@ export const evaluate: OperationEvaluator = async (input, context, left, right) 
       r && typeof r === 'object' && 'unit' in r) {
     const rightQuantity = r as QuantityValue;
     if (rightQuantity.value === 0) {
-      throw Errors.divisionByZero();
+      return { value: [], context };  // Return empty for division by zero
     }
     const result = divideQuantities(l as QuantityValue, rightQuantity);
     return { value: result ? [box(result, { type: 'Quantity', singleton: true })] : [], context };
@@ -32,7 +32,7 @@ export const evaluate: OperationEvaluator = async (input, context, left, right) 
   // Handle quantity / number
   if (l && typeof l === 'object' && 'unit' in l && typeof r === 'number') {
     if (r === 0) {
-      throw Errors.divisionByZero();
+      return { value: [], context };  // Return empty for division by zero
     }
     const q = l as QuantityValue;
     return { value: [box({ value: q.value / r, unit: q.unit }, { type: 'Quantity', singleton: true })], context };
@@ -41,7 +41,7 @@ export const evaluate: OperationEvaluator = async (input, context, left, right) 
   // Handle numeric division
   if (typeof l === 'number' && typeof r === 'number') {
     if (r === 0) {
-      throw Errors.divisionByZero();
+      return { value: [], context };  // Return empty for division by zero
     }
     return { value: [box(l / r, { type: 'Any', singleton: true })], context };
   }

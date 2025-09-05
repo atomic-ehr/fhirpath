@@ -1,0 +1,27 @@
+{
+  "name": "Sqrt Function Tests (XML Port)",
+  "description": "Tests for the sqrt() function ported from fhirpathlab-tests.xml",
+  "tests": [
+    {
+      "name": "testSqrt1 - square root of perfect square",
+      "expression": "81.sqrt() = 9.0",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "arithmetic", "sqrt", "function:sqrt", "xml-port"]
+    },
+    {
+      "name": "testSqrt2 - square root of negative number",
+      "expression": "(-1).sqrt()",
+      "input": [],
+      "expected": [],
+      "tags": ["function", "arithmetic", "sqrt", "function:sqrt", "negative", "xml-port"]
+    },
+    {
+      "name": "testSqrtEmpty - empty sqrt",
+      "expression": "{}.sqrt().empty()",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "arithmetic", "empty", "function:sqrt", "xml-port"]
+    }
+  ]
+}

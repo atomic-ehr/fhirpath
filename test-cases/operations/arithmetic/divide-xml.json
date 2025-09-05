@@ -1,0 +1,69 @@
+{
+  "name": "Divide Operator Tests (XML Port)",
+  "description": "Tests for the / (division) operator ported from fhirpathlab-tests.xml",
+  "tests": [
+    {
+      "name": "testDivide1 - basic division",
+      "expression": "1 / 1 = 1",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "arithmetic", "division", "operator:/", "xml-port"]
+    },
+    {
+      "name": "testDivide2 - even division",
+      "expression": "4 / 2 = 2",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "arithmetic", "division", "operator:/", "xml-port"]
+    },
+    {
+      "name": "testDivide3 - decimal division",
+      "expression": "4.0 / 2.0 = 2.0",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "arithmetic", "division", "operator:/", "decimal", "xml-port"]
+    },
+    {
+      "name": "testDivide4 - fraction result",
+      "expression": "1 / 2 = 0.5",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "arithmetic", "division", "operator:/", "fraction", "xml-port"]
+    },
+    {
+      "name": "testDivide5 - division with rounding",
+      "expression": "(1.2 / 1.8).round(2) = 0.67",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "arithmetic", "division", "function", "operator:/", "decimal", "xml-port"]
+    },
+    {
+      "name": "testDivide6 - division by zero",
+      "expression": "1 / 0",
+      "input": [],
+      "expected": [],
+      "tags": ["operator", "arithmetic", "division", "zero", "operator:/", "xml-port"]
+    },
+    {
+      "name": "testDivideEmpty1 - number divide empty",
+      "expression": "1 / {}",
+      "input": [],
+      "expected": [],
+      "tags": ["operator", "arithmetic", "empty", "operator:/", "xml-port"]
+    },
+    {
+      "name": "testDivideEmpty2 - empty divide number",
+      "expression": "{} / 1",
+      "input": [],
+      "expected": [],
+      "tags": ["operator", "arithmetic", "empty", "operator:/", "xml-port"]
+    },
+    {
+      "name": "testDivideEmpty3 - empty divide empty",
+      "expression": "{} / {}",
+      "input": [],
+      "expected": [],
+      "tags": ["operator", "arithmetic", "empty", "operator:/", "xml-port"]
+    }
+  ]
+}

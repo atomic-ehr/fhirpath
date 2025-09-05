@@ -1,0 +1,62 @@
+{
+  "name": "Mod Operator Tests (XML Port)",
+  "description": "Tests for the mod (modulo) operator ported from fhirpathlab-tests.xml",
+  "tests": [
+    {
+      "name": "testMod1 - modulo with same numbers",
+      "expression": "1 mod 1 = 0",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "arithmetic", "modulo", "operator:mod", "xml-port"]
+    },
+    {
+      "name": "testMod2 - even modulo",
+      "expression": "4 mod 2 = 0",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "arithmetic", "modulo", "operator:mod", "xml-port"]
+    },
+    {
+      "name": "testMod3 - modulo with remainder",
+      "expression": "5 mod 2 = 1",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "arithmetic", "modulo", "operator:mod", "xml-port"]
+    },
+    {
+      "name": "testMod4 - decimal modulo",
+      "expression": "2.2 mod 1.8 = 0.4",
+      "input": [],
+      "expected": [true],
+      "tags": ["operator", "arithmetic", "modulo", "operator:mod", "decimal", "xml-port"]
+    },
+    {
+      "name": "testMod5 - modulo by zero",
+      "expression": "5 mod 0",
+      "input": [],
+      "expected": [],
+      "tags": ["operator", "arithmetic", "modulo", "zero", "operator:mod", "xml-port"]
+    },
+    {
+      "name": "testModEmpty1 - number mod empty",
+      "expression": "1 mod {}",
+      "input": [],
+      "expected": [],
+      "tags": ["operator", "arithmetic", "empty", "operator:mod", "xml-port"]
+    },
+    {
+      "name": "testModEmpty2 - empty mod number",
+      "expression": "{} mod 1",
+      "input": [],
+      "expected": [],
+      "tags": ["operator", "arithmetic", "empty", "operator:mod", "xml-port"]
+    },
+    {
+      "name": "testModEmpty3 - empty mod empty",
+      "expression": "{} mod {}",
+      "input": [],
+      "expected": [],
+      "tags": ["operator", "arithmetic", "empty", "operator:mod", "xml-port"]
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "name": "Abs Function Tests (XML Port)",
+  "description": "Tests for the abs() function ported from fhirpathlab-tests.xml",
+  "tests": [
+    {
+      "name": "testAbs1 - absolute value of negative integer",
+      "expression": "(-5).abs() = 5",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "arithmetic", "absolute", "function:abs", "xml-port"]
+    },
+    {
+      "name": "testAbs2 - absolute value of negative decimal",
+      "expression": "(-5.5).abs() = 5.5",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "arithmetic", "absolute", "function:abs", "decimal", "xml-port"]
+    },
+    {
+      "name": "testAbs3 - absolute value of negative quantity",
+      "expression": "(-5.5 'mg').abs() = 5.5 'mg'",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "arithmetic", "absolute", "function:abs", "quantity", "xml-port"]
+    },
+    {
+      "name": "testAbsEmpty - empty abs",
+      "expression": "{}.abs().empty()",
+      "input": [],
+      "expected": [true],
+      "tags": ["function", "arithmetic", "empty", "function:abs", "xml-port"]
+    }
+  ]
+}

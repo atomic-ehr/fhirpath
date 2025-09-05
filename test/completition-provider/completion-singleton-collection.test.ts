@@ -168,7 +168,7 @@ describe('Completion Provider - Singleton vs Collection', () => {
       expect(singletonFunctions.length).toBeGreaterThan(collectionFunctions.length);
       
       // Approximate expected counts (may vary as functions are added)
-      expect(collectionFunctions.length).toBeLessThan(35); // Collection functions only
+      expect(collectionFunctions.length).toBeLessThan(36); // Collection functions only
       expect(singletonFunctions.length).toBeGreaterThan(40); // Includes singleton functions
     });
   });

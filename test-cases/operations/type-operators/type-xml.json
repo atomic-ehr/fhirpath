@@ -1,0 +1,192 @@
+{
+  "title": "Type Operation Tests from XML Test Suite",
+  "description": "Type testing operations with type checking. Note: 13 tests using .type() function removed as function not implemented",
+  "modelProvider": "R4",
+  "tests": [
+    {
+      "name": "testType5 - boolean is Boolean",
+      "expression": "true.is(Boolean)",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "type",
+        "boolean",
+        "is-operator",
+        "xml-ported"
+      ]
+    },
+    {
+      "name": "testType6 - boolean is System.Boolean",
+      "expression": "true.is(System.Boolean)",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "type",
+        "boolean",
+        "is-operator",
+        "xml-ported"
+      ]
+    },
+    {
+      "name": "testType7 - boolean is Boolean (operator)",
+      "expression": "true is Boolean",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "type",
+        "boolean",
+        "is-operator",
+        "xml-ported"
+      ]
+    },
+    {
+      "name": "testType8 - boolean is System.Boolean (operator)",
+      "expression": "true is System.Boolean",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "type",
+        "boolean",
+        "is-operator",
+        "xml-ported"
+      ]
+    },
+    {
+      "name": "testType11 - Patient.active is boolean",
+      "expression": "Patient.active.is(boolean)",
+      "input": {
+        "resourceType": "Patient",
+        "active": true
+      },
+      "expected": [
+        true
+      ],
+      "tags": [
+        "type",
+        "fhir-types",
+        "is-operator",
+        "xml-ported"
+      ]
+    },
+    {
+      "name": "testType12 - Patient.active is not Boolean",
+      "expression": "Patient.active.is(Boolean).not()",
+      "input": {
+        "resourceType": "Patient",
+        "active": true
+      },
+      "expected": [
+        true
+      ],
+      "tags": [
+        "type",
+        "fhir-types",
+        "is-operator",
+        "xml-ported"
+      ]
+    },
+    {
+      "name": "testType13 - Patient.active is FHIR.boolean",
+      "expression": "Patient.active.is(FHIR.boolean)",
+      "input": {
+        "resourceType": "Patient",
+        "active": true
+      },
+      "expected": [
+        true
+      ],
+      "tags": [
+        "type",
+        "fhir-types",
+        "is-operator",
+        "xml-ported"
+      ]
+    },
+    {
+      "name": "testType14 - Patient.active is not System.Boolean",
+      "expression": "Patient.active.is(System.Boolean).not()",
+      "input": {
+        "resourceType": "Patient",
+        "active": true
+      },
+      "expected": [
+        true
+      ],
+      "tags": [
+        "type",
+        "fhir-types",
+        "is-operator",
+        "xml-ported"
+      ]
+    },
+    {
+      "name": "testType17 - Patient is Patient",
+      "expression": "Patient.is(Patient)",
+      "input": {
+        "resourceType": "Patient"
+      },
+      "expected": [
+        true
+      ],
+      "tags": [
+        "type",
+        "fhir-types",
+        "is-operator",
+        "xml-ported"
+      ]
+    },
+    {
+      "name": "testType18 - Patient is FHIR.Patient",
+      "expression": "Patient.is(FHIR.Patient)",
+      "input": {
+        "resourceType": "Patient"
+      },
+      "expected": [
+        true
+      ],
+      "tags": [
+        "type",
+        "fhir-types",
+        "is-operator",
+        "xml-ported"
+      ]
+    },
+    {
+      "name": "testType19 - Patient is FHIR.`Patient`",
+      "expression": "Patient.is(FHIR.`Patient`)",
+      "input": {
+        "resourceType": "Patient"
+      },
+      "expected": [
+        true
+      ],
+      "tags": [
+        "type",
+        "fhir-types",
+        "is-operator",
+        "xml-ported"
+      ]
+    },
+    {
+      "name": "testType22 - Patient is not System.Patient",
+      "expression": "Patient.is(System.Patient).not()",
+      "input": {
+        "resourceType": "Patient"
+      },
+      "expected": [
+        true
+      ],
+      "tags": [
+        "type",
+        "fhir-types",
+        "is-operator",
+        "xml-ported"
+      ],
+      "note": "Some systems may return an error due to failing to resolve System.Patient"
+    }
+  ]
+}

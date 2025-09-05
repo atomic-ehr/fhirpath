@@ -1,0 +1,137 @@
+{
+  "title": "FHIRPath is() Function Tests from XML Test Suite",
+  "description": "Tests for the is() function with FHIR types and inheritance relationships",
+  "modelProvider": "R4",
+  "tests": [
+    {
+      "name": "testFHIRPathIsFunction1 - Patient.gender is code",
+      "expression": "Patient.gender.is(code)",
+      "input": {
+        "resourceType": "Patient",
+        "gender": "male"
+      },
+      "expected": [true]
+      "tags": ["is-function", "fhir-types", "code", "xml-ported"]
+    },
+    {
+      "name": "testFHIRPathIsFunction2 - Patient.gender is string",
+      "expression": "Patient.gender.is(string)",
+      "input": {
+        "resourceType": "Patient",
+        "gender": "male"
+      },
+      "expected": [true]
+      "tags": ["is-function", "fhir-types", "string", "xml-ported"]
+    },
+    {
+      "name": "testFHIRPathIsFunction3 - Patient.gender is not id",
+      "expression": "Patient.gender.is(id)",
+      "input": {
+        "resourceType": "Patient",
+        "gender": "male"
+      },
+      "expected": [false]
+      "tags": ["is-function", "fhir-types", "id", "xml-ported"]
+    },
+    {
+      "name": "testFHIRPathIsFunction4 - Questionnaire.url is uri",
+      "expression": "Questionnaire.url.is(uri)",
+      "input": {
+        "resourceType": "Questionnaire",
+        "url": "http://hl7.org/fhir/Questionnaire/3141"
+      },
+      "expected": [true]
+      "tags": ["is-function", "fhir-types", "uri", "xml-ported"]
+    },
+    {
+      "name": "testFHIRPathIsFunction5 - Questionnaire.url is not url",
+      "expression": "Questionnaire.url.is(url)",
+      "input": {
+        "resourceType": "Questionnaire",
+        "url": "http://hl7.org/fhir/Questionnaire/3141"
+      },
+      "expected": [false]
+      "tags": ["is-function", "fhir-types", "url", "xml-ported"]
+    },
+    {
+      "name": "testFHIRPathIsFunction6 - ValueSet.version is string",
+      "expression": "ValueSet.version.is(string)",
+      "input": {
+        "resourceType": "ValueSet",
+        "version": "20150622"
+      },
+      "expected": [true]
+      "tags": ["is-function", "fhir-types", "string", "xml-ported"]
+    },
+    {
+      "name": "testFHIRPathIsFunction7 - ValueSet.version is not code",
+      "expression": "ValueSet.version.is(code)",
+      "input": {
+        "resourceType": "ValueSet",
+        "version": "20150622"
+      },
+      "expected": [false]
+      "tags": ["is-function", "fhir-types", "code", "xml-ported"]
+    },
+    {
+      "name": "testFHIRPathIsFunction8 - extension value is Age",
+      "expression": "Observation.extension('http://example.com/fhir/StructureDefinition/patient-age').value is Age",
+      "input": {
+        "resourceType": "Observation",
+        "extension": [
+          {
+            "url": "http://example.com/fhir/StructureDefinition/patient-age",
+            "valueAge": {
+              "value": 30,
+              "unit": "years",
+              "system": "http://unitsofmeasure.org",
+              "code": "a"
+            }
+          }
+        ]
+      },
+      "expected": [true]
+      "tags": ["is-function", "fhir-types", "age", "extensions", "xml-ported"]
+    },
+    {
+      "name": "testFHIRPathIsFunction9 - extension value is Quantity",
+      "expression": "Observation.extension('http://example.com/fhir/StructureDefinition/patient-age').value is Quantity",
+      "input": {
+        "resourceType": "Observation",
+        "extension": [
+          {
+            "url": "http://example.com/fhir/StructureDefinition/patient-age",
+            "valueAge": {
+              "value": 30,
+              "unit": "years",
+              "system": "http://unitsofmeasure.org",
+              "code": "a"
+            }
+          }
+        ]
+      },
+      "expected": [true]
+      "tags": ["is-function", "fhir-types", "quantity", "extensions", "inheritance", "xml-ported"]
+    },
+    {
+      "name": "testFHIRPathIsFunction10 - extension value is not Duration",
+      "expression": "Observation.extension('http://example.com/fhir/StructureDefinition/patient-age').value is Duration",
+      "input": {
+        "resourceType": "Observation",
+        "extension": [
+          {
+            "url": "http://example.com/fhir/StructureDefinition/patient-age",
+            "valueAge": {
+              "value": 30,
+              "unit": "years",
+              "system": "http://unitsofmeasure.org",
+              "code": "a"
+            }
+          }
+        ]
+      },
+      "expected": [false]
+      "tags": ["is-function", "fhir-types", "duration", "extensions", "xml-ported"]
+    }
+  ]
+}

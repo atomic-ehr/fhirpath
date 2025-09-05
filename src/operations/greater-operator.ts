@@ -1,9 +1,8 @@
 import type { OperatorDefinition } from '../types';
 import { PRECEDENCE } from '../types';
 import type { OperationEvaluator } from '../types';
-import { compareQuantities } from '../complex-types/quantity-value';
-import type { QuantityValue } from '../complex-types/quantity-value';
 import { box, unbox } from '../interpreter/boxing';
+import { compare } from './comparison';
 
 export const evaluate: OperationEvaluator = async (input, context, left, right) => {
   if (left.length === 0 || right.length === 0) {
@@ -17,31 +16,13 @@ export const evaluate: OperationEvaluator = async (input, context, left, right) 
   if (!boxedr) return { value: [], context };
   const r = unbox(boxedr);
   
-  // Check if both are quantities
-  if (l && typeof l === 'object' && 'unit' in l && 
-      r && typeof r === 'object' && 'unit' in r) {
-    const result = compareQuantities(l as QuantityValue, r as QuantityValue);
-    return { value: result !== null ? [box(result > 0, { type: 'Boolean', singleton: true })] : [], context };
+  const comparisonResult = compare(l, r);
+  
+  if (comparisonResult.kind === 'incomparable') {
+    return { value: [], context };
   }
   
-  // Check if both are temporal values (Date, DateTime, Time)
-  if (l && typeof l === 'object' && 'kind' in l &&
-      r && typeof r === 'object' && 'kind' in r) {
-    const temporalL = l as any;
-    const temporalR = r as any;
-    const kinds = ['FHIRDate', 'FHIRDateTime', 'FHIRTime'];
-    if (kinds.includes(temporalL.kind) && kinds.includes(temporalR.kind)) {
-      const { compare } = await import('../complex-types/temporal');
-      const result = compare(temporalL, temporalR);
-      // null means incomparable (different precisions), returns empty
-      if (result === null) {
-        return { value: [], context };
-      }
-      return { value: [box(result > 0, { type: 'Boolean', singleton: true })], context };
-    }
-  }
-  
-  return { value: [box((l as any) > (r as any), { type: 'Boolean', singleton: true })], context };
+  return { value: [box(comparisonResult.kind === 'greater', { type: 'Boolean', singleton: true })], context };
 };
 
 export const greaterOperator: OperatorDefinition & { evaluate: OperationEvaluator } = {

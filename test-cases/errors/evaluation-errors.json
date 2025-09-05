@@ -3,21 +3,15 @@
   "description": "Tests for runtime errors during evaluation",
   "tests": [
     {
-      "name": "division by zero",
+      "name": "division by zero returns empty per FHIRPath spec",
       "expression": "5 / 0",
       "input": null,
       "expected": [],
       "tags": [
-        "error",
-        "evaluation-error",
-        "operator:/"
+        "operator:/",
+        "empty-result"
       ],
-      "error": {
-        "type": "EvaluationError",
-        "message": "Division by zero",
-        "phase": "evaluate",
-        "code": "FP6001"
-      }
+      "note": "Per FHIRPath spec and XML tests, division by zero returns empty, not an error"
     },
     {
       "name": "single() with multiple items",
