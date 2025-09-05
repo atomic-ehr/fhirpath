@@ -28,7 +28,8 @@
         "membership",
         "in",
         "operator:in"
-      ]
+      ],
+      "fromXML": "testIn1"
     },
     {
       "name": "in - single string not equal to another string",
@@ -115,7 +116,8 @@
         "empty",
         "operator:in"
       ],
-      "description": "When left operand is empty, result is empty per spec"
+      "description": "When left operand is empty, result is empty per spec",
+      "fromXML": "testInEmptyValue"
     },
     {
       "name": "in - empty right operand",
@@ -124,6 +126,7 @@
       "expected": [
         false
       ],
+      "fromXML": "testInEmptyCollection",
       "tags": [
         "operator",
         "membership",
@@ -178,6 +181,73 @@
         "operator:contains"
       ],
       "description": "When right operand is empty, result is empty per spec"
+    },
+    {
+      "name": "testIn2",
+      "expression": "1 in (2 | 3)",
+      "expected": [
+        false
+      ],
+      "tags": [
+        "in",
+        "membership",
+        "xml-ported"
+      ],
+      "fromXML": "testIn2",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testIn3",
+      "expression": "'a' in ('a' | 'c' | 'd')",
+      "expected": [
+        true
+      ],
+      "tags": [
+        "in",
+        "membership",
+        "xml-ported"
+      ],
+      "fromXML": "testIn3",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testIn4",
+      "expression": "'b' in ('a' | 'c' | 'd')",
+      "expected": [
+        false
+      ],
+      "tags": [
+        "in",
+        "membership",
+        "xml-ported"
+      ],
+      "fromXML": "testIn4",
+      "inputFile": "../../patient-example.json"
+    },
+    {
+      "name": "testIn5",
+      "expression": "('a' | 'c' | 'd') in 'b'",
+      "expected": [],
+      "tags": [
+        "in",
+        "membership",
+        "xml-ported"
+      ],
+      "fromXML": "testIn5",
+      "inputFile": "../../patient-example.json",
+      "note": "Multiple values on left side returns empty per spec"
+    },
+    {
+      "name": "testInEmptyBoth",
+      "expression": "{} in {}",
+      "expected": [],
+      "tags": [
+        "in",
+        "membership",
+        "xml-ported"
+      ],
+      "fromXML": "testInEmptyBoth",
+      "inputFile": "../../patient-example.json"
     }
   ]
 }

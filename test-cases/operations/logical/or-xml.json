@@ -6,55 +6,64 @@
       "name": "testBooleanLogicOr1 - true or true = true",
       "expression": "(true or true) = true",
       "expected": [true],
-      "tags": ["or", "boolean-logic", "xml-ported"]
+      "tags": ["or", "boolean-logic", "xml-ported"],
+      "fromXML": "testBooleanLogicOr1"
     },
     {
       "name": "testBooleanLogicOr2 - true or false = true",
       "expression": "(true or false) = true",
       "expected": [true],
-      "tags": ["or", "boolean-logic", "xml-ported"]
+      "tags": ["or", "boolean-logic", "xml-ported"],
+      "fromXML": "testBooleanLogicOr2"
     },
     {
       "name": "testBooleanLogicOr3 - true or empty = true",
       "expression": "(true or {}) = true",
       "expected": [true],
-      "tags": ["or", "boolean-logic", "empty-collection", "xml-ported"]
+      "tags": ["or", "boolean-logic", "empty-collection", "xml-ported"],
+      "fromXML": "testBooleanLogicOr3"
     },
     {
       "name": "testBooleanLogicOr4 - false or true = true",
       "expression": "(false or true) = true",
       "expected": [true],
-      "tags": ["or", "boolean-logic", "xml-ported"]
+      "tags": ["or", "boolean-logic", "xml-ported"],
+      "fromXML": "testBooleanLogicOr4"
     },
     {
       "name": "testBooleanLogicOr5 - false or false = false",
       "expression": "(false or false) = false",
       "expected": [true],
-      "tags": ["or", "boolean-logic", "xml-ported"]
+      "tags": ["or", "boolean-logic", "xml-ported"],
+      "fromXML": "testBooleanLogicOr5"
     },
     {
       "name": "testBooleanLogicOr6 - false or empty is empty",
       "expression": "(false or {}).empty()",
       "expected": [true],
-      "tags": ["or", "boolean-logic", "empty-collection", "xml-ported"]
+      "tags": ["or", "boolean-logic", "empty-collection", "xml-ported"],
+      "fromXML": "testBooleanLogicOr6"
     },
     {
       "name": "testBooleanLogicOr7 - empty or true = true",
       "expression": "({} or true) = true",
       "expected": [true],
-      "tags": ["or", "boolean-logic", "empty-collection", "xml-ported"]
+      "tags": ["or", "boolean-logic", "empty-collection", "xml-ported"],
+      "fromXML": "testBooleanLogicOr7"
     },
     {
       "name": "testBooleanLogicOr8 - empty or false is empty",
       "expression": "({} or false).empty()",
       "expected": [true],
-      "tags": ["or", "boolean-logic", "empty-collection", "xml-ported"]
+      "tags": ["or", "boolean-logic", "empty-collection", "xml-ported"],
+      "fromXML": "testBooleanLogicOr8"
     },
     {
       "name": "testBooleanLogicOr9 - empty or empty is empty",
       "expression": "({} or {}).empty()",
       "expected": [true],
-      "tags": ["or", "boolean-logic", "empty-collection", "xml-ported"]
+      "tags": ["or", "boolean-logic", "empty-collection", "xml-ported"],
+      "fromXML": "testBooleanLogicOr9"
     }
   ]
 }
