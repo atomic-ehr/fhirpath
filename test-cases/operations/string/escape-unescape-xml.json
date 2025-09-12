@@ -1,0 +1,34 @@
+{
+  "name": "escape() and unescape() Function Tests from XML",
+  "description": "Tests for the escape() and unescape() functions ported from XML test suite",
+  "tests": [
+    {
+      "name": "testEscapeHtml - escape HTML special characters",
+      "expression": "'\"1<2\"'.escape('html')",
+      "expected": ["&quot;1&lt;2&quot;"],
+      "fromXML": "testEscapeHtml",
+      "tags": ["function", "string", "escape", "html", "xml-ported"]
+    },
+    {
+      "name": "testEscapeJson - escape JSON special characters",
+      "expression": "'\"1<2\"'.escape('json')",
+      "expected": ["\\\"1<2\\\""],
+      "fromXML": "testEscapeJson",
+      "tags": ["function", "string", "escape", "json", "xml-ported"]
+    },
+    {
+      "name": "testUnescapeHtml - unescape HTML entities",
+      "expression": "'&quot;1&lt;2&quot;'.unescape('html')",
+      "expected": ["\"1<2\""],
+      "fromXML": "testUnescapeHtml",
+      "tags": ["function", "string", "unescape", "html", "xml-ported"]
+    },
+    {
+      "name": "testUnescapeJson - unescape JSON escapes",
+      "expression": "'\\\"1<2\\\"'.unescape('json')",
+      "expected": ["\"1<2\""],
+      "fromXML": "testUnescapeJson",
+      "tags": ["function", "string", "unescape", "json", "xml-ported"]
+    }
+  ]
+}

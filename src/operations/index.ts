@@ -99,6 +99,8 @@ export { allTrueFunction } from './allTrue-function';
 export { splitFunction } from './split-function';
 export { upperFunction } from './upper-function';
 export { lowerFunction } from './lower-function';
+export { escapeFunction } from './escape-function';
+export { unescapeFunction } from './unescape-function';
 export { allFalseFunction } from './allFalse-function';
 export { anyTrueFunction } from './anyTrue-function';
 export { anyFalseFunction } from './anyFalse-function';
