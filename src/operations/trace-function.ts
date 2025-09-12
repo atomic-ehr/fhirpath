@@ -2,11 +2,24 @@ import type { FunctionDefinition, FunctionEvaluator } from '../types';
 import { Errors } from '../errors';
 import { box, unbox } from '../interpreter/boxing';
 
+// Check if trace output should be suppressed (during tests or when explicitly disabled)
+const shouldTrace = () => {
+  // Suppress trace output during tests
+  if (process.env.NODE_ENV === 'test') return false;
+  // Allow explicit disabling via FHIRPATH_TRACE=false
+  if (process.env.FHIRPATH_TRACE === 'false') return false;
+  // Check if we're running under bun test
+  if (typeof Bun !== 'undefined' && process.argv.some(arg => arg.includes('bun:test'))) return false;
+  return true;
+};
+
 export const evaluate: FunctionEvaluator = async (input, context, args, evaluator) => {
   // trace() requires at least a name argument
   if (args.length === 0) {
     // If no name provided, use a default name
-    console.log('[FHIRPath trace] (unnamed):', JSON.stringify(input));
+    if (shouldTrace()) {
+      console.log('[FHIRPath trace] (unnamed):', JSON.stringify(input));
+    }
     return { value: input, context };
   }
   
@@ -38,10 +51,14 @@ export const evaluate: FunctionEvaluator = async (input, context, args, evaluato
   // If projection argument is provided, evaluate it and log the result
   if (args.length === 2 && args[1]) {
     const projectionResult = await evaluator(args[1], input, context);
-    console.log(`[FHIRPath trace] ${name}:`, JSON.stringify(projectionResult.value));
+    if (shouldTrace()) {
+      console.log(`[FHIRPath trace] ${name}:`, JSON.stringify(projectionResult.value));
+    }
   } else {
     // Otherwise log the input
-    console.log(`[FHIRPath trace] ${name}:`, JSON.stringify(input));
+    if (shouldTrace()) {
+      console.log(`[FHIRPath trace] ${name}:`, JSON.stringify(input));
+    }
   }
 
   // Always return the input unchanged
