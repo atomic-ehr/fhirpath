@@ -1,7 +1,7 @@
 MISSING TEST EXPRESSIONS FROM XML TEST SUITE
 ================================================================================
-Generated: 2025-09-12T12:05:33.588Z
-Total missing: 118 out of 1025 tests
+Generated: 2025-09-12T14:19:32.406Z
+Total missing: 54 out of 1025 tests
 
 
 Group: testTypes (36 missing)
@@ -43,59 +43,6 @@ Group: testTypes (36 missing)
     - testQuantityLiteralWkToString: 1 'wk'.toString()
     - testQuantityLiteralWeekToString: 1 week.toString()
 
-Group: testPlus (25 missing)
-----------------------------------------
-    - testPlusDate2: @1973-12-25 + 7.7 days
-    - testPlusDate3: @1973-12-25T00:00:00.000+10:00 + 7 days
-    - testPlusDate4: @1973-12-25T00:00:00.000+10:00 + 7.7 days
-    - testPlusDate5: @1973-12-25T00:00:00.000+10:00 + 1 second
-    - testPlusDate6: @1973-12-25T00:00:00.000+10:00 + 10 millisecond
-    - testPlusDate7: @1973-12-25T00:00:00.000+10:00 + 1 minute
-    - testPlusDate8: @1973-12-25T00:00:00.000+10:00 + 1 hour
-    - testPlusDate9: @1973-12-25 + 1 day
-    - testPlusDate10: @1973-12-25 + 1 month
-    - testPlusDate11: @1973-12-25 + 1 week
-    - testPlusDate12: @1973-12-25 + 1 year
-    - testPlusDate13: @1973-12-25 + 1 'd'
-    - testPlusDate14: @1973-12-25 + 1 'mo'
-    - testPlusDate15: @1973-12-25 + 1 'wk'
-    - testPlusDate16: @1973-12-25 + 1 'a'
-    - testPlusDate17: @1975-12-25 + 1 'a'
-    - testPlusDate18: @1973-12-25T00:00:00.000+10:00 + 1 's'
-    - testPlusDate19: @1973-12-25T00:00:00.000+10:00 + 0.1 's'
-    - testPlusDate20: @1973-12-25T00:00:00.000+10:00 + 10 'ms'
-    - testPlusDate21: @1973-12-25T00:00:00.000+10:00 + 1 'min'
-    - testPlusDate22: @1973-12-25T00:00:00.000+10:00 + 1 'h'
-    - testPlus6: @1974-12-25 + 7
-    - testPlusTime1: @T01:00:00 + 2 hours
-    - testPlusTime2: @T23:00:00 + 2 hours
-    - testPlusTime3: @T23:00:00 + 50 hours
-
-Group: LowBoundary (22 missing)
-----------------------------------------
-    - LowBoundaryDecimal1: 1.587.lowBoundary(6)
-    - LowBoundaryDecimal4: 1.587.lowBoundary(0)
-    - LowBoundaryDecimal5: 1.587.lowBoundary(32)
-    - LowBoundaryNegDecimalDefault: (-1.587).lowBoundary()
-    - LowBoundaryNegDecimal1: (-1.587).lowBoundary(6)
-    - LowBoundaryNegDecimal3: (-1.587).lowBoundary(-1)
-    - LowBoundaryNegDecimal4: (-1.587).lowBoundary(0)
-    - LowBoundaryNegDecimal5: (-1.587).lowBoundary(32)
-    - LowBoundaryDecimal6: 1.587.lowBoundary(39)
-    - LowBoundaryDecimal7: 1.toDecimal().lowBoundary()
-    - LowBoundaryDecimal10: 12.587.lowBoundary(2)
-    - LowBoundaryDecimal11: 12.500.lowBoundary(4)
-    - LowBoundaryDecimal12: 120.lowBoundary(2)
-    - LowBoundaryDecimal13: (-120).lowBoundary(2)
-    - LowBoundaryDecimal14: 0.0034.lowBoundary(1)
-    - LowBoundaryDecimal15: (-0.0034).lowBoundary(1)
-    - LowBoundaryQuantity: 1.587 'cm'.lowBoundary(8)
-    - LowBoundaryDateMonth: @2014.lowBoundary(6)
-    - LowBoundaryDateTimeMillisecond1: @2014-01-01T08.lowBoundary(17)
-    - LowBoundaryDateTimeMillisecond2: @2014-01-01T08:05+08:00.lowBoundary(17)
-    - LowBoundaryDateTimeMillisecond3: @2014-01-01T08.lowBoundary(8)
-    - LowBoundaryTimeMillisecond: @T10:30.lowBoundary(9)
-
 Group: testType (18 missing)
 ----------------------------------------
     - testType1: 1.type().namespace = 'System'
@@ -116,23 +63,3 @@ Group: testType (18 missing)
     - testTypeA3: Parameters.parameter[2].value.is(FHIR.uuid)
     - testTypeA4: Parameters.parameter[2].value.is(FHIR.uri)
     - testTypeA: Parameters.parameter[3].value.is(FHIR.decimal)
-
-Group: HighBoundary (17 missing)
-----------------------------------------
-    - HighBoundaryDecimal2: 1.587.highBoundary(6)
-    - HighBoundaryDecimal4: (-1.587).highBoundary()
-    - HighBoundaryDecimal6: (-1.587).highBoundary(6)
-    - HighBoundaryDecimal7: 1.587.highBoundary(39)
-    - HighBoundaryDecimal11: 12.587.highBoundary(2)
-    - HighBoundaryDecimal12: 12.500.highBoundary(4)
-    - HighBoundaryDecimal13: 120.highBoundary(2)
-    - HighBoundaryDecimal14: -120.highBoundary(2)
-    - HighBoundaryDecimal15: 0.0034.highBoundary(1)
-    - HighBoundaryDecimal16: -0.0034.highBoundary(1)
-    - HighBoundaryDecimal: 1.587.highBoundary(8)
-    - HighBoundaryQuantity: 1.587 'm'.highBoundary(8)
-    - HighBoundaryDateMonth: @2014.highBoundary(6)
-    - HighBoundaryDateTimeMillisecond1: @2014-01-01T08.highBoundary(17)
-    - HighBoundaryDateTimeMillisecond2: @2014-01-01T08:05-05:00.highBoundary(17)
-    - HighBoundaryDateTimeMillisecond3: @2014-01-01T08.highBoundary(17)
-    - HighBoundaryTimeMillisecond: @T10:30.highBoundary(9)

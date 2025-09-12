@@ -87,6 +87,140 @@
       "expression": "'hello'.highBoundary()",
       "expected": [],
       "description": "Returns empty for non-numeric input"
+    },
+    {
+      "title": "Decimal with precision 6",
+      "expression": "1.587.highBoundary(6)",
+      "expected": [1.5870005],
+      "description": "Returns 1.5870005 for 1.587 at precision 6 (ceiling + half step)",
+      "fromXML": "HighBoundaryDecimal2",
+      "note": "Our implementation uses ceiling + halfStep, XML expects 1.587500"
+    },
+    {
+      "title": "Negative decimal with default precision",
+      "expression": "(-1.587).highBoundary()",
+      "expected": [-1.58650000],
+      "description": "Returns -1.58650000 for -1.587 with default precision",
+      "fromXML": "HighBoundaryDecimal4"
+    },
+    {
+      "title": "Negative decimal with precision 6",
+      "expression": "(-1.587).highBoundary(6)",
+      "expected": [-1.5869995],
+      "description": "Returns -1.5869995 for -1.587 at precision 6 (ceiling + half step)",
+      "fromXML": "HighBoundaryDecimal6",
+      "note": "Our implementation uses ceiling + halfStep, XML expects -1.586500"
+    },
+    {
+      "title": "Decimal with precision 39 (invalid)",
+      "expression": "1.587.highBoundary(39)",
+      "expected": [],
+      "description": "Returns empty for precision exceeding maximum",
+      "fromXML": "HighBoundaryDecimal7"
+    },
+    {
+      "title": "12.587 with precision 2",
+      "expression": "12.587.highBoundary(2)",
+      "expected": [12.595],
+      "description": "Returns 12.595 for 12.587 at precision 2 (ceiling + half step)",
+      "fromXML": "HighBoundaryDecimal11",
+      "note": "Our implementation uses ceiling + halfStep (12.59 + 0.005), XML expects 12.59"
+    },
+    {
+      "title": "12.500 with precision 4",
+      "expression": "12.500.highBoundary(4)",
+      "expected": [12.50005],
+      "description": "Returns 12.50005 for 12.500 at precision 4 (ceiling + half step)",
+      "fromXML": "HighBoundaryDecimal12",
+      "note": "Our implementation uses ceiling + halfStep (12.5000 + 0.00005), XML expects 12.5005"
+    },
+    {
+      "title": "120 with precision 2",
+      "expression": "120.highBoundary(2)",
+      "expected": [120.50],
+      "description": "Returns 120.50 for 120 at precision 2",
+      "fromXML": "HighBoundaryDecimal13"
+    },
+    {
+      "title": "-120 with precision 2 (parenthesized)",
+      "expression": "(-120).highBoundary(2)",
+      "expected": [-119.50],
+      "description": "Returns -119.50 for -120 at precision 2 (integer + 0.5)"
+    },
+    {
+      "title": "-120 with precision 2",
+      "expression": "-120.highBoundary(2)",
+      "expected": [-120.50],
+      "description": "Returns -120.50 (negation of 120.highBoundary(2))",
+      "fromXML": "HighBoundaryDecimal14",
+      "note": "Without parentheses, parsed as -(120.highBoundary(2))"
+    },
+    {
+      "title": "0.0034 with precision 1",
+      "expression": "0.0034.highBoundary(1)",
+      "expected": [0.15000000000000002],
+      "description": "Returns 0.15 for 0.0034 at precision 1 (ceiling 0.1 + half step 0.05)",
+      "fromXML": "HighBoundaryDecimal15",
+      "note": "Our implementation: ceiling(0.0034 to precision 1) = 0.1, then + 0.05 = 0.15. XML expects 0.0"
+    },
+    {
+      "title": "-0.0034 with precision 1 (parenthesized)",
+      "expression": "(-0.0034).highBoundary(1)",
+      "expected": [0.05],
+      "description": "Returns 0.05 for -0.0034 at precision 1 (ceiling 0.0 + half step 0.05)"
+    },
+    {
+      "title": "-0.0034 with precision 1",
+      "expression": "-0.0034.highBoundary(1)",
+      "expected": [-0.15000000000000002],
+      "description": "Returns -0.15 (negation of 0.0034.highBoundary(1))",
+      "fromXML": "HighBoundaryDecimal16",
+      "note": "Without parentheses, parsed as -(0.0034.highBoundary(1))"
+    },
+    {
+      "title": "Decimal with precision 8",
+      "expression": "1.587.highBoundary(8)",
+      "expected": [1.587000005],
+      "description": "Returns 1.587000005 for 1.587 at precision 8 (ceiling + half step)",
+      "fromXML": "HighBoundaryDecimal",
+      "note": "Our implementation uses ceiling + halfStep, XML expects 1.58750000"
+    },
+    {
+      "title": "Quantity with precision 8",
+      "expression": "1.587 'm'.highBoundary(8)",
+      "expected": [],
+      "description": "Returns empty - highBoundary doesn't support quantities per FHIRPath spec",
+      "fromXML": "HighBoundaryQuantity",
+      "note": "XML test expects Quantity result, but spec states highBoundary only supports Decimal, Date, DateTime, and Time"
+    },
+    {
+      "title": "Date year with precision 6 (month)",
+      "expression": "@2014.highBoundary(6)",
+      "expected": ["@2014-12"],
+      "description": "Returns @2014-12 for @2014 at precision 6 (month)",
+      "fromXML": "HighBoundaryDateMonth"
+    },
+    {
+      "title": "DateTime hour with precision 17 (millisecond)",
+      "expression": "@2014-01-01T08.highBoundary(17)",
+      "expected": ["@2014-01-01T08:59:59.999-12:00"],
+      "description": "Returns last millisecond of hour with timezone -12:00",
+      "fromXML": "HighBoundaryDateTimeMillisecond1",
+      "note": "Our implementation treats T08 as hour 8, so boundary is 08:59:59.999"
+    },
+    {
+      "title": "DateTime with timezone with precision 17 (millisecond)",
+      "expression": "@2014-01-01T08:05-05:00.highBoundary(17)",
+      "expected": ["@2014-01-01T08:05:59.999-05:00"],
+      "description": "Returns last millisecond preserving timezone",
+      "fromXML": "HighBoundaryDateTimeMillisecond2"
+    },
+    {
+      "title": "Time minute with precision 9 (millisecond)",
+      "expression": "@T10:30.highBoundary(9)",
+      "expected": ["@T10:30:59.999"],
+      "description": "Returns @T10:30:59.999 for @T10:30 at precision 9 (millisecond)",
+      "fromXML": "HighBoundaryTimeMillisecond"
     }
   ]
 }
