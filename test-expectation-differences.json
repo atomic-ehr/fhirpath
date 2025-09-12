@@ -1,0 +1,2134 @@
+[
+  {
+    "group": "defineVariable",
+    "test": "defineVariable2",
+    "expression": "defineVariable('n1', name.first()).select(%n1.given)",
+    "xmlExpected": [
+      "Peter"
+    ],
+    "ourExpected": [
+      "Peter",
+      "James"
+    ],
+    "file": "test-cases/operations/utility/defineVariable.json"
+  },
+  {
+    "group": "defineVariable",
+    "test": "defineVariable4",
+    "expression": "defineVariable('n1', name.first()).select(%n1.given) | defineVariable('n1', name.skip(1).first()).select(%n1.given)",
+    "xmlExpected": [
+      "Peter"
+    ],
+    "ourExpected": [
+      "Peter",
+      "James",
+      "Jim"
+    ],
+    "file": "test-cases/operations/utility/defineVariable.json"
+  },
+  {
+    "group": "defineVariable",
+    "test": "defineVariable6",
+    "expression": "defineVariable('n1', name.first()).select(id & '-' & %n1.given.join('|')) | defineVariable('n2', name.skip(1).first()).select(%n2.given)",
+    "xmlExpected": [
+      "example-Peter|James"
+    ],
+    "ourExpected": [
+      "example-Peter|James",
+      "Jim"
+    ],
+    "file": "test-cases/operations/utility/defineVariable.json"
+  },
+  {
+    "group": "defineVariable",
+    "test": "defineVariable7",
+    "expression": "defineVariable('n1', name.first()).active | defineVariable('n2', name.skip(1).first()).select(%n2.given)",
+    "xmlExpected": [
+      "true"
+    ],
+    "ourExpected": [
+      true,
+      "Jim"
+    ],
+    "file": "test-cases/operations/utility/defineVariable.json"
+  },
+  {
+    "group": "defineVariable",
+    "test": "defineVariable8",
+    "expression": "defineVariable('v1', 'value1').select(%v1).trace('data').defineVariable('v2', 'value2').select($this & ':' & %v1 & '-' & %v2) | defineVariable('v3', 'value3').select(%v3)",
+    "xmlExpected": [
+      "value1:value1-value2"
+    ],
+    "ourExpected": [
+      "value1:value1-value2",
+      "value3"
+    ],
+    "file": "test-cases/operations/utility/defineVariable.json"
+  },
+  {
+    "group": "defineVariable",
+    "test": "defineVariable9",
+    "expression": "defineVariable('n1', name.first()).active | defineVariable('n2', name.skip(1).first()).select(%n1.given)",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": {
+      "error": true
+    },
+    "file": "test-cases/operations/utility/defineVariable.json"
+  },
+  {
+    "group": "defineVariable",
+    "test": "defineVariable10",
+    "expression": "select(%fam.given)",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": {
+      "error": true
+    },
+    "file": "test-cases/operations/utility/defineVariable.json"
+  },
+  {
+    "group": "defineVariable",
+    "test": "dvRedefiningVariableThrowsError",
+    "expression": "defineVariable('v1').defineVariable('v1').select(%v1)",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": {
+      "error": true
+    },
+    "file": "test-cases/operations/utility/defineVariable.json"
+  },
+  {
+    "group": "defineVariable",
+    "test": "defineVariable12",
+    "expression": "Patient.name.defineVariable('n1', first()).active | Patient.name.defineVariable('n2', skip(1).first()).select(%n1.given)",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": {
+      "error": true
+    },
+    "file": "test-cases/operations/utility/defineVariable.json"
+  },
+  {
+    "group": "defineVariable",
+    "test": "defineVariable13",
+    "expression": "Patient.name.defineVariable('n2', skip(1).first()).defineVariable('res', %n2.given+%n2.given).select(%res)",
+    "xmlExpected": [
+      "JimJim"
+    ],
+    "ourExpected": [
+      "JimJim",
+      "JimJim",
+      "JimJim"
+    ],
+    "file": "test-cases/operations/utility/defineVariable.json"
+  },
+  {
+    "group": "defineVariable",
+    "test": "defineVariable14",
+    "expression": "Patient.name.defineVariable('n1', first()).select(%n1).exists() | Patient.name.defineVariable('n2', skip(1).first()).defineVariable('res', %n2.given+%n2.given).select(%res)",
+    "xmlExpected": [
+      "true"
+    ],
+    "ourExpected": [
+      true,
+      "JimJim"
+    ],
+    "file": "test-cases/operations/utility/defineVariable-complex-xml.json"
+  },
+  {
+    "group": "defineVariable",
+    "test": "defineVariable15",
+    "expression": "defineVariable('root', 'r1-').select(defineVariable('v1', 'v1').defineVariable('v2', 'v2').select(%v1 | %v2)).select(%root & $this)",
+    "xmlExpected": [
+      "r1-v1"
+    ],
+    "ourExpected": [
+      "r1-v1",
+      "r1-v2"
+    ],
+    "file": "test-cases/operations/utility/defineVariable.json"
+  },
+  {
+    "group": "defineVariable",
+    "test": "defineVariable16",
+    "expression": "defineVariable('root', 'r1-').select(defineVariable('v1', 'v1').defineVariable('v2', 'v2').select(%v1 | %v2)).select(%root & $this & %v1)",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": {
+      "error": true
+    },
+    "file": "test-cases/operations/utility/defineVariable.json"
+  },
+  {
+    "group": "defineVariable",
+    "test": "dvCantOverwriteSystemVar",
+    "expression": "defineVariable('context', 'oops')",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": {
+      "error": true
+    },
+    "file": "test-cases/operations/utility/defineVariable.json"
+  },
+  {
+    "group": "defineVariable",
+    "test": "dvUsageOutsideScopeThrows",
+    "expression": "defineVariable('n1', 'v1').active | defineVariable('n2', 'v2').select(%n1)",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": {
+      "error": true
+    },
+    "file": "test-cases/operations/utility/defineVariable.json"
+  },
+  {
+    "group": "comments",
+    "test": "testComment7",
+    "expression": "2 + 2 /",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": {
+      "error": true
+    },
+    "file": "test-cases/syntax/comments.json"
+  },
+  {
+    "group": "comments",
+    "test": "testComment8",
+    "expression": "2 + 2 /* not finished",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": {
+      "error": true
+    },
+    "file": "test-cases/syntax/comments.json"
+  },
+  {
+    "group": "testMiscellaneousAccessorTests",
+    "test": "testPatientHasBirthDate",
+    "expression": "birthDate",
+    "xmlExpected": [
+      "true"
+    ],
+    "ourExpected": [
+      "1974-12-25"
+    ],
+    "file": "test-cases/navigation-accessor.json"
+  },
+  {
+    "group": "testMiscellaneousAccessorTests",
+    "test": "testPatientTelecomTypes",
+    "expression": "telecom.use",
+    "xmlExpected": [
+      "home"
+    ],
+    "ourExpected": [
+      "home",
+      "work",
+      "mobile",
+      "old"
+    ],
+    "file": "test-cases/navigation-accessor.json"
+  },
+  {
+    "group": "testBasics",
+    "test": "testSimple",
+    "expression": "name.given",
+    "xmlExpected": [
+      "Peter"
+    ],
+    "ourExpected": [
+      "Peter",
+      "James",
+      "Jim",
+      "Peter",
+      "James"
+    ],
+    "file": "test-cases/basics.json"
+  },
+  {
+    "group": "testBasics",
+    "test": "testSimpleNone",
+    "expression": "name.suffix",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/basics.json"
+  },
+  {
+    "group": "testBasics",
+    "test": "testEscapedIdentifier",
+    "expression": "name.`given`",
+    "xmlExpected": [
+      "Peter"
+    ],
+    "ourExpected": [
+      "Peter",
+      "James",
+      "Jim",
+      "Peter",
+      "James"
+    ],
+    "file": "test-cases/basics.json"
+  },
+  {
+    "group": "testBasics",
+    "test": "testSimpleBackTick1",
+    "expression": "`Patient`.name.`given`",
+    "xmlExpected": [
+      "Peter"
+    ],
+    "ourExpected": [
+      "Peter",
+      "James",
+      "Jim",
+      "Peter",
+      "James"
+    ],
+    "file": "test-cases/basics.json"
+  },
+  {
+    "group": "testBasics",
+    "test": "testSimpleFail",
+    "expression": "name.given1",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/basics.json"
+  },
+  {
+    "group": "testBasics",
+    "test": "testSimpleWithContext",
+    "expression": "Patient.name.given",
+    "xmlExpected": [
+      "Peter"
+    ],
+    "ourExpected": [
+      "Peter",
+      "James",
+      "Jim",
+      "Peter",
+      "James"
+    ],
+    "file": "test-cases/basics.json"
+  },
+  {
+    "group": "testBasics",
+    "test": "testSimpleWithWrongContext",
+    "expression": "Encounter.name.given",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/basics.json"
+  },
+  {
+    "group": "testObservations",
+    "test": "testPolymorphismIsA3",
+    "expression": "Observation.issued is instant",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/type-operators/polymorphism.json"
+  },
+  {
+    "group": "testObservations",
+    "test": "testPolymorphismAsB",
+    "expression": "(Observation.value as Period).unit",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/type-operators/polymorphism.json"
+  },
+  {
+    "group": "testObservations",
+    "test": "testPolymorphismAsBFunction",
+    "expression": "Observation.value.as(Period).start",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/type-operators/polymorphism.json"
+  },
+  {
+    "group": "testDollar",
+    "test": "testDollarThis1",
+    "expression": "Patient.name.given.where(substring($this.length()-3) = 'out')",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/variables/dollar-xml.json"
+  },
+  {
+    "group": "testDollar",
+    "test": "testDollarThis2",
+    "expression": "Patient.name.given.where(substring($this.length()-3) = 'ter')",
+    "xmlExpected": [
+      "Peter"
+    ],
+    "ourExpected": [
+      "Peter",
+      "Peter"
+    ],
+    "file": "test-cases/operations/variables/dollar-xml.json"
+  },
+  {
+    "group": "testDollar",
+    "test": "testDollarOrderAllowed",
+    "expression": "Patient.name.skip(1).given",
+    "xmlExpected": [
+      "Jim"
+    ],
+    "ourExpected": [
+      "Jim",
+      "Peter",
+      "James"
+    ],
+    "file": "test-cases/dollar-this.json"
+  },
+  {
+    "group": "testDollar",
+    "test": "testDollarOrderAllowedA",
+    "expression": "Patient.name.skip(3).given",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/dollar-this.json"
+  },
+  {
+    "group": "testDollar",
+    "test": "testDollarOrderNotAllowed",
+    "expression": "Patient.children().skip(1)",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [
+      {
+        "status": "generated",
+        "div": {
+          "table": {
+            "tbody": {
+              "tr": [
+                {
+                  "td": [
+                    "Name",
+                    {
+                      "b": "Chalmers"
+                    }
+                  ]
+                },
+                {
+                  "td": [
+                    "Address",
+                    "534 Erewhon, Pleasantville, Vic, 3999"
+                  ]
+                },
+                {
+                  "td": [
+                    "Contacts",
+                    "Home: unknown. Work: (03) 5555 6473"
+                  ]
+                },
+                {
+                  "td": [
+                    "Id",
+                    "MRN: 12345 (Acme Healthcare)"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "use": "usual",
+        "type": {
+          "coding": {
+            "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+            "code": "MR"
+          }
+        },
+        "system": "urn:oid:1.2.36.146.595.217.0.1",
+        "value": 12345,
+        "period": {
+          "start": "2001-05-06"
+        },
+        "assigner": {
+          "display": "Acme Healthcare"
+        }
+      },
+      true,
+      {
+        "use": "official",
+        "family": "Chalmers",
+        "given": [
+          "Peter",
+          "James"
+        ]
+      },
+      {
+        "use": "usual",
+        "given": "Jim"
+      },
+      {
+        "use": "maiden",
+        "family": "Windsor",
+        "given": [
+          "Peter",
+          "James"
+        ],
+        "period": {
+          "end": 2002
+        }
+      },
+      {
+        "use": "home"
+      },
+      {
+        "system": "phone",
+        "value": "(03) 5555 6473",
+        "use": "work",
+        "rank": 1
+      },
+      {
+        "system": "phone",
+        "value": "(03) 3410 5613",
+        "use": "mobile",
+        "rank": 2
+      },
+      {
+        "system": "phone",
+        "value": "(03) 5555 8834",
+        "use": "old",
+        "period": {
+          "end": 2014
+        }
+      },
+      "male",
+      "1974-12-25",
+      false,
+      {
+        "use": "home",
+        "type": "both",
+        "text": "534 Erewhon St PeasantVille, Rainbow, Vic  3999",
+        "line": "534 Erewhon St",
+        "city": "PleasantVille",
+        "district": "Rainbow",
+        "state": "Vic",
+        "postalCode": 3999,
+        "period": {
+          "start": "1974-12-25"
+        }
+      },
+      {
+        "relationship": {
+          "coding": {
+            "system": "http://terminology.hl7.org/CodeSystem/v2-0131",
+            "code": "N"
+          }
+        },
+        "name": {
+          "family": "du Marché",
+          "given": "Bénédicte"
+        },
+        "telecom": {
+          "system": "phone",
+          "value": "+33 (237) 998327"
+        },
+        "address": {
+          "use": "home",
+          "type": "both",
+          "line": "534 Erewhon St",
+          "city": "PleasantVille",
+          "district": "Rainbow",
+          "state": "Vic",
+          "postalCode": 3999,
+          "period": {
+            "start": "1974-12-25"
+          }
+        },
+        "gender": "female",
+        "period": {
+          "start": 2012
+        }
+      },
+      {
+        "reference": "Organization/1"
+      }
+    ],
+    "file": "test-cases/operations/variables/dollar-xml.json"
+  },
+  {
+    "group": "testLiterals",
+    "test": "testLiteralIntegerNegative1Invalid",
+    "expression": "-1.convertsToInteger()",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/literals.json"
+  },
+  {
+    "group": "testLiterals",
+    "test": "testLiteralDecimalNegative01Invalid",
+    "expression": "-0.1.convertsToDecimal()",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/literals.json"
+  },
+  {
+    "group": "testLiterals",
+    "test": "testLiteralTimeUTC",
+    "expression": "@T14:34:28Z.is(Time)",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": {
+      "error": true
+    },
+    "file": "test-cases/literals.json"
+  },
+  {
+    "group": "testLiterals",
+    "test": "testLiteralTimeTimezoneOffset",
+    "expression": "@T14:34:28+10:00.is(Time)",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": {
+      "error": true
+    },
+    "file": "test-cases/literals.json"
+  },
+  {
+    "group": "testLiterals",
+    "test": "testLiteralDecimalLessThanInvalid",
+    "expression": "Observation.value.value < 'test'",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": {
+      "error": true
+    },
+    "file": "test-cases/literals.json"
+  },
+  {
+    "group": "testLiterals",
+    "test": "testDateNotEqual",
+    "expression": "Patient.birthDate != @1974-12-25T12:34:00",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/literals.json"
+  },
+  {
+    "group": "testLiterals",
+    "test": "testDateNotEqualTimezoneOffsetBefore",
+    "expression": "Patient.birthDate != @1974-12-25T12:34:00-10:00",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/literals.json"
+  },
+  {
+    "group": "testLiterals",
+    "test": "testDateNotEqualTimezoneOffsetAfter",
+    "expression": "Patient.birthDate != @1974-12-25T12:34:00+10:00",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/literals.json"
+  },
+  {
+    "group": "testLiterals",
+    "test": "testDateNotEqualUTC",
+    "expression": "Patient.birthDate != @1974-12-25T12:34:00Z",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/literals.json"
+  },
+  {
+    "group": "testLiterals",
+    "test": "testDateTimeGreaterThanDate2",
+    "expression": "now() > today()",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/literals.json"
+  },
+  {
+    "group": "testLiterals",
+    "test": "testCollectionNotEqualEmpty",
+    "expression": "Patient.name.given != {}",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/literals.json"
+  },
+  {
+    "group": "testLiterals",
+    "test": "testExpressions",
+    "expression": "Patient.name.select(given | family).distinct()",
+    "xmlExpected": [
+      "Peter"
+    ],
+    "ourExpected": [
+      "Peter",
+      "James",
+      "Chalmers",
+      "Jim",
+      "Windsor"
+    ],
+    "file": "test-cases/literals.json"
+  },
+  {
+    "group": "testLiterals",
+    "test": "testNotInvalid",
+    "expression": "(1|2).not() = false",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": {
+      "error": true
+    },
+    "file": "test-cases/literals.json"
+  },
+  {
+    "group": "testTypes",
+    "test": "testDecimalLiteralToInteger",
+    "expression": "'1.1'.toInteger() = {}",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/type-conversion/toInteger.json"
+  },
+  {
+    "group": "testTypes",
+    "test": "testStringIntegerLiteralToQuantity",
+    "expression": "'1'.toQuantity()",
+    "xmlExpected": [
+      "1 '1'"
+    ],
+    "ourExpected": [
+      {
+        "value": 1,
+        "unit": "1"
+      }
+    ],
+    "file": "test-cases/operations/type-conversion/toQuantity.json"
+  },
+  {
+    "group": "testTypes",
+    "test": "testStringQuantityMonthLiteralToQuantity",
+    "expression": "'1 \\'mo\\''.toQuantity() = 1 month",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [
+      true
+    ],
+    "file": "test-cases/operations/type-conversion/toQuantity.json"
+  },
+  {
+    "group": "testTypes",
+    "test": "testStringQuantityYearLiteralToQuantity",
+    "expression": "'1 \\'a\\''.toQuantity() = 1 year",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [
+      true
+    ],
+    "file": "test-cases/operations/type-conversion/toQuantity.json"
+  },
+  {
+    "group": "testTypes",
+    "test": "testIntegerLiteralToBooleanEmpty",
+    "expression": "2.toBoolean()",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/type-conversion/toBoolean.json"
+  },
+  {
+    "group": "testTypes",
+    "test": "testDecimalLiteralToString",
+    "expression": "1.0.toString()",
+    "xmlExpected": [
+      "1.0"
+    ],
+    "ourExpected": [
+      "1"
+    ],
+    "file": "test-cases/operations/type-operators/testTypes-xml.json"
+  },
+  {
+    "group": "testTypes",
+    "test": "testQuantityLiteralWeekToString",
+    "expression": "1 week.toString()",
+    "xmlExpected": [
+      "1 week"
+    ],
+    "ourExpected": [
+      "1 'week'"
+    ],
+    "file": "test-cases/operations/type-operators/testTypes-xml.json"
+  },
+  {
+    "group": "testCollectionBoolean",
+    "test": "testCollectionBoolean1",
+    "expression": "iif(1 | 2 | 3, true, false)",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": {
+      "error": true
+    },
+    "file": "test-cases/operations/utility/iif-collection-boolean.json"
+  },
+  {
+    "group": "testDistinct",
+    "test": "testDistinct4",
+    "expression": "(1 | 2 | 3).distinct()",
+    "xmlExpected": [
+      "1"
+    ],
+    "ourExpected": [
+      1,
+      2,
+      3
+    ],
+    "file": "test-cases/operations/collection/distinct.json"
+  },
+  {
+    "group": "testSingle",
+    "test": "testSingle2",
+    "expression": "Patient.name.single().exists()",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": {
+      "error": true
+    },
+    "file": "test-cases/operations/collection/single-xml.json"
+  },
+  {
+    "group": "testIif",
+    "test": "testIif6",
+    "expression": "iif('non boolean criteria', 'true-result', 'true-result')",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/utility/iif.json"
+  },
+  {
+    "group": "testIif",
+    "test": "testIif10",
+    "expression": "('item1' | 'item2').iif(true, 'true-result', 'false-result')",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": {
+      "error": true
+    },
+    "file": "test-cases/operations/utility/iif.json"
+  },
+  {
+    "group": "testStartsWith",
+    "test": "testStartsWithNonString1",
+    "expression": "Appointment.identifier.startsWith('rand')",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/string/starts-with-xml.json"
+  },
+  {
+    "group": "testEndsWith",
+    "test": "testEndsWithNonString1",
+    "expression": "Appointment.identifier.endsWith('rand')",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/string/ends-with-xml.json"
+  },
+  {
+    "group": "testContainsString",
+    "test": "testContainsNonString1",
+    "expression": "Appointment.identifier.contains('rand')",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/string/contains-xml.json"
+  },
+  {
+    "group": "testEquality",
+    "test": "testEquality2",
+    "expression": "{} = {}",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/comparison/equality-xml.json"
+  },
+  {
+    "group": "testEquality",
+    "test": "testEquality3",
+    "expression": "true = {}",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/comparison/equality-xml.json"
+  },
+  {
+    "group": "testEquality",
+    "test": "testEquality19",
+    "expression": "@2012-04-15 = @2012-04-15T10:00:00",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/comparison/equality-xml.json"
+  },
+  {
+    "group": "testEquality",
+    "test": "testEquality23",
+    "expression": "@2012-04-15T15:00:00Z = @2012-04-15T10:00:00",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/comparison/equality-xml.json"
+  },
+  {
+    "group": "testNEquality",
+    "test": "testNEquality2",
+    "expression": "{} != {}",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/comparison/not-equal-xml.json"
+  },
+  {
+    "group": "testNEquality",
+    "test": "testNEquality13",
+    "expression": "@2012-04-15 != @2012-04-15T10:00:00",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/comparison/not-equal-xml.json"
+  },
+  {
+    "group": "testNEquality",
+    "test": "testNEquality17",
+    "expression": "@2012-04-15T15:00:00Z != @2012-04-15T10:00:00",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/comparison/not-equal-xml.json"
+  },
+  {
+    "group": "testLessThan",
+    "test": "testLessThan23",
+    "expression": "@2018-03 < @2018-03-01",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/comparison/less-than-xml.json"
+  },
+  {
+    "group": "testLessThan",
+    "test": "testLessThan24",
+    "expression": "@2018-03-01T10:30 < @2018-03-01T10:30:00",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/comparison/less-than-xml.json"
+  },
+  {
+    "group": "testLessThan",
+    "test": "testLessThan25",
+    "expression": "@T10:30 < @T10:30:00",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/comparison/less-than-xml.json"
+  },
+  {
+    "group": "testLessThan",
+    "test": "testLessThanEmpty1",
+    "expression": "1 < {}",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/comparison/less-than-xml.json"
+  },
+  {
+    "group": "testLessThan",
+    "test": "testLessThanEmpty2",
+    "expression": "{} < 1",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/comparison/less-than-xml.json"
+  },
+  {
+    "group": "testLessThan",
+    "test": "testLessThanEmpty3",
+    "expression": "{} < {}",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/comparison/less-than-xml.json"
+  },
+  {
+    "group": "testLessOrEqual",
+    "test": "testLessOrEqual23",
+    "expression": "@2018-03 <= @2018-03-01",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/comparison/less-or-equal-xml.json"
+  },
+  {
+    "group": "testLessOrEqual",
+    "test": "testLessOrEqual24",
+    "expression": "@2018-03-01T10:30 <= @2018-03-01T10:30:00",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/comparison/less-or-equal-xml.json"
+  },
+  {
+    "group": "testLessOrEqual",
+    "test": "testLessOrEqual25",
+    "expression": "@T10:30 <= @T10:30:00",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/comparison/less-or-equal-xml.json"
+  },
+  {
+    "group": "testLessOrEqual",
+    "test": "testLessOrEqualEmpty1",
+    "expression": "1 <= {}",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/comparison/lessOrEqual-xml.json"
+  },
+  {
+    "group": "testLessOrEqual",
+    "test": "testLessOrEqualEmpty2",
+    "expression": "{} <= 1",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/comparison/lessOrEqual-xml.json"
+  },
+  {
+    "group": "testLessOrEqual",
+    "test": "testLessOrEqualEmpty3",
+    "expression": "{} <= {}",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/comparison/lessOrEqual-xml.json"
+  },
+  {
+    "group": "testGreatorOrEqual",
+    "test": "testGreatorOrEqual23",
+    "expression": "@2018-03 >= @2018-03-01",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/comparison/greater-or-equal-xml.json"
+  },
+  {
+    "group": "testGreatorOrEqual",
+    "test": "testGreatorOrEqual24",
+    "expression": "@2018-03-01T10:30 >= @2018-03-01T10:30:00",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/comparison/greater-or-equal-xml.json"
+  },
+  {
+    "group": "testGreatorOrEqual",
+    "test": "testGreatorOrEqual25",
+    "expression": "@T10:30 >= @T10:30:00",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/comparison/greater-or-equal-xml.json"
+  },
+  {
+    "group": "testGreatorOrEqual",
+    "test": "testGreatorOrEqualEmpty1",
+    "expression": "1 >= {}",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/comparison/greaterOrEqual-xml.json"
+  },
+  {
+    "group": "testGreatorOrEqual",
+    "test": "testGreatorOrEqualEmpty2",
+    "expression": "{} >= 1",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/comparison/greaterOrEqual-xml.json"
+  },
+  {
+    "group": "testGreatorOrEqual",
+    "test": "testGreatorOrEqualEmpty3",
+    "expression": "{} >= {}",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/comparison/greaterOrEqual-xml.json"
+  },
+  {
+    "group": "testGreaterThan",
+    "test": "testGreaterThan23",
+    "expression": "@2018-03 > @2018-03-01",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/comparison/greater-than-xml.json"
+  },
+  {
+    "group": "testGreaterThan",
+    "test": "testGreaterThan24",
+    "expression": "@2018-03-01T10:30 > @2018-03-01T10:30:00",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/comparison/greater-than-xml.json"
+  },
+  {
+    "group": "testGreaterThan",
+    "test": "testGreaterThan25",
+    "expression": "@T10:30 > @T10:30:00",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/comparison/greater-than-xml.json"
+  },
+  {
+    "group": "testGreaterThan",
+    "test": "testGreaterThanEmpty1",
+    "expression": "1 > {}",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/comparison/greaterThan-xml.json"
+  },
+  {
+    "group": "testGreaterThan",
+    "test": "testGreaterThanEmpty2",
+    "expression": "{} > 1",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/comparison/greaterThan-xml.json"
+  },
+  {
+    "group": "testGreaterThan",
+    "test": "testGreaterThanEmpty3",
+    "expression": "{} > {}",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/comparison/greaterThan-xml.json"
+  },
+  {
+    "group": "testCombine()",
+    "test": "testCombine2",
+    "expression": "name.given.combine(name.family).exclude('Jim')",
+    "xmlExpected": [
+      "Peter"
+    ],
+    "ourExpected": [
+      "Peter",
+      "James",
+      "Peter",
+      "James",
+      "Chalmers",
+      "Windsor"
+    ],
+    "file": "test-cases/operations/collection/combine-xml.json"
+  },
+  {
+    "group": "testCombine()",
+    "test": "testCombine3",
+    "expression": "name.given.combine($this.name.family).exclude('Jim')",
+    "xmlExpected": [
+      "Peter"
+    ],
+    "ourExpected": [
+      "Peter",
+      "James",
+      "Peter",
+      "James",
+      "Chalmers",
+      "Windsor"
+    ],
+    "file": "test-cases/operations/collection/combine-xml.json"
+  },
+  {
+    "group": "testUnion",
+    "test": "testUnion11",
+    "expression": "name.select(use.union(given)).count()",
+    "xmlExpected": [
+      "3"
+    ],
+    "ourExpected": [
+      0
+    ],
+    "file": "test-cases/operations/collection/union.json"
+  },
+  {
+    "group": "testUnion",
+    "test": "testUnion12",
+    "expression": "true | Patient.name.given.first()",
+    "xmlExpected": [
+      "true"
+    ],
+    "ourExpected": [
+      true,
+      "Peter"
+    ],
+    "file": "test-cases/operations/collection/union.json"
+  },
+  {
+    "group": "testIn",
+    "test": "testIn5",
+    "expression": "('a' | 'c' | 'd') in 'b'",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": {
+      "error": true
+    },
+    "file": "test-cases/operations/membership/in.json"
+  },
+  {
+    "group": "testIn",
+    "test": "testInEmptyValue",
+    "expression": "{} in (1 | 2 | 3)",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/membership/in.json"
+  },
+  {
+    "group": "testIn",
+    "test": "testInEmptyBoth",
+    "expression": "{} in {}",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/membership/in.json"
+  },
+  {
+    "group": "testContainsCollection",
+    "test": "testContainsCollectionEmpty4",
+    "expression": "{} contains {}",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/membership/contains.json"
+  },
+  {
+    "group": "testPlus",
+    "test": "testPlus5",
+    "expression": "'a'+{}",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/arithmetic/plus-xml.json"
+  },
+  {
+    "group": "testPlus",
+    "test": "testPlusDate14",
+    "expression": "@1973-12-25 + 1 'mo'",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/temporal/plus-date-time.json"
+  },
+  {
+    "group": "testPlus",
+    "test": "testPlusDate16",
+    "expression": "@1973-12-25 + 1 'a'",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/temporal/plus-date-time.json"
+  },
+  {
+    "group": "testPlus",
+    "test": "testPlusDate17",
+    "expression": "@1975-12-25 + 1 'a'",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/temporal/plus-date-time.json"
+  },
+  {
+    "group": "testPlus",
+    "test": "testPlus6",
+    "expression": "@1974-12-25 + 7",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/temporal/plus-date-time.json"
+  },
+  {
+    "group": "testPlus",
+    "test": "testPlusEmpty1",
+    "expression": "1 + {}",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/arithmetic/plus-xml.json"
+  },
+  {
+    "group": "testPlus",
+    "test": "testPlusEmpty2",
+    "expression": "{} + 1",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/arithmetic/plus-xml.json"
+  },
+  {
+    "group": "testPlus",
+    "test": "testPlusEmpty3",
+    "expression": "{} + {}",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/arithmetic/plus-xml.json"
+  },
+  {
+    "group": "testConcatenate",
+    "test": "testConcatenate4",
+    "expression": "(1 | 2 | 3) & 'b' = '1,2,3b'",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": {
+      "error": true
+    },
+    "file": "test-cases/operations/string/concatenate-xml.json"
+  },
+  {
+    "group": "testMinus",
+    "test": "testMinus4",
+    "expression": "'a'-'b' = 'ab'",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": {
+      "error": true
+    },
+    "file": "test-cases/operations/arithmetic/minus-xml.json"
+  },
+  {
+    "group": "testMinus",
+    "test": "testMinus6",
+    "expression": "@1974-12-25 - 1 'cm'",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/arithmetic/minus-xml.json"
+  },
+  {
+    "group": "testMinus",
+    "test": "testMinusEmpty1",
+    "expression": "1 - {}",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/arithmetic/minus-xml.json"
+  },
+  {
+    "group": "testMinus",
+    "test": "testMinusEmpty2",
+    "expression": "{} - 1",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/arithmetic/minus-xml.json"
+  },
+  {
+    "group": "testMinus",
+    "test": "testMinusEmpty3",
+    "expression": "{} - {}",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/arithmetic/minus-xml.json"
+  },
+  {
+    "group": "testMultiply",
+    "test": "testMultiplyEmpty1",
+    "expression": "1 * {}",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/arithmetic/multiply-xml.json"
+  },
+  {
+    "group": "testMultiply",
+    "test": "testMultiplyEmpty2",
+    "expression": "{} * 1",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/arithmetic/multiply-xml.json"
+  },
+  {
+    "group": "testMultiply",
+    "test": "testMultiplyEmpty3",
+    "expression": "{} * {}",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/arithmetic/multiply-xml.json"
+  },
+  {
+    "group": "testDivide",
+    "test": "testDivide6",
+    "expression": "1 / 0",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/arithmetic/divide-xml.json"
+  },
+  {
+    "group": "testDivide",
+    "test": "testDivideEmpty1",
+    "expression": "1 / {}",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/arithmetic/divide-xml.json"
+  },
+  {
+    "group": "testDivide",
+    "test": "testDivideEmpty2",
+    "expression": "{} / 1",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/arithmetic/divide-xml.json"
+  },
+  {
+    "group": "testDivide",
+    "test": "testDivideEmpty3",
+    "expression": "{} / {}",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/arithmetic/divide-xml.json"
+  },
+  {
+    "group": "testDiv",
+    "test": "testDiv5",
+    "expression": "5 div 0",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/arithmetic/div-xml.json"
+  },
+  {
+    "group": "testDiv",
+    "test": "testDivEmpty1",
+    "expression": "1 div {}",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/arithmetic/div-xml.json"
+  },
+  {
+    "group": "testDiv",
+    "test": "testDivEmpty2",
+    "expression": "{} div 1",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/arithmetic/div-xml.json"
+  },
+  {
+    "group": "testDiv",
+    "test": "testDivEmpty3",
+    "expression": "{} div {}",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/arithmetic/div-xml.json"
+  },
+  {
+    "group": "testMod",
+    "test": "testMod5",
+    "expression": "5 mod 0",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/arithmetic/mod-xml.json"
+  },
+  {
+    "group": "testMod",
+    "test": "testModEmpty1",
+    "expression": "1 mod {}",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/arithmetic/mod-xml.json"
+  },
+  {
+    "group": "testMod",
+    "test": "testModEmpty2",
+    "expression": "{} mod 1",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/arithmetic/mod-xml.json"
+  },
+  {
+    "group": "testMod",
+    "test": "testModEmpty3",
+    "expression": "{} mod {}",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/arithmetic/mod-xml.json"
+  },
+  {
+    "group": "testSqrt",
+    "test": "testSqrt2",
+    "expression": "(-1).sqrt()",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/arithmetic/sqrt-xml.json"
+  },
+  {
+    "group": "testPower",
+    "test": "testPower3",
+    "expression": "(-1).power(0.5)",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/arithmetic/power-xml.json"
+  },
+  {
+    "group": "testPrecedence",
+    "test": "testPrecedence1",
+    "expression": "-1.convertsToInteger()",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/literals.json"
+  },
+  {
+    "group": "testConformsTo",
+    "test": "testConformsTo3",
+    "expression": "conformsTo('http://trash')",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": {
+      "error": true
+    },
+    "file": "test-cases/operations/fhir/conformsTo-xml.json"
+  },
+  {
+    "group": "LowBoundary",
+    "test": "LowBoundaryDecimal1",
+    "expression": "1.587.lowBoundary(6)",
+    "xmlExpected": [
+      "1.586500"
+    ],
+    "ourExpected": [
+      1.5869995
+    ],
+    "file": "test-cases/operations/utility/lowBoundary-xml.json"
+  },
+  {
+    "group": "LowBoundary",
+    "test": "LowBoundaryDecimal2",
+    "expression": "1.587.lowBoundary(2)",
+    "xmlExpected": [
+      "1.58"
+    ],
+    "ourExpected": [
+      1.5750000000000002
+    ],
+    "file": "test-cases/operations/utility/lowBoundary-xml.json"
+  },
+  {
+    "group": "LowBoundary",
+    "test": "LowBoundaryDecimal3",
+    "expression": "1.587.lowBoundary(-1)",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/utility/lowBoundary-xml.json"
+  },
+  {
+    "group": "LowBoundary",
+    "test": "LowBoundaryDecimal4",
+    "expression": "1.587.lowBoundary(0)",
+    "xmlExpected": [
+      "1"
+    ],
+    "ourExpected": [
+      0
+    ],
+    "file": "test-cases/operations/utility/lowBoundary-xml.json"
+  },
+  {
+    "group": "LowBoundary",
+    "test": "LowBoundaryDecimal5",
+    "expression": "1.587.lowBoundary(32)",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/utility/lowBoundary-xml.json"
+  },
+  {
+    "group": "LowBoundary",
+    "test": "LowBoundaryNegDecimal1",
+    "expression": "(-1.587).lowBoundary(6)",
+    "xmlExpected": [
+      "-1.587500"
+    ],
+    "ourExpected": [
+      -1.5870005
+    ],
+    "file": "test-cases/operations/utility/lowBoundary-xml.json"
+  },
+  {
+    "group": "LowBoundary",
+    "test": "LowBoundaryNegDecimal2",
+    "expression": "(-1.587).lowBoundary(2)",
+    "xmlExpected": [
+      "-1.59"
+    ],
+    "ourExpected": [
+      -1.595
+    ],
+    "file": "test-cases/operations/utility/lowBoundary-xml.json"
+  },
+  {
+    "group": "LowBoundary",
+    "test": "LowBoundaryNegDecimal3",
+    "expression": "(-1.587).lowBoundary(-1)",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/utility/lowBoundary-xml.json"
+  },
+  {
+    "group": "LowBoundary",
+    "test": "LowBoundaryNegDecimal5",
+    "expression": "(-1.587).lowBoundary(32)",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/utility/lowBoundary-xml.json"
+  },
+  {
+    "group": "LowBoundary",
+    "test": "LowBoundaryDecimal6",
+    "expression": "1.587.lowBoundary(39)",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/utility/lowBoundary-xml.json"
+  },
+  {
+    "group": "LowBoundary",
+    "test": "LowBoundaryDecimal10",
+    "expression": "12.587.lowBoundary(2)",
+    "xmlExpected": [
+      "12.58"
+    ],
+    "ourExpected": [
+      12.575
+    ],
+    "file": "test-cases/operations/utility/lowBoundary-xml.json"
+  },
+  {
+    "group": "LowBoundary",
+    "test": "LowBoundaryDecimal11",
+    "expression": "12.500.lowBoundary(4)",
+    "xmlExpected": [
+      "12.4995"
+    ],
+    "ourExpected": [
+      12.49995
+    ],
+    "file": "test-cases/operations/utility/lowBoundary-xml.json"
+  },
+  {
+    "group": "LowBoundary",
+    "test": "LowBoundaryDecimal14",
+    "expression": "0.0034.lowBoundary(1)",
+    "xmlExpected": [
+      "0.0"
+    ],
+    "ourExpected": [
+      -0.05
+    ],
+    "file": "test-cases/operations/utility/lowBoundary-xml.json"
+  },
+  {
+    "group": "LowBoundary",
+    "test": "LowBoundaryDecimal15",
+    "expression": "(-0.0034).lowBoundary(1)",
+    "xmlExpected": [
+      "-0.0"
+    ],
+    "ourExpected": [
+      -0.15000000000000002
+    ],
+    "file": "test-cases/operations/utility/lowBoundary-xml.json"
+  },
+  {
+    "group": "LowBoundary",
+    "test": "LowBoundaryQuantity",
+    "expression": "1.587 'cm'.lowBoundary(8)",
+    "xmlExpected": [
+      "1.58650000 'cm'"
+    ],
+    "ourExpected": [
+      {
+        "value": 1.586999995,
+        "unit": "cm"
+      }
+    ],
+    "file": "test-cases/operations/utility/lowBoundary-xml.json"
+  },
+  {
+    "group": "HighBoundary",
+    "test": "HighBoundaryDecimal1",
+    "expression": "1.587.highBoundary(2)",
+    "xmlExpected": [
+      "1.59"
+    ],
+    "ourExpected": [
+      1.595
+    ],
+    "file": "test-cases/operations/utility/highBoundary.json"
+  },
+  {
+    "group": "HighBoundary",
+    "test": "HighBoundaryDecimal2",
+    "expression": "1.587.highBoundary(6)",
+    "xmlExpected": [
+      "1.587500"
+    ],
+    "ourExpected": [
+      1.5870005
+    ],
+    "file": "test-cases/operations/utility/highBoundary.json"
+  },
+  {
+    "group": "HighBoundary",
+    "test": "HighBoundaryDecimal3",
+    "expression": "1.587.highBoundary(-1)",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/utility/highBoundary.json"
+  },
+  {
+    "group": "HighBoundary",
+    "test": "HighBoundaryDecimal5",
+    "expression": "(-1.587).highBoundary(2)",
+    "xmlExpected": [
+      "-1.58"
+    ],
+    "ourExpected": [
+      -1.5750000000000002
+    ],
+    "file": "test-cases/operations/utility/highBoundary.json"
+  },
+  {
+    "group": "HighBoundary",
+    "test": "HighBoundaryDecimal6",
+    "expression": "(-1.587).highBoundary(6)",
+    "xmlExpected": [
+      "-1.586500"
+    ],
+    "ourExpected": [
+      -1.5869995
+    ],
+    "file": "test-cases/operations/utility/highBoundary.json"
+  },
+  {
+    "group": "HighBoundary",
+    "test": "HighBoundaryDecimal7",
+    "expression": "1.587.highBoundary(39)",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/utility/highBoundary.json"
+  },
+  {
+    "group": "HighBoundary",
+    "test": "HighBoundaryDecimal11",
+    "expression": "12.587.highBoundary(2)",
+    "xmlExpected": [
+      "12.59"
+    ],
+    "ourExpected": [
+      12.595
+    ],
+    "file": "test-cases/operations/utility/highBoundary.json"
+  },
+  {
+    "group": "HighBoundary",
+    "test": "HighBoundaryDecimal12",
+    "expression": "12.500.highBoundary(4)",
+    "xmlExpected": [
+      "12.5005"
+    ],
+    "ourExpected": [
+      12.50005
+    ],
+    "file": "test-cases/operations/utility/highBoundary.json"
+  },
+  {
+    "group": "HighBoundary",
+    "test": "HighBoundaryDecimal15",
+    "expression": "0.0034.highBoundary(1)",
+    "xmlExpected": [
+      "0.0"
+    ],
+    "ourExpected": [
+      0.15000000000000002
+    ],
+    "file": "test-cases/operations/utility/highBoundary.json"
+  },
+  {
+    "group": "HighBoundary",
+    "test": "HighBoundaryDecimal16",
+    "expression": "-0.0034.highBoundary(1)",
+    "xmlExpected": [
+      "0.0"
+    ],
+    "ourExpected": [
+      -0.15000000000000002
+    ],
+    "file": "test-cases/operations/utility/highBoundary.json"
+  },
+  {
+    "group": "HighBoundary",
+    "test": "HighBoundaryDecimal",
+    "expression": "1.587.highBoundary(8)",
+    "xmlExpected": [
+      "1.58750000"
+    ],
+    "ourExpected": [
+      1.587000005
+    ],
+    "file": "test-cases/operations/utility/highBoundary.json"
+  },
+  {
+    "group": "HighBoundary",
+    "test": "HighBoundaryQuantity",
+    "expression": "1.587 'm'.highBoundary(8)",
+    "xmlExpected": [
+      "1.58750000 'm'"
+    ],
+    "ourExpected": [],
+    "file": "test-cases/operations/utility/highBoundary.json"
+  },
+  {
+    "group": "HighBoundary",
+    "test": "HighBoundaryDateTimeMillisecond1",
+    "expression": "@2014-01-01T08.highBoundary(17)",
+    "xmlExpected": [
+      "@2014-01-01T08:00:59.999-12:00"
+    ],
+    "ourExpected": [
+      "@2014-01-01T08:59:59.999-12:00"
+    ],
+    "file": "test-cases/operations/utility/highBoundary.json"
+  },
+  {
+    "group": "HighBoundary",
+    "test": "HighBoundaryDateTimeMillisecond3",
+    "expression": "@2014-01-01T08.highBoundary(17)",
+    "xmlExpected": [
+      "@2014-01-01T08:00:59.999-12:00"
+    ],
+    "ourExpected": [
+      "@2014-01-01T08:59:59.999-12:00"
+    ],
+    "file": "test-cases/operations/utility/highBoundary.json"
+  },
+  {
+    "group": "from-Zulip",
+    "test": "from-zulip-1",
+    "expression": "(true and 'foo').empty()",
+    "xmlExpected": [
+      "false"
+    ],
+    "ourExpected": [
+      true
+    ],
+    "file": "test-cases/misc/from-zulip-xml.json"
+  },
+  {
+    "group": "polymorphics",
+    "test": "testPolymorphicsB",
+    "expression": "Observation.valueQuantity.exists()",
+    "xmlExpected": [
+      "false"
+    ],
+    "ourExpected": [
+      true
+    ],
+    "file": "test-cases/operations/navigation/polymorphics-xml.json"
+  },
+  {
+    "group": "period",
+    "test": "testPeriodInvariantOld",
+    "expression": "Patient.identifier.period.all(start.hasValue().not() or end.hasValue().not() or (start <= end))",
+    "xmlExpected": [
+      "false"
+    ],
+    "ourExpected": [
+      true
+    ],
+    "file": "test-cases/misc/period-xml.json"
+  },
+  {
+    "group": "testInheritance",
+    "test": "testFHIRPathAsFunction11",
+    "expression": "Patient.gender.as(string)",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/type-operators/as-function-xml.json"
+  },
+  {
+    "group": "testInheritance",
+    "test": "testFHIRPathAsFunction13",
+    "expression": "Patient.gender.as(id)",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/type-operators/as-function-xml.json"
+  },
+  {
+    "group": "testInheritance",
+    "test": "testFHIRPathAsFunction15",
+    "expression": "ValueSet.version.as(code)",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/type-operators/as-function-xml.json"
+  },
+  {
+    "group": "testInheritance",
+    "test": "testFHIRPathAsFunction16",
+    "expression": "Patient.gender.ofType(string)",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/type-operators/as-function-xml.json"
+  },
+  {
+    "group": "testInheritance",
+    "test": "testFHIRPathAsFunction18",
+    "expression": "Patient.gender.ofType(id)",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/type-operators/as-function-xml.json"
+  },
+  {
+    "group": "testInheritance",
+    "test": "testFHIRPathAsFunction20",
+    "expression": "ValueSet.version.ofType(code)",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": [],
+    "file": "test-cases/operations/type-operators/as-function-xml.json"
+  },
+  {
+    "group": "testInheritance",
+    "test": "testFHIRPathAsFunction21",
+    "expression": "Patient.name.as(HumanName).use",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": {
+      "error": true
+    },
+    "file": "test-cases/operations/type-operators/as-function-xml.json"
+  },
+  {
+    "group": "testInheritance",
+    "test": "testFHIRPathAsFunction22",
+    "expression": "Patient.name.ofType(HumanName).use",
+    "xmlExpected": [
+      "official"
+    ],
+    "ourExpected": [
+      "official",
+      "usual",
+      "maiden"
+    ],
+    "file": "test-cases/operations/type-operators/as-function-xml.json"
+  },
+  {
+    "group": "testInheritance",
+    "test": "testFHIRPathAsFunction23",
+    "expression": "Patient.gender.as(string1)",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": {
+      "error": true
+    },
+    "file": "test-cases/operations/type-operators/as-function-xml.json"
+  },
+  {
+    "group": "testInheritance",
+    "test": "testFHIRPathAsFunction24",
+    "expression": "Patient.gender.ofType(string1)",
+    "xmlExpected": {
+      "noExpectation": true
+    },
+    "ourExpected": {
+      "error": true
+    },
+    "file": "test-cases/operations/type-operators/as-function-xml.json"
+  },
+  {
+    "group": "miscEngineTests",
+    "test": "testContainedId",
+    "expression": "contained.id",
+    "xmlExpected": [
+      "1"
+    ],
+    "ourExpected": [
+      "org1"
+    ],
+    "file": "test-cases/misc/engine-tests-xml.json"
+  }
+]
