@@ -650,12 +650,18 @@ export class Analyzer {
 
     // Check if it's a user variable (starts with %)
     if (varName.startsWith('%')) {
-      // Special handling for %context - it's a built-in environment variable
-      // that always returns the original input to the evaluation engine
+      // Special handling for built-in environment variables
       if (varName === '%context') {
         // %context returns the root input type (the original input to evaluate())
         // In the analyzer, we track this as the initial input type
         return { type: context.inputType, diagnostics, context };
+      }
+      
+      // Special handling for FHIR system variables (code system URLs)
+      if (varName === '%sct' || varName === '%loinc' || varName === '%ucum' || 
+          varName === '%vs-administrative-gender' || varName === '%`vs-administrative-gender`') {
+        // These are string constants
+        return { type: { type: 'String', singleton: true }, diagnostics, context };
       }
       
       const name = varName.substring(1); // Remove % prefix

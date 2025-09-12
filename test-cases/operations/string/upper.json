@@ -1,6 +1,7 @@
 {
   "name": "Upper Function Tests",
   "description": "Tests for the upper() function",
+  "inputFile": "../../input/patient-example.json",
   "tests": [
     {
       "name": "upper - lowercase string",
@@ -371,6 +372,20 @@
         "function:upper",
         "select"
       ]
+    },
+    {
+      "name": "testCase1 - lowercase 't' to uppercase",
+      "expression": "'t'.upper() = 'T'",
+      "expected": [true],
+      "tags": ["function", "string", "upper", "comparison"],
+      "fromXML": "testCase1"
+    },
+    {
+      "name": "testCase3 - uppercase 'T' unchanged",
+      "expression": "'T'.upper() = 'T'",
+      "expected": [true],
+      "tags": ["function", "string", "upper", "comparison"],
+      "fromXML": "testCase3"
     }
   ]
 }

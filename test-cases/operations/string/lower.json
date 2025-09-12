@@ -1,6 +1,7 @@
 {
   "name": "Lower Function Tests",
   "description": "Tests for the lower() function",
+  "inputFile": "../../input/patient-example.json",
   "tests": [
     {
       "name": "lower - uppercase string",
@@ -382,6 +383,20 @@
         "function:lower",
         "chained"
       ]
+    },
+    {
+      "name": "testCase2 - lowercase 't' unchanged",
+      "expression": "'t'.lower() = 't'",
+      "expected": [true],
+      "tags": ["function", "string", "lower", "comparison"],
+      "fromXML": "testCase2"
+    },
+    {
+      "name": "testCase4 - uppercase 'T' to lowercase",
+      "expression": "'T'.lower() = 't'",
+      "expected": [true],
+      "tags": ["function", "string", "lower", "comparison"],
+      "fromXML": "testCase4"
     }
   ]
 }

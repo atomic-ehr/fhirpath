@@ -1,6 +1,7 @@
 {
   "name": "Variables",
   "description": "Tests for variable references",
+  "inputFile": "input/patient-example.json",
   "tests": [
     {
       "name": "user-defined variable",
@@ -152,6 +153,34 @@
         "error",
         "operator:+"
       ]
+    },
+    {
+      "name": "sct environment variable",
+      "expression": "%sct = 'http://snomed.info/sct'",
+      "expected": [true],
+      "tags": ["variable", "environment", "sct"],
+      "fromXML": "testVariables1"
+    },
+    {
+      "name": "loinc environment variable",
+      "expression": "%loinc = 'http://loinc.org'",
+      "expected": [true],
+      "tags": ["variable", "environment", "loinc"],
+      "fromXML": "testVariables2"
+    },
+    {
+      "name": "ucum environment variable",
+      "expression": "%ucum = 'http://unitsofmeasure.org'",
+      "expected": [true],
+      "tags": ["variable", "environment", "ucum"],
+      "fromXML": "testVariables3"
+    },
+    {
+      "name": "escaped variable name with backticks",
+      "expression": "%`vs-administrative-gender` = 'http://hl7.org/fhir/ValueSet/administrative-gender'",
+      "expected": [true],
+      "tags": ["variable", "environment", "escaped-identifier"],
+      "fromXML": "testVariables4"
     }
   ]
 }

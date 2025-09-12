@@ -1,0 +1,38 @@
+{
+  "name": "String Concatenation Tests",
+  "description": "Tests for the & (concatenation) operator from XML test suite",
+  "inputFile": "../../input/patient-example.json",
+  "tests": [
+    {
+      "name": "testConcatenate1 - simple concatenation",
+      "expression": "'a' & 'b' = 'ab'",
+      "expected": [true],
+      "tags": ["operator", "string", "concatenate", "&"],
+      "fromXML": "testConcatenate1"
+    },
+    {
+      "name": "testConcatenate2 - concatenate with empty on right",
+      "expression": "'1' & {} = '1'",
+      "expected": [true],
+      "tags": ["operator", "string", "concatenate", "&", "empty"],
+      "fromXML": "testConcatenate2"
+    },
+    {
+      "name": "testConcatenate3 - concatenate with empty on left",
+      "expression": "{} & 'b' = 'b'",
+      "expected": [true],
+      "tags": ["operator", "string", "concatenate", "&", "empty"],
+      "fromXML": "testConcatenate3"
+    },
+    {
+      "name": "testConcatenate4 - concatenate collection error",
+      "expression": "(1 | 2 | 3) & 'b' = '1,2,3b'",
+      "expected": [],
+      "error": {
+        "type": "execution"
+      },
+      "tags": ["operator", "string", "concatenate", "&", "error", "collection"],
+      "fromXML": "testConcatenate4"
+    }
+  ]
+}

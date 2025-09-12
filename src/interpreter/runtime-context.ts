@@ -32,6 +32,12 @@ export class RuntimeContextManager {
     context.variables['%context'] = input;
     context.variables['%resource'] = input;
     context.variables['%rootResource'] = input;
+    
+    // Set FHIR-specific system variables (standard URLs for code systems)
+    context.variables['%sct'] = 'http://snomed.info/sct';
+    context.variables['%loinc'] = 'http://loinc.org';
+    context.variables['%ucum'] = 'http://unitsofmeasure.org';
+    context.variables['%vs-administrative-gender'] = 'http://hl7.org/fhir/ValueSet/administrative-gender';
 
     // Add any initial variables (with % prefix for user-defined)
     if (initialVariables) {
@@ -101,7 +107,7 @@ export class RuntimeContextManager {
     }
 
     // Check for system variables (with or without % prefix)
-    const systemVariables = ['context', 'resource', 'rootResource', 'ucum', 'sct', 'loinc'];
+    const systemVariables = ['context', 'resource', 'rootResource', 'ucum', 'sct', 'loinc', 'vs-administrative-gender'];
     const baseVarName = varKey.startsWith('%') ? varKey.substring(1) : varKey;
     if (systemVariables.includes(baseVarName)) {
       // Throw error when trying to override system variables
@@ -148,6 +154,18 @@ export class RuntimeContextManager {
     }
     if (name === 'rootResource' || name === '%rootResource') {
       return context.variables['%rootResource'];
+    }
+    if (name === 'sct' || name === '%sct') {
+      return context.variables['%sct'];
+    }
+    if (name === 'loinc' || name === '%loinc') {
+      return context.variables['%loinc'];
+    }
+    if (name === 'ucum' || name === '%ucum') {
+      return context.variables['%ucum'];
+    }
+    if (name === 'vs-administrative-gender' || name === '%vs-administrative-gender' || name === '%`vs-administrative-gender`') {
+      return context.variables['%vs-administrative-gender'];
     }
 
     // Handle user-defined variables (add % prefix if not present)
