@@ -42,7 +42,7 @@ Porting FHIRPath test cases from XML format (spec/fhirpathlab-tests/fhirpathlab-
 
 ### Collections & Sorting
 - [x] **testSort** (10 tests) - ✅ Ported to sort-xml.json, sort() implemented (all passing)
-- [ ] **testCombine()** (3 tests) - Combine collections
+- [x] **testCombine()** (3 tests) - ✅ Ported to combine-xml.json (all passing)
 - [x] **testExclude** (4 tests) - ✅ Ported to exclude.json
 - [x] **testRepeat** (5 tests) ✅ Ported to repeat-xml.json
 
