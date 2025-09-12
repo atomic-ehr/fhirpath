@@ -1,0 +1,14 @@
+{
+  "name": "Index Variable (XML tests)",
+  "description": "Tests for the $index variable ported from XML test suite",
+  "tests": [
+    {
+      "name": "testIndex: select with $index variable",
+      "expression": "Patient.telecom.select(iif(value='(03) 3410 5613', $index, {} ))",
+      "inputFile": "../../input/patient-example.json",
+      "expected": [2],
+      "fromXML": "testIndex",
+      "tags": ["variables", "index", "iif", "select"]
+    }
+  ]
+}

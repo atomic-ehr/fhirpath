@@ -1,0 +1,13 @@
+{
+  "name": "IndexOf (XML tests)",
+  "description": "Tests for the indexOf() function ported from XML test suite",
+  "tests": [
+    {
+      "name": "testIndexOf1: indexOf hyphen in string",
+      "expression": "'LogicalModel-Person'.indexOf('-')",
+      "expected": [12],
+      "fromXML": "testIndexOf1",
+      "tags": ["string", "indexOf"]
+    }
+  ]
+}

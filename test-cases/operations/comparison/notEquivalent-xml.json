@@ -1,0 +1,13 @@
+{
+  "name": "NotEquivalent (XML tests)",
+  "description": "Tests for the not equivalent (!~) operator ported from XML test suite",
+  "tests": [
+    {
+      "name": "testNotEquivalent1: 1 not equivalent to 1",
+      "expression": "1 !~ 1",
+      "expected": [false],
+      "fromXML": "testNotEquivalent1",
+      "tags": ["comparison", "notEquivalent"]
+    }
+  ]
+}

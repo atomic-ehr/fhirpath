@@ -1,0 +1,14 @@
+{
+  "name": "Today (XML tests)",
+  "description": "Tests for the today() function ported from XML test suite",
+  "tests": [
+    {
+      "name": "testToday2: today string length",
+      "expression": "today().toString().length() = 10",
+      "input": [{}],
+      "expected": [true],
+      "fromXML": "testToday2",
+      "tags": ["temporal", "today", "toString", "length"]
+    }
+  ]
+}
