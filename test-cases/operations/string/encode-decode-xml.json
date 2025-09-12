@@ -1,0 +1,63 @@
+{
+  "name": "Encode and Decode Function Tests",
+  "description": "Tests for the encode() and decode() functions from XML test suite (FHIRPath v2.1.0)",
+  "inputFile": "../../input/patient-example.json",
+  "tests": [
+    {
+      "name": "testEncodeBase64A - encode simple string to base64",
+      "expression": "'test'.encode('base64')",
+      "expected": ["dGVzdA=="],
+      "tags": ["function", "string", "encode", "base64"],
+      "fromXML": "testEncodeBase64A"
+    },
+    {
+      "name": "testEncodeHex - encode string to hex",
+      "expression": "'test'.encode('hex')",
+      "expected": ["74657374"],
+      "tags": ["function", "string", "encode", "hex"],
+      "fromXML": "testEncodeHex"
+    },
+    {
+      "name": "testEncodeBase64B - encode string with special chars to base64",
+      "expression": "'subjects?_d'.encode('base64')",
+      "expected": ["c3ViamVjdHM/X2Q="],
+      "tags": ["function", "string", "encode", "base64", "special-chars"],
+      "fromXML": "testEncodeBase64B"
+    },
+    {
+      "name": "testEncodeUrlBase64 - encode string to URL-safe base64",
+      "expression": "'subjects?_d'.encode('urlbase64')",
+      "expected": ["c3ViamVjdHM_X2Q="],
+      "tags": ["function", "string", "encode", "urlbase64"],
+      "fromXML": "testEncodeUrlBase64"
+    },
+    {
+      "name": "testDecodeBase64A - decode base64 to string",
+      "expression": "'dGVzdA=='.decode('base64')",
+      "expected": ["test"],
+      "tags": ["function", "string", "decode", "base64"],
+      "fromXML": "testDecodeBase64A"
+    },
+    {
+      "name": "testDecodeHex - decode hex to string",
+      "expression": "'74657374'.decode('hex')",
+      "expected": ["test"],
+      "tags": ["function", "string", "decode", "hex"],
+      "fromXML": "testDecodeHex"
+    },
+    {
+      "name": "testDecodeBase64B - decode base64 with special chars",
+      "expression": "'c3ViamVjdHM/X2Q='.decode('base64')",
+      "expected": ["subjects?_d"],
+      "tags": ["function", "string", "decode", "base64", "special-chars"],
+      "fromXML": "testDecodeBase64B"
+    },
+    {
+      "name": "testDecodeUrlBase64 - decode URL-safe base64",
+      "expression": "'c3ViamVjdHM_X2Q='.decode('urlbase64')",
+      "expected": ["subjects?_d"],
+      "tags": ["function", "string", "decode", "urlbase64"],
+      "fromXML": "testDecodeUrlBase64"
+    }
+  ]
+}

@@ -89,7 +89,7 @@
       ]
     },
     {
-      "name": "concatenation with multiple items joins all values",
+      "name": "concatenation with multiple items throws error",
       "expression": "names & ' and '",
       "input": [
         {
@@ -99,14 +99,16 @@
           ]
         }
       ],
-      "expected": [
-        "AliceBob and "
-      ],
+      "expected": [],
+      "error": {
+        "type": "execution"
+      },
       "tags": [
         "operator",
         "string",
         "concatenation",
         "collection",
+        "error",
         "operator:&"
       ]
     }

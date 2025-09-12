@@ -4,10 +4,23 @@ import type { OperationEvaluator } from '../types';
 import { box, unbox } from '../interpreter/boxing';
 
 export const evaluate: OperationEvaluator = async (input, context, left, right) => {
-  // Combine operator concatenates all values as strings
+  // & operator requires singleton operands (or empty)
   // Empty collections are treated as empty string
-  const leftStr = left.length === 0 ? '' : left.map(v => String(unbox(v))).join('');
-  const rightStr = right.length === 0 ? '' : right.map(v => String(unbox(v))).join('');
+  
+  // Check for multiple items in left operand
+  if (left.length > 1) {
+    const { Errors } = await import('../errors');
+    throw Errors.invalidOperation('& operator requires singleton operands, left operand contains multiple items');
+  }
+  
+  // Check for multiple items in right operand
+  if (right.length > 1) {
+    const { Errors } = await import('../errors');
+    throw Errors.invalidOperation('& operator requires singleton operands, right operand contains multiple items');
+  }
+  
+  const leftStr = left.length === 0 ? '' : String(unbox(left[0]));
+  const rightStr = right.length === 0 ? '' : String(unbox(right[0]));
   
   // Always return a string, even if both are empty
   return { value: [box(leftStr + rightStr, { type: 'String', singleton: true })], context };
@@ -20,7 +33,7 @@ export const combineOperator: OperatorDefinition & { evaluate: OperationEvaluato
   category: ['string'],
   precedence: PRECEDENCE.ADDITIVE,
   associativity: 'left',
-  description: 'String concatenation operator',
+  description: 'String concatenation operator that requires singleton operands. Empty collections are treated as empty strings.',
   examples: ['first & " " & last'],
   signatures: [
     {
