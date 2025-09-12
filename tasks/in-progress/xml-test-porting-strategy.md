@@ -23,6 +23,13 @@ Use the find-duplicates.ts script in tmp/ to check for duplicates:
 bun tmp/find-duplicates.ts
 ```
 
+### Coverage Check Script  
+To see which XML tests are missing from our suite:
+```bash
+bun tools/check-all-xml-tests.ts
+```
+This will show coverage for ALL 101 groups and generate `missing-xml-tests.txt`
+
 ## Porting Process
 
 1. **Sequential Processing**: Work through XML test groups in order
@@ -51,9 +58,26 @@ When creating test files in subdirectories, use relative paths:
 
 ## Tracking Progress
 
-- Total XML tests: 1026
-- Currently ported: 599 (as of 2025-09-12)
-- Identified duplicates: 92 (to be cleaned up later)
+### Coverage Check Script
+Use the comprehensive coverage check script to see ALL groups and their test coverage:
+```bash
+bun tools/check-all-xml-tests.ts
+```
+
+This script will:
+- Check ALL 101 groups from the XML test suite
+- Show coverage percentage for EACH group
+- List missing test expressions
+- Generate a `missing-xml-tests.txt` file with detailed missing tests
+
+### Current Statistics (as of 2025-09-12)
+- **Total XML groups**: 101
+- **Total XML tests**: 1025 (actual count from XML)
+- **Tests found in our suite**: 841 (82.0%)
+- **Tests missing**: 184 (18.0%)
+- **Groups with 100% coverage**: 58 groups
+- **Groups with 0% coverage**: 20 groups
+- **Identified duplicates**: 92 (to be cleaned up later)
 - **MANDATORY**: Update 001-port-xml-tests.md after EACH group ported
 
 ## Notes
