@@ -24,6 +24,13 @@ export const evaluate: OperationEvaluator = async (input, context, left, right) 
   const leftType = boxedL?.typeInfo?.type;
   const rightType = boxedR?.typeInfo?.type;
   
+  // Check if left is temporal and right is a plain number (not a quantity) - this is invalid
+  if ((leftType === 'Date' || leftType === 'DateTime' || leftType === 'Time') && 
+      (rightType === 'Integer' || rightType === 'Decimal')) {
+    // Temporal + number without unit is invalid per FHIRPath spec - return empty
+    return { value: [], context };
+  }
+  
   if ((leftType === 'Date' || leftType === 'DateTime' || leftType === 'Time') && rightType === 'Quantity') {
     // Left is temporal, right is quantity
     const temporalType = leftType;
@@ -54,9 +61,8 @@ export const evaluate: OperationEvaluator = async (input, context, left, right) 
     // Check if this is a variable duration unit (not allowed)
     if (variableDurationUnits.includes(quantity.unit)) {
       // Variable duration units like 'a' and 'mo' cannot be added to temporal values
-      // because they don't have fixed durations
-      const { Errors } = await import('../errors');
-      throw Errors.invalidTemporalUnit(temporalType, quantity.unit);
+      // because they don't have fixed durations - return empty per FHIRPath spec
+      return { value: [], context };
     }
     
     // Map fixed duration UCUM units to calendar units
@@ -157,6 +163,43 @@ export const plusOperator: OperatorDefinition & { evaluate: OperationEvaluator }
       left: { type: 'Time', singleton: true },
       right: { type: 'Quantity', singleton: true },
       result: { type: 'Time', singleton: true },
+    },
+    // Invalid combinations that return empty - added to prevent analyzer errors
+    {
+      name: 'date-plus-integer-invalid',
+      left: { type: 'Date', singleton: true },
+      right: { type: 'Integer', singleton: true },
+      result: { type: 'Any', singleton: false },  // Returns empty
+    },
+    {
+      name: 'date-plus-decimal-invalid',
+      left: { type: 'Date', singleton: true },
+      right: { type: 'Decimal', singleton: true },
+      result: { type: 'Any', singleton: false },  // Returns empty
+    },
+    {
+      name: 'datetime-plus-integer-invalid',
+      left: { type: 'DateTime', singleton: true },
+      right: { type: 'Integer', singleton: true },
+      result: { type: 'Any', singleton: false },  // Returns empty
+    },
+    {
+      name: 'datetime-plus-decimal-invalid',
+      left: { type: 'DateTime', singleton: true },
+      right: { type: 'Decimal', singleton: true },
+      result: { type: 'Any', singleton: false },  // Returns empty
+    },
+    {
+      name: 'time-plus-integer-invalid',
+      left: { type: 'Time', singleton: true },
+      right: { type: 'Integer', singleton: true },
+      result: { type: 'Any', singleton: false },  // Returns empty
+    },
+    {
+      name: 'time-plus-decimal-invalid',
+      left: { type: 'Time', singleton: true },
+      right: { type: 'Decimal', singleton: true },
+      result: { type: 'Any', singleton: false },  // Returns empty
     }
   ],
   evaluate

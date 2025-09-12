@@ -4,12 +4,16 @@
 Porting FHIRPath test cases from XML format (spec/fhirpathlab-tests/fhirpathlab-tests.xml) to JSON format.
 
 **Source:** 1751 lines, 101 test groups, 1025 tests parsed (1027 test tags found - 2 missing in parse)
-**Current Coverage:** 672 tests ported (~66% of total), 65 files with XML tests
+**Current Coverage:** 697 tests ported (~68% of total), 66 files with XML tests
+**Current Status as of:** 2025-09-12
 
 ## Coverage Summary
-- ✅ **Ported from XML:** 672 tests
-- ✅ **Test Groups Completed:** ~60 groups fully or partially ported
-- ❌ **Not Yet Ported:** ~353 tests remaining (~34% of total)
+- ✅ **Ported from XML:** 697 tests (increased from 672)
+- ✅ **Test Groups Completed:** ~61 groups fully or partially ported
+- ❌ **Not Yet Ported:** ~328 tests remaining (~32% of total)
+
+## Recent Progress
+- ✅ **testPlus** - Completed porting all 34 tests including date/time arithmetic (2025-09-12)
 
 ## Priority 1: Groups with No Coverage (49 groups, ~425 tests)
 
@@ -81,7 +85,7 @@ Porting FHIRPath test cases from XML format (spec/fhirpathlab-tests/fhirpathlab-
 
 ## Priority 2: Groups Ported from XML
 
-- [x] **testPlus** ✅ Ported to plus-xml.json
+- [x] **testPlus** ✅ Ported to plus-xml.json and plus-date-time.json (34/34 tests complete)
 - [x] **testMinus** ✅ Ported to minus-xml.json
 - [x] **testMultiply** ✅ Ported to multiply-xml.json
 - [x] **testDivide** ✅ Ported to divide-xml.json

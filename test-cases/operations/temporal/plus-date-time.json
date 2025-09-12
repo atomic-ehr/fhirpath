@@ -1,0 +1,214 @@
+{
+  "name": "Plus Date/Time Arithmetic (XML Port)",
+  "description": "Date and time arithmetic tests for the + operator ported from fhirpathlab-tests.xml",
+  "tests": [
+    {
+      "name": "testPlusDate1 - date plus days",
+      "expression": "@1973-12-25 + 7 days",
+      "input": [],
+      "expected": ["@1974-01-01"],
+      "tags": ["operator", "temporal", "date", "arithmetic", "operator:+", "xml-port"],
+      "fromXML": "testPlusDate1"
+    },
+    {
+      "name": "testPlusDate2 - date plus fractional days",
+      "expression": "@1973-12-25 + 7.7 days",
+      "input": [],
+      "expected": ["@1974-01-01"],
+      "tags": ["operator", "temporal", "date", "arithmetic", "operator:+", "xml-port"],
+      "fromXML": "testPlusDate2"
+    },
+    {
+      "name": "testPlusDate3 - datetime plus days",
+      "expression": "@1973-12-25T00:00:00.000+10:00 + 7 days",
+      "input": [],
+      "expected": ["@1974-01-01T00:00:00.000+10:00"],
+      "tags": ["operator", "temporal", "datetime", "arithmetic", "operator:+", "xml-port"],
+      "fromXML": "testPlusDate3"
+    },
+    {
+      "name": "testPlusDate4 - datetime plus fractional days",
+      "expression": "@1973-12-25T00:00:00.000+10:00 + 7.7 days",
+      "input": [],
+      "expected": ["@1974-01-01T00:00:00.000+10:00"],
+      "tags": ["operator", "temporal", "datetime", "arithmetic", "operator:+", "xml-port"],
+      "fromXML": "testPlusDate4"
+    },
+    {
+      "name": "testPlusDate5 - datetime plus second",
+      "expression": "@1973-12-25T00:00:00.000+10:00 + 1 second",
+      "input": [],
+      "expected": ["@1973-12-25T00:00:01.000+10:00"],
+      "tags": ["operator", "temporal", "datetime", "arithmetic", "operator:+", "xml-port"],
+      "fromXML": "testPlusDate5"
+    },
+    {
+      "name": "testPlusDate6 - datetime plus milliseconds",
+      "expression": "@1973-12-25T00:00:00.000+10:00 + 10 millisecond",
+      "input": [],
+      "expected": ["@1973-12-25T00:00:00.010+10:00"],
+      "tags": ["operator", "temporal", "datetime", "arithmetic", "operator:+", "xml-port"],
+      "fromXML": "testPlusDate6"
+    },
+    {
+      "name": "testPlusDate7 - datetime plus minute",
+      "expression": "@1973-12-25T00:00:00.000+10:00 + 1 minute",
+      "input": [],
+      "expected": ["@1973-12-25T00:01:00.000+10:00"],
+      "tags": ["operator", "temporal", "datetime", "arithmetic", "operator:+", "xml-port"],
+      "fromXML": "testPlusDate7"
+    },
+    {
+      "name": "testPlusDate8 - datetime plus hour",
+      "expression": "@1973-12-25T00:00:00.000+10:00 + 1 hour",
+      "input": [],
+      "expected": ["@1973-12-25T01:00:00.000+10:00"],
+      "tags": ["operator", "temporal", "datetime", "arithmetic", "operator:+", "xml-port"],
+      "fromXML": "testPlusDate8"
+    },
+    {
+      "name": "testPlusDate9 - date plus day",
+      "expression": "@1973-12-25 + 1 day",
+      "input": [],
+      "expected": ["@1973-12-26"],
+      "tags": ["operator", "temporal", "date", "arithmetic", "operator:+", "xml-port"],
+      "fromXML": "testPlusDate9"
+    },
+    {
+      "name": "testPlusDate10 - date plus month",
+      "expression": "@1973-12-25 + 1 month",
+      "input": [],
+      "expected": ["@1974-01-25"],
+      "tags": ["operator", "temporal", "date", "arithmetic", "operator:+", "xml-port"],
+      "fromXML": "testPlusDate10"
+    },
+    {
+      "name": "testPlusDate11 - date plus week",
+      "expression": "@1973-12-25 + 1 week",
+      "input": [],
+      "expected": ["@1974-01-01"],
+      "tags": ["operator", "temporal", "date", "arithmetic", "operator:+", "xml-port"],
+      "fromXML": "testPlusDate11"
+    },
+    {
+      "name": "testPlusDate12 - date plus year",
+      "expression": "@1973-12-25 + 1 year",
+      "input": [],
+      "expected": ["@1974-12-25"],
+      "tags": ["operator", "temporal", "date", "arithmetic", "operator:+", "xml-port"],
+      "fromXML": "testPlusDate12"
+    },
+    {
+      "name": "testPlusDate13 - date plus quantity with 'd' unit",
+      "expression": "@1973-12-25 + 1 'd'",
+      "input": [],
+      "expected": ["@1973-12-26"],
+      "tags": ["operator", "temporal", "date", "arithmetic", "quantity", "operator:+", "xml-port"],
+      "fromXML": "testPlusDate13"
+    },
+    {
+      "name": "testPlusDate14 - date plus month quantity (invalid)",
+      "expression": "@1973-12-25 + 1 'mo'",
+      "input": [],
+      "expected": [],
+      "tags": ["operator", "temporal", "date", "arithmetic", "quantity", "error", "operator:+", "xml-port"],
+      "fromXML": "testPlusDate14"
+    },
+    {
+      "name": "testPlusDate15 - date plus week quantity",
+      "expression": "@1973-12-25 + 1 'wk'",
+      "input": [],
+      "expected": ["@1974-01-01"],
+      "tags": ["operator", "temporal", "date", "arithmetic", "quantity", "operator:+", "xml-port"],
+      "fromXML": "testPlusDate15"
+    },
+    {
+      "name": "testPlusDate16 - date plus year quantity (invalid)",
+      "expression": "@1973-12-25 + 1 'a'",
+      "input": [],
+      "expected": [],
+      "tags": ["operator", "temporal", "date", "arithmetic", "quantity", "error", "operator:+", "xml-port"],
+      "fromXML": "testPlusDate16"
+    },
+    {
+      "name": "testPlusDate17 - different date plus year quantity (invalid)",
+      "expression": "@1975-12-25 + 1 'a'",
+      "input": [],
+      "expected": [],
+      "tags": ["operator", "temporal", "date", "arithmetic", "quantity", "error", "operator:+", "xml-port"],
+      "fromXML": "testPlusDate17"
+    },
+    {
+      "name": "testPlusDate18 - datetime plus second quantity",
+      "expression": "@1973-12-25T00:00:00.000+10:00 + 1 's'",
+      "input": [],
+      "expected": ["@1973-12-25T00:00:01.000+10:00"],
+      "tags": ["operator", "temporal", "datetime", "arithmetic", "quantity", "operator:+", "xml-port"],
+      "fromXML": "testPlusDate18"
+    },
+    {
+      "name": "testPlusDate19 - datetime plus fractional second quantity",
+      "expression": "@1973-12-25T00:00:00.000+10:00 + 0.1 's'",
+      "input": [],
+      "expected": ["@1973-12-25T00:00:00.100+10:00"],
+      "tags": ["operator", "temporal", "datetime", "arithmetic", "quantity", "operator:+", "xml-port"],
+      "fromXML": "testPlusDate19"
+    },
+    {
+      "name": "testPlusDate20 - datetime plus millisecond quantity",
+      "expression": "@1973-12-25T00:00:00.000+10:00 + 10 'ms'",
+      "input": [],
+      "expected": ["@1973-12-25T00:00:00.010+10:00"],
+      "tags": ["operator", "temporal", "datetime", "arithmetic", "quantity", "operator:+", "xml-port"],
+      "fromXML": "testPlusDate20"
+    },
+    {
+      "name": "testPlusDate21 - datetime plus minute quantity",
+      "expression": "@1973-12-25T00:00:00.000+10:00 + 1 'min'",
+      "input": [],
+      "expected": ["@1973-12-25T00:01:00.000+10:00"],
+      "tags": ["operator", "temporal", "datetime", "arithmetic", "quantity", "operator:+", "xml-port"],
+      "fromXML": "testPlusDate21"
+    },
+    {
+      "name": "testPlusDate22 - datetime plus hour quantity",
+      "expression": "@1973-12-25T00:00:00.000+10:00 + 1 'h'",
+      "input": [],
+      "expected": ["@1973-12-25T01:00:00.000+10:00"],
+      "tags": ["operator", "temporal", "datetime", "arithmetic", "quantity", "operator:+", "xml-port"],
+      "fromXML": "testPlusDate22"
+    },
+    {
+      "name": "testPlus6 - date plus integer (invalid)",
+      "expression": "@1974-12-25 + 7",
+      "input": [],
+      "expected": [],
+      "tags": ["operator", "temporal", "date", "arithmetic", "error", "operator:+", "xml-port"],
+      "fromXML": "testPlus6"
+    },
+    {
+      "name": "testPlusTime1 - time plus hours",
+      "expression": "@T01:00:00 + 2 hours",
+      "input": [],
+      "expected": ["@T03:00:00"],
+      "tags": ["operator", "temporal", "time", "arithmetic", "operator:+", "xml-port"],
+      "fromXML": "testPlusTime1"
+    },
+    {
+      "name": "testPlusTime2 - time plus hours with wrap",
+      "expression": "@T23:00:00 + 2 hours",
+      "input": [],
+      "expected": ["@T01:00:00"],
+      "tags": ["operator", "temporal", "time", "arithmetic", "operator:+", "xml-port"],
+      "fromXML": "testPlusTime2"
+    },
+    {
+      "name": "testPlusTime3 - time plus many hours",
+      "expression": "@T23:00:00 + 50 hours",
+      "input": [],
+      "expected": ["@T01:00:00"],
+      "tags": ["operator", "temporal", "time", "arithmetic", "operator:+", "xml-port"],
+      "fromXML": "testPlusTime3"
+    }
+  ]
+}

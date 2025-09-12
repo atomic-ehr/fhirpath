@@ -377,19 +377,13 @@
     {
       "name": "Invalid - year literal with abbreviated unit",
       "expression": "@2018 + 1 'a'",
-      "error": {
-        "code": "FP6010",
-        "message": "Cannot use variable-duration unit 'a' with Date - use calendar duration keywords instead"
-      },
+      "expected": [],
       "tags": ["temporal", "arithmetic", "error", "abbreviation"]
     },
     {
       "name": "Invalid - month literal with abbreviated unit",
       "expression": "@2018-02 + 1 'mo'",
-      "error": {
-        "code": "FP6010",
-        "message": "Cannot use variable-duration unit 'mo' with Date - use calendar duration keywords instead"
-      },
+      "expected": [],
       "tags": ["temporal", "arithmetic", "error", "abbreviation"]
     },
     {
