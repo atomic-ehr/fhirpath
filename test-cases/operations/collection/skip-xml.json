@@ -1,0 +1,36 @@
+{
+  "name": "Skip (XML tests)",
+  "description": "Tests for the skip() function ported from XML test suite",
+  "tests": [
+    {
+      "name": "testSkip1: skip(1) on collection",
+      "expression": "(0 | 1 | 2).skip(1) = 1 | 2",
+      "expected": [true],
+      "fromXML": "testSkip1",
+      "tags": ["collection", "skip"]
+    },
+    {
+      "name": "testSkip2: skip(2) on collection",
+      "expression": "(0 | 1 | 2).skip(2) = 2",
+      "expected": [true],
+      "fromXML": "testSkip2",
+      "tags": ["collection", "skip"]
+    },
+    {
+      "name": "testSkip3: skip on Patient.name",
+      "expression": "Patient.name.skip(1).given.trace('test') = 'Jim' | 'Peter' | 'James'",
+      "inputFile": "../../input/patient-example.json",
+      "expected": [true],
+      "fromXML": "testSkip3",
+      "tags": ["collection", "skip", "navigation"]
+    },
+    {
+      "name": "testSkip4: skip beyond collection size",
+      "expression": "Patient.name.skip(3).given.exists() = false",
+      "inputFile": "../../input/patient-example.json",
+      "expected": [true],
+      "fromXML": "testSkip4",
+      "tags": ["collection", "skip", "navigation"]
+    }
+  ]
+}

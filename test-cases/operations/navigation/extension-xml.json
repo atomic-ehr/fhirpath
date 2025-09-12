@@ -1,0 +1,35 @@
+{
+  "name": "Extension (XML tests)",
+  "description": "Tests for the extension() function ported from XML test suite",
+  "tests": [
+    {
+      "name": "testExtension1: extension by URL",
+      "expression": "Patient.birthDate.extension('http://hl7.org/fhir/StructureDefinition/patient-birthTime').exists()",
+      "inputFile": "../../input/patient-example.json",
+      "expected": [true],
+      "fromXML": "testExtension1",
+      "tags": ["navigation", "extension", "fhir"]
+    },
+    {
+      "name": "testExtension2: extension with variable",
+      "expression": "Patient.birthDate.extension(%`ext-patient-birthTime`).exists()",
+      "inputFile": "../../input/patient-example.json",
+      "context": {
+        "variables": {
+          "ext-patient-birthTime": ["http://hl7.org/fhir/StructureDefinition/patient-birthTime"]
+        }
+      },
+      "expected": [true],
+      "fromXML": "testExtension2",
+      "tags": ["navigation", "extension", "fhir", "variables"]
+    },
+    {
+      "name": "testExtension3: non-existent extension",
+      "expression": "Patient.birthDate.extension('http://hl7.org/fhir/StructureDefinition/patient-birthTime1').empty()",
+      "inputFile": "../../input/patient-example.json",
+      "expected": [true],
+      "fromXML": "testExtension3",
+      "tags": ["navigation", "extension", "fhir", "empty"]
+    }
+  ]
+}

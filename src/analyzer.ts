@@ -664,7 +664,15 @@ export class Analyzer {
         return { type: { type: 'String', singleton: true }, diagnostics, context };
       }
       
-      const name = varName.substring(1); // Remove % prefix
+      // Handle environment variable syntax with backticks %`variable`
+      let name: string;
+      if (varName.startsWith('%`') && varName.endsWith('`')) {
+        // Remove %` from start and ` from end
+        name = varName.slice(2, -1);
+      } else {
+        // Remove % prefix
+        name = varName.substring(1);
+      }
       const varType = context.userVariables.get(name);
       
       if (!varType) {

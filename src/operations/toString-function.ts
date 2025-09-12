@@ -69,14 +69,57 @@ export const evaluate: FunctionEvaluator = async (input, context, args, evaluato
     }
     
     if (inputValue.kind === 'FHIRDateTime') {
-      // For simplicity, return the ISO string representation
-      // This would need proper formatting based on the precision
-      return { value: [], context }; // TODO: Implement proper DateTime formatting
+      // Format DateTime as string based on its precision
+      const { year, month, day, hour, minute, second, millisecond, tzOffset } = inputValue;
+      let result = `${year}`;
+      
+      if (month !== undefined) {
+        result += `-${String(month).padStart(2, '0')}`;
+        if (day !== undefined) {
+          result += `-${String(day).padStart(2, '0')}`;
+          if (hour !== undefined) {
+            result += `T${String(hour).padStart(2, '0')}`;
+            if (minute !== undefined) {
+              result += `:${String(minute).padStart(2, '0')}`;
+              if (second !== undefined) {
+                result += `:${String(second).padStart(2, '0')}`;
+                if (millisecond !== undefined && millisecond > 0) {
+                  result += `.${String(millisecond).padStart(3, '0')}`;
+                }
+              }
+            }
+            // Add timezone offset if present
+            if (tzOffset !== undefined) {
+              if (tzOffset === 0) {
+                result += 'Z';
+              } else {
+                const absOffset = Math.abs(tzOffset);
+                const hours = Math.floor(absOffset / 60);
+                const minutes = absOffset % 60;
+                const sign = tzOffset > 0 ? '+' : '-';
+                result += `${sign}${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+              }
+            }
+          }
+        }
+      }
+      
+      return { value: [box(result, { type: 'String', singleton: true })], context };
     }
     
     if (inputValue.kind === 'FHIRTime') {
-      // For simplicity, return the time string representation
-      return { value: [], context }; // TODO: Implement proper Time formatting
+      // Format Time as string
+      const { hour, minute, second, millisecond } = inputValue;
+      let result = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+      
+      if (second !== undefined) {
+        result += `:${String(second).padStart(2, '0')}`;
+        if (millisecond !== undefined && millisecond > 0) {
+          result += `.${String(millisecond).padStart(3, '0')}`;
+        }
+      }
+      
+      return { value: [box(result, { type: 'String', singleton: true })], context };
     }
     
     // Check for Quantity type

@@ -1,0 +1,34 @@
+{
+  "name": "Intersect (XML tests)",
+  "description": "Tests for the intersect() function ported from XML test suite",
+  "tests": [
+    {
+      "name": "testIntersect1: basic intersection",
+      "expression": "(1 | 2 | 3).intersect(2 | 4) = 2",
+      "expected": [true],
+      "fromXML": "testIntersect1",
+      "tags": ["collection", "intersect"]
+    },
+    {
+      "name": "testIntersect2: no common elements",
+      "expression": "(1 | 2).intersect(4).empty()",
+      "expected": [true],
+      "fromXML": "testIntersect2",
+      "tags": ["collection", "intersect", "empty"]
+    },
+    {
+      "name": "testIntersect3: intersect with empty",
+      "expression": "(1 | 2).intersect({}).empty()",
+      "expected": [true],
+      "fromXML": "testIntersect3",
+      "tags": ["collection", "intersect", "empty"]
+    },
+    {
+      "name": "testIntersect4: intersect preserves duplicates",
+      "expression": "1.combine(1).intersect(1).count() = 1",
+      "expected": [true],
+      "fromXML": "testIntersect4",
+      "tags": ["collection", "intersect", "combine", "duplicates"]
+    }
+  ]
+}

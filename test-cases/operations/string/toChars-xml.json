@@ -1,0 +1,13 @@
+{
+  "name": "ToChars (XML tests)",
+  "description": "Tests for the toChars() function ported from XML test suite",
+  "tests": [
+    {
+      "name": "testToChars1: split string to characters",
+      "expression": "'t2'.toChars() = 't' | '2'",
+      "expected": [true],
+      "fromXML": "testToChars1",
+      "tags": ["string", "toChars"]
+    }
+  ]
+}

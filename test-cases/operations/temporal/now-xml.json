@@ -1,0 +1,22 @@
+{
+  "name": "Now (XML tests)",
+  "description": "Tests for the now() function ported from XML test suite",
+  "tests": [
+    {
+      "name": "testNow1: birthDate < now()",
+      "expression": "Patient.birthDate < now()",
+      "inputFile": "../../input/patient-example.json",
+      "expected": [true],
+      "fromXML": "testNow1",
+      "tags": ["temporal", "now", "comparison"]
+    },
+    {
+      "name": "testNow2: now() string length",
+      "expression": "now().toString().length() > 10",
+      "input": [{}],
+      "expected": [true],
+      "fromXML": "testNow2",
+      "tags": ["temporal", "now", "string"]
+    }
+  ]
+}

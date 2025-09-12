@@ -1,0 +1,34 @@
+{
+  "name": "Split (XML tests)",
+  "description": "Tests for the split() function ported from XML test suite",
+  "tests": [
+    {
+      "name": "testSplit1: split comma-separated string",
+      "expression": "'Peter,James,Jim,Peter,James'.split(',').count() = 5",
+      "expected": [true],
+      "fromXML": "testSplit1",
+      "tags": ["string", "split"]
+    },
+    {
+      "name": "testSplit2: split with empty segments",
+      "expression": "'A,,C'.split(',').join(',') = 'A,,C'",
+      "expected": [true],
+      "fromXML": "testSplit2",
+      "tags": ["string", "split", "join"]
+    },
+    {
+      "name": "testSplit3: split with multi-char separator",
+      "expression": "'[stop]ONE[stop][stop]TWO[stop][stop][stop]THREE[stop][stop]'.split('[stop]').trace('n').count() = 9",
+      "expected": [true],
+      "fromXML": "testSplit3",
+      "tags": ["string", "split", "trace"]
+    },
+    {
+      "name": "testSplit4: split and join round-trip",
+      "expression": "'[stop]ONE[stop][stop]TWO[stop][stop][stop]THREE[stop][stop]'.split('[stop]').join('[stop]')",
+      "expected": ["[stop]ONE[stop][stop]TWO[stop][stop][stop]THREE[stop][stop]"],
+      "fromXML": "testSplit4",
+      "tags": ["string", "split", "join"]
+    }
+  ]
+}

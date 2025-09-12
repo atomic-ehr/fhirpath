@@ -1,0 +1,30 @@
+{
+  "name": "Comparable (XML tests)",
+  "description": "Tests for the comparable() function for quantities ported from XML test suite",
+  "tests": [
+    {
+      "name": "Comparable1: cm and inches are comparable",
+      "expression": "1 'cm'.comparable(1 '[in_i]')",
+      "expected": [true],
+      "fromXML": "Comparable1",
+      "tags": ["quantity", "comparable", "units"],
+      "pending": "comparable() function not implemented"
+    },
+    {
+      "name": "Comparable2: cm and seconds not comparable",
+      "expression": "1 'cm'.comparable(1 '[s]')",
+      "expected": [false],
+      "fromXML": "Comparable2",
+      "tags": ["quantity", "comparable", "units"],
+      "pending": "comparable() function not implemented"
+    },
+    {
+      "name": "Comparable3: cm and seconds (non-UCUM) not comparable",
+      "expression": "1 'cm'.comparable(1 's')",
+      "expected": [false],
+      "fromXML": "Comparable3",
+      "tags": ["quantity", "comparable", "units"],
+      "pending": "comparable() function not implemented"
+    }
+  ]
+}

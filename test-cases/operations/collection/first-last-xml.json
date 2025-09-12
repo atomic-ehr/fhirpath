@@ -1,0 +1,22 @@
+{
+  "name": "First/Last (XML tests)",
+  "description": "Additional tests for first() and last() functions ported from XML test suite",
+  "tests": [
+    {
+      "name": "testFirstLast1: first().given",
+      "expression": "Patient.name.first().given = 'Peter' | 'James'",
+      "inputFile": "../../input/patient-example.json",
+      "expected": [true],
+      "fromXML": "testFirstLast1",
+      "tags": ["collection", "first", "navigation"]
+    },
+    {
+      "name": "testFirstLast2: last().given",
+      "expression": "Patient.name.last().given = 'Peter' | 'James'",
+      "inputFile": "../../input/patient-example.json",
+      "expected": [true],
+      "fromXML": "testFirstLast2",
+      "tags": ["collection", "last", "navigation"]
+    }
+  ]
+}

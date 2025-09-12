@@ -1,0 +1,14 @@
+{
+  "name": "Join (XML tests)",
+  "description": "Tests for the join() function ported from XML test suite",
+  "tests": [
+    {
+      "name": "testJoin: join given names with comma",
+      "expression": "name.given.join(',')",
+      "inputFile": "../../input/patient-example.json",
+      "expected": ["Peter,James,Jim,Peter,James"],
+      "fromXML": "testJoin",
+      "tags": ["string", "join", "navigation"]
+    }
+  ]
+}

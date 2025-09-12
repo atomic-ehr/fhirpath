@@ -38,7 +38,7 @@ Porting FHIRPath test cases from XML format (spec/fhirpathlab-tests/fhirpathlab-
 - [x] **testEncodeDecode** (8 tests) - ✅ Ported to encode-decode-xml.json (8 pending - functions not implemented)
 - [x] **testEscapeUnescape** (4 tests) - ✅ Ported to escape-unescape-xml.json
 - [x] **testCase** (4 tests) - ✅ Ported to upper.json and lower.json
-- [ ] **testToChars** (1 test) - Convert string to characters
+- [x] **testToChars** (1 test) - ✅ Ported to toChars-xml.json
 
 ### Collections & Sorting
 - [x] **testSort** (10 tests) - ✅ Ported to sort-xml.json, sort() implemented (all passing)
@@ -59,24 +59,24 @@ Porting FHIRPath test cases from XML format (spec/fhirpathlab-tests/fhirpathlab-
 - [x] **testBasics** (7 tests) - ✅ Already ported to basics.json
 - [x] **testCollectionBoolean** (6 tests) - ✅ Already ported to operations/utility/iif-collection-boolean.json
 - [x] **testDollar** (5 tests) - ✅ Already ported to dollar-this.json (fixed expressions)
-- [ ] **testIndexer** (2 tests) - Index operations
+- [x] **testIndexer** (2 tests) - ✅ Ported to indexer-xml.json
 - [x] **testPrecedence** (6 tests) - ✅ Already ported to operations/precedence.json
 
 ### Advanced Features
 - [x] **testType** (30 tests) ✅ Ported to type-xml.json (13 tests removed - type() not implemented, 8 remaining with namespace issues)
 - [ ] **testInheritance** (24 tests) - Type inheritance tests  
 - [x] **testVariables** (4 tests) - ✅ Ported to variables.json (now all passing - system variables implemented)
-- [ ] **testExtension** (3 tests) - Extension handling
-- [ ] **testConformsTo** (3 tests) - ConformsTo operation
+- [x] **testExtension** (3 tests) - ✅ Ported to extension-xml.json
+- [x] **testConformsTo** (3 tests) - ✅ Ported to conformsTo-xml.json
 - [x] **comments** (9 tests) - ✅ Already ported to syntax/comments.json
 - [ ] **testMiscellaneousAccessorTests** (3 tests)
-- [ ] **Comparable** (3 tests) - Comparable type tests
+- [x] **Comparable** (3 tests) - ✅ Ported to comparable-xml.json
 - [ ] **from-Zulip** (2 tests) - Edge cases from Zulip discussions
 - [ ] **polymorphics** (2 tests) - Polymorphic operations
 - [ ] **index-part** (1 test) - Index part functionality
 - [ ] **period** (2 tests) - Period handling
 - [ ] **miscEngineTests** (2 tests) - Engine-specific tests
-- [ ] **cdaTests** (3 tests) - CDA document tests
+- [x] **cdaTests** (3 tests) - ✅ Ported to hasTemplateIdOf-xml.json
 - [ ] **testDollarResource** (not found in groups list)
 
 ## Priority 2: Groups Ported from XML
@@ -155,11 +155,26 @@ defineVariable, testAll, testSubSetOf, testSuperSetOf, testAggregate, testSingle
 ### Current Status as of 2025-09-12:
 - **0 failing tests** ✅
 - **3 pending tests** (2 timeOfDay timing issues, 1 precision limitation)
-- **711 XML tests successfully ported** (~69% complete)
+- **747 XML tests successfully ported** (~73% complete) - added 36 tests from 15 groups
 - **All non-pending tests passing**
 - **Implemented functions**: sort(), ln(), exp()
 
 ### Recent Progress:
+- ✅ Ported all missing small test groups (0% coverage):
+  - testSkip (4 tests) - skip-xml.json
+  - testTail (2 tests) - tail-xml.json
+  - testSplit (4 tests) - split-xml.json
+  - testJoin (1 test) - join-xml.json
+  - testIntersect (4 tests) - intersect-xml.json
+  - testSingle (2 tests) - single-xml.json
+  - testFirstLast (2 tests) - first-last-xml.json
+  - testIndexer (2 tests) - indexer-xml.json
+  - testNow (2 tests) - now-xml.json
+  - testToChars (1 test) - toChars-xml.json
+  - testExtension (3 tests) - extension-xml.json
+  - testConformsTo (3 tests) - conformsTo-xml.json
+  - Comparable (3 tests) - comparable-xml.json
+  - cdaTests (3 tests) - hasTemplateIdOf-xml.json
 - ✅ Implemented sort() function - all 10 tests passing, handles descending sort with null values correctly
 - ✅ Implemented ln() function - all 3 tests passing  
 - ✅ Implemented exp() function - all 3 tests passing

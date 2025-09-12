@@ -1,0 +1,21 @@
+{
+  "name": "Tail (XML tests)",
+  "description": "Tests for the tail() function ported from XML test suite",
+  "tests": [
+    {
+      "name": "testTail1: tail() on collection",
+      "expression": "(0 | 1 | 2).tail() = 1 | 2",
+      "expected": [true],
+      "fromXML": "testTail1",
+      "tags": ["collection", "tail"]
+    },
+    {
+      "name": "testTail2: tail() on Patient.name",
+      "expression": "Patient.name.tail().given = 'Jim' | 'Peter' | 'James'",
+      "inputFile": "../../input/patient-example.json",
+      "expected": [true],
+      "fromXML": "testTail2",
+      "tags": ["collection", "tail", "navigation"]
+    }
+  ]
+}

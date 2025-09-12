@@ -168,11 +168,20 @@ export class RuntimeContextManager {
       return context.variables['%vs-administrative-gender'];
     }
 
-    // Handle user-defined variables (add % prefix if not present)
-    const varKey = name.startsWith('%') ? name : `%${name}`;
+    // Handle user-defined variables
+    // Strip backticks from environment variable syntax %`variable`
+    let cleanName = name;
+    if (name.startsWith('%`') && name.endsWith('`')) {
+      // Remove %` from start and ` from end
+      cleanName = '%' + name.slice(2, -1);
+    } else if (!name.startsWith('%')) {
+      // Add % prefix if not present
+      cleanName = '%' + name;
+    }
+    
     // Use 'in' operator to check prototype chain for inherited variables
-    if (varKey in context.variables) {
-      return context.variables[varKey];
+    if (cleanName in context.variables) {
+      return context.variables[cleanName];
     }
     return undefined;
   }

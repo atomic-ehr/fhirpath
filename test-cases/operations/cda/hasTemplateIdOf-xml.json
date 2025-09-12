@@ -1,0 +1,33 @@
+{
+  "name": "HasTemplateIdOf (XML tests)",
+  "description": "Tests for the hasTemplateIdOf() CDA-specific function ported from XML test suite",
+  "tests": [
+    {
+      "name": "testHasTemplateId1: root has template ID",
+      "expression": "hasTemplateIdOf('http://hl7.org/cda/us/ccda/StructureDefinition/ContinuityofCareDocumentCCD')",
+      "inputFile": "../../input/ccda.xml",
+      "expected": [true],
+      "fromXML": "testHasTemplateId1",
+      "tags": ["cda", "hasTemplateIdOf"],
+      "pending": "hasTemplateIdOf() function not implemented and ccda.xml input file missing"
+    },
+    {
+      "name": "testHasTemplateId2: ClinicalDocument has template ID",
+      "expression": "ClinicalDocument.hasTemplateIdOf('http://hl7.org/cda/us/ccda/StructureDefinition/ContinuityofCareDocumentCCD')",
+      "inputFile": "../../input/ccda.xml",
+      "expected": [true],
+      "fromXML": "testHasTemplateId2",
+      "tags": ["cda", "hasTemplateIdOf", "navigation"],
+      "pending": "hasTemplateIdOf() function not implemented and ccda.xml input file missing"
+    },
+    {
+      "name": "testHasTemplateId3: patientRole does not have template ID",
+      "expression": "recordTarget.patientRole.hasTemplateIdOf('http://hl7.org/cda/us/ccda/StructureDefinition/ContinuityofCareDocumentCCD')",
+      "inputFile": "../../input/ccda.xml",
+      "expected": [false],
+      "fromXML": "testHasTemplateId3",
+      "tags": ["cda", "hasTemplateIdOf", "navigation"],
+      "pending": "hasTemplateIdOf() function not implemented and ccda.xml input file missing"
+    }
+  ]
+}

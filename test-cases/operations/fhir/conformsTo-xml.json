@@ -1,0 +1,37 @@
+{
+  "name": "ConformsTo (XML tests)",
+  "description": "Tests for the conformsTo() function ported from XML test suite",
+  "tests": [
+    {
+      "name": "testConformsTo1: conforms to Patient",
+      "expression": "conformsTo('http://hl7.org/fhir/StructureDefinition/Patient')",
+      "inputFile": "../../input/patient-example.json",
+      "expected": [true],
+      "fromXML": "testConformsTo1",
+      "tags": ["fhir", "conformsTo", "validation"],
+      "pending": "conformsTo() function not implemented"
+    },
+    {
+      "name": "testConformsTo2: does not conform to Person",
+      "expression": "conformsTo('http://hl7.org/fhir/StructureDefinition/Person')",
+      "inputFile": "../../input/patient-example.json",
+      "expected": [false],
+      "fromXML": "testConformsTo2",
+      "tags": ["fhir", "conformsTo", "validation"],
+      "pending": "conformsTo() function not implemented"
+    },
+    {
+      "name": "testConformsTo3: invalid profile throws error",
+      "expression": "conformsTo('http://trash')",
+      "inputFile": "../../input/patient-example.json",
+      "error": {
+        "type": "Error",
+        "phase": "runtime",
+        "code": "FP3001"
+      },
+      "fromXML": "testConformsTo3",
+      "tags": ["fhir", "conformsTo", "validation", "error"],
+      "pending": "conformsTo() function not implemented"
+    }
+  ]
+}

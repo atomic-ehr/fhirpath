@@ -1,7 +1,7 @@
 MISSING TEST EXPRESSIONS FROM XML TEST SUITE
 ================================================================================
-Generated: 2025-09-12T10:42:42.047Z
-Total missing: 184 out of 1025 tests
+Generated: 2025-09-12T10:59:37.641Z
+Total missing: 148 out of 1025 tests
 
 
 Group: testTypes (36 missing)
@@ -137,27 +137,6 @@ Group: HighBoundary (17 missing)
     - HighBoundaryDateTimeMillisecond3: @2014-01-01T08.highBoundary(17)
     - HighBoundaryTimeMillisecond: @T10:30.highBoundary(9)
 
-Group: testSkip (4 missing)
-----------------------------------------
-    - testSkip1: (0 | 1 | 2).skip(1) = 1 | 2
-    - testSkip2: (0 | 1 | 2).skip(2) = 2
-    - testSkip3: Patient.name.skip(1).given.trace('test') = 'Jim' | 'Peter' | 'James'
-    - testSkip4: Patient.name.skip(3).given.exists() = false
-
-Group: testSplit (4 missing)
-----------------------------------------
-    - testSplit1: 'Peter,James,Jim,Peter,James'.split(',').count() = 5
-    - testSplit2: 'A,,C'.split(',').join(',') = 'A,,C'
-    - testSplit3: '[stop]ONE[stop][stop]TWO[stop][stop][stop]THREE[stop][stop]'.split('[stop]').trace('n').count() = 9
-    - testSplit4: '[stop]ONE[stop][stop]TWO[stop][stop][stop]THREE[stop][stop]'.split('[stop]').join('[stop]')
-
-Group: testIntersect (4 missing)
-----------------------------------------
-    - testIntersect1: (1 | 2 | 3).intersect(2 | 4) = 2
-    - testIntersect2: (1 | 2).intersect(4).empty()
-    - testIntersect3: (1 | 2).intersect({}).empty()
-    - testIntersect4: 1.combine(1).intersect(1).count() = 1
-
 Group: testDollar (3 missing)
 ----------------------------------------
     - testDollarThis1: Patient.name.given.where(substring($this.length()-3) = 'out')
@@ -182,30 +161,6 @@ Group: testGreaterThan (3 missing)
     - testGreaterThanEmpty2: {} > 1
     - testGreaterThanEmpty3: {} > {}
 
-Group: testExtension (3 missing)
-----------------------------------------
-    - testExtension1: Patient.birthDate.extension('http://hl7.org/fhir/StructureDefinition/patient-birthTime').exists()
-    - testExtension2: Patient.birthDate.extension(%`ext-patient-birthTime`).exists()
-    - testExtension3: Patient.birthDate.extension('http://hl7.org/fhir/StructureDefinition/patient-birthTime1').empty()
-
-Group: testConformsTo (3 missing)
-----------------------------------------
-    - testConformsTo1: conformsTo('http://hl7.org/fhir/StructureDefinition/Patient')
-    - testConformsTo2: conformsTo('http://hl7.org/fhir/StructureDefinition/Person')
-    - testConformsTo3: conformsTo('http://trash')
-
-Group: Comparable (3 missing)
-----------------------------------------
-    - Comparable1: 1 'cm'.comparable(1 '[in_i]')
-    - Comparable2: 1 'cm'.comparable(1 '[s]')
-    - Comparable3: 1 'cm'.comparable(1 's')
-
-Group: cdaTests (3 missing)
-----------------------------------------
-    - testHasTemplateId1: hasTemplateIdOf('http://hl7.org/cda/us/ccda/StructureDefinition/ContinuityofCareDocumentCCD')
-    - testHasTemplateId2: ClinicalDocument.hasTemplateIdOf('http://hl7.org/cda/us/ccda/StructureDefinition/ContinuityofCareDocumentCCD')
-    - testHasTemplateId3: recordTarget.patientRole.hasTemplateIdOf('http://hl7.org/cda/us/ccda/StructureDefinition/ContinuityofCareDocumentCCD')
-
 Group: defineVariable (2 missing)
 ----------------------------------------
     - defineVariable14: Patient.name.defineVariable('n1', first()).select(%n1).exists() | Patient.name.defineVariable('n2', skip(1).first()).defineVariable('res', %n2.given+%n2.given).select(%res)
@@ -223,35 +178,10 @@ Group: defineVariable (2 missing)
 			.isDistinct()
 		
 
-Group: testIndexer (2 missing)
-----------------------------------------
-    - testIndexer1: Patient.name[0].given = 'Peter' | 'James'
-    - testIndexer2: Patient.name[1].given = 'Jim'
-
-Group: testSingle (2 missing)
-----------------------------------------
-    - testSingle1: Patient.name.first().single().exists()
-    - testSingle2: Patient.name.single().exists()
-
-Group: testFirstLast (2 missing)
-----------------------------------------
-    - testFirstLast1: Patient.name.first().given = 'Peter' | 'James'
-    - testFirstLast2: Patient.name.last().given = 'Peter' | 'James'
-
-Group: testTail (2 missing)
-----------------------------------------
-    - testTail1: (0 | 1 | 2).tail() = 1 | 2
-    - testTail2: Patient.name.tail().given = 'Jim' | 'Peter' | 'James'
-
 Group: testTrace (2 missing)
 ----------------------------------------
     - testTrace1: name.given.trace('test').count() = 5
     - testTrace2: name.trace('test', given).count() = 3
-
-Group: testNow (2 missing)
-----------------------------------------
-    - testNow1: Patient.birthDate < now()
-    - testNow2: now().toString().length() > 10
 
 Group: testPrecedence (2 missing)
 ----------------------------------------
@@ -285,17 +215,9 @@ Group: miscEngineTests (2 missing)
 			)
 			
 
-Group: testToChars (1 missing)
-----------------------------------------
-    - testToChars1: 't2'.toChars() = 't' | '2'
-
 Group: testIndexOf (1 missing)
 ----------------------------------------
     - testIndexOf1: 'LogicalModel-Person'.indexOf('-')
-
-Group: testJoin (1 missing)
-----------------------------------------
-    - testJoin: name.given.join(',')
 
 Group: testToday (1 missing)
 ----------------------------------------

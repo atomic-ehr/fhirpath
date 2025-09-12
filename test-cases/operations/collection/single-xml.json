@@ -1,0 +1,26 @@
+{
+  "name": "Single (XML tests)",
+  "description": "Tests for the single() function ported from XML test suite",
+  "tests": [
+    {
+      "name": "testSingle1: single on singleton",
+      "expression": "Patient.name.first().single().exists()",
+      "inputFile": "../../input/patient-example.json",
+      "expected": [true],
+      "fromXML": "testSingle1",
+      "tags": ["collection", "single", "navigation"]
+    },
+    {
+      "name": "testSingle2: single on collection throws error",
+      "expression": "Patient.name.single().exists()",
+      "inputFile": "../../input/patient-example.json",
+      "error": {
+        "type": "Error",
+        "phase": "runtime",
+        "code": "FP2003"
+      },
+      "fromXML": "testSingle2",
+      "tags": ["collection", "single", "navigation", "error"]
+    }
+  ]
+}

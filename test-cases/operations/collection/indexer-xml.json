@@ -1,0 +1,22 @@
+{
+  "name": "Indexer (XML tests)",
+  "description": "Tests for array indexing with [] operator ported from XML test suite",
+  "tests": [
+    {
+      "name": "testIndexer1: index [0]",
+      "expression": "Patient.name[0].given = 'Peter' | 'James'",
+      "inputFile": "../../input/patient-example.json",
+      "expected": [true],
+      "fromXML": "testIndexer1",
+      "tags": ["collection", "indexer", "navigation"]
+    },
+    {
+      "name": "testIndexer2: index [1]",
+      "expression": "Patient.name[1].given = 'Jim'",
+      "inputFile": "../../input/patient-example.json",
+      "expected": [true],
+      "fromXML": "testIndexer2",
+      "tags": ["collection", "indexer", "navigation"]
+    }
+  ]
+}
