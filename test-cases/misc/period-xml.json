@@ -1,0 +1,23 @@
+{
+  "name": "Period Invariants (XML tests)",
+  "description": "Tests for period invariant validation ported from XML test suite",
+  "tests": [
+    {
+      "name": "testPeriodInvariantOld: period invariant with hasValue",
+      "expression": "Patient.identifier.period.all(start.hasValue().not() or end.hasValue().not() or (start <= end))",
+      "inputFile": "../../input/patient-example.json",
+      "expected": [true],
+      "fromXML": "testPeriodInvariantOld",
+      "tags": ["validation", "period", "invariant", "hasValue"],
+      "note": "hasValue() returns empty for non-existent values, making the expression true via three-valued logic"
+    },
+    {
+      "name": "testPeriodInvariantNew: period invariant with boundaries",
+      "expression": "Patient.identifier.period.all(start.empty() or end.empty() or (start.lowBoundary() < end.highBoundary()))",
+      "inputFile": "../../input/patient-example.json",
+      "expected": [true],
+      "fromXML": "testPeriodInvariantNew",
+      "tags": ["validation", "period", "invariant", "boundary"]
+    }
+  ]
+}

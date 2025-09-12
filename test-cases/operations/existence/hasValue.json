@@ -1,0 +1,243 @@
+{
+  "name": "HasValue Function Tests",
+  "description": "Tests for the hasValue() function that checks if a value is a FHIR primitive with an actual value",
+  "tests": [
+    {
+      "name": "hasValue - string primitive",
+      "expression": "'hello'.hasValue()",
+      "expected": [true],
+      "tags": ["function", "existence", "hasValue", "primitive", "string"]
+    },
+    {
+      "name": "hasValue - integer primitive",
+      "expression": "(42).hasValue()",
+      "expected": [true],
+      "tags": ["function", "existence", "hasValue", "primitive", "integer"]
+    },
+    {
+      "name": "hasValue - decimal primitive",
+      "expression": "3.14.hasValue()",
+      "expected": [true],
+      "tags": ["function", "existence", "hasValue", "primitive", "decimal"]
+    },
+    {
+      "name": "hasValue - boolean true",
+      "expression": "true.hasValue()",
+      "expected": [true],
+      "tags": ["function", "existence", "hasValue", "primitive", "boolean"]
+    },
+    {
+      "name": "hasValue - boolean false",
+      "expression": "false.hasValue()",
+      "expected": [true],
+      "tags": ["function", "existence", "hasValue", "primitive", "boolean"]
+    },
+    {
+      "name": "hasValue - date primitive",
+      "expression": "@2024-01-01.hasValue()",
+      "expected": [true],
+      "tags": ["function", "existence", "hasValue", "primitive", "date"]
+    },
+    {
+      "name": "hasValue - datetime primitive",
+      "expression": "@2024-01-01T12:00:00.hasValue()",
+      "expected": [true],
+      "tags": ["function", "existence", "hasValue", "primitive", "datetime"]
+    },
+    {
+      "name": "hasValue - time primitive",
+      "expression": "@T12:00:00.hasValue()",
+      "expected": [true],
+      "tags": ["function", "existence", "hasValue", "primitive", "time"]
+    },
+    {
+      "name": "hasValue - empty string has no value",
+      "expression": "''.hasValue()",
+      "expected": [],
+      "tags": ["function", "existence", "hasValue", "primitive", "string", "edge-case", "empty"]
+    },
+    {
+      "name": "hasValue - zero is a value",
+      "expression": "(0).hasValue()",
+      "expected": [true],
+      "tags": ["function", "existence", "hasValue", "primitive", "integer", "edge-case"]
+    },
+    {
+      "name": "hasValue - empty collection returns empty",
+      "expression": "({}).hasValue()",
+      "expected": [],
+      "tags": ["function", "existence", "hasValue", "empty", "collection"]
+    },
+    {
+      "name": "hasValue - multiple values returns empty",
+      "expression": "(1 | 2 | 3).hasValue()",
+      "expected": [],
+      "tags": ["function", "existence", "hasValue", "collection", "multiple"]
+    },
+    {
+      "name": "hasValue - non-existent property returns empty",
+      "expression": "missing.hasValue()",
+      "input": {"name": "John"},
+      "expected": [],
+      "tags": ["function", "existence", "hasValue", "missing", "property"]
+    },
+    {
+      "name": "hasValue - complex object returns empty",
+      "expression": "address.hasValue()",
+      "input": {
+        "address": {
+          "street": "123 Main St",
+          "city": "Boston"
+        }
+      },
+      "expected": [],
+      "tags": ["function", "existence", "hasValue", "complex", "object"]
+    },
+    {
+      "name": "hasValue - primitive within object returns true",
+      "expression": "address.city.hasValue()",
+      "input": {
+        "address": {
+          "street": "123 Main St",
+          "city": "Boston"
+        }
+      },
+      "expected": [true],
+      "tags": ["function", "existence", "hasValue", "navigation", "primitive"]
+    },
+    {
+      "name": "hasValue - with not() operator",
+      "expression": "'test'.hasValue().not()",
+      "expected": [false],
+      "tags": ["function", "existence", "hasValue", "not", "operator"]
+    },
+    {
+      "name": "hasValue - not() on empty returns empty",
+      "expression": "missing.hasValue().not()",
+      "input": {},
+      "expected": [],
+      "tags": ["function", "existence", "hasValue", "not", "empty", "edge-case"]
+    },
+    {
+      "name": "hasValue - in where clause",
+      "expression": "values.where($this.hasValue()).count()",
+      "input": {
+        "values": ["a", "b", "c"]
+      },
+      "expected": [3],
+      "tags": ["function", "existence", "hasValue", "where", "count", "integration"]
+    },
+    {
+      "name": "hasValue - period invariant both values present",
+      "expression": "period.start.hasValue() and period.end.hasValue()",
+      "input": {
+        "period": {
+          "start": "2020-01-01",
+          "end": "2020-12-31"
+        }
+      },
+      "expected": [true],
+      "tags": ["function", "existence", "hasValue", "period", "invariant", "and"]
+    },
+    {
+      "name": "hasValue - period invariant missing end",
+      "expression": "period.start.hasValue() and period.end.hasValue().not()",
+      "input": {
+        "period": {
+          "start": "2020-01-01"
+        }
+      },
+      "expected": [],
+      "note": "Three-valued logic: true and empty = empty (end.hasValue() returns empty, not() of empty is empty)",
+      "tags": ["function", "existence", "hasValue", "period", "invariant", "missing", "three-valued-logic"]
+    },
+    {
+      "name": "hasValue - _birthDate with extensions but no value",
+      "expression": "birthDate.hasValue()",
+      "input": {
+        "resourceType": "Patient",
+        "id": "example",
+        "_birthDate": {
+          "extension": [
+            {
+              "url": "http://example.org/fhir/StructureDefinition/birthdate-approximated",
+              "valueBoolean": true
+            }
+          ]
+        }
+      },
+      "expected": [],
+      "note": "FHIR primitive with only extensions (_birthDate) but no actual value should return empty",
+      "tags": ["function", "existence", "hasValue", "fhir", "primitive", "extension", "edge-case"]
+    },
+    {
+      "name": "hasValue - birthDate with both value and extensions",
+      "expression": "birthDate.hasValue()",
+      "input": {
+        "resourceType": "Patient",
+        "id": "example",
+        "birthDate": "1974-12-25",
+        "_birthDate": {
+          "extension": [
+            {
+              "url": "http://example.org/fhir/StructureDefinition/birthdate-approximated",
+              "valueBoolean": true
+            }
+          ]
+        }
+      },
+      "expected": [true],
+      "note": "FHIR primitive with both value and extensions should return true",
+      "tags": ["function", "existence", "hasValue", "fhir", "primitive", "extension"]
+    },
+    {
+      "name": "hasValue - all() validation with missing value",
+      "expression": "identifiers.all(value.hasValue())",
+      "input": {
+        "identifiers": [
+          {"system": "http://example.org", "value": "123"},
+          {"system": "http://example.org", "value": "456"},
+          {"system": "http://example.org"}
+        ]
+      },
+      "expected": [false],
+      "tags": ["function", "existence", "hasValue", "all", "validation", "fhir"]
+    },
+    {
+      "name": "hasValue - all() validation all present",
+      "expression": "identifiers.all(value.hasValue())",
+      "input": {
+        "identifiers": [
+          {"system": "http://example.org", "value": "123"},
+          {"system": "http://example.org", "value": "456"}
+        ]
+      },
+      "expected": [true],
+      "tags": ["function", "existence", "hasValue", "all", "validation", "fhir"]
+    },
+    {
+      "name": "hasValue - quantity value primitive",
+      "expression": "valueQuantity.value.hasValue()",
+      "input": {
+        "valueQuantity": {
+          "value": 185,
+          "unit": "lbs"
+        }
+      },
+      "expected": [true],
+      "tags": ["function", "existence", "hasValue", "quantity", "fhir", "primitive"]
+    },
+    {
+      "name": "hasValue - quantity object itself",
+      "expression": "valueQuantity.hasValue()",
+      "input": {
+        "valueQuantity": {
+          "value": 185,
+          "unit": "lbs"
+        }
+      },
+      "expected": [],
+      "tags": ["function", "existence", "hasValue", "quantity", "fhir", "complex"]
+    }
+  ]
+}

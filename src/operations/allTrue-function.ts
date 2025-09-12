@@ -8,16 +8,12 @@ export const evaluate: FunctionEvaluator = async (input, context, args, evaluato
     return { value: [box(true, { type: 'Boolean', singleton: true })], context };
   }
   
-  // Verify all inputs are booleans (unbox first)
-  for (let i = 0; i < input.length; i++) {
-    const unboxedValue = unbox(input[i]!);
-    if (typeof unboxedValue !== 'boolean') {
-      throw Errors.booleanOperationOnNonBoolean('allTrue', i, `${typeof unboxedValue}`);
-    }
-  }
-  
-  // Return true if all items are true, false if any item is false
-  const result = input.every(item => unbox(item) === true);
+  // Check all items: return false if any item is non-boolean or false
+  // Return true only if ALL items are boolean true
+  const result = input.every(item => {
+    const unboxedValue = unbox(item);
+    return unboxedValue === true;  // This will return false for non-booleans or false values
+  });
   
   return { value: [box(result, { type: 'Boolean', singleton: true })], context };
 };

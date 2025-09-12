@@ -1,0 +1,24 @@
+{
+  "name": "Misc Engine Tests (XML tests)",
+  "description": "Complex engine tests ported from XML test suite",
+  "tests": [
+    {
+      "name": "testContainedId: contained resource id",
+      "expression": "contained.id",
+      "inputFile": "../../input/document-example.json",
+      "expected": ["org1"],
+      "fromXML": "testContainedId",
+      "tags": ["navigation", "contained", "id"],
+      "pending": "document-example.json input file missing"
+    },
+    {
+      "name": "testMultipleResolve: complex resolution",
+      "expression": "composition.exists() \nimplies \n(\n  composition.resolve().section.entry.reference.where(resolve() is Observation)\n  .where($this in (%resource.result.reference | %resource.result.reference.resolve().hasMember.reference)).exists()\n)",
+      "inputFile": "../../input/diagnostic-report.json",
+      "expected": [true],
+      "fromXML": "testMultipleResolve",
+      "tags": ["navigation", "resolve", "implies", "complex"],
+      "pending": "resolve() function and diagnostic-report.json input file missing"
+    }
+  ]
+}

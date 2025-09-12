@@ -9,13 +9,13 @@ export enum PRECEDENCE {
   XOR = 30,
   AND = 40,
   IN_CONTAINS = 50,
+  AS_IS = 55,         // as, is (moved to lower precedence)
   EQUALITY = 60,      // =, !=, ~, !~
+  PIPE = 65,          // | (moved to lower precedence) 
   COMPARISON = 70,    // <, >, <=, >=
-  PIPE = 80,          // |
   ADDITIVE = 90,      // +, -
   MULTIPLICATIVE = 100, // *, /, div, mod
   UNARY = 110,        // unary +, -, not
-  AS_IS = 120,        // as, is
   POSTFIX = 130,      // []
   DOT = 140,          // . (highest)
 }

@@ -1,0 +1,27 @@
+{
+  "name": "GreaterThan with Empty (XML tests)",
+  "description": "Tests for > operator with empty sets ported from XML test suite",
+  "tests": [
+    {
+      "name": "testGreaterThanEmpty1: 1 > empty",
+      "expression": "1 > {}",
+      "expected": [],
+      "fromXML": "testGreaterThanEmpty1",
+      "tags": ["comparison", "greaterThan", "empty"]
+    },
+    {
+      "name": "testGreaterThanEmpty2: empty > 1",
+      "expression": "{} > 1",
+      "expected": [],
+      "fromXML": "testGreaterThanEmpty2",
+      "tags": ["comparison", "greaterThan", "empty"]
+    },
+    {
+      "name": "testGreaterThanEmpty3: empty > empty",
+      "expression": "{} > {}",
+      "expected": [],
+      "fromXML": "testGreaterThanEmpty3",
+      "tags": ["comparison", "greaterThan", "empty"]
+    }
+  ]
+}

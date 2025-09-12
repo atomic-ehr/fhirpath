@@ -39,8 +39,8 @@ export const andOperator: OperatorDefinition & { evaluate: OperationEvaluator } 
   signatures: [
     {
       name: 'and',
-      left: { type: 'Boolean', singleton: true },
-      right: { type: 'Boolean', singleton: true },
+      left: { type: 'Any', singleton: true },
+      right: { type: 'Any', singleton: true },
       result: { type: 'Boolean', singleton: true }
     }
   ],

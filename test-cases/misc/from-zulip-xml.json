@@ -1,0 +1,20 @@
+{
+  "name": "From Zulip (XML tests)",
+  "description": "Edge cases from community discussions ported from XML test suite",
+  "tests": [
+    {
+      "name": "from-zulip-1: true and string empty",
+      "expression": "(true and 'foo').empty()",
+      "expected": [true],
+      "fromXML": "from-zulip-1",
+      "tags": ["logical", "and", "empty", "edge-case"]
+    },
+    {
+      "name": "from-zulip-2: true or string allTrue",
+      "expression": "(true | 'foo').allTrue()",
+      "expected": [false],
+      "fromXML": "from-zulip-2",
+      "tags": ["collection", "union", "allTrue", "edge-case"]
+    }
+  ]
+}

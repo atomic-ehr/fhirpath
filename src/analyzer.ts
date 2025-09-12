@@ -481,6 +481,7 @@ export class Analyzer {
       if (param?.expression) {
         const itemType = { ...context.inputType, singleton: true };
         const exprContext = context
+          .withInputType(itemType)  // Set input type to singleton for expression parameters
           .withSystemVariable('$this', itemType)
           .withSystemVariable('$index', { type: 'Integer', singleton: true });
         const argResult = await this.analyzeNode(arg, exprContext);

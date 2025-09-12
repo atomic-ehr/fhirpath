@@ -1,0 +1,20 @@
+{
+  "name": "Precedence (XML tests)",
+  "description": "Tests for operator precedence ported from XML test suite",
+  "tests": [
+    {
+      "name": "testPrecedence3: comparison is Boolean",
+      "expression": "1 > 2 is Boolean",
+      "expected": [true],
+      "fromXML": "testPrecedence3",
+      "tags": ["type", "precedence", "is", "comparison"]
+    },
+    {
+      "name": "testPrecedence4: union is Integer",
+      "expression": "1 | 1 is Integer",
+      "expected": [true],
+      "fromXML": "testPrecedence4",
+      "tags": ["type", "precedence", "is", "union"]
+    }
+  ]
+}

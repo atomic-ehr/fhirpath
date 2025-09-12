@@ -183,7 +183,7 @@
       ]
     },
     {
-      "name": "allTrue - error on mixed types",
+      "name": "allTrue - mixed types returns false",
       "expression": "mixed.allTrue()",
       "input": [
         {
@@ -194,19 +194,14 @@
           ]
         }
       ],
-      "expected": [],
-      "error": {
-        "type": "Error",
-        "code": "FP3009",
-        "phase": "analyze"
-      },
+      "expected": [false],
       "tags": [
         "function",
         "aggregate",
         "boolean",
         "allTrue",
         "function:allTrue",
-        "error"
+        "edge-case"
       ]
     }
   ]

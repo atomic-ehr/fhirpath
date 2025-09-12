@@ -1,0 +1,27 @@
+{
+  "name": "LessOrEqual with Empty (XML tests)",
+  "description": "Tests for <= operator with empty sets ported from XML test suite",
+  "tests": [
+    {
+      "name": "testLessOrEqualEmpty1: 1 <= empty",
+      "expression": "1 <= {}",
+      "expected": [],
+      "fromXML": "testLessOrEqualEmpty1",
+      "tags": ["comparison", "lessOrEqual", "empty"]
+    },
+    {
+      "name": "testLessOrEqualEmpty2: empty <= 1",
+      "expression": "{} <= 1",
+      "expected": [],
+      "fromXML": "testLessOrEqualEmpty2",
+      "tags": ["comparison", "lessOrEqual", "empty"]
+    },
+    {
+      "name": "testLessOrEqualEmpty3: empty <= empty",
+      "expression": "{} <= {}",
+      "expected": [],
+      "fromXML": "testLessOrEqualEmpty3",
+      "tags": ["comparison", "lessOrEqual", "empty"]
+    }
+  ]
+}

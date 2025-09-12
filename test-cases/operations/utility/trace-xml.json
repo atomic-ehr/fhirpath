@@ -1,0 +1,22 @@
+{
+  "name": "Trace (XML tests)",
+  "description": "Tests for the trace() function ported from XML test suite",
+  "tests": [
+    {
+      "name": "testTrace1: trace with single argument",
+      "expression": "name.given.trace('test').count() = 5",
+      "inputFile": "../../input/patient-example.json",
+      "expected": [true],
+      "fromXML": "testTrace1",
+      "tags": ["utility", "trace", "count"]
+    },
+    {
+      "name": "testTrace2: trace with two arguments",
+      "expression": "name.trace('test', given).count() = 3",
+      "inputFile": "../../input/patient-example.json",
+      "expected": [true],
+      "fromXML": "testTrace2",
+      "tags": ["utility", "trace", "count"]
+    }
+  ]
+}

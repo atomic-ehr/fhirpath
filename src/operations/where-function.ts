@@ -28,7 +28,9 @@ export const evaluate: FunctionEvaluator = async (input, context, args, evaluato
       continue;
     }
 
-    // Evaluate condition with temporary context (passing boxed item)
+    // Evaluate condition with temporary context
+    // When evaluating the condition, standalone functions should use $this as their implicit receiver
+    // We pass [boxedItem] which becomes the implicit context for functions
     const condResult = await evaluator(condition, [boxedItem], tempContext);
     
     // Include item if condition is true (unbox the boolean result)

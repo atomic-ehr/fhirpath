@@ -59,6 +59,7 @@ export { countFunction } from './count-function';
 export { existsFunction } from './exists-function';
 export { allFunction } from './all-function';
 export { emptyFunction } from './empty-function';
+export { hasValueFunction } from './hasValue-function';
 export { notFunction } from './not-function';
 export { distinctFunction } from './distinct-function';
 export { isDistinctFunction } from './isDistinct-function';

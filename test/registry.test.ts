@@ -346,16 +346,17 @@ describe('FHIRPath Registry', () => {
 
   describe('Precedence Order', () => {
     it('should have correct precedence ordering', async () => {
-      // Verify precedence values are in correct order
+      // Verify precedence values are in correct order (from FHIRPath spec)
+      // Higher number = higher precedence
       expect(PRECEDENCE.DOT).toBeGreaterThan(PRECEDENCE.POSTFIX);
-      expect(PRECEDENCE.POSTFIX).toBeGreaterThan(PRECEDENCE.AS_IS);
-      expect(PRECEDENCE.AS_IS).toBeGreaterThan(PRECEDENCE.UNARY);
+      expect(PRECEDENCE.POSTFIX).toBeGreaterThan(PRECEDENCE.UNARY);
       expect(PRECEDENCE.UNARY).toBeGreaterThan(PRECEDENCE.MULTIPLICATIVE);
       expect(PRECEDENCE.MULTIPLICATIVE).toBeGreaterThan(PRECEDENCE.ADDITIVE);
-      expect(PRECEDENCE.ADDITIVE).toBeGreaterThan(PRECEDENCE.PIPE);
-      expect(PRECEDENCE.PIPE).toBeGreaterThan(PRECEDENCE.COMPARISON);
-      expect(PRECEDENCE.COMPARISON).toBeGreaterThan(PRECEDENCE.EQUALITY);
-      expect(PRECEDENCE.EQUALITY).toBeGreaterThan(PRECEDENCE.IN_CONTAINS);
+      expect(PRECEDENCE.ADDITIVE).toBeGreaterThan(PRECEDENCE.COMPARISON);
+      expect(PRECEDENCE.COMPARISON).toBeGreaterThan(PRECEDENCE.PIPE);
+      expect(PRECEDENCE.PIPE).toBeGreaterThan(PRECEDENCE.EQUALITY);
+      expect(PRECEDENCE.EQUALITY).toBeGreaterThan(PRECEDENCE.AS_IS);
+      expect(PRECEDENCE.AS_IS).toBeGreaterThan(PRECEDENCE.IN_CONTAINS);
       expect(PRECEDENCE.IN_CONTAINS).toBeGreaterThan(PRECEDENCE.AND);
       expect(PRECEDENCE.AND).toBeGreaterThan(PRECEDENCE.XOR);
       expect(PRECEDENCE.XOR).toBeGreaterThan(PRECEDENCE.OR);

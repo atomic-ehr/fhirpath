@@ -1,0 +1,22 @@
+{
+  "name": "Polymorphics (XML tests)",
+  "description": "Tests for polymorphic property access ported from XML test suite",
+  "tests": [
+    {
+      "name": "testPolymorphicsA: value polymorphic exists",
+      "expression": "Observation.value.exists()",
+      "inputFile": "../../input/observation-example.json",
+      "expected": [true],
+      "fromXML": "testPolymorphicsA",
+      "tags": ["navigation", "polymorphic", "exists"]
+    },
+    {
+      "name": "testPolymorphicsB: valueQuantity exists",
+      "expression": "Observation.valueQuantity.exists()",
+      "inputFile": "../../input/observation-example.json",
+      "expected": [true],
+      "fromXML": "testPolymorphicsB",
+      "tags": ["navigation", "polymorphic", "exists"]
+    }
+  ]
+}
