@@ -1,0 +1,41 @@
+{
+  "name": "log() Function Tests from XML",
+  "description": "Tests for the log() function ported from XML test suite",
+  "tests": [
+    {
+      "name": "testLog1 - log base 2 of 16",
+      "expression": "16.log(2) = 4.0",
+      "expected": [true],
+      "fromXML": "testLog1",
+      "tags": ["function", "arithmetic", "log", "function:log", "xml-ported"]
+    },
+    {
+      "name": "testLog2 - log base 10 of 100",
+      "expression": "100.0.log(10.0) = 2.0",
+      "expected": [true],
+      "fromXML": "testLog2",
+      "tags": ["function", "arithmetic", "log", "function:log", "xml-ported"]
+    },
+    {
+      "name": "testLogEmpty - empty input with base",
+      "expression": "{}.log(10).empty()",
+      "expected": [true],
+      "fromXML": "testLogEmpty",
+      "tags": ["function", "arithmetic", "log", "function:log", "empty", "xml-ported"]
+    },
+    {
+      "name": "testLogEmpty2 - empty input and empty base",
+      "expression": "{}.log({}).empty()",
+      "expected": [true],
+      "fromXML": "testLogEmpty2",
+      "tags": ["function", "arithmetic", "log", "function:log", "empty", "xml-ported"]
+    },
+    {
+      "name": "testLogEmpty3 - number with empty base",
+      "expression": "16.log({}).empty()",
+      "expected": [true],
+      "fromXML": "testLogEmpty3",
+      "tags": ["function", "arithmetic", "log", "function:log", "empty", "xml-ported"]
+    }
+  ]
+}

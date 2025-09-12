@@ -146,3 +146,4 @@ export { roundFunction } from './round-function';
 export { truncateFunction } from './truncate-function';
 export { sqrtFunction } from './sqrt-function';
 export { powerFunction } from './power-function';
+export { logFunction } from './log-function';
