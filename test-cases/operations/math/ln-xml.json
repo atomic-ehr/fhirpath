@@ -1,0 +1,30 @@
+{
+  "name": "Natural Logarithm Function Tests (from XML)",
+  "description": "Tests for the ln() function ported from FHIRPath XML test suite",
+  "tests": [
+    {
+      "name": "Natural log of 1 integer",
+      "expression": "1.ln() = 0.0",
+      "expected": [true],
+      "tags": ["ln", "math"],
+      "fromXML": "testLn1",
+      "inputFile": "../../input/patient-example.json"
+    },
+    {
+      "name": "Natural log of 1.0 decimal",
+      "expression": "1.0.ln() = 0.0",
+      "expected": [true],
+      "tags": ["ln", "math"],
+      "fromXML": "testLn2",
+      "inputFile": "../../input/patient-example.json"
+    },
+    {
+      "name": "Natural log of empty",
+      "expression": "{}.ln().empty()",
+      "expected": [true],
+      "tags": ["ln", "math", "empty"],
+      "fromXML": "testLnEmpty",
+      "inputFile": "../../input/patient-example.json"
+    }
+  ]
+}

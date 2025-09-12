@@ -20,7 +20,11 @@ const extensionEvaluator: FunctionEvaluator = async (
     throw Errors.invalidOperation('extension() URL argument must be a single value');
   }
   
-  const urlToMatch = unbox(urlResult.value[0]);
+  const firstValue = urlResult.value[0];
+  if (!firstValue) {
+    throw Errors.invalidOperation('extension() URL argument evaluated to null');
+  }
+  const urlToMatch = unbox(firstValue);
   if (typeof urlToMatch !== 'string') {
     throw Errors.invalidOperation('extension() URL argument must be a string');
   }

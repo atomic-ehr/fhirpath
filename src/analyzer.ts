@@ -404,7 +404,7 @@ export class Analyzer {
       if (signature) {
         const params = signature.parameters || [];
         const requiredCount = params.filter(p => !p.optional).length;
-        const maxCount = params.length;
+        const maxCount = signature.variadic ? Infinity : params.length;
         const actualCount = node.arguments.length;
 
         if (actualCount < requiredCount) {

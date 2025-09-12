@@ -62,6 +62,7 @@ export { emptyFunction } from './empty-function';
 export { notFunction } from './not-function';
 export { distinctFunction } from './distinct-function';
 export { isDistinctFunction } from './isDistinct-function';
+export { sortFunction } from './sort-function';
 export { iifFunction } from './iif-function';
 export { defineVariableFunction } from './defineVariable-function';
 
@@ -151,3 +152,5 @@ export { truncateFunction } from './truncate-function';
 export { sqrtFunction } from './sqrt-function';
 export { powerFunction } from './power-function';
 export { logFunction } from './log-function';
+export { lnFunction } from './ln-function';
+export { expFunction } from './exp-function';

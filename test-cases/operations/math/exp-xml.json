@@ -1,0 +1,30 @@
+{
+  "name": "Exponential Function Tests (from XML)",
+  "description": "Tests for the exp() function ported from FHIRPath XML test suite",
+  "tests": [
+    {
+      "name": "Exponential of zero",
+      "expression": "0.exp() = 1",
+      "expected": [true],
+      "tags": ["exp", "math"],
+      "fromXML": "testExp1",
+      "inputFile": "../../input/patient-example.json"
+    },
+    {
+      "name": "Exponential of negative zero",
+      "expression": "(-0.0).exp() = 1",
+      "expected": [true],
+      "tags": ["exp", "math"],
+      "fromXML": "testExp2",
+      "inputFile": "../../input/patient-example.json"
+    },
+    {
+      "name": "Exponential of empty",
+      "expression": "{}.exp().empty() = true",
+      "expected": [true],
+      "tags": ["exp", "math", "empty"],
+      "fromXML": "testExp3",
+      "inputFile": "../../input/patient-example.json"
+    }
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "name": "Sort Function Tests (from XML)",
+  "description": "Tests for the sort() function ported from FHIRPath XML test suite",
+  "tests": [
+    {
+      "name": "Sort integers - already sorted",
+      "expression": "(1 | 2 | 3).sort() = (1 | 2 | 3)",
+      "expected": [true],
+      "tags": ["sort", "collection"],
+      "fromXML": "testSort1",
+      "inputFile": "../../input/patient-example.json"
+    },
+    {
+      "name": "Sort integers - reverse order",
+      "expression": "(3 | 2 | 1).sort() = (1 | 2 | 3)",
+      "expected": [true],
+      "tags": ["sort", "collection"],
+      "fromXML": "testSort2",
+      "inputFile": "../../input/patient-example.json"
+    },
+    {
+      "name": "Sort with explicit expression - integers",
+      "expression": "(1 | 2 | 3).sort($this) = (1 | 2 | 3)",
+      "expected": [true],
+      "tags": ["sort", "collection"],
+      "fromXML": "testSort3",
+      "inputFile": "../../input/patient-example.json"
+    },
+    {
+      "name": "Sort with explicit expression - reverse integers",
+      "expression": "(3 | 2 | 1).sort($this) = (1 | 2 | 3)",
+      "expected": [true],
+      "tags": ["sort", "collection"],
+      "fromXML": "testSort4",
+      "inputFile": "../../input/patient-example.json"
+    },
+    {
+      "name": "Sort descending with negation",
+      "expression": "(1 | 2 | 3).sort(-$this) = (3 | 2 | 1)",
+      "expected": [true],
+      "tags": ["sort", "collection"],
+      "fromXML": "testSort5",
+      "inputFile": "../../input/patient-example.json"
+    },
+    {
+      "name": "Sort strings - already sorted",
+      "expression": "('a' | 'b' | 'c').sort($this) = ('a' | 'b' | 'c')",
+      "expected": [true],
+      "tags": ["sort", "string", "collection"],
+      "fromXML": "testSort6",
+      "inputFile": "../../input/patient-example.json"
+    },
+    {
+      "name": "Sort strings - reverse order",
+      "expression": "('c' | 'b' | 'a').sort($this) = ('a' | 'b' | 'c')",
+      "expected": [true],
+      "tags": ["sort", "string", "collection"],
+      "fromXML": "testSort7",
+      "inputFile": "../../input/patient-example.json"
+    },
+    {
+      "name": "Sort strings descending",
+      "expression": "('a' | 'b' | 'c').sort(-$this) = ('c' | 'b' | 'a')",
+      "expected": [true],
+      "tags": ["sort", "string", "collection"],
+      "fromXML": "testSort8",
+      "inputFile": "../../input/patient-example.json"
+    },
+    {
+      "name": "Sort patient given names",
+      "expression": "Patient.name[0].given.sort() = ('James' | 'Peter')",
+      "expected": [true],
+      "tags": ["sort", "string", "fhir"],
+      "fromXML": "testSort9",
+      "inputFile": "../../input/patient-example.json"
+    },
+    {
+      "name": "Complex sort with multiple fields",
+      "expression": "Patient.name.sort(-family, -given.first()).first().use = 'usual'",
+      "expected": [true],
+      "tags": ["sort", "complex", "fhir"],
+      "fromXML": "testSort10",
+      "inputFile": "../../input/patient-example.json"
+    }
+  ]
+}

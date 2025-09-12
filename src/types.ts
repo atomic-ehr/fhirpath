@@ -105,6 +105,7 @@ export interface FunctionSignature {
     typeReference?: boolean; // When true, this parameter expects a type name (e.g., ofType(Patient))
   }>;
   result: TypeInfo | 'inputType' | 'inputTypeSingleton' | 'parameterType';
+  variadic?: boolean; // When true, the function accepts variable number of arguments
 }
 
 export interface FunctionDefinition {

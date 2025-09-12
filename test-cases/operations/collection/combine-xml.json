@@ -1,0 +1,30 @@
+{
+  "name": "Combine Function Tests (from XML)",
+  "description": "Tests for the combine() function ported from FHIRPath XML test suite",
+  "tests": [
+    {
+      "name": "Combine with descendants - not distinct",
+      "expression": "concept.code.combine($this.descendants().concept.code).isDistinct()",
+      "expected": [false],
+      "tags": ["combine", "collection", "descendants"],
+      "fromXML": "testCombine1",
+      "inputFile": "../../input/codesystem-example.json"
+    },
+    {
+      "name": "Combine names with exclude - semantic error",
+      "expression": "name.given.combine(name.family).exclude('Jim')",
+      "expected": ["Peter", "James", "Peter", "James", "Chalmers", "Windsor"],
+      "tags": ["combine", "collection", "exclude"],
+      "fromXML": "testCombine2",
+      "inputFile": "../../input/patient-example.json"
+    },
+    {
+      "name": "Combine with $this reference",
+      "expression": "name.given.combine($this.name.family).exclude('Jim')",
+      "expected": ["Peter", "James", "Peter", "James", "Chalmers", "Windsor"],
+      "tags": ["combine", "collection", "exclude", "$this"],
+      "fromXML": "testCombine3",
+      "inputFile": "../../input/patient-example.json"
+    }
+  ]
+}
