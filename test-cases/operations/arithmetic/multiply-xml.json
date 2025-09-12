@@ -7,6 +7,7 @@
       "expression": "1 * 1 = 1",
       "input": [],
       "expected": [true],
+      "fromXML": "testMultiply1",
       "tags": ["operator", "arithmetic", "multiplication", "operator:*", "xml-port"]
     },
     {
@@ -14,6 +15,7 @@
       "expression": "1 * 0 = 0",
       "input": [],
       "expected": [true],
+      "fromXML": "testMultiply2",
       "tags": ["operator", "arithmetic", "multiplication", "operator:*", "xml-port"]
     },
     {
@@ -21,6 +23,7 @@
       "expression": "1.2 * 1.8 = 2.16",
       "input": [],
       "expected": [true],
+      "fromXML": "testMultiply3",
       "tags": ["operator", "arithmetic", "multiplication", "operator:*", "decimal", "xml-port"]
     },
     {
@@ -28,6 +31,7 @@
       "expression": "1 * {}",
       "input": [],
       "expected": [],
+      "fromXML": "testMultiplyEmpty1",
       "tags": ["operator", "arithmetic", "empty", "operator:*", "xml-port"]
     },
     {
@@ -35,6 +39,7 @@
       "expression": "{} * 1",
       "input": [],
       "expected": [],
+      "fromXML": "testMultiplyEmpty2",
       "tags": ["operator", "arithmetic", "empty", "operator:*", "xml-port"]
     },
     {
@@ -42,6 +47,7 @@
       "expression": "{} * {}",
       "input": [],
       "expected": [],
+      "fromXML": "testMultiplyEmpty3",
       "tags": ["operator", "arithmetic", "empty", "operator:*", "xml-port"]
     }
   ]

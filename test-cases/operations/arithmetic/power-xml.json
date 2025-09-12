@@ -7,6 +7,7 @@
       "expression": "2.power(3) = 8",
       "input": [],
       "expected": [true],
+      "fromXML": "testPower1",
       "tags": ["function", "arithmetic", "power", "function:power", "xml-port"]
     },
     {
@@ -14,6 +15,7 @@
       "expression": "2.5.power(2) = 6.25",
       "input": [],
       "expected": [true],
+      "fromXML": "testPower2",
       "tags": ["function", "arithmetic", "power", "function:power", "decimal", "xml-port"]
     },
     {
@@ -21,6 +23,7 @@
       "expression": "(-1).power(0.5)",
       "input": [],
       "expected": [],
+      "fromXML": "testPower3",
       "tags": ["function", "arithmetic", "power", "function:power", "negative", "xml-port"]
     },
     {
@@ -28,6 +31,7 @@
       "expression": "{}.power(2).empty()",
       "input": [],
       "expected": [true],
+      "fromXML": "testPowerEmpty",
       "tags": ["function", "arithmetic", "empty", "function:power", "xml-port"]
     },
     {
@@ -35,6 +39,7 @@
       "expression": "{}.power({}).empty()",
       "input": [],
       "expected": [true],
+      "fromXML": "testPowerEmpty2",
       "tags": ["function", "arithmetic", "empty", "function:power", "xml-port"]
     },
     {
@@ -42,6 +47,7 @@
       "expression": "2.5.power({}).empty()",
       "input": [],
       "expected": [true],
+      "fromXML": "testPowerEmpty3",
       "tags": ["function", "arithmetic", "empty", "function:power", "xml-port"]
     }
   ]
