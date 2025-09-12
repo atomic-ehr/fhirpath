@@ -1,0 +1,202 @@
+{
+  "name": "LowBoundary Tests (XML Port)",
+  "description": "Complete LowBoundary tests ported from fhirpathlab-tests.xml",
+  "tests": [
+    {
+      "name": "LowBoundaryDecimalDefault",
+      "expression": "1.587.lowBoundary()",
+      "expected": [1.58650000],
+      "tags": ["function", "utility", "precision", "decimal", "xml-port"],
+      "fromXML": "LowBoundaryDecimalDefault"
+    },
+    {
+      "name": "LowBoundaryDecimal1",
+      "expression": "1.587.lowBoundary(6)",
+      "expected": [1.5869995],
+      "tags": ["function", "utility", "precision", "decimal", "xml-port"],
+      "fromXML": "LowBoundaryDecimal1"
+    },
+    {
+      "name": "LowBoundaryDecimal2",
+      "expression": "1.587.lowBoundary(2)",
+      "expected": [1.5750000000000002],
+      "tags": ["function", "utility", "precision", "decimal", "xml-port"],
+      "fromXML": "LowBoundaryDecimal2"
+    },
+    {
+      "name": "LowBoundaryDecimal3 - negative precision",
+      "expression": "1.587.lowBoundary(-1)",
+      "expected": [],
+      "tags": ["function", "utility", "precision", "decimal", "error", "xml-port"],
+      "fromXML": "LowBoundaryDecimal3"
+    },
+    {
+      "name": "LowBoundaryDecimal4 - precision 0",
+      "expression": "1.587.lowBoundary(0)",
+      "expected": [0],
+      "tags": ["function", "utility", "precision", "decimal", "xml-port"],
+      "fromXML": "LowBoundaryDecimal4"
+    },
+    {
+      "name": "LowBoundaryDecimal5 - precision too large",
+      "expression": "1.587.lowBoundary(32)",
+      "expected": [],
+      "tags": ["function", "utility", "precision", "decimal", "error", "xml-port"],
+      "fromXML": "LowBoundaryDecimal5"
+    },
+    {
+      "name": "LowBoundaryNegDecimalDefault",
+      "expression": "(-1.587).lowBoundary()",
+      "expected": [-1.58750000],
+      "tags": ["function", "utility", "precision", "decimal", "negative", "xml-port"],
+      "fromXML": "LowBoundaryNegDecimalDefault"
+    },
+    {
+      "name": "LowBoundaryNegDecimal1",
+      "expression": "(-1.587).lowBoundary(6)",
+      "expected": [-1.5870005],
+      "tags": ["function", "utility", "precision", "decimal", "negative", "xml-port"],
+      "fromXML": "LowBoundaryNegDecimal1"
+    },
+    {
+      "name": "LowBoundaryNegDecimal2",
+      "expression": "(-1.587).lowBoundary(2)",
+      "expected": [-1.595],
+      "tags": ["function", "utility", "precision", "decimal", "negative", "xml-port"],
+      "fromXML": "LowBoundaryNegDecimal2"
+    },
+    {
+      "name": "LowBoundaryNegDecimal3 - negative precision",
+      "expression": "(-1.587).lowBoundary(-1)",
+      "expected": [],
+      "tags": ["function", "utility", "precision", "decimal", "negative", "error", "xml-port"],
+      "fromXML": "LowBoundaryNegDecimal3"
+    },
+    {
+      "name": "LowBoundaryNegDecimal4 - precision 0",
+      "expression": "(-1.587).lowBoundary(0)",
+      "expected": [-2],
+      "tags": ["function", "utility", "precision", "decimal", "negative", "xml-port"],
+      "fromXML": "LowBoundaryNegDecimal4"
+    },
+    {
+      "name": "LowBoundaryNegDecimal5 - precision too large",
+      "expression": "(-1.587).lowBoundary(32)",
+      "expected": [],
+      "tags": ["function", "utility", "precision", "decimal", "negative", "error", "xml-port"],
+      "fromXML": "LowBoundaryNegDecimal5"
+    },
+    {
+      "name": "LowBoundaryDecimal6 - precision 39",
+      "expression": "1.587.lowBoundary(39)",
+      "expected": [],
+      "tags": ["function", "utility", "precision", "decimal", "error", "xml-port"],
+      "fromXML": "LowBoundaryDecimal6"
+    },
+    {
+      "name": "LowBoundaryDecimal7 - integer to decimal",
+      "expression": "1.toDecimal().lowBoundary()",
+      "expected": [0.50000000],
+      "tags": ["function", "utility", "precision", "decimal", "conversion", "xml-port"],
+      "fromXML": "LowBoundaryDecimal7"
+    },
+    {
+      "name": "LowBoundaryDecimal8 - integer precision 0",
+      "expression": "1.lowBoundary(0)",
+      "expected": [0],
+      "tags": ["function", "utility", "precision", "integer", "xml-port"],
+      "fromXML": "LowBoundaryDecimal8"
+    },
+    {
+      "name": "LowBoundaryDecimal9 - integer precision 5",
+      "expression": "1.lowBoundary(5)",
+      "expected": [0.50000],
+      "tags": ["function", "utility", "precision", "integer", "xml-port"],
+      "fromXML": "LowBoundaryDecimal9"
+    },
+    {
+      "name": "LowBoundaryDecimal10",
+      "expression": "12.587.lowBoundary(2)",
+      "expected": [12.575],
+      "tags": ["function", "utility", "precision", "decimal", "xml-port"],
+      "fromXML": "LowBoundaryDecimal10"
+    },
+    {
+      "name": "LowBoundaryDecimal11",
+      "expression": "12.500.lowBoundary(4)",
+      "expected": [12.49995],
+      "tags": ["function", "utility", "precision", "decimal", "xml-port"],
+      "fromXML": "LowBoundaryDecimal11"
+    },
+    {
+      "name": "LowBoundaryDecimal12",
+      "expression": "120.lowBoundary(2)",
+      "expected": [119.50],
+      "tags": ["function", "utility", "precision", "integer", "xml-port"],
+      "fromXML": "LowBoundaryDecimal12"
+    },
+    {
+      "name": "LowBoundaryDecimal13",
+      "expression": "(-120).lowBoundary(2)",
+      "expected": [-120.50],
+      "tags": ["function", "utility", "precision", "integer", "negative", "xml-port"],
+      "fromXML": "LowBoundaryDecimal13"
+    },
+    {
+      "name": "LowBoundaryDecimal14",
+      "expression": "0.0034.lowBoundary(1)",
+      "expected": [-0.05],
+      "tags": ["function", "utility", "precision", "decimal", "small", "xml-port"],
+      "fromXML": "LowBoundaryDecimal14"
+    },
+    {
+      "name": "LowBoundaryDecimal15",
+      "expression": "(-0.0034).lowBoundary(1)",
+      "expected": [-0.15000000000000002],
+      "tags": ["function", "utility", "precision", "decimal", "negative", "small", "xml-port"],
+      "fromXML": "LowBoundaryDecimal15"
+    },
+    {
+      "name": "LowBoundaryQuantity",
+      "expression": "1.587 'cm'.lowBoundary(8)",
+      "expected": [{"value": 1.586999995, "unit": "cm"}],
+      "tags": ["function", "utility", "precision", "quantity", "xml-port"],
+      "fromXML": "LowBoundaryQuantity"
+    },
+    {
+      "name": "LowBoundaryDateMonth",
+      "expression": "@2014.lowBoundary(6)",
+      "expected": ["@2014-01"],
+      "tags": ["function", "utility", "precision", "temporal", "date", "xml-port"],
+      "fromXML": "LowBoundaryDateMonth"
+    },
+    {
+      "name": "LowBoundaryDateTimeMillisecond1",
+      "expression": "@2014-01-01T08.lowBoundary(17)",
+      "expected": ["@2014-01-01T08:00:00.000+14:00"],
+      "tags": ["function", "utility", "precision", "temporal", "datetime", "xml-port"],
+      "fromXML": "LowBoundaryDateTimeMillisecond1"
+    },
+    {
+      "name": "LowBoundaryDateTimeMillisecond2",
+      "expression": "@2014-01-01T08:05+08:00.lowBoundary(17)",
+      "expected": ["@2014-01-01T08:05:00.000+08:00"],
+      "tags": ["function", "utility", "precision", "temporal", "datetime", "timezone", "xml-port"],
+      "fromXML": "LowBoundaryDateTimeMillisecond2"
+    },
+    {
+      "name": "LowBoundaryDateTimeMillisecond3",
+      "expression": "@2014-01-01T08.lowBoundary(8)",
+      "expected": ["@2014-01-01"],
+      "tags": ["function", "utility", "precision", "temporal", "datetime", "xml-port"],
+      "fromXML": "LowBoundaryDateTimeMillisecond3"
+    },
+    {
+      "name": "LowBoundaryTimeMillisecond",
+      "expression": "@T10:30.lowBoundary(9)",
+      "expected": ["@T10:30:00.000"],
+      "tags": ["function", "utility", "precision", "temporal", "time", "xml-port"],
+      "fromXML": "LowBoundaryTimeMillisecond"
+    }
+  ]
+}

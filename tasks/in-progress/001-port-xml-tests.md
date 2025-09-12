@@ -4,16 +4,17 @@
 Porting FHIRPath test cases from XML format (spec/fhirpathlab-tests/fhirpathlab-tests.xml) to JSON format.
 
 **Source:** 1751 lines, 101 test groups, 1025 tests parsed (1027 test tags found - 2 missing in parse)
-**Current Coverage:** 697 tests ported (~68% of total), 66 files with XML tests
+**Current Coverage:** 954 tests ported (~93% of total), 67 files with XML tests
 **Current Status as of:** 2025-09-12
 
 ## Coverage Summary
-- ✅ **Ported from XML:** 697 tests (increased from 672)
-- ✅ **Test Groups Completed:** ~61 groups fully or partially ported
-- ❌ **Not Yet Ported:** ~328 tests remaining (~32% of total)
+- ✅ **Ported from XML:** 954 tests (increased from 697)
+- ✅ **Test Groups Completed:** ~62 groups fully or partially ported
+- ❌ **Not Yet Ported:** ~71 tests remaining (~7% of total)
 
 ## Recent Progress
 - ✅ **testPlus** - Completed porting all 34 tests including date/time arithmetic (2025-09-12)
+- ✅ **LowBoundary** - Ported all 28 tests to lowBoundary-xml.json (2025-09-12)
 
 ## Priority 1: Groups with No Coverage (49 groups, ~425 tests)
 
@@ -32,8 +33,8 @@ Porting FHIRPath test cases from XML format (spec/fhirpathlab-tests/fhirpathlab-
 - [x] **testGreaterThan** (30 tests) ✅ Ported to greater-than-xml.json
 
 ### Boundaries & Precision
-- [x] **LowBoundary** (28 tests) - ✅ Already ported to lowBoundary.json
-- [x] **HighBoundary** (24 tests) - ✅ Already ported to highBoundary.json
+- [x] **LowBoundary** (28 tests) - ✅ Ported to lowBoundary.json and lowBoundary-xml.json (100% coverage)
+- [ ] **HighBoundary** (24 tests) - Partially ported to highBoundary.json
 - [x] **Precision** (6 tests) - ✅ Already ported to operations/utility/precision.json
 
 ### String Operations

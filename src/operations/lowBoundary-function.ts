@@ -90,6 +90,20 @@ export const lowBoundaryEvaluator: FunctionEvaluator = async (input, context, ar
     };
   }
   
+  // Handle Quantity type
+  if (value && typeof value === 'object' && 'value' in value && 'unit' in value) {
+    const quantity = value as { value: number; unit: string };
+    const result = getDecimalLowBoundary(quantity.value, precision);
+    if (result === null) {
+      return { value: [], context };
+    }
+    // Return a new Quantity with the adjusted value and same unit
+    return {
+      value: [box({ value: result, unit: quantity.unit }, { type: 'Quantity', singleton: true })],
+      context
+    };
+  }
+  
   // Invalid type returns empty
   return { value: [], context };
 };
