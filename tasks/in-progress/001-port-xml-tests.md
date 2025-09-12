@@ -4,16 +4,17 @@
 Porting FHIRPath test cases from XML format (spec/fhirpathlab-tests/fhirpathlab-tests.xml) to JSON format.
 
 **Source:** 1751 lines, 101 test groups, 1025 tests parsed (1027 test tags found - 2 missing in parse)
-**Current Coverage:** 970 tests ported (~95% of total), 68 files with XML tests
+**Current Coverage:** 984 tests ported (96% of total), 70 files with XML tests
 **Current Status as of:** 2025-09-12
 
 ## Coverage Summary
-- ✅ **Ported from XML:** 970 tests (increased from 954)
-- ✅ **Test Groups Completed:** ~63 groups fully or partially ported
-- ❌ **Not Yet Ported:** ~55 tests remaining (~5% of total)
+- ✅ **Ported from XML:** 984 tests (increased from 970)
+- ✅ **Test Groups Completed:** ~65 groups fully or partially ported
+- ❌ **Not Yet Ported:** 41 tests remaining (4% of total)
 
 ## Recent Progress
-- ✅ **HighBoundary** - Ported 16 additional tests to highBoundary.json (3 pending due to implementation differences) (2025-09-12)
+- ✅ **testType** - Ported 13 tests using .type() function (pending - function not in spec), 5 testTypeA tests (pending - type namespace differences) (2025-09-12)
+- ✅ **HighBoundary** - Fixed all pending tests, now 100% passing (2025-09-12)
 - ✅ **testPlus** - Completed porting all 34 tests including date/time arithmetic (2025-09-12)
 - ✅ **LowBoundary** - Ported all 28 tests to lowBoundary-xml.json (2025-09-12)
 

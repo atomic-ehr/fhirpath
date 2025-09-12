@@ -1,49 +1,10 @@
 MISSING TEST EXPRESSIONS FROM XML TEST SUITE
 ================================================================================
-Generated: 2025-09-12T14:19:32.406Z
-Total missing: 54 out of 1025 tests
+Generated: 2025-09-12T15:14:17.404Z
+Total missing: 13 out of 1025 tests
 
 
-Group: testTypes (36 missing)
-----------------------------------------
-    - testIntegerLiteralIsSystemInteger: 1.is(System.Integer)
-    - testIntegerLiteralConvertsToDecimal: 1.convertsToDecimal()
-    - testIntegerLiteralIsNotDecimal: 1.is(Decimal).not()
-    - testStringLiteralConvertsToDecimalFalse: '1.a'.convertsToDecimal().not()
-    - testStringDecimalLiteralConvertsToDecimal: '1.0'.convertsToDecimal()
-    - testStringDecimalLiteralIsNotDecimal: '1.0'.is(Decimal).not()
-    - testBooleanLiteralIsNotDecimal: true.is(Decimal).not()
-    - testIntegerLiteralToDecimal: 1.toDecimal() = 1.0
-    - testIntegerLiteralToDeciamlEquivalent: 1.toDecimal() ~ 1.0
-    - testDecimalLiteralToDecimal: 1.0.toDecimal() = 1.0
-    - testDecimalLiteralToDecimalEqual: '1.1'.toDecimal() = 1.1
-    - testBooleanLiteralToDecimal: true.toDecimal() = 1
-    - testIntegerLiteralConvertsToQuantity: 1.convertsToQuantity()
-    - testIntegerLiteralIsNotQuantity: 1.is(Quantity).not()
-    - testDecimalLiteralIsNotQuantity: 1.0.is(System.Quantity).not()
-    - testStringIntegerLiteralIsNotQuantity: '1'.is(System.Quantity).not()
-    - testStringQuantityLiteralConvertsToQuantity: '1 day'.convertsToQuantity()
-    - testStringQuantityWeekConvertsToQuantity: '1 \'wk\''.convertsToQuantity()
-    - testStringQuantityWeekConvertsToQuantityFalse: '1 wk'.convertsToQuantity().not()
-    - testStringDecimalLiteralConvertsToQuantityFalse: '1.a'.convertsToQuantity().not()
-    - testStringDecimalLiteralConvertsToQuantity: '1.0'.convertsToQuantity()
-    - testStringDecimalLiteralIsNotSystemQuantity: '1.0'.is(System.Quantity).not()
-    - testBooleanLiteralIsNotSystemQuantity: true.is(System.Quantity).not()
-    - testIntegerLiteralConvertsToString: 1.convertsToString()
-    - testNegativeIntegerLiteralConvertsToString: (-1).convertsToString()
-    - testDecimalLiteralConvertsToString: 1.0.convertsToString()
-    - testStringLiteralConvertsToString: 'true'.convertsToString()
-    - testBooleanLiteralConvertsToString: true.convertsToString()
-    - testQuantityLiteralConvertsToString: 1 'wk'.convertsToString()
-    - testIntegerLiteralToString: 1.toString()
-    - testNegativeIntegerLiteralToString: (-1).toString()
-    - testDecimalLiteralToString: 1.0.toString()
-    - testStringLiteralToString: 'true'.toString()
-    - testBooleanLiteralToString: true.toString()
-    - testQuantityLiteralWkToString: 1 'wk'.toString()
-    - testQuantityLiteralWeekToString: 1 week.toString()
-
-Group: testType (18 missing)
+Group: testType (13 missing)
 ----------------------------------------
     - testType1: 1.type().namespace = 'System'
     - testType1a: 1.type().name = 'Integer'
@@ -58,8 +19,3 @@ Group: testType (18 missing)
     - testType20: Patient.ofType(Patient).type().name
     - testType21: Patient.ofType(FHIR.Patient).type().name
     - testType23: Patient.ofType(FHIR.`Patient`).type().name
-    - testTypeA1: Parameters.parameter[0].value.is(FHIR.string)
-    - testTypeA2: Parameters.parameter[1].value.is(FHIR.integer)
-    - testTypeA3: Parameters.parameter[2].value.is(FHIR.uuid)
-    - testTypeA4: Parameters.parameter[2].value.is(FHIR.uri)
-    - testTypeA: Parameters.parameter[3].value.is(FHIR.decimal)

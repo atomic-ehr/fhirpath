@@ -65,7 +65,7 @@ export const evaluate: FunctionEvaluator = async (input, context, args, evaluato
     }
     
     // Try to parse as quantity: number followed by space(s) and unit
-    // This matches the pattern: <number> <unit>
+    // This matches the pattern: <number> <unit> or <number> '<unit>'
     const quantityRegex = /^(\+|-)?\d+(\.\d+)?\s+.+$/;
     
     if (!quantityRegex.test(trimmed)) {
@@ -79,7 +79,40 @@ export const evaluate: FunctionEvaluator = async (input, context, args, evaluato
     }
     
     const valueStr = parts[0];
-    const unit = parts.slice(1).join(' ');
+    let unit = parts.slice(1).join(' ');
+    
+    // Check if unit is quoted
+    const isQuoted = unit.startsWith("'") && unit.endsWith("'") && unit.length > 2;
+    
+    if (isQuoted) {
+      // Remove quotes for validation
+      unit = unit.slice(1, -1);
+    } else {
+      // For unquoted units, check special cases
+      // Calendar duration words are always valid
+      const CALENDAR_DURATION_WORDS = [
+        'year', 'years',
+        'month', 'months', 
+        'week', 'weeks',
+        'day', 'days',
+        'hour', 'hours',
+        'minute', 'minutes',
+        'second', 'seconds',
+        'millisecond', 'milliseconds'
+      ];
+      
+      // Time unit abbreviations that should NOT be accepted without quotes
+      // (they have calendar duration equivalents)
+      const TIME_UNIT_ABBREVS = ['wk', 'd', 'h', 'min', 's', 'ms'];
+      
+      if (TIME_UNIT_ABBREVS.includes(unit)) {
+        // These time abbreviations require quotes
+        return { value: [box(false, { type: 'Boolean', singleton: true })], context };
+      }
+      
+      // Calendar duration words are valid
+      // Other units (like mg, km, etc.) are also valid
+    }
     
     const value = parseFloat(valueStr!);
     if (isNaN(value)) {

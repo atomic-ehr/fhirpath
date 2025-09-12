@@ -1,0 +1,48 @@
+{
+  "title": "testTypeA Group from XML Test Suite",
+  "description": "Type testing for Parameters resource with various FHIR primitive types",
+  "modelProvider": "R4",
+  "tests": [
+    {
+      "name": "testTypeA1 - Parameters string value",
+      "expression": "Parameters.parameter[0].value.is(FHIR.string)",
+      "inputFile": "../../input/parameters-example-types.json",
+      "expected": [true],
+      "fromXML": "testTypeA1",
+      "tags": ["type-testing", "fhir-types", "parameters", "xml-ported"]
+    },
+    {
+      "name": "testTypeA2 - Parameters integer value",
+      "expression": "Parameters.parameter[1].value.is(FHIR.integer)",
+      "inputFile": "../../input/parameters-example-types.json",
+      "expected": [true],
+      "fromXML": "testTypeA2",
+      "tags": ["type-testing", "fhir-types", "parameters", "xml-ported"]
+    },
+    {
+      "name": "testTypeA3 - Parameters uuid value",
+      "expression": "Parameters.parameter[2].value.is(FHIR.uuid)",
+      "inputFile": "../../input/parameters-example-types.json",
+      "expected": [true],
+      "fromXML": "testTypeA3",
+      "tags": ["type-testing", "fhir-types", "parameters", "xml-ported"]
+    },
+    {
+      "name": "testTypeA4 - Parameters uuid is also uri",
+      "expression": "Parameters.parameter[2].value.is(FHIR.uri)",
+      "inputFile": "../../input/parameters-example-types.json",
+      "expected": [true],
+      "fromXML": "testTypeA4",
+ 
+      "tags": ["type-testing", "fhir-types", "parameters", "xml-ported"]
+    },
+    {
+      "name": "testTypeA - Parameters decimal value",
+      "expression": "Parameters.parameter[3].value.is(FHIR.decimal)",
+      "inputFile": "../../input/parameters-example-types.json",
+      "expected": [true],
+      "fromXML": "testTypeA",
+      "tags": ["type-testing", "fhir-types", "parameters", "xml-ported"]
+    }
+  ]
+}

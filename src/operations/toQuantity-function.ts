@@ -17,7 +17,6 @@ const CALENDAR_CONVERSIONS: Record<string, Record<string, number>> = {
   'months': { 'day': 30, 'days': 30, 'd': 30 },
   'week': { 'day': 7, 'days': 7, 'd': 7 },
   'weeks': { 'day': 7, 'days': 7, 'd': 7 },
-  'wk': { 'day': 7, 'days': 7, 'd': 7 },
   'day': { 'hour': 24, 'hours': 24, 'h': 24 },
   'days': { 'hour': 24, 'hours': 24, 'h': 24 },
   'd': { 'hour': 24, 'hours': 24, 'h': 24 },

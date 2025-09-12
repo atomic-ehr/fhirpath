@@ -79,6 +79,18 @@ async function detectChoiceValues(
     } else {
       choiceType = { ...choiceType, singleton: !Array.isArray(value) };
     }
+    
+    // For FHIR value[x] polymorphic properties, ensure FHIR namespace and lowercase name
+    if (choiceProp.startsWith('value') && modelProvider) {
+      // Convert type name to lowercase for FHIR primitive types
+      // valueString -> FHIR.string, valueInteger -> FHIR.integer, etc.
+      const lowerTypeName = choiceName.charAt(0).toLowerCase() + choiceName.slice(1);
+      choiceType = {
+        ...choiceType,
+        namespace: 'FHIR',
+        name: lowerTypeName
+      };
+    }
     if (Array.isArray(value)) {
       for (const v of value) {
         hits.push({ value: v, typeInfo: { ...choiceType, singleton: true }, primitiveElement });

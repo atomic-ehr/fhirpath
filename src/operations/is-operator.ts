@@ -58,6 +58,36 @@ export const evaluate: OperationEvaluator = async (input, context, left, right) 
             context 
           };
         }
+        
+        // Check type hierarchy using schema if available
+        if (context.modelProvider && boxedItem.typeInfo.name) {
+          // Check if the item's type is derived from the check type
+          const itemSchema = await (context.modelProvider as any).getSchema(boxedItem.typeInfo.name);
+          if (itemSchema && itemSchema.base) {
+            // Extract the type name from the base URL
+            const baseTypeName = itemSchema.base.split('/').pop();
+            if (baseTypeName === checkType) {
+              return { 
+                value: [box(true, { type: 'Boolean', singleton: true })], 
+                context 
+              };
+            }
+            // Check recursively up the hierarchy
+            let currentBase = baseTypeName;
+            while (currentBase) {
+              if (currentBase === checkType) {
+                return { 
+                  value: [box(true, { type: 'Boolean', singleton: true })], 
+                  context 
+                };
+              }
+              const baseSchema = await (context.modelProvider as any).getSchema(currentBase);
+              if (!baseSchema || !baseSchema.base) break;
+              currentBase = baseSchema.base.split('/').pop();
+            }
+          }
+        }
+        
         // Also check if asking for a resource type like FHIR.Patient
         if (boxedItem.typeInfo.type === checkType || boxedItem.typeInfo.name === checkType) {
           return { 

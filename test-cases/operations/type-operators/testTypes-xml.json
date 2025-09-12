@@ -1,0 +1,259 @@
+{
+  "title": "testTypes Group from XML Test Suite",
+  "description": "Type checking and conversion tests from XML suite",
+  "modelProvider": "R4",
+  "tests": [
+    {
+      "name": "testIntegerLiteralIsSystemInteger",
+      "expression": "1.is(System.Integer)",
+      "expected": [true],
+      "fromXML": "testIntegerLiteralIsSystemInteger",
+      "tags": ["type-checking", "xml-ported"]
+    },
+    {
+      "name": "testIntegerLiteralConvertsToDecimal",
+      "expression": "1.convertsToDecimal()",
+      "expected": [true],
+      "fromXML": "testIntegerLiteralConvertsToDecimal",
+      "tags": ["type-conversion", "xml-ported"]
+    },
+    {
+      "name": "testIntegerLiteralIsNotDecimal",
+      "expression": "1.is(Decimal).not()",
+      "expected": [true],
+      "fromXML": "testIntegerLiteralIsNotDecimal",
+      "tags": ["type-checking", "xml-ported"]
+    },
+    {
+      "name": "testStringLiteralConvertsToDecimalFalse",
+      "expression": "'1.a'.convertsToDecimal().not()",
+      "expected": [true],
+      "fromXML": "testStringLiteralConvertsToDecimalFalse",
+      "tags": ["type-conversion", "xml-ported"]
+    },
+    {
+      "name": "testStringDecimalLiteralConvertsToDecimal",
+      "expression": "'1.0'.convertsToDecimal()",
+      "expected": [true],
+      "fromXML": "testStringDecimalLiteralConvertsToDecimal",
+      "tags": ["type-conversion", "xml-ported"]
+    },
+    {
+      "name": "testStringDecimalLiteralIsNotDecimal",
+      "expression": "'1.0'.is(Decimal).not()",
+      "expected": [true],
+      "fromXML": "testStringDecimalLiteralIsNotDecimal",
+      "tags": ["type-checking", "xml-ported"]
+    },
+    {
+      "name": "testBooleanLiteralIsNotDecimal",
+      "expression": "true.is(Decimal).not()",
+      "expected": [true],
+      "fromXML": "testBooleanLiteralIsNotDecimal",
+      "tags": ["type-checking", "xml-ported"]
+    },
+    {
+      "name": "testIntegerLiteralToDecimal",
+      "expression": "1.toDecimal() = 1.0",
+      "expected": [true],
+      "fromXML": "testIntegerLiteralToDecimal",
+      "tags": ["type-conversion", "xml-ported"]
+    },
+    {
+      "name": "testIntegerLiteralToDeciamlEquivalent",
+      "expression": "1.toDecimal() ~ 1.0",
+      "expected": [true],
+      "fromXML": "testIntegerLiteralToDeciamlEquivalent",
+      "tags": ["type-conversion", "xml-ported"]
+    },
+    {
+      "name": "testDecimalLiteralToDecimal",
+      "expression": "1.0.toDecimal() = 1.0",
+      "expected": [true],
+      "fromXML": "testDecimalLiteralToDecimal",
+      "tags": ["type-conversion", "xml-ported"]
+    },
+    {
+      "name": "testDecimalLiteralToDecimalEqual",
+      "expression": "'1.1'.toDecimal() = 1.1",
+      "expected": [true],
+      "fromXML": "testDecimalLiteralToDecimalEqual",
+      "tags": ["type-conversion", "xml-ported"]
+    },
+    {
+      "name": "testBooleanLiteralToDecimal",
+      "expression": "true.toDecimal() = 1",
+      "expected": [true],
+      "fromXML": "testBooleanLiteralToDecimal",
+      "tags": ["type-conversion", "xml-ported"]
+    },
+    {
+      "name": "testIntegerLiteralConvertsToQuantity",
+      "expression": "1.convertsToQuantity()",
+      "expected": [true],
+      "fromXML": "testIntegerLiteralConvertsToQuantity",
+      "tags": ["type-conversion", "xml-ported"]
+    },
+    {
+      "name": "testIntegerLiteralIsNotQuantity",
+      "expression": "1.is(Quantity).not()",
+      "expected": [true],
+      "fromXML": "testIntegerLiteralIsNotQuantity",
+      "tags": ["type-checking", "xml-ported"]
+    },
+    {
+      "name": "testDecimalLiteralIsNotQuantity",
+      "expression": "1.0.is(System.Quantity).not()",
+      "expected": [true],
+      "fromXML": "testDecimalLiteralIsNotQuantity",
+      "tags": ["type-checking", "xml-ported"]
+    },
+    {
+      "name": "testStringIntegerLiteralIsNotQuantity",
+      "expression": "'1'.is(System.Quantity).not()",
+      "expected": [true],
+      "fromXML": "testStringIntegerLiteralIsNotQuantity",
+      "tags": ["type-checking", "xml-ported"]
+    },
+    {
+      "name": "testStringQuantityLiteralConvertsToQuantity",
+      "expression": "'1 day'.convertsToQuantity()",
+      "expected": [true],
+      "fromXML": "testStringQuantityLiteralConvertsToQuantity",
+      "tags": ["type-conversion", "xml-ported"]
+    },
+    {
+      "name": "testStringQuantityWeekConvertsToQuantity",
+      "expression": "'1 \\'wk\\''.convertsToQuantity()",
+      "expected": [true],
+      "fromXML": "testStringQuantityWeekConvertsToQuantity",
+      "tags": ["type-conversion", "xml-ported"]
+    },
+    {
+      "name": "testStringQuantityWeekConvertsToQuantityFalse",
+      "expression": "'1 wk'.convertsToQuantity().not()",
+      "expected": [true],
+      "fromXML": "testStringQuantityWeekConvertsToQuantityFalse",
+      "tags": ["type-conversion", "xml-ported"]
+    },
+    {
+      "name": "testStringDecimalLiteralConvertsToQuantityFalse",
+      "expression": "'1.a'.convertsToQuantity().not()",
+      "expected": [true],
+      "fromXML": "testStringDecimalLiteralConvertsToQuantityFalse",
+      "tags": ["type-conversion", "xml-ported"]
+    },
+    {
+      "name": "testStringDecimalLiteralConvertsToQuantity",
+      "expression": "'1.0'.convertsToQuantity()",
+      "expected": [true],
+      "fromXML": "testStringDecimalLiteralConvertsToQuantity",
+      "tags": ["type-conversion", "xml-ported"]
+    },
+    {
+      "name": "testStringDecimalLiteralIsNotSystemQuantity",
+      "expression": "'1.0'.is(System.Quantity).not()",
+      "expected": [true],
+      "fromXML": "testStringDecimalLiteralIsNotSystemQuantity",
+      "tags": ["type-checking", "xml-ported"]
+    },
+    {
+      "name": "testBooleanLiteralIsNotSystemQuantity",
+      "expression": "true.is(System.Quantity).not()",
+      "expected": [true],
+      "fromXML": "testBooleanLiteralIsNotSystemQuantity",
+      "tags": ["type-checking", "xml-ported"]
+    },
+    {
+      "name": "testIntegerLiteralConvertsToString",
+      "expression": "1.convertsToString()",
+      "expected": [true],
+      "fromXML": "testIntegerLiteralConvertsToString",
+      "tags": ["type-conversion", "xml-ported"]
+    },
+    {
+      "name": "testNegativeIntegerLiteralConvertsToString",
+      "expression": "(-1).convertsToString()",
+      "expected": [true],
+      "fromXML": "testNegativeIntegerLiteralConvertsToString",
+      "tags": ["type-conversion", "xml-ported"]
+    },
+    {
+      "name": "testDecimalLiteralConvertsToString",
+      "expression": "1.0.convertsToString()",
+      "expected": [true],
+      "fromXML": "testDecimalLiteralConvertsToString",
+      "tags": ["type-conversion", "xml-ported"]
+    },
+    {
+      "name": "testStringLiteralConvertsToString",
+      "expression": "'true'.convertsToString()",
+      "expected": [true],
+      "fromXML": "testStringLiteralConvertsToString",
+      "tags": ["type-conversion", "xml-ported"]
+    },
+    {
+      "name": "testBooleanLiteralConvertsToString",
+      "expression": "true.convertsToString()",
+      "expected": [true],
+      "fromXML": "testBooleanLiteralConvertsToString",
+      "tags": ["type-conversion", "xml-ported"]
+    },
+    {
+      "name": "testQuantityLiteralConvertsToString",
+      "expression": "1 'wk'.convertsToString()",
+      "expected": [true],
+      "fromXML": "testQuantityLiteralConvertsToString",
+      "tags": ["type-conversion", "xml-ported"]
+    },
+    {
+      "name": "testIntegerLiteralToString",
+      "expression": "1.toString()",
+      "expected": ["1"],
+      "fromXML": "testIntegerLiteralToString",
+      "tags": ["type-conversion", "xml-ported"]
+    },
+    {
+      "name": "testNegativeIntegerLiteralToString",
+      "expression": "(-1).toString()",
+      "expected": ["-1"],
+      "fromXML": "testNegativeIntegerLiteralToString",
+      "tags": ["type-conversion", "xml-ported"]
+    },
+    {
+      "name": "testDecimalLiteralToString",
+      "expression": "1.0.toString()",
+      "expected": ["1"],
+      "fromXML": "testDecimalLiteralToString",
+      "tags": ["type-conversion", "xml-ported"]
+    },
+    {
+      "name": "testStringLiteralToString",
+      "expression": "'true'.toString()",
+      "expected": ["true"],
+      "fromXML": "testStringLiteralToString",
+      "tags": ["type-conversion", "xml-ported"]
+    },
+    {
+      "name": "testBooleanLiteralToString",
+      "expression": "true.toString()",
+      "expected": ["true"],
+      "fromXML": "testBooleanLiteralToString",
+      "tags": ["type-conversion", "xml-ported"]
+    },
+    {
+      "name": "testQuantityLiteralWkToString",
+      "expression": "1 'wk'.toString()",
+      "expected": ["1 'wk'"],
+      "fromXML": "testQuantityLiteralWkToString",
+      "tags": ["type-conversion", "xml-ported"]
+    },
+    {
+      "name": "testQuantityLiteralWeekToString",
+      "expression": "1 week.toString()",
+      "expected": ["1 'week'"],
+      "fromXML": "testQuantityLiteralWeekToString",
+      "tags": ["type-conversion", "xml-ported"]
+    }
+  ]
+}
