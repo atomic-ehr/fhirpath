@@ -6,12 +6,14 @@
       "name": "testToString1 - integer 1 to string equals '1'",
       "expression": "1.toString() = '1'",
       "expected": [true],
+      "fromXML": "testToString1",
       "tags": ["to-string", "integer-conversion", "xml-ported"]
     },
     {
       "name": "testToString2 - string '-1' to integer equals -1 (keeping original XML bug)",
       "expression": "'-1'.toInteger() = -1",
       "expected": [true],
+      "fromXML": "testToString2",
       "tags": ["to-integer", "string-conversion", "negative-numbers", "xml-ported"],
       "note": "Original XML test incorrectly used toInteger() instead of toString() - preserved as is for compatibility"
     },
@@ -19,18 +21,21 @@
       "name": "testToString3 - integer 0 to string equals '0'",
       "expression": "0.toString() = '0'",
       "expected": [true],
+      "fromXML": "testToString3",
       "tags": ["to-string", "integer-conversion", "zero", "xml-ported"]
     },
     {
       "name": "testToString4 - decimal 0.0 to string equals '0.0'",
       "expression": "0.0.toString() = '0.0'",
       "expected": [true],
+      "fromXML": "testToString4",
       "tags": ["to-string", "decimal-conversion", "xml-ported"]
     },
     {
       "name": "testToString5 - date @2014-12-14 to string equals '2014-12-14'",
       "expression": "@2014-12-14.toString() = '2014-12-14'",
       "expected": [true],
+      "fromXML": "testToString5",
       "tags": ["to-string", "date-conversion", "xml-ported"]
     }
   ]

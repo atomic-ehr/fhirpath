@@ -6,12 +6,14 @@
       "name": "testToDecimal1 - string '1' to decimal equals 1",
       "expression": "'1'.toDecimal() = 1",
       "expected": [true],
+      "fromXML": "testToDecimal1",
       "tags": ["to-decimal", "string-conversion", "xml-ported"]
     },
     {
       "name": "testToDecimal2 - string '-1' to integer equals -1 (corrected from XML bug)",
       "expression": "'-1'.toDecimal() = -1",
       "expected": [true],
+      "fromXML": "testToDecimal2",
       "tags": ["to-decimal", "string-conversion", "negative-numbers", "xml-ported"],
       "note": "Original XML test incorrectly used toInteger() instead of toDecimal() - corrected here"
     },
@@ -19,18 +21,21 @@
       "name": "testToDecimal3 - string '0' to decimal equals 0",
       "expression": "'0'.toDecimal() = 0",
       "expected": [true],
+      "fromXML": "testToDecimal3",
       "tags": ["to-decimal", "string-conversion", "zero", "xml-ported"]
     },
     {
       "name": "testToDecimal4 - string '0.0' to decimal equals 0.0",
       "expression": "'0.0'.toDecimal() = 0.0",
       "expected": [true],
+      "fromXML": "testToDecimal4",
       "tags": ["to-decimal", "string-conversion", "decimal-string", "xml-ported"]
     },
     {
       "name": "testToDecimal5 - string 'st' to decimal is empty",
       "expression": "'st'.toDecimal().empty()",
       "expected": [true],
+      "fromXML": "testToDecimal5",
       "tags": ["to-decimal", "string-conversion", "invalid-string", "empty-result", "xml-ported"]
     }
   ]

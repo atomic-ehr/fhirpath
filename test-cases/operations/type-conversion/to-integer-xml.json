@@ -6,30 +6,35 @@
       "name": "testToInteger1 - string '1' to integer equals 1",
       "expression": "'1'.toInteger() = 1",
       "expected": [true],
+      "fromXML": "testToInteger1",
       "tags": ["to-integer", "string-conversion", "xml-ported"]
     },
     {
       "name": "testToInteger2 - string '-1' to integer equals -1",
       "expression": "'-1'.toInteger() = -1",
       "expected": [true],
+      "fromXML": "testToInteger2",
       "tags": ["to-integer", "string-conversion", "negative-numbers", "xml-ported"]
     },
     {
       "name": "testToInteger3 - string '0' to integer equals 0",
       "expression": "'0'.toInteger() = 0",
       "expected": [true],
+      "fromXML": "testToInteger3",
       "tags": ["to-integer", "string-conversion", "zero", "xml-ported"]
     },
     {
       "name": "testToInteger4 - string '0.0' to integer is empty",
       "expression": "'0.0'.toInteger().empty()",
       "expected": [true],
+      "fromXML": "testToInteger4",
       "tags": ["to-integer", "string-conversion", "decimal-string", "empty-result", "xml-ported"]
     },
     {
       "name": "testToInteger5 - string 'st' to integer is empty",
       "expression": "'st'.toInteger().empty()",
       "expected": [true],
+      "fromXML": "testToInteger5",
       "tags": ["to-integer", "string-conversion", "invalid-string", "empty-result", "xml-ported"]
     }
   ]
