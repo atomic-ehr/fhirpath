@@ -173,9 +173,17 @@ export class Interpreter {
       let overridedValue: any = undefined;
       if (value && typeof value === 'object' && 'kind' in value) {
         if ((value as any).kind === 'FHIRDate' || (value as any).kind === 'FHIRDateTime') {
-          overridedValue = '@' + toTemporalString(value as any);
+          if (options.includeMetadata) {
+            overridedValue = '@' + toTemporalString(value as any);
+          } else {
+            return '@' + toTemporalString(value as any);
+          }
         } else if ((value as any).kind === 'FHIRTime') {
-          overridedValue = '@T' + toTemporalString(value as any);
+          if (options.includeMetadata) {
+            overridedValue = '@T' + toTemporalString(value as any);
+          } else {
+            return '@T' + toTemporalString(value as any);
+          }
         }
       }
       return options.includeMetadata ? box(overridedValue ?? value, boxedValue.typeInfo, boxedValue.primitiveElement) : value;
