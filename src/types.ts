@@ -1,3 +1,4 @@
+import type { FHIRPathValue } from './interpreter/boxing';
 import type { Token, TokenType } from './lexer';
 import type { AnyCursorNode } from './parser/cursor-nodes';
 
@@ -330,7 +331,7 @@ export interface RuntimeContext {
 
 // Evaluation result - everything is a collection of boxed values
 export interface EvaluationResult {
-  value: import('./interpreter/boxing').FHIRPathValue[];
+  value: FHIRPathValue[];
   context: RuntimeContext;
 }
 

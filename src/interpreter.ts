@@ -10,7 +10,8 @@ import type {
   IndexNode,
   MembershipTestNode,
   TypeCastNode,
-  QuantityNode
+  QuantityNode,
+  ModelProvider
 } from './types';
 import { NodeType } from './types';
 import { Registry } from './registry';
@@ -136,10 +137,11 @@ export class Interpreter {
       input?: unknown;
       variables?: Record<string, unknown>;
       inputType?: TypeInfo;
-      modelProvider?: import('./types').ModelProvider;
+      modelProvider?: ModelProvider;
       now?: Date;
+      includeMetadata?: boolean;
     } = {}
-  ): Promise<any[]> {
+  ): Promise<EvaluationResult['value']> {
     // Analyze expression first (ensures type info and diagnostics)
     const analysis = await Analyzer.analyzeExpression(expression, {
       variables: options.variables,
@@ -175,7 +177,7 @@ export class Interpreter {
           return '@T' + toTemporalString(value as any);
         }
       }
-      return value;
+      return options.includeMetadata ? box(value, boxedValue.typeInfo, boxedValue.primitiveElement) : value;
     });
   }
 

@@ -1,36 +1,37 @@
 import { Parser } from './parser';
 import { Interpreter } from './interpreter';
 import { Analyzer } from './analyzer';
-import type { AnalysisResult } from './types';
-import { DiagnosticSeverity } from './types';
-import { FHIRPathError, Errors, ErrorCodes } from './errors';
+import type { AnalysisResult, EvaluationResult, ModelProvider, TypeInfo } from './types';
 
 export interface EvaluateOptions {
   input?: unknown;
   variables?: Record<string, unknown>;
-  modelProvider?: import('./types').ModelProvider;
-  inputType?: import('./types').TypeInfo;
+  modelProvider?: ModelProvider;
+  inputType?: TypeInfo;
+  includeMetadata?: boolean;
 }
 
 export async function evaluate(
   expression: string,
   options: EvaluateOptions = {}
-): Promise<any[]> {
+): Promise<EvaluationResult['value']> {
   const interpreter = new Interpreter(undefined, options.modelProvider);
   return interpreter.evaluateExpression(expression, {
     input: options.input,
     variables: options.variables,
     inputType: options.inputType,
     modelProvider: options.modelProvider,
+    includeMetadata: options.includeMetadata
   });
 }
+
 
 export async function analyze(
   expression: string,
   options: { 
     variables?: Record<string, unknown>;
-    modelProvider?: import('./types').ModelProvider;
-    inputType?: import('./types').TypeInfo;
+    modelProvider?: ModelProvider;
+    inputType?: TypeInfo;
     errorRecovery?: boolean;
   } = {}
 ): Promise<AnalysisResult> {
@@ -59,7 +60,8 @@ export type {
   TypeName,
   ModelProvider as ModelTypeProvider,
   OperatorDefinition,
-  FunctionDefinition
+  FunctionDefinition,
+  EvaluationResult
 } from './types';
 
 // Export FHIR ModelProvider
