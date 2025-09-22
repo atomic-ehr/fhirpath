@@ -45,7 +45,7 @@ export class Interpreter {
     this.modelProvider = modelProvider;
     this.operationEvaluators = new Map();
     this.functionEvaluators = new Map();
-    
+
     // Initialize node evaluators using object dispatch pattern
     this.nodeEvaluators = {
       [NodeType.Literal]: this.evaluateLiteral.bind(this),
@@ -170,14 +170,15 @@ export class Interpreter {
     // Unbox and format temporal outputs for API parity
     return result.value.map((boxedValue) => {
       const value = unbox(boxedValue);
+      let overridedValue: any = undefined;
       if (value && typeof value === 'object' && 'kind' in value) {
         if ((value as any).kind === 'FHIRDate' || (value as any).kind === 'FHIRDateTime') {
-          return '@' + toTemporalString(value as any);
+          overridedValue = '@' + toTemporalString(value as any);
         } else if ((value as any).kind === 'FHIRTime') {
-          return '@T' + toTemporalString(value as any);
+          overridedValue = '@T' + toTemporalString(value as any);
         }
       }
-      return options.includeMetadata ? box(value, boxedValue.typeInfo, boxedValue.primitiveElement) : value;
+      return options.includeMetadata ? box(overridedValue ?? value, boxedValue.typeInfo, boxedValue.primitiveElement) : value;
     });
   }
 
@@ -203,10 +204,10 @@ export class Interpreter {
   // TemporalLiteral node evaluator
   private async evaluateTemporalLiteral(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): Promise<EvaluationResult> {
     const temporal = node as import('./types').TemporalLiteralNode;
-    
+
     // The value is already parsed in the parser
     let typeInfo: import('./types').TypeInfo;
-    
+
     if (temporal.valueType === 'date') {
       typeInfo = { type: 'Date', singleton: true };
     } else if (temporal.valueType === 'datetime') {
@@ -214,7 +215,7 @@ export class Interpreter {
     } else {
       typeInfo = { type: 'Time', singleton: true };
     }
-    
+
     return {
       value: [box(temporal.value, typeInfo)],
       context
@@ -224,18 +225,18 @@ export class Interpreter {
   // Literal node evaluator
   private async evaluateLiteral(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): Promise<EvaluationResult> {
     const literal = node as LiteralNode;
-    
+
     // Box the literal value with appropriate type info
     let typeInfo: import('./types').TypeInfo | undefined;
     let value: any = literal.value;
-    
+
     // Handle temporal literals (backwards compatibility - should not reach here with new parser)
     if (literal.valueType === 'date' || literal.valueType === 'datetime' || literal.valueType === 'time') {
       // Import temporal parsing function
       const { parseTemporalLiteral } = await import('./complex-types/temporal');
       // Parse the temporal literal (add @ back since it was stripped by parser)
       const temporalValue = parseTemporalLiteral('@' + literal.value);
-      
+
       // Set appropriate type info
       if (literal.valueType === 'date') {
         typeInfo = { type: 'Date', singleton: true };
@@ -244,20 +245,20 @@ export class Interpreter {
       } else if (literal.valueType === 'time') {
         typeInfo = { type: 'Time', singleton: true };
       }
-      
+
       value = temporalValue;
     } else if (typeof value === 'string') {
       typeInfo = { type: 'String', singleton: true };
     } else if (typeof value === 'number') {
       // Use the valueType from the literal node to determine if it's integer or decimal
       // This preserves the distinction between 1.0 (decimal) and 1 (integer)
-      typeInfo = literal.valueType === 'decimal' ? 
-        { type: 'Decimal', singleton: true } : 
+      typeInfo = literal.valueType === 'decimal' ?
+        { type: 'Decimal', singleton: true } :
         { type: 'Integer', singleton: true };
     } else if (typeof value === 'boolean') {
       typeInfo = { type: 'Boolean', singleton: true };
     }
-    
+
     return {
       value: [box(value, typeInfo)],
       context
@@ -266,7 +267,7 @@ export class Interpreter {
 
   // Helper: Handle extension elements
   private handleExtension(
-    boxedItem: FHIRPathValue, 
+    boxedItem: FHIRPathValue,
     nodeTypeInfo?: TypeInfo
   ): FHIRPathValue[] {
     const results: FHIRPathValue[] = [];
@@ -339,22 +340,22 @@ export class Interpreter {
       const primitiveElement = getPrimitiveElement(item as Record<string, unknown>, name);
 
       // Determine if this is a FHIR primitive - if parent is a FHIR resource and value is primitive
-      const isFHIRPrimitive = parentTypeInfo && 
-                              parentTypeInfo.type && 
-                              parentTypeInfo.type !== 'Any' && 
-                              !parentTypeInfo.type.startsWith('System.') &&
-                              (typeof value === 'boolean' || typeof value === 'string' || typeof value === 'number');
+      const isFHIRPrimitive = parentTypeInfo &&
+        parentTypeInfo.type &&
+        parentTypeInfo.type !== 'Any' &&
+        !parentTypeInfo.type.startsWith('System.') &&
+        (typeof value === 'boolean' || typeof value === 'string' || typeof value === 'number');
 
       if (Array.isArray(value)) {
         let elementTypeInfo = nodeTypeInfo ? { ...nodeTypeInfo, singleton: true } : undefined;
-        
+
         // For FHIR primitives, use FHIR namespace
         if (isFHIRPrimitive && elementTypeInfo) {
           if (elementTypeInfo.type === 'Boolean') {
             elementTypeInfo = { ...elementTypeInfo, type: 'boolean' as any };
           }
         }
-        
+
         for (const v of value) {
           if (
             v && typeof v === 'object' && 'resourceType' in (v as any) && typeof (v as any).resourceType === 'string'
@@ -382,7 +383,7 @@ export class Interpreter {
               typeInfo = { ...typeInfo, type: 'boolean' as any };
             }
           }
-          
+
           const val = await maybeParseTemporal(value, typeInfo, context.modelProvider);
           results.push(box(val, typeInfo, primitiveElement));
         }
@@ -464,24 +465,24 @@ export class Interpreter {
       if (binary.left.type === NodeType.MembershipTest && binary.right.type === NodeType.Identifier) {
         const membershipTest = binary.left as MembershipTestNode;
         const rightIdent = binary.right as IdentifierNode;
-        
+
         // Extract the expression from the membership test
         const expr = membershipTest.expression;
         const typeName = `${membershipTest.targetType}.${rightIdent.name}`;
-        
+
         // Evaluate the expression
         const exprResult = await this.evaluate(expr, input, context);
-        
+
         // Now apply the is operator with the full type name
         const evaluator = this.operationEvaluators.get('is');
         if (evaluator) {
           return await evaluator(input, context, exprResult.value, [typeName]);
         }
       }
-      
+
       // Evaluate left with current input/context
       const leftResult = await this.evaluate(binary.left, input, context);
-      
+
       // Use left's output as right's input, and left's context flows to right
       return await this.evaluate(binary.right, leftResult.value, leftResult.context);
     }
@@ -495,7 +496,7 @@ export class Interpreter {
         this.evaluate(binary.left, input, context),
         this.evaluate(binary.right, input, context)
       ]);
-      
+
       // Merge the results
       const unionEvaluator = this.operationEvaluators.get('|');
       if (unionEvaluator) {
@@ -508,7 +509,7 @@ export class Interpreter {
     // Special handling for 'is' and 'as' operators - right side is a type identifier, not an expression
     if (operator === 'is' || operator === 'as') {
       const leftResult = await this.evaluate(binary.left, input, context);
-      
+
       // Extract type name from right side WITHOUT evaluating it
       let typeName: string;
       if (binary.right.type === NodeType.Identifier) {
@@ -524,13 +525,13 @@ export class Interpreter {
       } else {
         throw new Error('is operator requires a type name as right operand');
       }
-      
+
       const evaluator = this.operationEvaluators.get('is');
       if (evaluator) {
         return await evaluator(input, context, leftResult.value, [typeName]);
       }
     }
-    
+
     // Get operation evaluator
     const evaluator = this.operationEvaluators.get(operator);
     if (evaluator) {
@@ -615,7 +616,7 @@ export class Interpreter {
   private async evaluateUnary(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): Promise<EvaluationResult> {
     const unary = node as UnaryNode;
     const operator = unary.operator;
-    
+
     const operandResult = await this.evaluate(unary.operand, input, context);
 
     // Check for unary operation evaluators
@@ -640,7 +641,7 @@ export class Interpreter {
     const name = variable.name;
 
     const value = RuntimeContextManager.getVariable(context, name);
-    
+
     if (value !== undefined) {
       // Ensure value is always an array
       const arrayValue = Array.isArray(value) ? value : [value];
@@ -673,7 +674,7 @@ export class Interpreter {
 
     // Get the function definition to check if it propagates empty
     const functionDef = this.registry.getFunction(funcName);
-    
+
     // Check if function is registered with an evaluator
     const functionEvaluator = this.functionEvaluators.get(funcName);
     if (!functionEvaluator) {
@@ -776,13 +777,13 @@ export class Interpreter {
   private async evaluateMembershipTest(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): Promise<EvaluationResult> {
     const test = node as MembershipTestNode;
     const exprResult = await this.evaluate(test.expression, input, context);
-    
+
     // Use the is-operator implementation for consistency
     const isOperator = this.operationEvaluators.get('is');
     if (isOperator) {
       return isOperator(input, context, exprResult.value, [test.targetType]);
     }
-    
+
     // Fallback - shouldn't reach here normally
     return { value: [], context };
   }
@@ -791,17 +792,17 @@ export class Interpreter {
   private async evaluateTypeCast(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): Promise<EvaluationResult> {
     const cast = node as TypeCastNode;
     const exprResult = await this.evaluate(cast.expression, input, context);
-    
+
     // Use the as-operator implementation for consistency
     const asOperator = this.operationEvaluators.get('as');
     if (asOperator) {
       return asOperator(input, context, exprResult.value, [cast.targetType]);
     }
-    
+
     // Fallback implementation (shouldn't normally reach here)
     return { value: [], context };
   }
-  
+
   private async evaluateQuantity(node: ASTNode, input: FHIRPathValue[], context: RuntimeContext): Promise<EvaluationResult> {
     const quantity = node as QuantityNode;
     const quantityValue = createQuantity(quantity.value, quantity.unit);
