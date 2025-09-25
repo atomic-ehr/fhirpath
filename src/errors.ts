@@ -185,6 +185,10 @@ export const Errors = {
   invalidOperation(details: string, location?: Range): FHIRPathError {
     return new FHIRPathError(ErrorCodes.INVALID_OPERATION, `Invalid operation: ${details}`, location);
   },
+
+  systemVariableOverride(name: string, location?: Range): FHIRPathError {
+    return new FHIRPathError(ErrorCodes.INVALID_OPERATION, `Cannot override system variable '${name}'`, location);
+  },
   
   invalidPrecision(operation: string, location?: Range): FHIRPathError {
     return new FHIRPathError(ErrorCodes.INVALID_PRECISION, `${operation} precision must be a non-negative integer`, location);

@@ -105,6 +105,23 @@ export class RuntimeContextManager {
       // No prefix - assume user-defined variable, add % prefix
       varKey = `%${name}`;
     }
+
+    // Check for system variable override attempts
+    const systemVariables = new Set([
+      'context', '%context',
+      'resource', '%resource',
+      'rootResource', '%rootResource',
+      'sct', '%sct',
+      'loinc', '%loinc',
+      'ucum', '%ucum',
+      'vs-administrative-gender', '%vs-administrative-gender'
+    ]);
+
+    if (!allowRedefinition && (systemVariables.has(name) || systemVariables.has(varKey))) {
+      // Cannot override system variables
+      throw Errors.systemVariableOverride(name);
+    }
+
     // Check if variable already exists (unless redefinition is allowed)
     // Use 'in' operator to check prototype chain (inherited variables)
     // Exclude iteration variables ($this, $index, $total) which can be redefined in nested scopes
