@@ -3,6 +3,8 @@ import { Interpreter } from './interpreter';
 import { Analyzer } from './analyzer';
 import type { AnalysisResult, EvaluationResult, ModelProvider, TypeInfo } from './types';
 
+declare const __VERSION__: string;
+
 export interface EvaluateOptions {
   input?: unknown;
   variables?: Record<string, unknown>;
@@ -42,6 +44,10 @@ export async function analyze(
     errorRecovery: options.errorRecovery,
   });
   return analysisResult;
+}
+
+export function getVersion(): string {
+  return __VERSION__;
 }
 
 // Export key types and classes

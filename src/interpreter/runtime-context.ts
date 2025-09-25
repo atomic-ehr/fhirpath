@@ -32,7 +32,7 @@ export class RuntimeContextManager {
     context.variables['%context'] = input;
     context.variables['%resource'] = input;
     context.variables['%rootResource'] = input;
-    
+
     // Set FHIR-specific system variables (standard URLs for code systems)
     context.variables['%sct'] = 'http://snomed.info/sct';
     context.variables['%loinc'] = 'http://loinc.org';
@@ -97,7 +97,7 @@ export class RuntimeContextManager {
   static setVariable(context: RuntimeContext, name: string, value: any, allowRedefinition: boolean = false): RuntimeContext {
     // Ensure value is array for consistency (except for special variables like $index)
     const arrayValue = (name === '$index' || name === '$total') ? value :
-                      Array.isArray(value) ? value : [value];
+      Array.isArray(value) ? value : [value];
 
     // Determine variable key based on prefix
     let varKey = name;
@@ -105,15 +105,6 @@ export class RuntimeContextManager {
       // No prefix - assume user-defined variable, add % prefix
       varKey = `%${name}`;
     }
-
-    // Check for system variables (with or without % prefix)
-    const systemVariables = ['context', 'resource', 'rootResource', 'ucum', 'sct', 'loinc', 'vs-administrative-gender'];
-    const baseVarName = varKey.startsWith('%') ? varKey.substring(1) : varKey;
-    if (systemVariables.includes(baseVarName)) {
-      // Throw error when trying to override system variables
-      throw Errors.invalidOperation(`Cannot override system variable: ${baseVarName}`);
-    }
-
     // Check if variable already exists (unless redefinition is allowed)
     // Use 'in' operator to check prototype chain (inherited variables)
     // Exclude iteration variables ($this, $index, $total) which can be redefined in nested scopes
@@ -178,7 +169,7 @@ export class RuntimeContextManager {
       // Add % prefix if not present
       cleanName = '%' + name;
     }
-    
+
     // Use 'in' operator to check prototype chain for inherited variables
     if (cleanName in context.variables) {
       return context.variables[cleanName];
@@ -277,21 +268,21 @@ export class RuntimeContextManager {
         const values = Array.isArray(rawVal) ? rawVal : [rawVal];
         const maybeBoxed = modelProvider
           ? await Promise.all(
-              values.map(async (v) => {
-                if (
-                  v &&
-                  typeof v === 'object' &&
-                  'resourceType' in (v as any) &&
-                  typeof (v as any).resourceType === 'string'
-                ) {
-                  const ti = await modelProvider.getType((v as any).resourceType);
-                  return ti ? box(v, ti) : v;
-                }
-                return v;
-              })
-            )
+            values.map(async (v) => {
+              if (
+                v &&
+                typeof v === 'object' &&
+                'resourceType' in (v as any) &&
+                typeof (v as any).resourceType === 'string'
+              ) {
+                const ti = await modelProvider.getType((v as any).resourceType);
+                return ti ? box(v, ti) : v;
+              }
+              return v;
+            })
+          )
           : values;
-        context = RuntimeContextManager.setVariable(context, key, maybeBoxed);
+        context = RuntimeContextManager.setVariable(context, key, maybeBoxed, true);
       }
     }
 
