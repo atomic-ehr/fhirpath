@@ -1,6 +1,13 @@
 import type { ModelProvider, TypeInfo, TypeName } from './types';
-import { CanonicalManager as createCanonicalManager, type Config, type CanonicalManager, type Resource } from '@atomic-ehr/fhir-canonical-manager';
 import { translate, type FHIRSchema, type StructureDefinition } from '@atomic-ehr/fhirschema';
+
+export type Resource = {
+  url?: string;
+  version?: string;
+  id: string;
+  resourceType: string;
+  [key: string]: any;
+};
 
 export interface FHIRModelContext {
   // Path in the resource (e.g., "Patient.name.given")
@@ -23,12 +30,6 @@ export interface FHIRModelContext {
   version?: string;
 }
 
-export interface FHIRModelProviderConfig {
-  packages: Array<{ name: string; version: string }>;
-  cacheDir?: string;
-  registryUrl?: string;
-}
-
 /**
  * FHIR ModelProvider implementation
  * 
@@ -37,8 +38,7 @@ export interface FHIRModelProviderConfig {
  * 
  * For best performance, pre-load common types during initialization.
  */
-export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
-  private canonicalManager: ReturnType<typeof createCanonicalManager>;
+export class FHIRModelProviderBase implements ModelProvider<FHIRModelContext> {
   private schemaCache: Map<string, FHIRSchema> = new Map();
   private hierarchyCache: Map<string, FHIRSchema[]> = new Map();
   private initialized = false;
@@ -105,26 +105,21 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
     'xhtml': 'Xhtml'
   };
   
-  constructor(private config: FHIRModelProviderConfig = {
-    packages: [{ name: 'hl7.fhir.r4.core', version: '4.0.1' }]
-  }) {
-    const canonicalConfig: Config = {
-      packages: config.packages.map(p => `${p.name}@${p.version}`),
-      workingDir: config.cacheDir || './tmp/.fhir-cache'
-    };
-    
-    if (config.registryUrl) {
-      canonicalConfig.registry = config.registryUrl;
+  constructor() {
+    if (this.constructor === FHIRModelProviderBase) {
+      throw new Error("FHIRModelProviderBase can't be instantiated directly.");
     }
-    
-    this.canonicalManager = createCanonicalManager(canonicalConfig);
+  }
+
+  async prepare(): Promise<void> {
+    // Override this in your code
   }
   
   async initialize(): Promise<void> {
     if (this.initialized) return;
     
     try {
-      await this.canonicalManager.init();
+      await this.prepare();
       
       // Just discover type names for completions - schemas load lazily on demand
       await Promise.all([
@@ -142,6 +137,14 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
     }
   }
   
+  async resolve(_canonicalUrl: string): Promise<Resource | null> {
+    throw new Error("Resolve not implemented.")
+  }
+
+  async search(_params: {kind: "primitive-type" | "complex-type" | "resource"}): Promise<Resource[]> {
+    throw new Error("Search not implemented.")
+  }
+
   private buildCanonicalUrl(typeName: string): string {
     // For R4 core types
     return `http://hl7.org/fhir/StructureDefinition/${typeName}`;
@@ -157,7 +160,7 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
     try {
       // Resolve canonical URL for the type
       const canonicalUrl = this.buildCanonicalUrl(typeName);
-      const resource = await this.canonicalManager.resolve(canonicalUrl);
+      const resource = await this.resolve(canonicalUrl);
       if (!resource || resource.resourceType !== 'StructureDefinition') {
         return undefined;
       }
@@ -614,7 +617,7 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
       return this.resourceTypesCache;
     }
     
-    const resources = await this.canonicalManager.search({ 
+    const resources = await this.search({
       kind: 'resource' 
     });
     
@@ -632,7 +635,7 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
       return this.complexTypesCache;
     }
     
-    const resources = await this.canonicalManager.search({ 
+    const resources = await this.search({
       kind: 'complex-type' 
     });
     
@@ -658,7 +661,7 @@ export class FHIRModelProvider implements ModelProvider<FHIRModelContext> {
       return this.primitiveTypesCache;
     }
     
-    const resources = await this.canonicalManager.search({ 
+    const resources = await this.search({
       kind: 'primitive-type' 
     });
     

@@ -70,10 +70,6 @@ export type {
   EvaluationResult
 } from './types';
 
-// Export FHIR ModelProvider
-export { FHIRModelProvider } from './model-provider';
-export type { FHIRModelContext, FHIRModelProviderConfig } from './model-provider';
-
 // Export inspect API
 export { inspect } from './inspect';
 export type { InspectOptions, InspectResult, ASTMetadata } from './inspect';
