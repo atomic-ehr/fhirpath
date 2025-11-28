@@ -1,4 +1,4 @@
-import { FHIRModelProvider } from '../../src/index';
+import { FHIRModelProvider } from '../../src/index.node';
 
 let _instance: FHIRModelProvider | undefined;
 let _initPromise: Promise<void> | undefined;

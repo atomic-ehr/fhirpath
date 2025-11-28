@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeAll } from "bun:test";
-import { analyze } from "../src/index";
+import { analyze } from "../src/index.node";
 import { DiagnosticSeverity } from "../src/types";
 import type { TypeName } from "../src/types";
-import { FHIRModelProvider } from "../src/model-provider";
-import { ErrorCodes } from "../src/index";
+import { FHIRModelProvider } from "../src/model-provider.node";
+import { ErrorCodes } from "../src/index.node";
 
 describe("Analyzer", () => {
   describe("basic expressions", () => {

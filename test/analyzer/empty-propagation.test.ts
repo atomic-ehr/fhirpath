@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { evaluate } from '../../src/index';
+import { evaluate } from '../../src/index.node';
 import { Analyzer } from '../../src/analyzer';
 import { parse } from '../../src/parser';
 

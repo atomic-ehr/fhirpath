@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'bun:test';
-import { analyze } from '../../src/index';
+import { analyze } from '../../src/index.node';
 import { DiagnosticSeverity } from '../../src/types';
-import { ErrorCodes } from "../../src/index";
+import { ErrorCodes } from "../../src/index.node";
 
 describe('Type Checking', () => {
   describe('Basic type inference', () => {

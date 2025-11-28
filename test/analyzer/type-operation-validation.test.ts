@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { analyze } from '../../src/index';
-import { ErrorCodes } from "../../src/index";
+import { analyze, ErrorCodes } from '../../src/index.node';
 
 describe.skip('Type Operation Validation', () => {
   describe('ofType function', () => {

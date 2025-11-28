@@ -3,9 +3,9 @@
 import * as yaml from 'js-yaml';
 import { readFileSync, readdirSync, existsSync } from 'fs';
 import { join, basename } from 'path';
-import { evaluate } from '../src/index';
+import { evaluate } from '../src/index.node';
 import type { EvaluationResult, ModelProvider } from '../src/types';
-import { FHIRModelProvider } from '../src/model-provider';
+import { FHIRModelProvider } from '../src/model-provider.node';
 import _ from 'lodash';
 
 interface TestCase {

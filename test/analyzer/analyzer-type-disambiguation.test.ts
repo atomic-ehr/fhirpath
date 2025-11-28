@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'bun:test';
 import { parse } from '../../src/parser';
 import { Analyzer } from '../../src/analyzer';
-import { FHIRModelProvider } from '../../src/model-provider';
+import { FHIRModelProvider } from '../../src/model-provider.node';
 import { NodeType, type IdentifierNode, type BinaryNode } from '../../src/types';
 
 describe('Type vs Identifier disambiguation', () => {

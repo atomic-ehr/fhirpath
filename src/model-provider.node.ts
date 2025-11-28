@@ -12,7 +12,7 @@ export class FHIRModelProvider extends FHIRModelProviderBase {
   private canonicalManager: ReturnType<typeof createCanonicalManager>;
 
   override async prepare(): Promise<void> {
-    this.canonicalManager.init();
+    await this.canonicalManager.init();
   }
 
   override async resolve(canonicalUrl: string): Promise<Resource> {

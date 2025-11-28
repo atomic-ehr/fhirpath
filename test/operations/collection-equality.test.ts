@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { evaluate } from '../../src';
+import { evaluate } from '../../src/index.node';
 
 describe('Collection Equality Operations', () => {
   describe('= operator on collections', () => {

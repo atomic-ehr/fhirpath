@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll } from 'bun:test';
-import { evaluate, FHIRModelProvider } from '../../src/index';
+import { evaluate, FHIRModelProvider } from '../../src/index.node';
 
 describe('Type Operations', () => {
   let modelProvider: FHIRModelProvider;

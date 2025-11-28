@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { evaluate } from '../../src';
+import { evaluate } from '../../src/index.node';
 
 describe('Deep Equality with Complex Types', () => {
   it('should perform deep equality on nested objects', async () => {

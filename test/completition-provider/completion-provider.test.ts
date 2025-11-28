@@ -6,7 +6,7 @@ import type {
 } from "../../src/completion-provider";
 import type { TypeInfo, ModelProvider } from "../../src/types";
 import { getInitializedModelProvider } from "../utils/model-provider-singleton";
-import type { FHIRModelProvider } from "../../src/model-provider";
+import type { FHIRModelProvider } from "../../src/model-provider.node";
 
 describe("Completion Provider", () => {
   let modelProvider: FHIRModelProvider;

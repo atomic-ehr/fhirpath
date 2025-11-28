@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { evaluate, analyze } from '../../src/index';
+import { evaluate, analyze } from '../../src/index.node';
 import { DiagnosticSeverity } from '../../src/types';
 import { FHIRPathError, ErrorCodes } from '../../src/errors';
 

@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { analyze } from '../../src';
-import { ErrorCodes } from '../../src/errors';
+import { analyze, ErrorCodes } from '../../src/index.node';
 
 describe('Singleton error messages', () => {
   it('should provide clear error for singleton/collection mismatch', async () => {
