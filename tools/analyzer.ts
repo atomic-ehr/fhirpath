@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 
-import { analyze } from '../src/index';
+import { analyze } from '../src/index.node';
 import { readFileSync } from 'fs';
 
 async function main() {

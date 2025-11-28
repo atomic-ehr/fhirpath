@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 
-import { evaluate } from '../src/index';
+import { evaluate } from '../src/index.node';
 
 async function main() {
   const expression = process.argv[2];
