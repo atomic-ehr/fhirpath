@@ -69,6 +69,17 @@ jobs:
       - name: Publish canary release
         run: npm publish --tag canary --access public
 
+      - name: Create deployment summary
+        run: |
+          echo "### 🚀 Canary Published" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** \`${{ steps.version.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** [\`${GITHUB_SHA:0:7}\`](${{ github.event.repository.html_url }}/commit/${GITHUB_SHA})" >> $GITHUB_STEP_SUMMARY
+          echo "**Install:** \`npm install @atomic-ehr/fhirpath@canary\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "or install specific version:" >> $GITHUB_STEP_SUMMARY
+          echo "\`npm install @atomic-ehr/fhirpath@${{ steps.version.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+
   release:
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
