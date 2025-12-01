@@ -186,7 +186,9 @@ export class Interpreter {
           }
         }
       }
-      return options.includeMetadata ? box(overridedValue ?? value, boxedValue.typeInfo, boxedValue.primitiveElement) : value;
+      // return options.includeMetadata ? box(overridedValue ?? value, boxedValue.typeInfo, boxedValue.primitiveElement) : value;
+      // return box(overridedValue ?? value, boxedValue.typeInfo, boxedValue.primitiveElement);
+      return value;
     });
   }
 

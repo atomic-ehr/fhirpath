@@ -330,8 +330,8 @@ export interface RuntimeContext {
 }
 
 // Evaluation result - everything is a collection of boxed values
-export interface EvaluationResult {
-  value: FHIRPathValue[];
+export interface EvaluationResult<T = any> {
+  value: T[];
   context: RuntimeContext;
 }
 

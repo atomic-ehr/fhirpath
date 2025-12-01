@@ -13,10 +13,10 @@ export interface EvaluateOptions {
   includeMetadata?: boolean;
 }
 
-export async function evaluate(
+export async function evaluate<T = any>(
   expression: string,
   options: EvaluateOptions = {}
-): Promise<EvaluationResult['value']> {
+): Promise<EvaluationResult<T>['value']> {
   const interpreter = new Interpreter(undefined, options.modelProvider);
   return interpreter.evaluateExpression(expression, {
     input: options.input,

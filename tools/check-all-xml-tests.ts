@@ -136,10 +136,10 @@ async function main() {
         let expr: string;
         if (typeof exprRaw === 'string') {
           expr = exprRaw;
-        } else if (exprRaw && typeof exprRaw === 'object' && exprRaw._) {
-          expr = exprRaw._;
+        } else if (exprRaw && typeof exprRaw === 'object' && '_' in exprRaw) {
+          expr = (exprRaw as any)._;
         } else if (exprRaw && typeof exprRaw === 'object' && '$value' in exprRaw) {
-          expr = exprRaw.$value;
+          expr = (exprRaw as any).$value;
         } else {
           // Skip if invalid - these are marked as invalid in the XML
           continue;

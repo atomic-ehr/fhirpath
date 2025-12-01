@@ -29,7 +29,7 @@ export const evaluate: FunctionEvaluator = async (input, context, args, evaluato
     throw Errors.invalidOperation('take argument must be a single value');
   }
   
-  const num = unbox(boxedNum);
+  const num = unbox<number>(boxedNum);
   
   // Check that num is an integer
   if (!Number.isInteger(num)) {
