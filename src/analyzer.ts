@@ -1,18 +1,18 @@
-import type { 
-  ASTNode, 
-  BinaryNode, 
-  IdentifierNode, 
-  LiteralNode, 
+import type {
+  ASTNode,
+  BinaryNode,
+  IdentifierNode,
+  LiteralNode,
   TemporalLiteralNode,
-  FunctionNode, 
-  Diagnostic, 
-  AnalysisResult, 
-  UnaryNode, 
-  IndexNode, 
-  CollectionNode, 
-  MembershipTestNode, 
-  TypeCastNode, 
-  TypeInfo, 
+  FunctionNode,
+  Diagnostic,
+  AnalysisResult,
+  UnaryNode,
+  IndexNode,
+  CollectionNode,
+  MembershipTestNode,
+  TypeCastNode,
+  TypeInfo,
   ModelProvider,
   VariableNode,
   TypeName,
@@ -115,7 +115,7 @@ export class Analyzer {
     }
 
     let result: InternalAnalysisResult;
-    
+
     switch (node.type) {
       case NodeType.Binary:
         result = await this.analyzeBinary(node as BinaryNode, context);
@@ -162,10 +162,10 @@ export class Analyzer {
           diagnostics: [toDiagnostic(Errors.unknownNodeType(String((node as any)?.type), (node as any)?.range))]
         };
     }
-    
+
     // Annotate the node with type information
     node.typeInfo = result.type;
-    
+
     return result;
   }
 
@@ -181,14 +181,14 @@ export class Analyzer {
       if (this.stoppedAtCursor) {
         return { type: { type: 'Any', singleton: false }, diagnostics: leftResult.diagnostics };
       }
-      
+
       const rightResult = await this.analyzeNode(node.right, context.fork());
-      
+
       diagnostics.push(...leftResult.diagnostics, ...rightResult.diagnostics);
-      
+
       // Preserve left operand type per operator signature (leftType)
       const type = { ...leftResult.type, singleton: false };
-      
+
       return {
         type,
         diagnostics,
@@ -210,18 +210,18 @@ export class Analyzer {
         };
         return await this.analyzeMembershipTest(correctedNode, context);
       }
-      
+
       const leftResult = await this.analyzeNode(node.left, context);
       if (this.stoppedAtCursor) {
         return { type: { type: 'Any', singleton: false }, diagnostics: leftResult.diagnostics };
       }
-      
+
       // Right side gets left's output as input, with any context changes
       const rightContext = (leftResult.context || context).withInputType(leftResult.type);
       const rightResult = await this.analyzeNode(node.right, rightContext);
-      
+
       diagnostics.push(...leftResult.diagnostics, ...rightResult.diagnostics);
-      
+
       return {
         type: rightResult.type,
         diagnostics,
@@ -234,7 +234,7 @@ export class Analyzer {
     if (this.stoppedAtCursor) {
       return { type: { type: 'Any', singleton: false }, diagnostics: leftResult.diagnostics };
     }
-    
+
     // Check if right side is a cursor node - if so, set proper context
     if (this.cursorMode && isCursorNode(node.right)) {
       this.stoppedAtCursor = true;
@@ -248,10 +248,10 @@ export class Analyzer {
         diagnostics: leftResult.diagnostics
       };
     }
-    
+
     // For most operators, right side evaluates with original context (not left's output)
     const rightResult = await this.analyzeNode(node.right, context);
-    
+
     diagnostics.push(...leftResult.diagnostics, ...rightResult.diagnostics);
 
     // Get operator definition for type checking
@@ -284,14 +284,14 @@ export class Analyzer {
           diagnostics
         };
       }
-      
+
       // Determine result type from matching signature
       const resultType = resolveResultType(matchingSignature.result as any, {
         input: context.inputType,
         left: leftResult.type,
         right: rightResult.type,
       });
-      
+
       return {
         type: resultType,
         diagnostics
@@ -546,7 +546,9 @@ export class Analyzer {
                 actualInput.type === 'Any' ||
                 expectedInput.type === actualInput.type ||
                 (expectedInput.type === 'Decimal' && actualInput.type === 'Integer');
-              inputMatches = singletonMatch && typeMatch;
+              // Check FHIR type name constraint (e.g., 'Reference')
+              const nameMatch = !expectedInput.name || !actualInput.name || expectedInput.name === actualInput.name;
+              inputMatches = singletonMatch && typeMatch && nameMatch;
             }
             if (inputMatches) {
               inputMatchingSignature = sig;
@@ -563,7 +565,8 @@ export class Analyzer {
               })
             );
           } else {
-            const actualTypeStr = actualInput.singleton ? actualInput.type : `${actualInput.type}[]`;
+            const actualTypeName = actualInput.name || actualInput.type;
+            const actualTypeStr = actualInput.singleton ? actualTypeName : `${actualTypeName}[]`;
             const hasSingletonSignature = funcDef.signatures.some(sig => sig.input?.singleton && sig.input.type === actualInput.type);
             const permissive = ['anyFalse', 'anyTrue'];
             if (hasSingletonSignature && !actualInput.singleton) {
@@ -576,7 +579,11 @@ export class Analyzer {
               );
             } else if (!permissive.includes(functionName)) {
               const expectedTypes = funcDef.signatures
-                .map(sig => (sig.input ? (sig.input.singleton ? sig.input.type : `${sig.input.type}[]`) : 'Any'))
+                .map(sig => {
+                  if (!sig.input) return 'Any';
+                  const name = sig.input.name || sig.input.type;
+                  return sig.input.singleton ? name : `${name}[]`;
+                })
                 .filter((v, i, a) => a.indexOf(v) === i)
                 .join(' or ');
               diagnostics.push(
@@ -657,14 +664,14 @@ export class Analyzer {
         // In the analyzer, we track this as the initial input type
         return { type: context.inputType, diagnostics, context };
       }
-      
+
       // Special handling for FHIR system variables (code system URLs)
-      if (varName === '%sct' || varName === '%loinc' || varName === '%ucum' || 
+      if (varName === '%sct' || varName === '%loinc' || varName === '%ucum' ||
           varName === '%vs-administrative-gender' || varName === '%`vs-administrative-gender`') {
         // These are string constants
         return { type: { type: 'String', singleton: true }, diagnostics, context };
       }
-      
+
       // Handle environment variable syntax with backticks %`variable`
       let name: string;
       if (varName.startsWith('%`') && varName.endsWith('`')) {
@@ -675,7 +682,7 @@ export class Analyzer {
         name = varName.substring(1);
       }
       const varType = context.userVariables.get(name);
-      
+
       if (!varType) {
         // If we have dynamic variables in scope, we can't be sure this is an error
         if (context.hasDynamicVariables) {
@@ -688,7 +695,7 @@ export class Analyzer {
           return { type: { type: 'Any', singleton: false }, diagnostics };
         }
       }
-      
+
       // Attach type info to the node for backward compatibility
       node.typeInfo = varType;
       return { type: varType, diagnostics, context };
@@ -713,7 +720,7 @@ export class Analyzer {
   private async analyzeIdentifier(node: IdentifierNode, context: AnalysisContext): Promise<InternalAnalysisResult> {
     const name = 'name' in node ? node.name : '';
     const diagnostics: Diagnostic[] = [];
-    
+
     // Try to use model provider for accurate type information
     if (context.modelProvider) {
       // First try to navigate from input type (property access)
@@ -737,7 +744,7 @@ export class Analyzer {
           };
         }
       }
-      
+
       // If property not found and we have a concrete non-union type, report warning
       // FHIRPath returns empty for unknown properties, not an error
       const mc: any = context.inputType.modelContext;
@@ -752,7 +759,7 @@ export class Analyzer {
         };
       }
     }
-    
+
     // Without a model provider, we can't know the type
     // Return Any type - don't make assumptions
     return {
@@ -767,7 +774,7 @@ export class Analyzer {
    */
   private analyzeLiteral(node: LiteralNode, context: AnalysisContext): InternalAnalysisResult {
     let type: TypeInfo;
-    
+
     switch (node.valueType) {
       case 'string':
         type = { type: 'String', singleton: true };
@@ -795,13 +802,13 @@ export class Analyzer {
       default:
         type = { type: 'Any', singleton: true };
     }
-    
+
     return { type, diagnostics: [] };
   }
-  
+
   private analyzeTemporalLiteral(node: TemporalLiteralNode, context: AnalysisContext): InternalAnalysisResult {
     let type: TypeInfo;
-    
+
     switch (node.valueType) {
       case 'date':
         type = { type: 'Date', singleton: true };
@@ -815,7 +822,7 @@ export class Analyzer {
       default:
         type = { type: 'Any', singleton: true };
     }
-    
+
     return { type, diagnostics: [] };
   }
 
@@ -920,17 +927,17 @@ export class Analyzer {
 
     // ModelProvider requirement for non-primitive target types
     const primitiveTypes = ['String', 'Integer', 'Decimal', 'Boolean', 'Date', 'DateTime', 'Time', 'Quantity'];
-    
+
     // Normalize System.X types to check if they're primitive
     let targetType = node.targetType;
     if (targetType.startsWith('System.')) {
       targetType = targetType.substring(7); // Remove "System." prefix
     }
-    
+
     if (!context.modelProvider && !primitiveTypes.includes(targetType)) {
       diagnostics.push(toDiagnostic(Errors.modelProviderRequired('is', node.range)));
     }
-    
+
     // Check if testing against a union type
     if (isUnionType(exprResult.type)) {
       const targetType = node.targetType;
@@ -944,7 +951,7 @@ export class Analyzer {
         });
       }
     }
-    
+
     return {
       type: { type: 'Boolean', singleton: true },
       diagnostics
@@ -963,7 +970,7 @@ export class Analyzer {
     if (!context.modelProvider && !primitiveTypes.includes(node.targetType)) {
       diagnostics.push(toDiagnostic(Errors.modelProviderRequired('as', node.range)));
     }
-    
+
     // Check if casting from a union type
     if (isUnionType(exprResult.type)) {
       const targetTypeName = node.targetType;
@@ -977,13 +984,13 @@ export class Analyzer {
         });
       }
     }
-    
+
     // Type cast changes the type
-    const targetType: TypeInfo = { 
-      type: node.targetType as TypeName, 
-      singleton: exprResult.type.singleton 
+    const targetType: TypeInfo = {
+      type: node.targetType as TypeName,
+      singleton: exprResult.type.singleton
     };
-    
+
     return {
       type: targetType,
       diagnostics
@@ -1013,7 +1020,7 @@ export class Analyzer {
         expectedType: undefined,
         functionCall: undefined
       };
-      
+
       // Set expected type based on cursor context
       if (node.context === CursorContext.Index) {
         // Index expects an integer
@@ -1038,7 +1045,7 @@ export class Analyzer {
         }
       }
     }
-    
+
     return {
       type: { type: 'Any', singleton: false },
       diagnostics: []
@@ -1059,7 +1066,7 @@ export class Analyzer {
       source: 'fhirpath'
     };
   }
-  
+
   private createWarning(node: ASTNode, message: string, code?: string): Diagnostic {
     return {
       range: node.range,
@@ -1082,11 +1089,11 @@ export class Analyzer {
       const elementType = this.inferValueType(value[0]);
       return { ...elementType, singleton: false };
     }
-    
+
     if (typeof value === 'string') {
       return { type: 'String', singleton: true };
     } else if (typeof value === 'number') {
-      return Number.isInteger(value) 
+      return Number.isInteger(value)
         ? { type: 'Integer', singleton: true }
         : { type: 'Decimal', singleton: true };
     } else if (typeof value === 'boolean') {
@@ -1099,22 +1106,22 @@ export class Analyzer {
   }
 
   async analyze(
-    ast: ASTNode, 
-    userVariables?: Record<string, any>, 
+    ast: ASTNode,
+    userVariables?: Record<string, any>,
     inputType?: TypeInfo,
     options?: AnalyzerOptions
   ): Promise<AnalysisResultWithCursor> {
     this.cursorMode = options?.cursorMode ?? false;
     this.stoppedAtCursor = false;
     this.cursorContext = undefined;
-    
+
     // Create initial context with system and user variables
     const systemVars = new Map<string, TypeInfo>();
     // $this should be the input type (the root context), not Any
     systemVars.set('$this', inputType || { type: 'Any', singleton: false });
     systemVars.set('$index', { type: 'Integer', singleton: true });
     systemVars.set('$total', { type: 'Any', singleton: false });
-    
+
     const userVars = new Map<string, TypeInfo>();
     if (userVariables) {
       Object.keys(userVariables).forEach(name => {
@@ -1124,7 +1131,7 @@ export class Analyzer {
         }
       });
     }
-    
+
     // Create context with analyzeNode callback and model provider
     const initialContext = new AnalysisContext(
       inputType || { type: 'Any', singleton: false },
@@ -1133,12 +1140,12 @@ export class Analyzer {
       (node, ctx) => this.analyzeNode(node, ctx),
       this.modelProvider
     );
-    
+
     // Run context-flow analysis
     const result = await this.analyzeNode(ast, initialContext);
-    
+
     // Legacy annotateAST/visitor path removed from default analysis to avoid duplication.
-    
+
     return {
       diagnostics: result.diagnostics,
       ast,

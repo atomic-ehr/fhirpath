@@ -114,6 +114,9 @@ export function matchFunctionSignature(
 function isFunctionTypeCompatible(actual: TypeInfo, expected: TypeInfo): boolean {
   // Enforce singleton when required
   if (expected.singleton && !actual.singleton) return false;
+  // Check FHIR type name constraint (e.g., 'Reference')
+  // If expected specifies a name and actual has a known name, they must match
+  if (expected.name && actual.name && expected.name !== actual.name) return false;
   if (expected.type === 'Any') return true;
   if (actual.type === expected.type) return true;
   // Allow Integer to be used where Decimal is expected (promotion)

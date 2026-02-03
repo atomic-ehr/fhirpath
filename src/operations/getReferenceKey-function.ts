@@ -137,7 +137,7 @@ export const getReferenceKeyFunction: FunctionDefinition & { evaluate: FunctionE
   signatures: [
     {
       name: 'getReferenceKey',
-      input: { type: 'Any', singleton: false },
+      input: { type: 'Any', singleton: false, name: 'Reference' },
       parameters: [
         {
           name: 'resourceType',

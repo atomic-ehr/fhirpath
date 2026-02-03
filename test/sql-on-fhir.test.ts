@@ -4,9 +4,68 @@ import { getResourceKeyFunction } from '../src/operations/getResourceKey-functio
 import { getReferenceKeyFunction } from '../src/operations/getReferenceKey-function';
 import { box } from '../src/interpreter/boxing';
 import { NodeType } from '../src/types';
-import type { RuntimeContext, IdentifierNode } from '../src/types';
+import type { RuntimeContext, IdentifierNode, TypeInfo, ModelProvider } from '../src/types';
 import { analyze } from '../src/index.node';
 import { provideCompletions, CompletionKind } from '../src/completion-provider';
+
+/**
+ * Minimal mock ModelProvider for testing type-aware completions.
+ * Returns known types for Patient and its elements.
+ */
+const mockModelProvider: ModelProvider = {
+  async getType(typeName: string): Promise<TypeInfo | undefined> {
+    if (typeName === 'Patient') {
+      return { type: 'Any' as any, singleton: true, name: 'Patient' };
+    }
+    if (typeName === 'Reference') {
+      return { type: 'Any' as any, singleton: true, name: 'Reference' };
+    }
+    return undefined;
+  },
+  async getElementType(parentType: TypeInfo, propertyName: string): Promise<TypeInfo | undefined> {
+    if (parentType.name === 'Patient' && propertyName === 'subject') {
+      return { type: 'Any' as any, singleton: true, name: 'Reference' };
+    }
+    if (parentType.name === 'Patient' && propertyName === 'name') {
+      return { type: 'Any' as any, singleton: false, name: 'HumanName' };
+    }
+    return undefined;
+  },
+  ofType(type: TypeInfo, typeName: any): TypeInfo | undefined {
+    return undefined;
+  },
+  getElementNames(parentType: TypeInfo): string[] {
+    if (parentType.name === 'Patient') return ['subject', 'name'];
+    return [];
+  },
+  async getChildrenType(parentType: TypeInfo): Promise<TypeInfo | undefined> {
+    return undefined;
+  },
+  async getElements(typeName: string): Promise<Array<{ name: string; type: string; documentation?: string }>> {
+    if (typeName === 'Patient') {
+      return [
+        { name: 'subject', type: 'Reference' },
+        { name: 'name', type: 'HumanName[]' },
+      ];
+    }
+    if (typeName === 'Reference') {
+      return [
+        { name: 'reference', type: 'string' },
+        { name: 'display', type: 'string' },
+      ];
+    }
+    return [];
+  },
+  async getResourceTypes(): Promise<string[]> {
+    return ['Patient'];
+  },
+  async getComplexTypes(): Promise<string[]> {
+    return ['Reference', 'HumanName'];
+  },
+  async getPrimitiveTypes(): Promise<string[]> {
+    return ['string', 'boolean', 'integer'];
+  },
+};
 
 describe('SQL on FHIR Functions', () => {
   // Create a minimal runtime context for testing
@@ -363,6 +422,29 @@ describe('SQL on FHIR Functions', () => {
         expect(result.diagnostics).toEqual([]);
       }
     });
+
+    it('should report error when getReferenceKey() is called on Patient (with model provider)', async () => {
+      const result = await analyze('Patient.getReferenceKey()', {
+        modelProvider: mockModelProvider,
+      });
+      expect(result.diagnostics.length).toBeGreaterThan(0);
+      expect(result.diagnostics[0]!.message).toContain('getReferenceKey');
+      expect(result.diagnostics[0]!.message).toContain('Patient');
+    });
+
+    it('should NOT report error when getReferenceKey() is called on Reference (with model provider)', async () => {
+      // Patient.subject resolves to Reference via our mock
+      const result = await analyze('Patient.subject.getReferenceKey()', {
+        modelProvider: mockModelProvider,
+      });
+      expect(result.diagnostics).toEqual([]);
+    });
+
+    it('should NOT report error when getReferenceKey() is called without type context', async () => {
+      // Without model provider, types are unknown — should be permissive
+      const result = await analyze('something.getReferenceKey()');
+      expect(result.diagnostics).toEqual([]);
+    });
   });
 
   describe('Completion Provider Integration', () => {
@@ -399,6 +481,49 @@ describe('SQL on FHIR Functions', () => {
       // The function should have detail mentioning joins (description is stored in detail)
       expect(getResourceKeyCompletion?.detail).toBeDefined();
       expect(getResourceKeyCompletion?.detail?.toLowerCase()).toContain('join');
+    });
+
+    it('should NOT include getReferenceKey on Patient type (with model provider)', async () => {
+      // Patient. should resolve Patient as a type with name 'Patient'
+      // getReferenceKey has input.name: 'Reference', so it should be excluded
+      const expression = 'Patient.';
+      const cursorPosition = 8;
+
+      const completions = await provideCompletions(expression, cursorPosition, {
+        modelProvider: mockModelProvider,
+      });
+
+      const getReferenceKeyCompletion = completions.find(c => c.label === 'getReferenceKey');
+      expect(getReferenceKeyCompletion).toBeUndefined();
+
+      // But getResourceKey should still be available (no name constraint)
+      const getResourceKeyCompletion = completions.find(c => c.label === 'getResourceKey');
+      expect(getResourceKeyCompletion).toBeDefined();
+    });
+
+    it('should include getReferenceKey on Reference type (with model provider)', async () => {
+      // Patient.subject. should resolve subject as Reference type
+      const expression = 'Patient.subject.';
+      const cursorPosition = 16;
+
+      const completions = await provideCompletions(expression, cursorPosition, {
+        modelProvider: mockModelProvider,
+      });
+
+      const getReferenceKeyCompletion = completions.find(c => c.label === 'getReferenceKey');
+      expect(getReferenceKeyCompletion).toBeDefined();
+      expect(getReferenceKeyCompletion?.kind).toBe(CompletionKind.Function);
+    });
+
+    it('should include getReferenceKey when type name is unknown', async () => {
+      // When we don't know the type name, we should still show getReferenceKey
+      const expression = 'something.';
+      const cursorPosition = 10;
+
+      const completions = await provideCompletions(expression, cursorPosition);
+
+      const getReferenceKeyCompletion = completions.find(c => c.label === 'getReferenceKey');
+      expect(getReferenceKeyCompletion).toBeDefined();
     });
   });
 });
