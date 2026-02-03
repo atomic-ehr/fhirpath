@@ -1,0 +1,205 @@
+{
+  "name": "getReferenceKey Function Tests",
+  "description": "Tests for the SQL on FHIR getReferenceKey() function that extracts foreign keys from Reference elements",
+  "tests": [
+    {
+      "name": "getReferenceKey - relative reference",
+      "expression": "subject.getReferenceKey()",
+      "input": {
+        "resourceType": "Observation",
+        "id": "obs-1",
+        "subject": {
+          "reference": "Patient/123"
+        }
+      },
+      "expected": ["123"],
+      "tags": ["function", "sql-on-fhir", "getReferenceKey", "relative", "function:getReferenceKey"]
+    },
+    {
+      "name": "getReferenceKey - absolute URL reference",
+      "expression": "subject.getReferenceKey()",
+      "input": {
+        "resourceType": "Observation",
+        "id": "obs-1",
+        "subject": {
+          "reference": "http://example.org/fhir/Patient/456"
+        }
+      },
+      "expected": ["456"],
+      "tags": ["function", "sql-on-fhir", "getReferenceKey", "absolute", "function:getReferenceKey"]
+    },
+    {
+      "name": "getReferenceKey - urn:uuid reference",
+      "expression": "subject.getReferenceKey()",
+      "input": {
+        "resourceType": "Observation",
+        "id": "obs-1",
+        "subject": {
+          "reference": "urn:uuid:550e8400-e29b-41d4-a716-446655440000"
+        }
+      },
+      "expected": ["urn:uuid:550e8400-e29b-41d4-a716-446655440000"],
+      "tags": ["function", "sql-on-fhir", "getReferenceKey", "urn", "uuid", "function:getReferenceKey"]
+    },
+    {
+      "name": "getReferenceKey - urn:oid reference",
+      "expression": "subject.getReferenceKey()",
+      "input": {
+        "resourceType": "Observation",
+        "id": "obs-1",
+        "subject": {
+          "reference": "urn:oid:1.2.3.4.5"
+        }
+      },
+      "expected": ["urn:oid:1.2.3.4.5"],
+      "tags": ["function", "sql-on-fhir", "getReferenceKey", "urn", "oid", "function:getReferenceKey"]
+    },
+    {
+      "name": "getReferenceKey - contained reference",
+      "expression": "subject.getReferenceKey()",
+      "input": {
+        "resourceType": "Observation",
+        "id": "obs-1",
+        "subject": {
+          "reference": "#contained-patient"
+        }
+      },
+      "expected": ["contained-patient"],
+      "tags": ["function", "sql-on-fhir", "getReferenceKey", "contained", "function:getReferenceKey"]
+    },
+    {
+      "name": "getReferenceKey - with display text",
+      "expression": "subject.getReferenceKey()",
+      "input": {
+        "resourceType": "Observation",
+        "id": "obs-1",
+        "subject": {
+          "reference": "Patient/789",
+          "display": "John Smith"
+        }
+      },
+      "expected": ["789"],
+      "tags": ["function", "sql-on-fhir", "getReferenceKey", "display", "function:getReferenceKey"]
+    },
+    {
+      "name": "getReferenceKey - empty for reference without reference field",
+      "expression": "subject.getReferenceKey()",
+      "input": {
+        "resourceType": "Observation",
+        "id": "obs-1",
+        "subject": {
+          "display": "John Smith"
+        }
+      },
+      "expected": [],
+      "tags": ["function", "sql-on-fhir", "getReferenceKey", "display-only", "function:getReferenceKey"]
+    },
+    {
+      "name": "getReferenceKey - multiple references",
+      "expression": "performer.getReferenceKey()",
+      "input": {
+        "resourceType": "Observation",
+        "id": "obs-1",
+        "performer": [
+          { "reference": "Practitioner/dr-1" },
+          { "reference": "Practitioner/dr-2" },
+          { "reference": "Organization/org-1" }
+        ]
+      },
+      "expected": ["dr-1", "dr-2", "org-1"],
+      "tags": ["function", "sql-on-fhir", "getReferenceKey", "multiple", "function:getReferenceKey"]
+    },
+    {
+      "name": "getReferenceKey - with type filter matching",
+      "expression": "subject.getReferenceKey(Patient)",
+      "input": {
+        "resourceType": "Observation",
+        "id": "obs-1",
+        "subject": {
+          "reference": "Patient/123"
+        }
+      },
+      "expected": ["123"],
+      "tags": ["function", "sql-on-fhir", "getReferenceKey", "type-filter", "match", "function:getReferenceKey"]
+    },
+    {
+      "name": "getReferenceKey - with type filter not matching",
+      "expression": "subject.getReferenceKey(Group)",
+      "input": {
+        "resourceType": "Observation",
+        "id": "obs-1",
+        "subject": {
+          "reference": "Patient/123"
+        }
+      },
+      "expected": [],
+      "tags": ["function", "sql-on-fhir", "getReferenceKey", "type-filter", "no-match", "function:getReferenceKey"]
+    },
+    {
+      "name": "getReferenceKey - type filter on multiple references",
+      "expression": "performer.getReferenceKey(Practitioner)",
+      "input": {
+        "resourceType": "Observation",
+        "id": "obs-1",
+        "performer": [
+          { "reference": "Practitioner/dr-1" },
+          { "reference": "Organization/org-1" },
+          { "reference": "Practitioner/dr-2" }
+        ]
+      },
+      "expected": ["dr-1", "dr-2"],
+      "tags": ["function", "sql-on-fhir", "getReferenceKey", "type-filter", "multiple", "function:getReferenceKey"]
+    },
+    {
+      "name": "getReferenceKey - URL with query parameters",
+      "expression": "subject.getReferenceKey()",
+      "input": {
+        "resourceType": "Observation",
+        "id": "obs-1",
+        "subject": {
+          "reference": "http://example.org/fhir/Patient/xyz?_format=json"
+        }
+      },
+      "expected": ["xyz"],
+      "tags": ["function", "sql-on-fhir", "getReferenceKey", "query-params", "function:getReferenceKey"]
+    },
+    {
+      "name": "getReferenceKey - empty for empty collection",
+      "expression": "subject.getReferenceKey()",
+      "input": {
+        "resourceType": "Observation",
+        "id": "obs-1"
+      },
+      "expected": [],
+      "tags": ["function", "sql-on-fhir", "getReferenceKey", "empty", "function:getReferenceKey"]
+    },
+    {
+      "name": "getReferenceKey - from Observation example subject",
+      "expression": "subject.getReferenceKey()",
+      "inputFile": "../../input/observation-example.json",
+      "expected": ["example"],
+      "tags": ["function", "sql-on-fhir", "getReferenceKey", "fhir-example", "function:getReferenceKey"]
+    },
+    {
+      "name": "getReferenceKey - from Observation example encounter",
+      "expression": "encounter.getReferenceKey()",
+      "inputFile": "../../input/observation-example.json",
+      "expected": ["example"],
+      "tags": ["function", "sql-on-fhir", "getReferenceKey", "fhir-example", "function:getReferenceKey"]
+    },
+    {
+      "name": "getReferenceKey - type filter on Observation example",
+      "expression": "subject.getReferenceKey(Patient)",
+      "inputFile": "../../input/observation-example.json",
+      "expected": ["example"],
+      "tags": ["function", "sql-on-fhir", "getReferenceKey", "type-filter", "fhir-example", "function:getReferenceKey"]
+    },
+    {
+      "name": "getReferenceKey - type filter mismatch on Observation example",
+      "expression": "subject.getReferenceKey(Device)",
+      "inputFile": "../../input/observation-example.json",
+      "expected": [],
+      "tags": ["function", "sql-on-fhir", "getReferenceKey", "type-filter", "fhir-example", "function:getReferenceKey"]
+    }
+  ]
+}
