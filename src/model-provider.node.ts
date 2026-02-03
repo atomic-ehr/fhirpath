@@ -15,8 +15,10 @@ export class FHIRModelProvider extends FHIRModelProviderBase {
     await this.canonicalManager.init();
   }
 
-  override async resolve(canonicalUrl: string): Promise<Resource> {
-    return await this.canonicalManager.resolve(canonicalUrl);
+  override async resolve(typeName: string): Promise<Resource> {
+    return await this.canonicalManager.resolve(
+      `http://hl7.org/fhir/StructureDefinition/${typeName}`
+    );
   }
 
   override async search(params: { kind: 'primitive-type' | 'complex-type' | 'resource' }): Promise<Resource[]> {

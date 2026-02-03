@@ -137,7 +137,7 @@ export class FHIRModelProviderBase implements ModelProvider<FHIRModelContext> {
     }
   }
   
-  async resolve(_canonicalUrl: string): Promise<Resource | null> {
+  async resolve(_typeName: string): Promise<Resource | null> {
     throw new Error("Resolve not implemented.")
   }
 
@@ -145,11 +145,6 @@ export class FHIRModelProviderBase implements ModelProvider<FHIRModelContext> {
     throw new Error("Search not implemented.")
   }
 
-  private buildCanonicalUrl(typeName: string): string {
-    // For R4 core types
-    return `http://hl7.org/fhir/StructureDefinition/${typeName}`;
-  }
-  
   // Public method to get schema with automatic caching
   async getSchema(typeName: string): Promise<FHIRSchema | undefined> {
     // Check cache first
@@ -158,9 +153,7 @@ export class FHIRModelProviderBase implements ModelProvider<FHIRModelContext> {
     }
     
     try {
-      // Resolve canonical URL for the type
-      const canonicalUrl = this.buildCanonicalUrl(typeName);
-      const resource = await this.resolve(canonicalUrl);
+      const resource = await this.resolve(typeName);
       if (!resource || resource.resourceType !== 'StructureDefinition') {
         return undefined;
       }
