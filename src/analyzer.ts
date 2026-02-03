@@ -50,6 +50,7 @@ export interface AnalysisResultWithCursor extends AnalysisResult {
 
 export class Analyzer {
   private modelProvider?: ModelProvider;
+  private resourceTypesCache: Set<string> | null = null;
   private cursorMode: boolean = false;
   private stoppedAtCursor: boolean = false;
   private cursorContext?: {
@@ -518,7 +519,12 @@ export class Analyzer {
     let match: FunctionSignature | null = null;
 
     if (!hasArityError && funcDef.signatures && funcDef.signatures.length > 0) {
-      match = matchFunctionSignature(actualInput, argTypes, funcDef) || null;
+      match = matchFunctionSignature(
+        actualInput,
+        argTypes,
+        funcDef,
+        this.resourceTypesCache ?? undefined
+      ) || null;
 
       if (!match) {
         const inputIsEmpty = isEmptyCollection(actualInput);
@@ -546,8 +552,13 @@ export class Analyzer {
                 actualInput.type === 'Any' ||
                 expectedInput.type === actualInput.type ||
                 (expectedInput.type === 'Decimal' && actualInput.type === 'Integer');
-              // Check FHIR type name constraint (e.g., 'Reference')
-              const nameMatch = !expectedInput.name || !actualInput.name || expectedInput.name === actualInput.name;
+              // Check FHIR type name constraint (e.g., 'Reference', 'Resource')
+              let nameMatch = !expectedInput.name || !actualInput.name || expectedInput.name === actualInput.name;
+              if (expectedInput.name === 'Resource' && actualInput.name) {
+                nameMatch =
+                  actualInput.name === 'Resource' ||
+                  (this.resourceTypesCache?.has(actualInput.name) ?? true);
+              }
               inputMatches = singletonMatch && typeMatch && nameMatch;
             }
             if (inputMatches) {
@@ -1114,6 +1125,11 @@ export class Analyzer {
     this.cursorMode = options?.cursorMode ?? false;
     this.stoppedAtCursor = false;
     this.cursorContext = undefined;
+
+    if (this.modelProvider && this.resourceTypesCache === null) {
+      const list = await this.modelProvider.getResourceTypes();
+      this.resourceTypesCache = new Set(list);
+    }
 
     // Create initial context with system and user variables
     const systemVars = new Map<string, TypeInfo>();

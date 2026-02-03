@@ -46,7 +46,7 @@ export const getResourceKeyFunction: FunctionDefinition & { evaluate: FunctionEv
   ],
   signatures: [{
     name: 'getResourceKey',
-    input: { type: 'Any', singleton: false },
+    input: { type: 'Any', singleton: false, name: 'Resource' },
     parameters: [],
     result: { type: 'String', singleton: false },
   }],

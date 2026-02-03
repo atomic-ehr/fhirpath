@@ -224,9 +224,12 @@ function getGeneralCompletions(): CompletionItem[] {
 /**
  * Check if a function is applicable to a given type
  */
-function isFunctionApplicable(funcDef: any, typeInfo: TypeInfo): boolean {
+async function isFunctionApplicable(
+  funcDef: any,
+  typeInfo: TypeInfo,
+  modelProvider?: ModelProvider
+): Promise<boolean> {
   if (!typeInfo || !typeInfo.type) return true;
-  // Pass type with collection info: append [] if not singleton
   const typeForRegistry = typeInfo.singleton === false
     ? `${typeInfo.type}[]`
     : typeInfo.type;
@@ -234,16 +237,22 @@ function isFunctionApplicable(funcDef: any, typeInfo: TypeInfo): boolean {
     return false;
   }
 
-  // Check FHIR type name constraint (e.g., getReferenceKey requires input name 'Reference')
+  // Check FHIR type name constraint (e.g., getReferenceKey requires 'Reference', getResourceKey requires 'Resource')
   if (funcDef.signatures) {
     const hasNameConstraint = funcDef.signatures.some(
       (sig: any) => sig.input && sig.input.name
     );
     if (hasNameConstraint && typeInfo.name) {
-      // At least one signature's input.name must match typeInfo.name
-      const nameMatches = funcDef.signatures.some(
-        (sig: any) => !sig.input?.name || sig.input.name === typeInfo.name
-      );
+      const resourceTypes = modelProvider ? await modelProvider.getResourceTypes() : [];
+      const nameMatches = funcDef.signatures.some((sig: any) => {
+        if (!sig.input?.name) return true;
+        if (sig.input.name === typeInfo.name) return true;
+        if (sig.input.name === 'Resource') {
+          const name = typeInfo.name;
+          return name === 'Resource' || (name !== undefined && resourceTypes.includes(name));
+        }
+        return false;
+      });
       if (!nameMatches) {
         return false;
       }
@@ -317,8 +326,7 @@ async function getIdentifierCompletions(
   for (const name of functionNames) {
     const funcDef = registry.getFunction(name);
     if (funcDef) {
-      // Check if function is appropriate for the current type context
-      const isApplicable = !typeBeforeCursor || isFunctionApplicable(funcDef, typeBeforeCursor);
+      const isApplicable = !typeBeforeCursor || await isFunctionApplicable(funcDef, typeBeforeCursor, modelProvider);
 
       if (isApplicable) {
         // Determine if any signature takes parameters
@@ -343,8 +351,7 @@ async function getIdentifierCompletions(
       : typeBeforeCursor.type;
     const typeFunctions = registry.getFunctionsForType(typeForRegistry);
     for (const func of typeFunctions) {
-      // Check if function is already added from general functions and passes name constraint
-      if (!completions.some(c => c.label === func.name) && isFunctionApplicable(func, typeBeforeCursor)) {
+      if (!completions.some(c => c.label === func.name) && await isFunctionApplicable(func, typeBeforeCursor, modelProvider)) {
         const hasParams = func.signatures?.some(sig => (sig.parameters?.length ?? 0) > 0) ?? false;
         completions.push({
           label: func.name,
