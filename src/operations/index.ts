@@ -68,9 +68,9 @@ export { iifFunction } from './iif-function';
 export { defineVariableFunction } from './defineVariable-function';
 
 // Temporal functions
-export { 
-  nowFunction, 
-  todayFunction, 
+export {
+  nowFunction,
+  todayFunction,
   timeOfDayFunction,
   toDateFunction,
   toDateTimeFunction,
@@ -155,3 +155,7 @@ export { powerFunction } from './power-function';
 export { logFunction } from './log-function';
 export { lnFunction } from './ln-function';
 export { expFunction } from './exp-function';
+
+// SQL on FHIR functions
+export { getResourceKeyFunction } from './getResourceKey-function';
+export { getReferenceKeyFunction } from './getReferenceKey-function';

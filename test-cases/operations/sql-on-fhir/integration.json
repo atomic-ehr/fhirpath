@@ -1,0 +1,144 @@
+{
+  "name": "SQL on FHIR Integration Tests",
+  "description": "Tests verifying getResourceKey and getReferenceKey work together for database joins",
+  "tests": [
+    {
+      "name": "Keys match between resource and reference - simple case",
+      "description": "Verifies that getResourceKey on a resource returns the same value as getReferenceKey on a reference pointing to it",
+      "expression": "getResourceKey() = subject.getReferenceKey()",
+      "input": {
+        "resourceType": "Patient",
+        "id": "patient-123",
+        "subject": {
+          "reference": "Patient/patient-123"
+        }
+      },
+      "expected": [true],
+      "tags": ["function", "sql-on-fhir", "integration", "key-match", "function:getResourceKey", "function:getReferenceKey"]
+    },
+    {
+      "name": "ViewDefinition pattern - patient id column",
+      "description": "Simulates ViewDefinition column: { path: 'getResourceKey()', name: 'id' }",
+      "expression": "getResourceKey()",
+      "input": {
+        "resourceType": "Patient",
+        "id": "p1",
+        "name": [{ "family": "Smith", "given": ["John"] }]
+      },
+      "expected": ["p1"],
+      "tags": ["function", "sql-on-fhir", "viewdefinition", "pattern", "function:getResourceKey"]
+    },
+    {
+      "name": "ViewDefinition pattern - observation with patient foreign key",
+      "description": "Simulates ViewDefinition columns for Observation view with patient_id foreign key",
+      "expression": "subject.getReferenceKey(Patient)",
+      "input": {
+        "resourceType": "Observation",
+        "id": "obs-1",
+        "status": "final",
+        "subject": {
+          "reference": "Patient/p1"
+        }
+      },
+      "expected": ["p1"],
+      "tags": ["function", "sql-on-fhir", "viewdefinition", "pattern", "foreign-key", "function:getReferenceKey"]
+    },
+    {
+      "name": "Bundle with multiple resources - extract all patient keys",
+      "expression": "entry.resource.where(resourceType = 'Patient').getResourceKey()",
+      "input": {
+        "resourceType": "Bundle",
+        "type": "searchset",
+        "entry": [
+          { "resource": { "resourceType": "Patient", "id": "p1", "name": [{ "family": "Smith" }] } },
+          { "resource": { "resourceType": "Observation", "id": "o1", "subject": { "reference": "Patient/p1" } } },
+          { "resource": { "resourceType": "Patient", "id": "p2", "name": [{ "family": "Jones" }] } },
+          { "resource": { "resourceType": "Observation", "id": "o2", "subject": { "reference": "Patient/p2" } } }
+        ]
+      },
+      "expected": ["p1", "p2"],
+      "tags": ["function", "sql-on-fhir", "bundle", "extraction", "function:getResourceKey"]
+    },
+    {
+      "name": "Bundle with multiple resources - extract observation-patient relationships",
+      "expression": "entry.resource.where(resourceType = 'Observation').subject.getReferenceKey(Patient)",
+      "input": {
+        "resourceType": "Bundle",
+        "type": "searchset",
+        "entry": [
+          { "resource": { "resourceType": "Patient", "id": "p1" } },
+          { "resource": { "resourceType": "Observation", "id": "o1", "subject": { "reference": "Patient/p1" } } },
+          { "resource": { "resourceType": "Patient", "id": "p2" } },
+          { "resource": { "resourceType": "Observation", "id": "o2", "subject": { "reference": "Patient/p2" } } },
+          { "resource": { "resourceType": "Observation", "id": "o3", "subject": { "reference": "Group/g1" } } }
+        ]
+      },
+      "expected": ["p1", "p2"],
+      "tags": ["function", "sql-on-fhir", "bundle", "extraction", "foreign-key", "function:getReferenceKey"],
+      "note": "o3's subject is a Group, so it's filtered out by getReferenceKey(Patient)"
+    },
+    {
+      "name": "Encounter with multiple reference types",
+      "expression": "participant.individual.getReferenceKey(Practitioner)",
+      "input": {
+        "resourceType": "Encounter",
+        "id": "enc-1",
+        "participant": [
+          { "individual": { "reference": "Practitioner/dr-1" } },
+          { "individual": { "reference": "RelatedPerson/rp-1" } },
+          { "individual": { "reference": "Practitioner/dr-2" } }
+        ]
+      },
+      "expected": ["dr-1", "dr-2"],
+      "tags": ["function", "sql-on-fhir", "multiple-types", "function:getReferenceKey"]
+    },
+    {
+      "name": "DiagnosticReport with multiple performer types",
+      "expression": "performer.getReferenceKey()",
+      "input": {
+        "resourceType": "DiagnosticReport",
+        "id": "dr-1",
+        "performer": [
+          { "reference": "Practitioner/p1" },
+          { "reference": "Organization/org1" },
+          { "reference": "CareTeam/ct1" }
+        ]
+      },
+      "expected": ["p1", "org1", "ct1"],
+      "tags": ["function", "sql-on-fhir", "performer", "function:getReferenceKey"]
+    },
+    {
+      "name": "Contained resource key extraction",
+      "expression": "contained.getResourceKey()",
+      "input": {
+        "resourceType": "MedicationRequest",
+        "id": "mr-1",
+        "contained": [
+          { "resourceType": "Medication", "id": "med-1" },
+          { "resourceType": "Substance", "id": "sub-1" }
+        ],
+        "medicationReference": {
+          "reference": "#med-1"
+        }
+      },
+      "expected": ["med-1", "sub-1"],
+      "tags": ["function", "sql-on-fhir", "contained", "function:getResourceKey"]
+    },
+    {
+      "name": "Reference to contained resource",
+      "expression": "medicationReference.getReferenceKey()",
+      "input": {
+        "resourceType": "MedicationRequest",
+        "id": "mr-1",
+        "contained": [
+          { "resourceType": "Medication", "id": "med-1" }
+        ],
+        "medicationReference": {
+          "reference": "#med-1"
+        }
+      },
+      "expected": ["med-1"],
+      "tags": ["function", "sql-on-fhir", "contained-ref", "function:getReferenceKey"]
+    }
+  ]
+}

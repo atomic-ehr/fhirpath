@@ -1,0 +1,147 @@
+{
+  "name": "getResourceKey Function Tests",
+  "description": "Tests for the SQL on FHIR getResourceKey() function that returns a unique key for database joins",
+  "tests": [
+    {
+      "name": "getResourceKey - returns id from Patient resource",
+      "expression": "getResourceKey()",
+      "input": {
+        "resourceType": "Patient",
+        "id": "patient-123",
+        "name": [{ "family": "Smith" }]
+      },
+      "expected": ["patient-123"],
+      "tags": ["function", "sql-on-fhir", "getResourceKey", "function:getResourceKey"]
+    },
+    {
+      "name": "getResourceKey - returns id from Observation resource",
+      "expression": "getResourceKey()",
+      "input": {
+        "resourceType": "Observation",
+        "id": "obs-456",
+        "status": "final"
+      },
+      "expected": ["obs-456"],
+      "tags": ["function", "sql-on-fhir", "getResourceKey", "function:getResourceKey"]
+    },
+    {
+      "name": "getResourceKey - empty for resource without id",
+      "expression": "getResourceKey()",
+      "input": {
+        "resourceType": "Patient",
+        "name": [{ "family": "Smith" }]
+      },
+      "expected": [],
+      "tags": ["function", "sql-on-fhir", "getResourceKey", "empty", "function:getResourceKey"]
+    },
+    {
+      "name": "getResourceKey - with chained expression",
+      "expression": "Patient.getResourceKey()",
+      "input": {
+        "resourceType": "Patient",
+        "id": "p1"
+      },
+      "expected": ["p1"],
+      "tags": ["function", "sql-on-fhir", "getResourceKey", "chain", "function:getResourceKey"],
+      "note": "Patient is an identifier that navigates to the resource itself when at root"
+    },
+    {
+      "name": "getResourceKey - multiple resources in collection",
+      "expression": "getResourceKey()",
+      "input": [
+        { "resourceType": "Patient", "id": "p1" },
+        { "resourceType": "Patient", "id": "p2" },
+        { "resourceType": "Patient", "id": "p3" }
+      ],
+      "expected": ["p1", "p2", "p3"],
+      "tags": ["function", "sql-on-fhir", "getResourceKey", "collection", "function:getResourceKey"]
+    },
+    {
+      "name": "getResourceKey - mixed resources with and without id",
+      "expression": "getResourceKey()",
+      "input": [
+        { "resourceType": "Patient", "id": "p1" },
+        { "resourceType": "Patient" },
+        { "resourceType": "Patient", "id": "p3" }
+      ],
+      "expected": ["p1", "p3"],
+      "tags": ["function", "sql-on-fhir", "getResourceKey", "mixed", "function:getResourceKey"]
+    },
+    {
+      "name": "getResourceKey - numeric id converted to string",
+      "expression": "getResourceKey()",
+      "input": {
+        "resourceType": "Patient",
+        "id": 12345
+      },
+      "expected": ["12345"],
+      "tags": ["function", "sql-on-fhir", "getResourceKey", "numeric", "function:getResourceKey"]
+    },
+    {
+      "name": "getResourceKey - UUID id",
+      "expression": "getResourceKey()",
+      "input": {
+        "resourceType": "Patient",
+        "id": "550e8400-e29b-41d4-a716-446655440000"
+      },
+      "expected": ["550e8400-e29b-41d4-a716-446655440000"],
+      "tags": ["function", "sql-on-fhir", "getResourceKey", "uuid", "function:getResourceKey"]
+    },
+    {
+      "name": "getResourceKey - empty for empty collection",
+      "expression": "getResourceKey()",
+      "input": [],
+      "expected": [],
+      "tags": ["function", "sql-on-fhir", "getResourceKey", "empty", "function:getResourceKey"]
+    },
+    {
+      "name": "getResourceKey - empty for primitive value",
+      "expression": "getResourceKey()",
+      "input": "string",
+      "expected": [],
+      "tags": ["function", "sql-on-fhir", "getResourceKey", "primitive", "function:getResourceKey"]
+    },
+    {
+      "name": "getResourceKey - works with contained resources",
+      "expression": "contained.getResourceKey()",
+      "input": {
+        "resourceType": "Patient",
+        "id": "main-patient",
+        "contained": [
+          {
+            "resourceType": "Practitioner",
+            "id": "practitioner-1"
+          },
+          {
+            "resourceType": "Organization",
+            "id": "org-1"
+          }
+        ]
+      },
+      "expected": ["practitioner-1", "org-1"],
+      "tags": ["function", "sql-on-fhir", "getResourceKey", "contained", "function:getResourceKey"]
+    },
+    {
+      "name": "getResourceKey - with where filter",
+      "expression": "entry.resource.where(resourceType = 'Patient').getResourceKey()",
+      "input": {
+        "resourceType": "Bundle",
+        "id": "bundle-1",
+        "entry": [
+          { "resource": { "resourceType": "Patient", "id": "p1" } },
+          { "resource": { "resourceType": "Observation", "id": "o1" } },
+          { "resource": { "resourceType": "Patient", "id": "p2" } }
+        ]
+      },
+      "expected": ["p1", "p2"],
+      "tags": ["function", "sql-on-fhir", "getResourceKey", "where", "bundle", "function:getResourceKey"]
+    },
+    {
+      "name": "getResourceKey - from Observation example",
+      "expression": "getResourceKey()",
+      "inputFile": "../../input/observation-example.json",
+      "expected": ["example"],
+      "tags": ["function", "sql-on-fhir", "getResourceKey", "fhir-example", "function:getResourceKey"]
+    }
+  ]
+}

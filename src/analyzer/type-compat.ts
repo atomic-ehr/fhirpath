@@ -55,7 +55,8 @@ function specificity(actual: TypeInfo, required: TypeInfo): number {
 export function matchFunctionSignature(
   input: TypeInfo,
   args: TypeInfo[],
-  def?: FunctionDefinition
+  def?: FunctionDefinition,
+  resourceTypes?: Set<string>
 ): FunctionSignature | undefined {
   if (!def || !def.signatures || def.signatures.length === 0) return undefined;
 
@@ -63,7 +64,7 @@ export function matchFunctionSignature(
 
   for (const sig of def.signatures) {
     // Input compatibility (if specified)
-    if (sig.input && !isFunctionTypeCompatible(input, sig.input)) {
+    if (sig.input && !isFunctionTypeCompatible(input, sig.input, resourceTypes)) {
       continue;
     }
 
@@ -111,9 +112,22 @@ export function matchFunctionSignature(
   return best?.sig;
 }
 
-function isFunctionTypeCompatible(actual: TypeInfo, expected: TypeInfo): boolean {
+function isFunctionTypeCompatible(
+  actual: TypeInfo,
+  expected: TypeInfo,
+  resourceTypes?: Set<string>
+): boolean {
   // Enforce singleton when required
   if (expected.singleton && !actual.singleton) return false;
+  // Check FHIR type name constraint (e.g., 'Reference', 'Resource')
+  if (expected.name && actual.name) {
+    if (expected.name === 'Resource') {
+      if (actual.name === 'Resource') return true;
+      if (resourceTypes) return resourceTypes.has(actual.name);
+      return true; // no model: allow
+    }
+    if (expected.name !== actual.name) return false;
+  }
   if (expected.type === 'Any') return true;
   if (actual.type === expected.type) return true;
   // Allow Integer to be used where Decimal is expected (promotion)

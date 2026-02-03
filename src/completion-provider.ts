@@ -105,7 +105,7 @@ export async function provideCompletions(
   options: CompletionOptions = {}
 ): Promise<CompletionItem[]> {
   const { modelProvider, variables, inputType, maxCompletions = 100 } = options;
-  
+
   try {
     // Parse with cursor
     const parseResult = parse(expression, {
@@ -121,7 +121,7 @@ export async function provideCompletions(
     if (!cursorNode || isErrorNode(cursorNode)) {
       return [];
     }
-    
+
     // Analyze with cursor mode
     const analyzer = new Analyzer(modelProvider);
     const analysis = await analyzer.analyze(
@@ -130,10 +130,10 @@ export async function provideCompletions(
       inputType,
       { cursorMode: true }
     );
-    
+
     // Extract cursor context
     const { typeBeforeCursor, functionCall } = analysis.cursorContext || {};
-    
+
     // Get partial text for filtering
     // Determine partial text for filtering (prefer AST-provided, else infer from source)
     let partialText = (cursorNode as any).partialText || '';
@@ -147,15 +147,15 @@ export async function provideCompletions(
         partialText = m[0];
       }
     }
-    
+
     // Generate completions based on cursor context
     let completions: CompletionItem[] = [];
-    
+
     switch (cursorNode.context) {
       case CursorContext.Identifier:
         completions = await getIdentifierCompletions(typeBeforeCursor, modelProvider);
         break;
-      
+
       case CursorContext.Operator:
         // Fallback to provided inputType if analyzer did not provide typeBeforeCursor
         completions = getOperatorCompletions(typeBeforeCursor || (inputType as any));
@@ -165,31 +165,31 @@ export async function provideCompletions(
           completions = completions.filter(c => c.label !== 'in');
         }
         break;
-      
+
       case CursorContext.Type:
         completions = await getTypeCompletions(cursorNode, modelProvider);
         break;
-      
+
       case CursorContext.Argument:
         completions = await getArgumentCompletions(cursorNode, typeBeforeCursor, modelProvider, variables, functionCall);
         break;
-      
+
       case CursorContext.Index:
         completions = getIndexCompletions(typeBeforeCursor, variables);
         break;
     }
-    
+
     // Filter by partial text
     if (partialText) {
       completions = filterCompletions(completions, partialText);
     }
-    
+
     // Sort and limit
     completions = rankCompletions(completions);
     if (maxCompletions > 0 && completions.length > maxCompletions) {
       completions = completions.slice(0, maxCompletions);
     }
-    
+
     return completions;
   } catch (error) {
     // Return empty array on error
@@ -202,7 +202,7 @@ export async function provideCompletions(
  */
 function getGeneralCompletions(): CompletionItem[] {
   const completions: CompletionItem[] = [];
-  
+
   // Get operators from registry
   const operatorNames = registry.listOperators();
   for (const opName of operatorNames) {
@@ -215,22 +215,51 @@ function getGeneralCompletions(): CompletionItem[] {
       });
     }
   }
-  
+
   // No hardcoded constants - these should come from context
-  
+
   return completions;
 }
 
 /**
  * Check if a function is applicable to a given type
  */
-function isFunctionApplicable(funcDef: any, typeInfo: TypeInfo): boolean {
+async function isFunctionApplicable(
+  funcDef: any,
+  typeInfo: TypeInfo,
+  modelProvider?: ModelProvider
+): Promise<boolean> {
   if (!typeInfo || !typeInfo.type) return true;
-  // Pass type with collection info: append [] if not singleton
-  const typeForRegistry = typeInfo.singleton === false 
-    ? `${typeInfo.type}[]` 
+  const typeForRegistry = typeInfo.singleton === false
+    ? `${typeInfo.type}[]`
     : typeInfo.type;
-  return registry.isFunctionApplicableToType(funcDef.name, typeForRegistry);
+  if (!registry.isFunctionApplicableToType(funcDef.name, typeForRegistry)) {
+    return false;
+  }
+
+  // Check FHIR type name constraint (e.g., getReferenceKey requires 'Reference', getResourceKey requires 'Resource')
+  if (funcDef.signatures) {
+    const hasNameConstraint = funcDef.signatures.some(
+      (sig: any) => sig.input && sig.input.name
+    );
+    if (hasNameConstraint && typeInfo.name) {
+      const resourceTypes = modelProvider ? await modelProvider.getResourceTypes() : [];
+      const nameMatches = funcDef.signatures.some((sig: any) => {
+        if (!sig.input?.name) return true;
+        if (sig.input.name === typeInfo.name) return true;
+        if (sig.input.name === 'Resource') {
+          const name = typeInfo.name;
+          return name === 'Resource' || (name !== undefined && resourceTypes.includes(name));
+        }
+        return false;
+      });
+      if (!nameMatches) {
+        return false;
+      }
+    }
+  }
+
+  return true;
 }
 
 /**
@@ -271,7 +300,7 @@ async function getIdentifierCompletions(
   modelProvider?: ModelProvider
 ): Promise<CompletionItem[]> {
   const completions: CompletionItem[] = [];
-  
+
   // Add elements from type if available
   if (typeBeforeCursor && modelProvider) {
     // Use the name property which contains the actual FHIR type name
@@ -291,20 +320,19 @@ async function getIdentifierCompletions(
       }
     }
   }
-  
+
   // Add FHIRPath functions from registry
   const functionNames = registry.listFunctions();
   for (const name of functionNames) {
     const funcDef = registry.getFunction(name);
     if (funcDef) {
-      // Check if function is appropriate for the current type context
-      const isApplicable = !typeBeforeCursor || isFunctionApplicable(funcDef, typeBeforeCursor);
-      
+      const isApplicable = !typeBeforeCursor || await isFunctionApplicable(funcDef, typeBeforeCursor, modelProvider);
+
       if (isApplicable) {
         // Determine if any signature takes parameters
         const hasParams = funcDef.signatures?.some(sig => (sig.parameters?.length ?? 0) > 0) ?? false;
         const funcDescription = funcDef.description || `FHIRPath ${name} function`;
-        
+
         completions.push({
           label: name,
           kind: CompletionKind.Function,
@@ -314,17 +342,16 @@ async function getIdentifierCompletions(
       }
     }
   }
-  
+
   // Add type-specific functions from registry
   if (typeBeforeCursor && typeBeforeCursor.type) {
     // Pass type with collection info: append [] if not singleton
-    const typeForRegistry = typeBeforeCursor.singleton === false 
-      ? `${typeBeforeCursor.type}[]` 
+    const typeForRegistry = typeBeforeCursor.singleton === false
+      ? `${typeBeforeCursor.type}[]`
       : typeBeforeCursor.type;
     const typeFunctions = registry.getFunctionsForType(typeForRegistry);
     for (const func of typeFunctions) {
-      // Check if function is already added from general functions
-      if (!completions.some(c => c.label === func.name)) {
+      if (!completions.some(c => c.label === func.name) && await isFunctionApplicable(func, typeBeforeCursor, modelProvider)) {
         const hasParams = func.signatures?.some(sig => (sig.parameters?.length ?? 0) > 0) ?? false;
         completions.push({
           label: func.name,
@@ -335,7 +362,7 @@ async function getIdentifierCompletions(
       }
     }
   }
-  
+
   return completions;
 }
 
@@ -345,10 +372,10 @@ async function getIdentifierCompletions(
 function getOperatorCompletions(typeBeforeCursor?: TypeInfo): CompletionItem[] {
   const completions: CompletionItem[] = [];
   const addedOperators = new Set<string>();
-  
+
   // Get all operators from registry
   const operatorNames = registry.listOperators();
-  
+
   for (const opName of operatorNames) {
     const opDef = registry.getOperatorDefinition(opName);
     if (opDef) {
@@ -361,7 +388,7 @@ function getOperatorCompletions(typeBeforeCursor?: TypeInfo): CompletionItem[] {
       }
       // Check if operator is applicable to the current type
       const isApplicable = !typeBeforeCursor || isOperatorApplicable(opDef, typeBeforeCursor);
-      
+
       if (isApplicable && !addedOperators.has(opDef.symbol)) {
         completions.push({
           label: opDef.symbol,
@@ -373,7 +400,7 @@ function getOperatorCompletions(typeBeforeCursor?: TypeInfo): CompletionItem[] {
       }
     }
   }
-  
+
   return completions;
 }
 
@@ -385,7 +412,7 @@ async function getTypeCompletions(
   modelProvider?: ModelProvider
 ): Promise<CompletionItem[]> {
   const completions: CompletionItem[] = [];
-  
+
   // Primitive types - only if modelProvider is available
   if (modelProvider) {
     const primitiveTypes = await modelProvider.getPrimitiveTypes();
@@ -397,7 +424,7 @@ async function getTypeCompletions(
         sortText: `0_${type}` // Priority 0 for primitives
       });
     }
-    
+
     // Complex types
     const complexTypes = await modelProvider.getComplexTypes();
     for (const type of complexTypes) {
@@ -409,7 +436,7 @@ async function getTypeCompletions(
       });
     }
   }
-  
+
   // Always add resource types when we have a model provider
   // They're valid type names in contexts like ofType()
   if (modelProvider) {
@@ -423,7 +450,7 @@ async function getTypeCompletions(
       });
     }
   }
-  
+
   return completions;
 }
 
@@ -555,7 +582,7 @@ function getIndexCompletions(
   variables?: Record<string, any>
 ): CompletionItem[] {
   const completions: CompletionItem[] = [];
-  
+
   // Add user variables if available
   if (variables) {
     // Add $this if it's in scope (for consistency with argument context)
@@ -575,7 +602,7 @@ function getIndexCompletions(
         detail: 'Current index'
       });
     }
-    
+
     // Add other user variables
     for (const varName of Object.keys(variables)) {
       if (!varName.startsWith('$')) {
@@ -587,7 +614,7 @@ function getIndexCompletions(
       }
     }
   }
-  
+
   // Get index-related functions from registry
   const functionNames = registry.listFunctions();
   for (const name of functionNames) {
@@ -603,7 +630,7 @@ function getIndexCompletions(
       }
     }
   }
-  
+
   return completions;
 }
 
@@ -613,7 +640,7 @@ function getIndexCompletions(
  */
 function filterCompletions(completions: CompletionItem[], partialText: string): CompletionItem[] {
   const lowerPartial = partialText.toLowerCase();
-  return completions.filter(item => 
+  return completions.filter(item =>
     item.label.toLowerCase().startsWith(lowerPartial)
   );
 }
@@ -629,7 +656,7 @@ function rankCompletions(completions: CompletionItem[]): CompletionItem[] {
       const bSortText = b.sortText || b.label;
       return aSortText.localeCompare(bSortText);
     }
-    
+
     // Sort by kind priority
     const kindPriority: Record<CompletionKind, number> = {
       [CompletionKind.Property]: 1,
@@ -640,14 +667,14 @@ function rankCompletions(completions: CompletionItem[]): CompletionItem[] {
       [CompletionKind.Keyword]: 6,
       [CompletionKind.Constant]: 7
     };
-    
+
     const aPriority = kindPriority[a.kind] || 10;
     const bPriority = kindPriority[b.kind] || 10;
-    
+
     if (aPriority !== bPriority) {
       return aPriority - bPriority;
     }
-    
+
     // Then alphabetically
     return a.label.localeCompare(b.label);
   });
