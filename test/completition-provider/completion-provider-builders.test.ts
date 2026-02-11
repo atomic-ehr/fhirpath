@@ -34,12 +34,10 @@ describe('CompletionProvider - builder consistency', () => {
     expect(byLabel.get('count')?.count ?? 0).toBe(1);
     expect(byLabel.get('where')?.count ?? 0).toBe(1);
 
-    // Refactor 2 expectation: insertText
-    // - no-arg function like count should not force parentheses in insertText
+    // All functions should include parentheses in insertText
     const countItem = byLabel.get('count')!.items[0];
-    expect(countItem.insertText === 'count').toBe(true);
+    expect(countItem.insertText).toBe('count()');
 
-    // - arg-taking function like where should include parentheses
     const whereItem = byLabel.get('where')!.items[0];
     expect(whereItem.insertText).toBe('where()');
   });
