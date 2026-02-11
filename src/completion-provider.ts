@@ -329,15 +329,13 @@ async function getIdentifierCompletions(
       const isApplicable = !typeBeforeCursor || await isFunctionApplicable(funcDef, typeBeforeCursor, modelProvider);
 
       if (isApplicable) {
-        // Determine if any signature takes parameters
-        const hasParams = funcDef.signatures?.some(sig => (sig.parameters?.length ?? 0) > 0) ?? false;
         const funcDescription = funcDef.description || `FHIRPath ${name} function`;
 
         completions.push({
           label: name,
           kind: CompletionKind.Function,
           detail: funcDescription,
-          insertText: name + (hasParams ? '()' : '')
+          insertText: name + '()'
         });
       }
     }
@@ -352,12 +350,11 @@ async function getIdentifierCompletions(
     const typeFunctions = registry.getFunctionsForType(typeForRegistry);
     for (const func of typeFunctions) {
       if (!completions.some(c => c.label === func.name) && await isFunctionApplicable(func, typeBeforeCursor, modelProvider)) {
-        const hasParams = func.signatures?.some(sig => (sig.parameters?.length ?? 0) > 0) ?? false;
         completions.push({
           label: func.name,
           kind: CompletionKind.Function,
           detail: func.description || `FHIRPath ${func.name} function`,
-          insertText: func.name + (hasParams ? '()' : '')
+          insertText: func.name + '()'
         });
       }
     }
