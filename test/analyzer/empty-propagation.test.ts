@@ -151,10 +151,10 @@ describe('Empty Collection Propagation', () => {
     });
 
     it('should produce warnings for empty arguments where specific type expected', async () => {
-      const ast = parse('"test".substring({})');
+      const ast = parse("'test'.substring({})");
       const analyzer = new Analyzer();
       const result = await analyzer.analyze(ast.ast);
-      
+
       // Should have a warning about type mismatch
       const warnings = result.diagnostics.filter(d => d.severity === 2); // 2 = warning
       expect(warnings.length).toBeGreaterThan(0);

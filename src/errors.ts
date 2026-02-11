@@ -269,5 +269,6 @@ export enum ErrorCodes {
   UNSUPPORTED_TEMPORAL_UNIT_FOR_TYPE = 'FP6011',
   
   // Static analysis warnings (7000-7999)
-  UNREACHABLE_CODE = 'FP7001'
+  UNREACHABLE_CODE = 'FP7001',
+  DOUBLE_QUOTED_STRING = 'FP7002'
 }

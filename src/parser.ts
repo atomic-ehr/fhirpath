@@ -454,7 +454,7 @@ export class Parser {
       
       // Check if next token is a string (quantity unit)
       const nextToken = this.peek();
-      if (nextToken.type === TokenType.STRING) {
+      if (nextToken.type === TokenType.STRING || nextToken.type === TokenType.DOUBLE_QUOTED_STRING) {
         this.advance();
         const unit = this.parseStringValue(nextToken.value);
         return this.createQuantityNode(numberValue, unit, token, nextToken);
@@ -477,10 +477,14 @@ export class Parser {
       return this.createLiteralNode(numberValue, isDecimal ? 'decimal' : 'number', token);
     }
 
-    if (token.type === TokenType.STRING) {
+    if (token.type === TokenType.STRING || token.type === TokenType.DOUBLE_QUOTED_STRING) {
       this.current++; // inline advance()
       const value = this.parseStringValue(token.value);
-      return this.createLiteralNode(value, 'string', token);
+      const node = this.createLiteralNode(value, 'string', token);
+      if (token.type === TokenType.DOUBLE_QUOTED_STRING) {
+        node.raw = token.value;
+      }
+      return node;
     }
 
     if (token.type === TokenType.IDENTIFIER && (token.value === 'true' || token.value === 'false')) {

@@ -57,7 +57,7 @@ describe("Analyzer", () => {
 
   describe("functions", () => {
     it("should not report errors for valid functions", async () => {
-      const result = await analyze('name.where(use = "official")');
+      const result = await analyze("name.where(use = 'official')");
       expect(result.diagnostics).toEqual([]);
     });
 
@@ -93,7 +93,7 @@ describe("Analyzer", () => {
 
   describe("complex expressions", () => {
     it("should analyze nested expressions", async () => {
-      const result = await analyze('name.where(use = "official").given');
+      const result = await analyze("name.where(use = 'official').given");
       expect(result.diagnostics).toEqual([]);
     });
 
@@ -447,7 +447,7 @@ describe("Analyzer", () => {
       }
 
       const result = await analyze(
-        'Patient.contact.where(relationship.coding.code = "family").name.given.first()',
+        "Patient.contact.where(relationship.coding.code = 'family').name.given.first()",
         {
           modelProvider,
         },
@@ -533,7 +533,7 @@ describe("Analyzer", () => {
       }
 
       const result = await analyze(
-        'Patient.extension.where(url = "http://example.org/ext").value',
+        "Patient.extension.where(url = 'http://example.org/ext').value",
         { modelProvider },
       );
 
