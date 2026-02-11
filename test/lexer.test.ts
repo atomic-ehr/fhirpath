@@ -200,7 +200,7 @@ describe("New Simplified Lexer", () => {
 
     it("should tokenize strings with double quotes", async () => {
       const tokens = tokenize('"hello" "world"');
-      expect(getToken(tokens, 0).type).toBe(TokenType.STRING);
+      expect(getToken(tokens, 0).type).toBe(TokenType.DOUBLE_QUOTED_STRING);
       expect(getToken(tokens, 0).value).toBe('"hello"');
     });
 
@@ -450,7 +450,7 @@ describe("New Simplified Lexer", () => {
     });
 
     it("should tokenize expressions with mixed operators", async () => {
-      const result = tokenTypesAndValues('age >= 18 and status = "active"');
+      const result = tokenTypesAndValues("age >= 18 and status = 'active'");
       expect(result).toEqual([
         "ID:age",
         "OP:>=",
@@ -464,7 +464,7 @@ describe("New Simplified Lexer", () => {
     });
 
     it("should tokenize function calls with arguments", async () => {
-      const result = tokenTypesAndValues('where(use = "official").given');
+      const result = tokenTypesAndValues("where(use = 'official').given");
       expect(result).toEqual([
         "ID:where",
         "LPAREN",
@@ -615,7 +615,7 @@ describe("New Simplified Lexer", () => {
   describe("Real-world Examples", () => {
     it("should tokenize FHIR resource paths", async () => {
       const result = tokenTypesAndValues(
-        'Patient.identifier.where(system = "http://example.org").value',
+        "Patient.identifier.where(system = 'http://example.org').value",
       );
       expect(result).toEqual([
         "ID:Patient",
@@ -636,7 +636,7 @@ describe("New Simplified Lexer", () => {
 
     it("should tokenize complex filter expressions", async () => {
       const result = tokenTypesAndValues(
-        'Observation.where(code.coding.exists(system = "LOINC" and code = "1234-5"))',
+        "Observation.where(code.coding.exists(system = 'LOINC' and code = '1234-5'))",
       );
       expect(result).toEqual([
         "ID:Observation",

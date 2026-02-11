@@ -785,10 +785,20 @@ export class Analyzer {
    */
   private analyzeLiteral(node: LiteralNode, context: AnalysisContext): InternalAnalysisResult {
     let type: TypeInfo;
+    const diagnostics: Diagnostic[] = [];
 
     switch (node.valueType) {
       case 'string':
         type = { type: 'String', singleton: true };
+        if (node.raw?.startsWith('"')) {
+          diagnostics.push({
+            range: node.range,
+            message: 'Double-quoted strings are not valid in FHIRPath, use single quotes instead',
+            severity: DiagnosticSeverity.Warning,
+            code: ErrorCodes.DOUBLE_QUOTED_STRING,
+            source: 'fhirpath',
+          });
+        }
         break;
       case 'number':
         // Number without decimal point is integer
@@ -814,7 +824,7 @@ export class Analyzer {
         type = { type: 'Any', singleton: true };
     }
 
-    return { type, diagnostics: [] };
+    return { type, diagnostics };
   }
 
   private analyzeTemporalLiteral(node: TemporalLiteralNode, context: AnalysisContext): InternalAnalysisResult {

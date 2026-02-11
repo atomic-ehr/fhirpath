@@ -24,6 +24,7 @@ export enum TokenType {
   TIME = 5,
   QUANTITY = 6,     // Quantity literals like 5 'mg'
   DATE = 7,         // Date literals like @2020-01-01
+  DOUBLE_QUOTED_STRING = 8, // "..." - not in spec but lexed for diagnostics
   
   // Operators (all symbol operators consolidated)
   OPERATOR = 10,    // +, -, *, /, <, >, <=, >=, =, !=, ~, !~, |, &
@@ -246,8 +247,7 @@ export class Lexer {
         return this.readString("'");
         
       case '"':
-        // Not in spec but often supported
-        return this.readString('"');
+        return this.readDoubleQuotedString();
         
       case '`':
         return this.readDelimitedIdentifier();
@@ -363,6 +363,15 @@ export class Lexer {
     this.scanQuoted(quote, 'Unterminated string');
     const value = this.input.substring(start, this.position);
     return this.createToken(TokenType.STRING, value, start, this.position, startLine, startColumn);
+  }
+
+  private readDoubleQuotedString(): Token {
+    const start = this.position;
+    const startLine = this.line;
+    const startColumn = this.column;
+    this.scanQuoted('"', 'Unterminated string');
+    const value = this.input.substring(start, this.position);
+    return this.createToken(TokenType.DOUBLE_QUOTED_STRING, value, start, this.position, startLine, startColumn);
   }
   
   private readNumber(): Token {

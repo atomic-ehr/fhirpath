@@ -6,9 +6,35 @@ import { ErrorCodes } from "../../src/index.node";
 describe('Type Checking', () => {
   describe('Basic type inference', () => {
     it('should infer literal types', async () => {
-      const result = await analyze('"hello"');
+      const result = await analyze("'hello'");
       expect(result.ast.typeInfo).toEqual({ type: 'String', singleton: true });
       expect(result.diagnostics).toHaveLength(0);
+    });
+
+    it('should warn on double-quoted strings', async () => {
+      const result = await analyze('"hello"');
+      expect(result.ast.typeInfo).toEqual({ type: 'String', singleton: true });
+      expect(result.diagnostics).toHaveLength(1);
+      expect(result.diagnostics[0]).toMatchObject({
+        severity: DiagnosticSeverity.Warning,
+        code: ErrorCodes.DOUBLE_QUOTED_STRING,
+      });
+    });
+
+    it('should warn on double-quoted strings in function arguments', async () => {
+      const result = await analyze('name.where(use = "official")');
+      expect(result.diagnostics).toHaveLength(1);
+      expect(result.diagnostics[0]).toMatchObject({
+        severity: DiagnosticSeverity.Warning,
+        code: ErrorCodes.DOUBLE_QUOTED_STRING,
+        message: 'Double-quoted strings are not valid in FHIRPath, use single quotes instead',
+      });
+    });
+
+    it('should warn on each double-quoted string separately', async () => {
+      const result = await analyze('"a" + "b"');
+      expect(result.diagnostics).toHaveLength(2);
+      expect(result.diagnostics.every(d => d.code === ErrorCodes.DOUBLE_QUOTED_STRING)).toBe(true);
     });
 
     it('should infer numeric types', async () => {
