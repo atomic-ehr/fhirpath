@@ -592,7 +592,9 @@ export class FHIRModelProviderBase implements ModelProvider<FHIRModelContext> {
     
     this.resourceTypesCache = resources
       .filter(r => r.resourceType === 'StructureDefinition')
-      .map(r => (r as unknown as StructureDefinition).name)
+      .map(r => r as unknown as StructureDefinition)
+      .filter(sd => sd.derivation !== 'constraint')
+      .map(sd => sd.name)
       .filter((name): name is string => !!name)
       .sort();
       
