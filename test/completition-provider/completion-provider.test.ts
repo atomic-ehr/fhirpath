@@ -148,12 +148,12 @@ describe("Completion Provider", () => {
         options,
       );
 
-      // Should have primitive types
-      const stringType = completions.find((c) => c.label === "String");
+      // Should have primitive types (FHIR names, not FHIRPath system names)
+      const stringType = completions.find((c) => c.label === "string");
       expect(stringType).toBeDefined();
       expect(stringType?.kind).toBe(CompletionKind.Type);
 
-      const integerType = completions.find((c) => c.label === "Integer");
+      const integerType = completions.find((c) => c.label === "integer");
       expect(integerType).toBeDefined();
 
       // Should have complex types

@@ -510,13 +510,13 @@ describe('FHIR ModelProvider', () => {
       expect(primitiveTypes).toBeDefined();
       expect(primitiveTypes.length).toBeGreaterThan(0);
       
-      // Check for FHIRPath type names (mapped from FHIR primitives)
-      expect(primitiveTypes).toContain('String');
-      expect(primitiveTypes).toContain('Integer');
-      expect(primitiveTypes).toContain('Boolean');
-      expect(primitiveTypes).toContain('Date');
-      expect(primitiveTypes).toContain('DateTime');
-      expect(primitiveTypes).toContain('Decimal');
+      // Check for FHIR primitive type names
+      expect(primitiveTypes).toContain('string');
+      expect(primitiveTypes).toContain('integer');
+      expect(primitiveTypes).toContain('boolean');
+      expect(primitiveTypes).toContain('date');
+      expect(primitiveTypes).toContain('dateTime');
+      expect(primitiveTypes).toContain('decimal');
     });
   });
 

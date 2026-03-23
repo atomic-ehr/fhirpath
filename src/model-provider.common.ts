@@ -81,30 +81,6 @@ export class FHIRModelProviderBase implements ModelProvider<FHIRModelContext> {
     'Count': 'Quantity'
   };
   
-  // Map FHIR primitive names to FHIRPath type names
-  private readonly primitiveTypeMapping: Record<string, string> = {
-    'boolean': 'Boolean',
-    'string': 'String',
-    'integer': 'Integer',
-    'decimal': 'Decimal',
-    'date': 'Date',
-    'dateTime': 'DateTime',
-    'time': 'Time',
-    'instant': 'Instant',
-    'base64Binary': 'Base64Binary',
-    'uri': 'Uri',
-    'url': 'Url',
-    'canonical': 'Canonical',
-    'code': 'Code',
-    'oid': 'Oid',
-    'id': 'Id',
-    'markdown': 'Markdown',
-    'unsignedInt': 'UnsignedInt',
-    'positiveInt': 'PositiveInt',
-    'uuid': 'Uuid',
-    'xhtml': 'Xhtml'
-  };
-  
   constructor() {
     if (this.constructor === FHIRModelProviderBase) {
       throw new Error("FHIRModelProviderBase can't be instantiated directly.");
@@ -664,9 +640,7 @@ export class FHIRModelProviderBase implements ModelProvider<FHIRModelContext> {
       .map(r => (r as unknown as StructureDefinition).name)
       .filter((name): name is string => !!name);
     
-    this.primitiveTypesCache = fhirPrimitives
-      .map(name => this.primitiveTypeMapping[name] || name)
-      .sort();
+    this.primitiveTypesCache = fhirPrimitives.sort();
       
     return this.primitiveTypesCache || [];
   }
