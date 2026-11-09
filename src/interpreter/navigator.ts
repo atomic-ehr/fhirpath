@@ -48,7 +48,7 @@ async function reboxResource(
   return box(value, resourceTypeInfo);
 }
 
-// Type suffixes allowed for FHIR choice elements (value[x] etc.) across DSTU2-R5.
+// Type suffixes allowed for FHIR choice elements (value[x] etc.) across DSTU2-R6.
 const CHOICE_TYPE_SUFFIXES: ReadonlySet<string> = new Set([
   'Base64Binary', 'Boolean', 'Canonical', 'Code', 'Date', 'DateTime', 'Decimal',
   'Id', 'Instant', 'Integer', 'Integer64', 'Markdown', 'Oid', 'PositiveInt',
@@ -58,8 +58,9 @@ const CHOICE_TYPE_SUFFIXES: ReadonlySet<string> = new Set([
   'Count', 'DataRequirement', 'Distance', 'Dosage', 'Duration', 'ElementDefinition',
   'Expression', 'ExtendedContactDetail', 'HumanName', 'Identifier', 'Meta',
   'MonetaryComponent', 'Money', 'ParameterDefinition', 'Period', 'Quantity',
-  'Range', 'Ratio', 'RatioRange', 'Reference', 'RelatedArtifact', 'SampledData',
-  'Signature', 'Timing', 'TriggerDefinition', 'UsageContext', 'VirtualServiceDetail',
+  'Range', 'Ratio', 'RatioRange', 'Reference', 'RelatedArtifact', 'RelativeTime',
+  'SampledData', 'Signature', 'Timing', 'TriggerDefinition', 'UsageContext',
+  'VirtualServiceDetail',
 ]);
 
 async function detectChoiceValues(

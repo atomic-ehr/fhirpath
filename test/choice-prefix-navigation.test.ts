@@ -36,5 +36,8 @@ describe('navigation does not treat same-prefix siblings as choice types', () =>
     expect(await evaluate('Observation.value.value', {input})).toEqual([5]);
     const timing = {repeat: {boundsDuration: {value: 2}, period: 1}};
     expect(await evaluate('repeat.bounds.value', {input: timing})).toEqual([2]);
+    // R6 PlanDefinition.action.timing[x] allows RelativeTime
+    const action = {timingRelativeTime: {contextPath: 'x', offsetDuration: {value: 1, unit: 'd'}}};
+    expect(await evaluate('timing.offset.value', {input: action})).toEqual([1]);
   });
 });
