@@ -48,13 +48,33 @@ async function reboxResource(
   return box(value, resourceTypeInfo);
 }
 
+// Type suffixes allowed for FHIR choice elements (value[x] etc.) across DSTU2-R5.
+const CHOICE_TYPE_SUFFIXES: ReadonlySet<string> = new Set([
+  'Base64Binary', 'Boolean', 'Canonical', 'Code', 'Date', 'DateTime', 'Decimal',
+  'Id', 'Instant', 'Integer', 'Integer64', 'Markdown', 'Oid', 'PositiveInt',
+  'String', 'Time', 'UnsignedInt', 'Uri', 'Url', 'Uuid',
+  'Address', 'Age', 'Annotation', 'Attachment', 'Availability', 'CodeableConcept',
+  'CodeableReference', 'Coding', 'ContactDetail', 'ContactPoint', 'Contributor',
+  'Count', 'DataRequirement', 'Distance', 'Dosage', 'Duration', 'ElementDefinition',
+  'Expression', 'ExtendedContactDetail', 'HumanName', 'Identifier', 'Meta',
+  'MonetaryComponent', 'Money', 'ParameterDefinition', 'Period', 'Quantity',
+  'Range', 'Ratio', 'RatioRange', 'Reference', 'RelatedArtifact', 'SampledData',
+  'Signature', 'Timing', 'TriggerDefinition', 'UsageContext', 'VirtualServiceDetail',
+]);
+
 async function detectChoiceValues(
   item: Record<string, unknown>,
   base: string,
   modelProvider?: ModelProvider
 ): Promise<ChoiceHit[]> {
-  // Detect properties like baseXxx where Xxx is a type suffix
-  const possible = Object.keys(item).filter((k) => k.startsWith(base) && k !== base && k.length > base.length);
+  // An exact key always wins over choice-type resolution (e.g. period vs periodUnit)
+  if (Object.prototype.hasOwnProperty.call(item, base)) {
+    return [];
+  }
+  // Detect properties like baseXxx where Xxx is a FHIR type suffix
+  const possible = Object.keys(item).filter(
+    (k) => k.startsWith(base) && CHOICE_TYPE_SUFFIXES.has(k.substring(base.length)),
+  );
   if (possible.length === 0) {
     return [];
   }
