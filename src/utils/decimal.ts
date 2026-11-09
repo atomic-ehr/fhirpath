@@ -58,19 +58,56 @@ export function normalizeDecimalResult(result: number, leftOperand: number, righ
   return roundToDecimalPlaces(result, Math.min(maxPrecision, 8));
 }
 
-/**
- * Normalize a decimal for modulo operation
- * Modulo has special precision rules
- */
-export function normalizeModuloResult(result: number, leftOperand: number, rightOperand: number): number {
-  // If result is effectively an integer, return it as is
-  if (Number.isInteger(result)) {
-    return result;
+const TEN = BigInt(10);
+const ZERO = BigInt(0);
+
+// Exact decimal digits of a finite number (shortest round-trip form) as an integer and a scale
+function toScaled(n: number): { digits: bigint; scale: number } {
+  const [mantissa = '0', exponent = '0'] = String(n).split('e');
+  const [whole = '0', fraction = ''] = mantissa.split('.');
+  const scale = fraction.length - Number(exponent);
+  const digits = BigInt(whole + fraction);
+  return scale >= 0 ? { digits, scale } : { digits: digits * TEN ** BigInt(-scale), scale: 0 };
+}
+
+function fromScaled(digits: bigint, scale: number): number {
+  if (scale === 0) {
+    return Number(digits);
   }
-  
-  // For modulo, use the precision of the divisor (right operand)
-  const rightPlaces = getDecimalPlaces(rightOperand);
-  
-  // Round to the appropriate precision
-  return roundToDecimalPlaces(result, Math.min(rightPlaces, 8));
+  const abs = (digits < ZERO ? -digits : digits).toString().padStart(scale + 1, '0');
+  return Number(`${digits < ZERO ? '-' : ''}${abs.slice(0, -scale)}.${abs.slice(-scale)}`);
+}
+
+/**
+ * Truncated division (quotient rounded toward zero) and its remainder (sign of the dividend),
+ * computed exactly on the decimal values instead of their binary approximations,
+ * e.g. 0.3 mod 0.1 = 0 and 0.3 div 0.1 = 3. The divisor must be non-zero.
+ */
+export function truncatedDivMod(left: number, right: number): { quotient: number; remainder: number } {
+  const a = toScaled(left);
+  const b = toScaled(right);
+  const scale = Math.max(a.scale, b.scale);
+  const dividend = a.digits * TEN ** BigInt(scale - a.scale);
+  const divisor = b.digits * TEN ** BigInt(scale - b.scale);
+  return { quotient: Number(dividend / divisor), remainder: fromScaled(dividend % divisor, scale) };
+}
+
+export function isFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value);
+}
+
+export type NumericTypeName = 'Integer' | 'Long' | 'Decimal';
+
+/**
+ * Result type of an arithmetic operation: the type of the operands after implicit
+ * conversion (Integer -> Long -> Decimal). Falls back to the value when the type is unknown.
+ */
+export function numericResultType(
+  left: { type?: string; value: number },
+  right: { type?: string; value: number }
+): NumericTypeName {
+  const typeOf = ({ type, value }: { type?: string; value: number }): NumericTypeName =>
+    type === 'Integer' || type === 'Long' || type === 'Decimal' ? type : Number.isInteger(value) ? 'Integer' : 'Decimal';
+  const types = [typeOf(left), typeOf(right)];
+  return types.includes('Decimal') ? 'Decimal' : types.includes('Long') ? 'Long' : 'Integer';
 }

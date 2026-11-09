@@ -29,6 +29,340 @@
         "mod",
         "operator:mod"
       ]
+    },
+    {
+      "name": "decimal - remainder keeps the decimal places of the dividend",
+      "expression": "7.5 mod 2",
+      "input": [],
+      "expected": [
+        1.5
+      ],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "mod",
+        "operator:mod",
+        "decimal"
+      ]
+    },
+    {
+      "name": "decimal - integer divisor",
+      "expression": "1.5 mod 1",
+      "input": [],
+      "expected": [
+        0.5
+      ],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "mod",
+        "operator:mod",
+        "decimal"
+      ]
+    },
+    {
+      "name": "decimal - whole-number check rejects a fraction",
+      "expression": "1.3 mod 1 = 0",
+      "input": [],
+      "expected": [
+        false
+      ],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "mod",
+        "operator:mod",
+        "decimal"
+      ]
+    },
+    {
+      "name": "decimal - two decimal places with integer divisor",
+      "expression": "2.25 mod 1",
+      "input": [],
+      "expected": [
+        0.25
+      ],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "mod",
+        "operator:mod",
+        "decimal"
+      ]
+    },
+    {
+      "name": "decimal - dividend with more decimal places than divisor",
+      "expression": "0.75 mod 0.5",
+      "input": [],
+      "expected": [
+        0.25
+      ],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "mod",
+        "operator:mod",
+        "decimal"
+      ]
+    },
+    {
+      "name": "decimal - small divisor",
+      "expression": "10.125 mod 0.1",
+      "input": [],
+      "expected": [
+        0.025
+      ],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "mod",
+        "operator:mod",
+        "decimal"
+      ]
+    },
+    {
+      "name": "decimal - exact zero remainder (0.3 mod 0.1)",
+      "expression": "0.3 mod 0.1",
+      "input": [],
+      "expected": [
+        0
+      ],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "mod",
+        "operator:mod",
+        "decimal"
+      ]
+    },
+    {
+      "name": "decimal - exact zero remainder (1.0 mod 0.1)",
+      "expression": "1.0 mod 0.1",
+      "input": [],
+      "expected": [
+        0
+      ],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "mod",
+        "operator:mod",
+        "decimal"
+      ]
+    },
+    {
+      "name": "negative decimal dividend - remainder has the sign of the dividend",
+      "expression": "(-5.5) mod 2",
+      "input": [],
+      "expected": [
+        -1.5
+      ],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "mod",
+        "operator:mod",
+        "decimal"
+      ]
+    },
+    {
+      "name": "negative integer dividend - remainder has the sign of the dividend",
+      "expression": "(-7) mod 2",
+      "input": [],
+      "expected": [
+        -1
+      ],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "mod",
+        "operator:mod"
+      ]
+    },
+    {
+      "name": "result type - decimal operand gives Decimal",
+      "expression": "(1.0 mod 1) is Decimal",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "mod",
+        "operator:mod",
+        "decimal",
+        "type"
+      ]
+    },
+    {
+      "name": "result type - integer operands give Integer",
+      "expression": "(5 mod 2) is Integer",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "mod",
+        "operator:mod",
+        "type"
+      ]
+    },
+    {
+      "name": "testMod6 - negative decimal dividend",
+      "expression": "-5.5 mod 2 = -1.5",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "mod",
+        "operator:mod",
+        "decimal",
+        "fhir-test-cases"
+      ]
+    },
+    {
+      "name": "testMod7 - decimal mod zero",
+      "expression": "5.5 mod 0",
+      "input": [],
+      "expected": [],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "mod",
+        "operator:mod",
+        "decimal",
+        "fhir-test-cases"
+      ]
+    },
+    {
+      "name": "testMod8 - integer mod decimal zero",
+      "expression": "5 mod 0.0",
+      "input": [],
+      "expected": [],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "mod",
+        "operator:mod",
+        "decimal",
+        "fhir-test-cases"
+      ]
+    },
+    {
+      "name": "testMod9 - decimal zero mod zero",
+      "expression": "0.0 mod 0",
+      "input": [],
+      "expected": [],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "mod",
+        "operator:mod",
+        "decimal",
+        "fhir-test-cases"
+      ]
+    },
+    {
+      "name": "testModDecimal1 - specification example",
+      "expression": "5.5 mod 0.7 = 0.6",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "mod",
+        "operator:mod",
+        "decimal",
+        "fhir-test-cases"
+      ]
+    },
+    {
+      "name": "testModDecimal2 - remainder has the sign of the dividend",
+      "expression": "-5.5 mod 0.7 = -0.6",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "mod",
+        "operator:mod",
+        "decimal",
+        "fhir-test-cases"
+      ]
+    },
+    {
+      "name": "testModDecimal3 - quotient 1.5 is truncated to 1",
+      "expression": "0.75 mod 0.5 = 0.25",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "mod",
+        "operator:mod",
+        "decimal",
+        "fhir-test-cases"
+      ]
+    },
+    {
+      "name": "testModDecimal4 - remainder is not rounded to the precision of the operands",
+      "expression": "7.5 mod 2 = 1.5",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "mod",
+        "operator:mod",
+        "decimal",
+        "fhir-test-cases"
+      ]
+    },
+    {
+      "name": "testModDecimal5 - decimal zero remainder equals integer 0",
+      "expression": "1.0 mod 1 = 0",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "mod",
+        "operator:mod",
+        "decimal",
+        "fhir-test-cases"
+      ]
+    },
+    {
+      "name": "testModDecimal6 - decimal zero remainder equals 0.0",
+      "expression": "1.5 mod 0.5 = 0.0",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "mod",
+        "operator:mod",
+        "decimal",
+        "fhir-test-cases"
+      ]
     }
   ]
 }
