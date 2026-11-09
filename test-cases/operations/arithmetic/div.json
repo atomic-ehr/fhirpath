@@ -58,6 +58,188 @@
         "div",
         "operator:div"
       ]
+    },
+    {
+      "name": "truncated division - negative integer dividend rounds toward zero",
+      "expression": "(-5) div 2",
+      "input": [],
+      "expected": [
+        -2
+      ],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "div",
+        "operator:div"
+      ]
+    },
+    {
+      "name": "truncated division - negative integer dividend (-7 div 2)",
+      "expression": "(-7) div 2",
+      "input": [],
+      "expected": [
+        -3
+      ],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "div",
+        "operator:div"
+      ]
+    },
+    {
+      "name": "truncated division - negative decimal dividend rounds toward zero",
+      "expression": "(-5.5) div 2",
+      "input": [],
+      "expected": [
+        -2
+      ],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "div",
+        "operator:div",
+        "decimal"
+      ]
+    },
+    {
+      "name": "decimal - exact quotient (0.3 div 0.1)",
+      "expression": "0.3 div 0.1",
+      "input": [],
+      "expected": [
+        3
+      ],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "div",
+        "operator:div",
+        "decimal"
+      ]
+    },
+    {
+      "name": "decimal - exact quotient (1.0 div 0.1)",
+      "expression": "1.0 div 0.1",
+      "input": [],
+      "expected": [
+        10
+      ],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "div",
+        "operator:div",
+        "decimal"
+      ]
+    },
+    {
+      "name": "result type - decimal operands give Decimal",
+      "expression": "(5.5 div 0.7) is Decimal",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "div",
+        "operator:div",
+        "decimal",
+        "type"
+      ]
+    },
+    {
+      "name": "result type - integer operands give Integer",
+      "expression": "(5 div 2) is Integer",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "div",
+        "operator:div",
+        "type"
+      ]
+    },
+    {
+      "name": "testDiv6 - negative decimal dividend",
+      "expression": "-5.5 div 2 = -2",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "div",
+        "operator:div",
+        "decimal",
+        "fhir-test-cases"
+      ]
+    },
+    {
+      "name": "testDiv7 - zero div decimal zero",
+      "expression": "0 div 0.0",
+      "input": [],
+      "expected": [],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "div",
+        "operator:div",
+        "decimal",
+        "fhir-test-cases"
+      ]
+    },
+    {
+      "name": "testDivDecimal1 - specification example",
+      "expression": "5.5 div 0.7 = 7",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "div",
+        "operator:div",
+        "decimal",
+        "fhir-test-cases"
+      ]
+    },
+    {
+      "name": "testDivDecimal2 - truncation is toward zero",
+      "expression": "-5.5 div 0.7 = -7",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "div",
+        "operator:div",
+        "decimal",
+        "fhir-test-cases"
+      ]
+    },
+    {
+      "name": "testDivDecimal3 - quotient 1.5 is truncated to 1",
+      "expression": "0.75 div 0.5 = 1",
+      "input": [],
+      "expected": [
+        true
+      ],
+      "tags": [
+        "operator",
+        "arithmetic",
+        "div",
+        "operator:div",
+        "decimal",
+        "fhir-test-cases"
+      ]
     }
   ]
 }

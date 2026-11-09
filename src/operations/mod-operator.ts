@@ -2,7 +2,7 @@ import type { OperatorDefinition } from '../types';
 import { PRECEDENCE } from '../types';
 import type { OperationEvaluator } from '../types';
 import { box, unbox } from '../interpreter/boxing';
-import { normalizeModuloResult } from '../utils/decimal';
+import { isFiniteNumber, numericResultType, truncatedDivMod } from '../utils/decimal';
 
 export const evaluate: OperationEvaluator = async (input, context, left, right) => {
   if (left.length === 0 || right.length === 0) {
@@ -18,21 +18,17 @@ export const evaluate: OperationEvaluator = async (input, context, left, right) 
   const leftValue = unbox(boxedLeft);
   const rightValue = unbox(boxedRight);
   
-  if (rightValue === 0) {
+  if (!isFiniteNumber(leftValue) || !isFiniteNumber(rightValue) || rightValue === 0) {
     return { value: [], context };
   }
   
-  let result = (leftValue as any) % (rightValue as any);
+  const { remainder } = truncatedDivMod(leftValue, rightValue);
+  const type = numericResultType(
+    { type: boxedLeft.typeInfo?.type, value: leftValue },
+    { type: boxedRight.typeInfo?.type, value: rightValue }
+  );
   
-  // Normalize decimal result to handle floating point precision issues
-  if (!Number.isInteger(leftValue) || !Number.isInteger(rightValue)) {
-    result = normalizeModuloResult(result, leftValue as number, rightValue as number);
-  }
-  
-  // Determine result type based on input types
-  const resultType = Number.isInteger(leftValue) && Number.isInteger(rightValue) ? 'Integer' : 'Decimal';
-  
-  return { value: [box(result, { type: resultType, singleton: true })], context };
+  return { value: [box(remainder, { type, singleton: true })], context };
 };
 
 export const modOperator: OperatorDefinition & { evaluate: OperationEvaluator } = {
@@ -41,8 +37,8 @@ export const modOperator: OperatorDefinition & { evaluate: OperationEvaluator } 
   category: ['arithmetic'],
   precedence: PRECEDENCE.MULTIPLICATIVE,
   associativity: 'left',
-  description: 'Computes the remainder of the truncated division of its arguments. Supported for Integer and Decimal types. Division by zero returns empty.',
-  examples: ['5 mod 2', '5.5 mod 0.7', '5 mod 0'],
+  description: 'Computes the remainder of the truncated division of its arguments (sign of the dividend). Supported for Integer, Long and Decimal; the result has the type of the operands after implicit conversion. Division by zero returns empty.',
+  examples: ['5 mod 2', '5.5 mod 0.7', '-5.5 mod 2', '5 mod 0'],
   signatures: [
     {
       name: 'integer-mod',
